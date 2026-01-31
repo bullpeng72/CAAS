@@ -49,6 +49,17 @@ class ComprehensiveValidationResult:
         return all(checks) if checks else True
 
     @property
+    def needs_fixing(self) -> bool:
+        """Check if any validation requires fixing."""
+        # CRITICAL FIX: Added needs_fixing property to prevent AttributeError
+        # at collaboration.py:190
+        if self.golden_result:
+            return self.golden_result.needs_fixing
+
+        # If no golden validation, check if there are any issues
+        return self.total_issues > 0
+
+    @property
     def total_issues(self) -> int:
         """Get total number of issues across all validators."""
         count = 0

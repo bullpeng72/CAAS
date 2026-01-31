@@ -397,6 +397,11 @@ CRITICAL REQUIREMENT: You MUST generate code using the CrewAI framework.
         agents_data = ObjectAccessor.to_dict_list(agents)
         tasks_data = ObjectAccessor.to_dict_list(tasks)
 
+        # CRITICAL FIX: Remove tools from agents since tools.py is not generated
+        # This prevents NameError when agents reference undefined tool names
+        for agent in agents_data:
+            agent['tools'] = []
+
         # Use AST-based code generation for Python files
         main_py = self._generate_main_file_ast(agents_data, tasks_data)
         agents_py = self._generate_agents_file_ast(agents_data)
