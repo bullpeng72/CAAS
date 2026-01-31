@@ -397,10 +397,16 @@ CRITICAL REQUIREMENT: You MUST generate code using the CrewAI framework.
         agents_data = ObjectAccessor.to_dict_list(agents)
         tasks_data = ObjectAccessor.to_dict_list(tasks)
 
-        # CRITICAL FIX: Remove tools from agents since tools.py is not generated
-        # This prevents NameError when agents reference undefined tool names
+        # Extract all unique tools from agents for tools.py generation
+        all_tools = set()
         for agent in agents_data:
-            agent['tools'] = []
+            if agent.get('tools'):
+                all_tools.update(agent['tools'])
+
+        # Generate tools.py if tools are present
+        tools_py = None
+        if all_tools:
+            tools_py = self._generate_tools_file_fallback(all_tools)
 
         # Use AST-based code generation for Python files
         main_py = self._generate_main_file_ast(agents_data, tasks_data)
@@ -412,15 +418,22 @@ CRITICAL REQUIREMENT: You MUST generate code using the CrewAI framework.
         readme_md = self._generate_readme_file()
         env_example = self._generate_env_file()
 
+        # Build files dict
+        files_dict = {
+            "main.py": main_py,
+            "agents.py": agents_py,
+            "tasks.py": tasks_py,
+            "requirements.txt": requirements_txt,
+            "README.md": readme_md,
+            ".env.example": env_example
+        }
+
+        # Add tools.py if generated
+        if tools_py:
+            files_dict["tools.py"] = tools_py
+
         return {
-            "files": {
-                "main.py": main_py,
-                "agents.py": agents_py,
-                "tasks.py": tasks_py,
-                "requirements.txt": requirements_txt,
-                "README.md": readme_md,
-                ".env.example": env_example
-            }
+            "files": files_dict
         }
 
     def _select_process(
@@ -786,6 +799,104 @@ OPENAI_API_KEY=your_openai_api_key_here
 # CREW_VERBOSE=True
 '''
 
+    def _generate_tools_file_fallback(self, tools: set) -> str:
+        """
+        Generate tools.py file with fallback stub implementations.
+
+        Args:
+            tools: Set of tool names (e.g., {'file_read', 'file_write', 'web_search'})
+
+        Returns:
+            Python code for tools.py with CrewAI tool implementations
+        """
+        import logging
+        logger = logging.getLogger(__name__)
+
+        logger.info(f"Generating tools.py with {len(tools)} tools: {', '.join(tools)}")
+
+        # Sanitize tool names to valid Python class names
+        def sanitize_tool_name(name: str) -> str:
+            """Convert tool name to PascalCase class name"""
+            # Remove special characters and split by underscore
+            parts = name.replace('-', '_').split('_')
+            # Capitalize each part
+            class_name = ''.join(word.capitalize() for word in parts if word)
+            # Ensure it ends with 'Tool'
+            if not class_name.endswith('Tool'):
+                class_name += 'Tool'
+            return class_name
+
+        # Start with imports and module docstring
+        code = '''"""
+Custom Tools for CrewAI Agents
+
+This file contains tool implementations for the multi-agent system.
+Each tool provides specific capabilities to agents.
+"""
+
+from crewai.tools import BaseTool
+from typing import Type, Any, Optional
+from pydantic import BaseModel, Field
+
+
+'''
+
+        # Generate a tool class for each tool
+        for tool_name in sorted(tools):
+            class_name = sanitize_tool_name(tool_name)
+
+            # Create tool implementation
+            code += f'''
+class {class_name}(BaseTool):
+    """
+    {tool_name.replace('_', ' ').title()} Tool
+
+    Provides {tool_name.replace('_', ' ')} capabilities to agents.
+    """
+    name: str = "{tool_name}"
+    description: str = "Tool for {tool_name.replace('_', ' ')} operations"
+
+    def _run(self, query: str) -> str:
+        """
+        Execute the tool.
+
+        Args:
+            query: Input query or parameters for the tool
+
+        Returns:
+            Result of the tool execution
+        """
+        # TODO: Implement actual {tool_name} logic here
+        # This is a stub implementation
+
+        return f"{{self.name}} executed with query: {{query}}"
+
+
+'''
+
+        # Add convenience function to get all tools
+        tool_classes = [sanitize_tool_name(t) for t in sorted(tools)]
+        tool_list_str = ',\n        '.join(f'{cls}()' for cls in tool_classes)
+
+        code += f'''
+# Export all tools
+def get_all_tools():
+    """Get list of all available tool instances."""
+    return [
+        {tool_list_str}
+    ]
+
+
+# Individual tool instances for easy import
+'''
+
+        # Add individual tool instances
+        for tool_name in sorted(tools):
+            class_name = sanitize_tool_name(tool_name)
+            code += f'{tool_name} = {class_name}()\n'
+
+        return code
+
     def _generate_main_file_ast(self, agents: List[Dict], tasks: List[Dict]) -> str:
         """Generate main.py file using AST-based code generation."""
         from caas_framework.codegen.ast_code_generator import ASTCodeGenerator
@@ -937,6 +1048,23 @@ OPENAI_API_KEY=your_openai_api_key_here
                 level=0
             )
         ]
+
+        # Add tools import if tools are used
+        if tools_map:
+            # Collect all unique tool names
+            all_tools = set()
+            for tool_list in tools_map.values():
+                all_tools.update(tool_list)
+
+            # Create import: from tools import tool1, tool2, ...
+            imports.append(
+                ast.ImportFrom(
+                    module='tools',
+                    names=[ast.alias(name=tool, asname=None) for tool in sorted(all_tools)],
+                    level=0
+                )
+            )
+
         module_body.extend(imports)
 
         # Parse and add create_agents function
