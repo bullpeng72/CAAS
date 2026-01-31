@@ -1,0 +1,290 @@
+# {{ metadata.title }}
+
+**버전**: {{ metadata.version }}
+**작성일**: {{ metadata.created_at | datetime("%Y년 %m월 %d일") }}
+**작성자**: {{ metadata.created_by }}
+
+---
+
+## 1. 문서 개요
+
+### 1.1 목적
+본 문서는 프로젝트의 요구사항을 상세히 정의하고 명세합니다.
+
+### 1.2 범위
+기능 요구사항(Functional Requirements)과 비기능 요구사항(Non-functional Requirements)을 포함합니다.
+
+### 1.3 대상 독자
+- 개발팀
+- 프로젝트 매니저
+- 품질 보증팀
+- 이해관계자
+
+---
+
+## 2. 원본 요구사항
+
+> {{ requirement }}
+
+---
+
+## 3. 분석된 요구사항 (Golden Data)
+
+{% if golden_data %}
+
+### 3.1 프로젝트 목표
+{{ golden_data.objective or "목표 정의 중" }}
+
+{% if golden_data.domain %}
+### 3.2 도메인 분류
+- **도메인**: {{ golden_data.domain }}
+- **도메인 타입**: {{ golden_data.domain_type or "N/A" }}
+{% endif %}
+
+### 3.3 핵심 엔티티
+{% if golden_data.entities %}
+{% for entity in golden_data.entities %}
+- **{{ entity.name }}**: {{ entity.description }}
+{% endfor %}
+{% else %}
+엔티티 정의 필요
+{% endif %}
+
+---
+
+## 4. 기능 요구사항 (Functional Requirements)
+
+{% if golden_data.functional_requirements %}
+{% for req in golden_data.functional_requirements %}
+
+### FR-{{ loop.index }}: {{ req.title or req.category or "기능" }}
+
+**ID**: FR-{{ "%03d" | format(loop.index) }}
+
+**설명**: {{ req.description }}
+
+**우선순위**: {{ req.priority or "중" }}
+
+**수용 기준** (Acceptance Criteria):
+{% if req.acceptance_criteria %}
+{% for criteria in req.acceptance_criteria %}
+- {{ criteria }}
+{% endfor %}
+{% else %}
+- 기능이 정상적으로 동작해야 함
+- 에러 없이 완료되어야 함
+{% endif %}
+
+**관련 에이전트**: {{ req.related_agents | join(", ") if req.related_agents else "TBD" }}
+
+---
+
+{% endfor %}
+{% else %}
+
+### FR-001: 기본 기능
+
+**설명**: 요구사항에서 도출된 기본 기능
+
+**우선순위**: 높음
+
+**수용 기준**:
+- 사용자 요구사항을 충족해야 함
+
+---
+
+{% endif %}
+
+---
+
+## 5. 비기능 요구사항 (Non-functional Requirements)
+
+{% if golden_data.non_functional_requirements %}
+{% for category, requirements in golden_data.non_functional_requirements.items() %}
+
+### NFR-{{ loop.index }}: {{ category | capitalize }}
+
+**ID**: NFR-{{ "%03d" | format(loop.index) }}
+
+**설명**:
+{% if requirements is iterable and requirements is not string %}
+{% for req in requirements %}
+- {{ req }}
+{% endfor %}
+{% else %}
+- {{ requirements }}
+{% endif %}
+
+---
+
+{% endfor %}
+{% else %}
+
+### NFR-001: 성능
+
+**설명**: 시스템 응답 시간이 적절해야 함
+
+**측정 기준**:
+- 평균 응답 시간 < 10초
+- 95 percentile < 30초
+
+---
+
+### NFR-002: 신뢰성
+
+**설명**: 시스템이 안정적으로 동작해야 함
+
+**측정 기준**:
+- 에러율 < 5%
+- 가용성 > 99%
+
+---
+
+### NFR-003: 유지보수성
+
+**설명**: 코드가 읽기 쉽고 유지보수가 용이해야 함
+
+**측정 기준**:
+- 코드 커버리지 > 80%
+- 코드 복잡도 < 10
+
+---
+
+{% endif %}
+
+---
+
+## 6. 사용자 스토리
+
+{% if golden_data.user_stories %}
+{% for story in golden_data.user_stories %}
+
+### US-{{ loop.index }}: {{ story.title }}
+
+**As a** {{ story.role or "사용자" }},
+**I want** {{ story.want or "기능을 사용하고 싶다" }},
+**So that** {{ story.so_that or "목적을 달성할 수 있다" }}.
+
+**수용 기준**:
+{% if story.acceptance_criteria %}
+{% for criteria in story.acceptance_criteria %}
+- [ ] {{ criteria }}
+{% endfor %}
+{% else %}
+- [ ] 스토리가 완료되어야 함
+{% endif %}
+
+---
+
+{% endfor %}
+{% else %}
+
+### US-001: 기본 사용자 스토리
+
+**As a** 사용자,
+**I want** 시스템을 사용하고 싶다,
+**So that** 업무를 효율적으로 처리할 수 있다.
+
+**수용 기준**:
+- [ ] 요구사항이 충족되어야 함
+
+---
+
+{% endif %}
+
+---
+
+## 7. 제약 사항
+
+{% if golden_data.constraints %}
+{% for constraint in golden_data.constraints %}
+- **{{ constraint.type or "제약" }}**: {{ constraint.description }}
+{% endfor %}
+{% else %}
+- **기술**: Python 3.10+, CrewAI 프레임워크 사용
+- **환경**: OpenAI API 사용 필수
+- **성능**: LLM API 호출 비용 고려
+{% endif %}
+
+---
+
+## 8. 가정 사항
+
+{% if golden_data.assumptions %}
+{% for assumption in golden_data.assumptions %}
+- {{ assumption }}
+{% endfor %}
+{% else %}
+- OpenAI API 키가 제공됨
+- 인터넷 연결 가능
+- Python 실행 환경 준비됨
+{% endif %}
+
+---
+
+## 9. 의존성
+
+### 9.1 외부 시스템
+{% if golden_data.external_systems %}
+{% for system in golden_data.external_systems %}
+- **{{ system.name }}**: {{ system.description }}
+{% endfor %}
+{% else %}
+- OpenAI API
+- 필요시 추가 API 서비스
+{% endif %}
+
+### 9.2 필수 도구
+{% if golden_data.required_tools %}
+{% for tool in golden_data.required_tools %}
+- {{ tool }}
+{% endfor %}
+{% else %}
+- web_search
+- file_read
+- file_write
+{% endif %}
+
+---
+
+## 10. 요구사항 추적표
+
+| ID | 요구사항 | 타입 | 우선순위 | 상태 |
+|----|----------|------|----------|------|
+{% if golden_data.functional_requirements %}
+{% for req in golden_data.functional_requirements %}
+| FR-{{ "%03d" | format(loop.index) }} | {{ (req.title or req.category or "기능")[:30] }} | 기능 | {{ req.priority or "중" }} | 정의됨 |
+{% endfor %}
+{% else %}
+| FR-001 | 기본 기능 | 기능 | 높음 | 정의됨 |
+{% endif %}
+
+---
+
+## 11. 승인
+
+| 역할 | 이름 | 검토일 | 서명 |
+|------|------|--------|------|
+| 비즈니스 분석가 | | | |
+| 기술 리드 | | | |
+| QA 리드 | | | |
+
+---
+
+**문서 이력**
+
+| 버전 | 일자 | 변경 내용 | 작성자 |
+|------|------|-----------|--------|
+| {{ metadata.version }} | {{ metadata.created_at | datetime("%Y-%m-%d") }} | 초안 작성 | {{ metadata.created_by }} |
+
+---
+
+*본 문서는 CAAS (CrewAI Agent Auto-generation System)에 의해 자동 생성되었습니다.*
+
+{% else %}
+
+## 3. 요구사항 분석 필요
+
+Golden Data가 제공되지 않았습니다. 요구사항 분석을 먼저 수행해주세요.
+
+{% endif %}

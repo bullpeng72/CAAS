@@ -1,0 +1,23 @@
+# Include documentation
+include README.md
+include LICENSE
+include CHANGELOG.md
+
+# Include configuration files
+recursive-include caas_framework/config *.yaml *.json
+
+# Include templates
+recursive-include caas_framework/codegen/templates *
+
+# Include ontologies and knowledge base
+recursive-include caas_framework/knowledge/ontologies *
+
+# Exclude development and cache files
+global-exclude __pycache__
+global-exclude *.py[co]
+global-exclude .DS_Store
+global-exclude *.so
+global-exclude .git*
+global-exclude .mypy_cache
+global-exclude .pytest_cache
+global-exclude .ruff_cache

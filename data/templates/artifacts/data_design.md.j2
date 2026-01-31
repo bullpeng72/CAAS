@@ -1,0 +1,236 @@
+# {{ metadata.title }}
+
+**버전**: {{ metadata.version }}
+**작성일**: {{ metadata.created_at | datetime("%Y년 %m월 %d일") }}
+**작성자**: {{ metadata.created_by }}
+
+---
+
+## 1. 문서 개요
+
+### 1.1 목적
+본 문서는 시스템의 데이터 모델과 스키마를 설계합니다.
+
+### 1.2 범위
+- 데이터 엔티티 정의
+- 데이터베이스 스키마
+- 데이터 관계
+- 제약 조건
+
+---
+
+## 2. 데이터 모델 개요
+
+{% if golden_data and golden_data.data_models %}
+
+### 2.1 엔티티 다이어그램
+
+```
+{% for model in golden_data.data_models %}
+┌─────────────────────────┐
+│ {{ model.name or model }}
+├─────────────────────────┤
+{% if model.fields %}
+{% for field in model.fields[:5] %}
+│ {{ field.name }}: {{ field.type }}
+{% endfor %}
+{% endif %}
+└─────────────────────────┘
+{% if not loop.last %}       │{% endif %}
+{% endfor %}
+```
+
+### 2.2 주요 엔티티
+
+{% for model in golden_data.data_models %}
+- **{{ model.name or model }}**: {{ model.description or "데이터 엔티티" }}
+{% endfor %}
+
+{% else %}
+
+기본 데이터 모델이 정의되어 있지 않습니다.
+
+{% endif %}
+
+---
+
+## 3. 엔티티 상세 설계
+
+{% if golden_data and golden_data.data_models %}
+{% for model in golden_data.data_models %}
+
+### 3.{{ loop.index }} {{ model.name or model }}
+
+**설명**: {{ model.description or "데이터 엔티티" }}
+
+**테이블명**: `{{ model.table_name or (model.name | lower) }}`
+
+#### 3.{{ loop.index }}.1 필드 정의
+
+| 필드명 | 타입 | 필수 | 기본값 | 설명 |
+|--------|------|------|--------|------|
+{% if model.fields %}
+{% for field in model.fields %}
+| {{ field.name }} | {{ field.type or "String" }} | {{ "✅" if field.required else "❌" }} | {{ field.default or "NULL" }} | {{ field.description or "-" }} |
+{% endfor %}
+{% else %}
+| id | Integer | ✅ | AUTO | 기본 키 |
+| created_at | DateTime | ✅ | NOW() | 생성 시각 |
+| updated_at | DateTime | ✅ | NOW() | 수정 시각 |
+{% endif %}
+
+#### 3.{{ loop.index }}.2 제약 조건
+
+**Primary Key**: {% if model.primary_key %}{{ model.primary_key }}{% else %}id{% endif %}
+
+**Unique**: {% if model.unique %}{{ model.unique | join(", ") }}{% else %}-{% endif %}
+
+**Foreign Keys**:
+{% if model.foreign_keys %}
+{% for fk in model.foreign_keys %}
+- `{{ fk.field }}` → `{{ fk.references }}`
+{% endfor %}
+{% else %}
+없음
+{% endif %}
+
+**Indexes**:
+{% if model.indexes %}
+{% for index in model.indexes %}
+- {{ index }}
+{% endfor %}
+{% else %}
+- `id` (Primary Key)
+- `created_at`
+{% endif %}
+
+---
+
+{% endfor %}
+{% endif %}
+
+---
+
+## 4. 데이터 관계
+
+### 4.1 관계 다이어그램
+
+{% if data_relationships %}
+```
+{% for rel in data_relationships %}
+{{ rel.from_entity }} {{ rel.relationship_type }} {{ rel.to_entity }}
+{% endfor %}
+```
+{% else %}
+```
+데이터 관계가 정의되지 않았습니다.
+```
+{% endif %}
+
+### 4.2 관계 설명
+
+{% if data_relationships %}
+{% for rel in data_relationships %}
+- **{{ rel.from_entity }}** {{ rel.relationship_type }} **{{ rel.to_entity }}**: {{ rel.description }}
+{% endfor %}
+{% endif %}
+
+---
+
+## 5. 데이터베이스 스키마
+
+### 5.1 DDL (Data Definition Language)
+
+{% if golden_data and golden_data.data_models %}
+{% for model in golden_data.data_models %}
+
+#### {{ model.name or model }}
+
+```sql
+CREATE TABLE {{ model.table_name or (model.name | lower) }} (
+{% if model.fields %}
+{% for field in model.fields %}
+    {{ field.name }} {{ field.db_type or field.type or "VARCHAR(255)" }}{% if field.required %} NOT NULL{% endif %}{% if field.default %} DEFAULT {{ field.default }}{% endif %},
+{% endfor %}
+{% else %}
+    id SERIAL PRIMARY KEY,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+{% endif %}
+    PRIMARY KEY ({{ model.primary_key or "id" }})
+);
+```
+
+{% endfor %}
+{% endif %}
+
+### 5.2 인덱스 생성
+
+```sql
+{% if golden_data and golden_data.data_models %}
+{% for model in golden_data.data_models %}
+-- {{ model.name }} 인덱스
+CREATE INDEX idx_{{ (model.name | lower) }}_created ON {{ model.table_name or (model.name | lower) }} (created_at);
+{% if model.indexes %}
+{% for index in model.indexes %}
+CREATE INDEX idx_{{ (model.name | lower) }}_{{ index }} ON {{ model.table_name or (model.name | lower) }} ({{ index }});
+{% endfor %}
+{% endif %}
+
+{% endfor %}
+{% endif %}
+```
+
+---
+
+## 6. 데이터 검증 규칙
+
+{% if golden_data and golden_data.data_models %}
+{% for model in golden_data.data_models %}
+
+### 6.{{ loop.index }} {{ model.name }} 검증
+
+{% if model.validations %}
+{% for validation in model.validations %}
+- **{{ validation.field }}**: {{ validation.rule }}
+{% endfor %}
+{% else %}
+- 기본 타입 검증 적용
+- 필수 필드 검증
+{% endif %}
+
+{% endfor %}
+{% endif %}
+
+---
+
+## 7. 데이터 보안
+
+### 7.1 민감 데이터 보호
+
+**암호화 필요 필드**:
+- 비밀번호 (bcrypt/argon2)
+- API 키
+- 개인 식별 정보
+
+**접근 제어**:
+- Row-level security (RLS)
+- 역할 기반 접근 제어 (RBAC)
+
+### 7.2 데이터 백업
+
+- 일일 백업
+- 7일 보관
+- 재해 복구 계획
+
+---
+
+**문서 이력**
+
+| 버전 | 일자 | 변경 내용 | 작성자 |
+|------|------|-----------|--------|
+| {{ metadata.version }} | {{ metadata.created_at | datetime("%Y-%m-%d") }} | 초안 작성 | {{ metadata.created_by }} |
+
+---
+
+*본 문서는 CAAS (CrewAI Agent Auto-generation System)에 의해 자동 생성되었습니다.*

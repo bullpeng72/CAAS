@@ -1,0 +1,243 @@
+{
+  "conversational_ai": {
+    "execution_agents": [
+      {
+        "role": "conversation_assistant",
+        "goal": "Engage in natural conversations with users",
+        "skills": ["conversation", "context_understanding", "response_generation"]
+      },
+      {
+        "role": "context_manager",
+        "goal": "Maintain conversation context and history",
+        "skills": ["context_tracking", "memory_management", "relevance_filtering"]
+      },
+      {
+        "role": "intent_classifier",
+        "goal": "Understand user intent from messages",
+        "skills": ["intent_recognition", "sentiment_analysis", "query_understanding"]
+      }
+    ],
+    "avoid_agents": ["frontend_developer", "backend_developer", "data_engineer"],
+    "execution_pattern": "conversational_flow",
+    "description": "Conversational AI system with context-aware responses"
+  },
+  "task_management": {
+    "execution_agents": [
+      {
+        "role": "task_manager",
+        "goal": "Manage tasks (create, update, delete, prioritize)",
+        "skills": ["task_crud", "priority_management", "status_tracking"]
+      },
+      {
+        "role": "reminder_agent",
+        "goal": "Send task reminders and notifications",
+        "skills": ["scheduling", "notification", "deadline_tracking"]
+      },
+      {
+        "role": "task_analyzer",
+        "goal": "Analyze task patterns and suggest improvements",
+        "skills": ["pattern_analysis", "productivity_insights", "recommendation"]
+      }
+    ],
+    "avoid_agents": ["frontend_developer", "backend_developer"],
+    "execution_pattern": "crud_application",
+    "description": "Task management system with CRUD operations and reminders"
+  },
+  "data_analysis": {
+    "execution_agents": [
+      {
+        "role": "data_analyst",
+        "goal": "Analyze datasets and extract insights",
+        "skills": ["data_analysis", "statistics", "insight_generation"]
+      },
+      {
+        "role": "visualization_expert",
+        "goal": "Create meaningful charts and visualizations",
+        "skills": ["data_visualization", "chart_creation", "visual_storytelling"]
+      },
+      {
+        "role": "report_writer",
+        "goal": "Generate analytical reports from data",
+        "skills": ["report_writing", "finding_summarization", "narrative_creation"]
+      }
+    ],
+    "avoid_agents": ["frontend_developer", "backend_developer"],
+    "execution_pattern": "batch_processing",
+    "description": "Data analysis system with visualization and reporting"
+  },
+  "workflow_automation": {
+    "execution_agents": [
+      {
+        "role": "workflow_orchestrator",
+        "goal": "Orchestrate workflow steps and manage execution",
+        "skills": ["workflow_management", "task_orchestration", "dependency_handling"]
+      },
+      {
+        "role": "notification_agent",
+        "goal": "Send notifications (email, Slack, etc.)",
+        "skills": ["email_sending", "slack_integration", "messaging"]
+      },
+      {
+        "role": "integration_agent",
+        "goal": "Connect with external systems and APIs",
+        "skills": ["api_integration", "data_sync", "external_communication"]
+      }
+    ],
+    "avoid_agents": ["frontend_developer", "backend_developer"],
+    "execution_pattern": "event_driven",
+    "description": "Workflow automation with integrations and notifications"
+  },
+  "report_generation": {
+    "execution_agents": [
+      {
+        "role": "report_generator",
+        "goal": "Generate reports from data and templates",
+        "skills": ["report_generation", "template_processing", "document_creation"]
+      },
+      {
+        "role": "data_collector",
+        "goal": "Collect data from various sources",
+        "skills": ["data_collection", "source_aggregation", "data_validation"]
+      }
+    ],
+    "avoid_agents": ["frontend_developer", "backend_developer"],
+    "execution_pattern": "batch_processing",
+    "description": "Report generation system with data collection"
+  },
+  "dashboard": {
+    "execution_agents": [
+      {
+        "role": "metrics_collector",
+        "goal": "Collect and aggregate metrics from sources",
+        "skills": ["metrics_collection", "data_aggregation", "kpi_calculation"]
+      },
+      {
+        "role": "dashboard_updater",
+        "goal": "Update dashboard with latest metrics",
+        "skills": ["dashboard_update", "real_time_refresh", "data_presentation"]
+      }
+    ],
+    "avoid_agents": ["frontend_developer", "backend_developer"],
+    "execution_pattern": "real_time_processing",
+    "description": "Real-time dashboard with metrics collection"
+  },
+  "content_creation": {
+    "execution_agents": [
+      {
+        "role": "content_writer",
+        "goal": "Create high-quality content",
+        "skills": ["writing", "content_creation", "tone_adaptation"]
+      },
+      {
+        "role": "content_editor",
+        "goal": "Edit and improve content quality",
+        "skills": ["editing", "proofreading", "quality_enhancement"]
+      }
+    ],
+    "avoid_agents": ["frontend_developer", "backend_developer"],
+    "execution_pattern": "batch_processing",
+    "description": "Content creation and editing system"
+  },
+  "document_processing": {
+    "execution_agents": [
+      {
+        "role": "document_processor",
+        "goal": "Process and extract information from documents",
+        "skills": ["document_parsing", "text_extraction", "format_conversion"]
+      },
+      {
+        "role": "document_analyzer",
+        "goal": "Analyze document content and structure",
+        "skills": ["content_analysis", "structure_identification", "summarization"]
+      }
+    ],
+    "avoid_agents": ["frontend_developer", "backend_developer"],
+    "execution_pattern": "batch_processing",
+    "description": "Document processing and analysis system"
+  },
+  "knowledge_base": {
+    "execution_agents": [
+      {
+        "role": "knowledge_retriever",
+        "goal": "Search and retrieve relevant knowledge",
+        "skills": ["knowledge_search", "semantic_search", "rag"]
+      },
+      {
+        "role": "answer_generator",
+        "goal": "Generate answers from retrieved knowledge",
+        "skills": ["answer_generation", "context_synthesis", "response_formulation"]
+      }
+    ],
+    "avoid_agents": ["frontend_developer", "backend_developer"],
+    "execution_pattern": "conversational_flow",
+    "description": "Knowledge base with RAG-based Q&A"
+  },
+  "api_integration": {
+    "execution_agents": [
+      {
+        "role": "api_connector",
+        "goal": "Connect and communicate with external APIs",
+        "skills": ["api_calling", "authentication", "error_handling"]
+      },
+      {
+        "role": "data_transformer",
+        "goal": "Transform data between different formats",
+        "skills": ["data_transformation", "format_conversion", "mapping"]
+      }
+    ],
+    "avoid_agents": ["frontend_developer", "backend_developer"],
+    "execution_pattern": "api_orchestration",
+    "description": "API integration with data transformation"
+  },
+  "customer_support": {
+    "execution_agents": [
+      {
+        "role": "support_agent",
+        "goal": "Handle customer inquiries and issues",
+        "skills": ["customer_service", "issue_resolution", "empathy"]
+      },
+      {
+        "role": "ticket_manager",
+        "goal": "Manage support tickets and workflows",
+        "skills": ["ticket_management", "prioritization", "routing"]
+      }
+    ],
+    "avoid_agents": ["frontend_developer", "backend_developer"],
+    "execution_pattern": "conversational_flow",
+    "description": "Customer support system with ticket management"
+  },
+  "e_commerce": {
+    "execution_agents": [
+      {
+        "role": "product_manager",
+        "goal": "Manage product catalog and inventory",
+        "skills": ["product_management", "inventory_tracking", "catalog_update"]
+      },
+      {
+        "role": "order_processor",
+        "goal": "Process orders and manage fulfillment",
+        "skills": ["order_processing", "payment_handling", "fulfillment"]
+      }
+    ],
+    "avoid_agents": ["frontend_developer", "backend_developer"],
+    "execution_pattern": "crud_application",
+    "description": "E-commerce system with product and order management"
+  },
+  "education": {
+    "execution_agents": [
+      {
+        "role": "learning_assistant",
+        "goal": "Assist students with learning",
+        "skills": ["tutoring", "explanation", "question_answering"]
+      },
+      {
+        "role": "assessment_manager",
+        "goal": "Manage quizzes and assessments",
+        "skills": ["quiz_creation", "grading", "feedback_generation"]
+      }
+    ],
+    "avoid_agents": ["frontend_developer", "backend_developer"],
+    "execution_pattern": "conversational_flow",
+    "description": "Educational system with learning assistance and assessment"
+  }
+}

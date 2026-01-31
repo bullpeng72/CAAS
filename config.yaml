@@ -1,0 +1,123 @@
+# CAAS Framework Configuration
+# This file contains application-level settings that are environment-independent
+# For environment-specific or sensitive settings, use .env file
+
+# =============================================================================
+# LLM Configuration
+# =============================================================================
+llm:
+  # Provider and model (can be overridden by LLM_PROVIDER and LLM_MODEL env vars)
+  provider: openai
+  model: gpt-4o-mini
+  temperature: 0.3
+  max_tokens: 4096
+  streaming: true
+
+  # Available models for UI dropdown (dynamically loaded)
+  available_models:
+    openai:
+      - gpt-4o
+      - gpt-4o-mini
+      - gpt-4-turbo
+      - gpt-3.5-turbo
+    anthropic:
+      - claude-3-opus-20240229
+      - claude-3-sonnet-20240229
+      - claude-3-haiku-20240307
+    ollama:
+      - llama3.1:70b
+      - llama3:8b
+      - codellama:13b
+
+# =============================================================================
+# Graph Database Configuration
+# =============================================================================
+graph:
+  # Backend type (embedded, neo4j)
+  backend: embedded
+  # For embedded graph
+  storage_path: ./data/embedded_graph.json
+  # Neo4j settings (when backend=neo4j, overridden by env vars)
+  database: neo4j
+
+# =============================================================================
+# Vector Database Configuration (Optional)
+# =============================================================================
+vectordb:
+  # Uncomment and configure if using vector DB
+  # backend: pinecone  # pinecone, qdrant, chroma
+  # index_name: caas-vectors
+
+# =============================================================================
+# Validation Configuration
+# =============================================================================
+validation:
+  strictness: medium  # low, medium, high
+  auto_fix: true
+  max_fix_iterations: 5
+  confidence_threshold: 0.8
+  enable_golden_data_validation: true
+  enable_ontology_validation: true
+  enable_dependency_validation: true
+
+# =============================================================================
+# Code Generation Configuration
+# =============================================================================
+codegen:
+  output_format: production  # basic, production, enterprise
+  include_tests: true
+  include_docs: true
+  include_deployment: true
+  include_ci_cd: true
+  test_coverage_target: 0.8
+  deployment_target: docker  # docker, kubernetes, terraform
+
+# =============================================================================
+# Workflow Configuration
+# =============================================================================
+workflow:
+  enable_checkpoints: true
+  enable_versioning: true
+  enable_caching: true
+  cache_ttl: 3600  # seconds (1 hour)
+  max_parallel_agents: 5
+
+# =============================================================================
+# Timeouts (seconds)
+# Replaces magic numbers throughout the codebase
+# =============================================================================
+timeouts:
+  # API timeouts
+  health_check: 5.0
+  statistics_api: 3.0
+  api_request: 300
+
+  # LLM timeouts
+  llm_request: 60
+
+  # Version control timeouts
+  version_control_git: 10
+  version_control_commit: 15
+  version_control_push: 30
+
+# =============================================================================
+# UI Configuration (for Streamlit)
+# =============================================================================
+ui:
+  theme: Dark  # Dark, Light
+  show_hints: true
+  expert_mode: false
+  code_editor_theme: monokai
+  auto_save: true
+  auto_checkpoint: true
+  max_feedback_loops: 3
+  progress_verbosity: VERBOSE
+
+# =============================================================================
+# Logging Configuration
+# =============================================================================
+logging:
+  level: INFO  # DEBUG, INFO, WARNING, ERROR
+  format: json  # json, text
+  output: console  # console, file, both
+  log_dir: ./logs

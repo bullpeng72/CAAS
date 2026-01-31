@@ -1,0 +1,114 @@
+"""API client for backend communication."""
+
+import httpx
+from typing import Any, Dict, Optional
+
+
+class APIClient:
+    """Client for communicating with the backend API."""
+
+    def __init__(self, base_url: str = "{{ backend_url }}", timeout: float = 30.0):
+        """Initialize the API client.
+
+        Args:
+            base_url: Base URL of the backend API
+            timeout: Request timeout in seconds
+        """
+        self.base_url = base_url.rstrip("/")
+        self.timeout = timeout
+        self.client = httpx.Client(timeout=timeout)
+
+    def get(self, endpoint: str, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """Make a GET request.
+
+        Args:
+            endpoint: API endpoint (e.g., "/health")
+            params: Optional query parameters
+
+        Returns:
+            Response JSON
+
+        Raises:
+            httpx.HTTPError: If the request fails
+        """
+        url = f"{self.base_url}{endpoint}"
+        response = self.client.get(url, params=params)
+        response.raise_for_status()
+        return response.json()
+
+    def post(
+        self,
+        endpoint: str,
+        data: Optional[Dict[str, Any]] = None,
+        json: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """Make a POST request.
+
+        Args:
+            endpoint: API endpoint
+            data: Optional form data
+            json: Optional JSON data
+
+        Returns:
+            Response JSON
+
+        Raises:
+            httpx.HTTPError: If the request fails
+        """
+        url = f"{self.base_url}{endpoint}"
+        response = self.client.post(url, data=data, json=json)
+        response.raise_for_status()
+        return response.json()
+
+    def put(
+        self,
+        endpoint: str,
+        data: Optional[Dict[str, Any]] = None,
+        json: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """Make a PUT request.
+
+        Args:
+            endpoint: API endpoint
+            data: Optional form data
+            json: Optional JSON data
+
+        Returns:
+            Response JSON
+
+        Raises:
+            httpx.HTTPError: If the request fails
+        """
+        url = f"{self.base_url}{endpoint}"
+        response = self.client.put(url, data=data, json=json)
+        response.raise_for_status()
+        return response.json()
+
+    def delete(self, endpoint: str) -> Dict[str, Any]:
+        """Make a DELETE request.
+
+        Args:
+            endpoint: API endpoint
+
+        Returns:
+            Response JSON
+
+        Raises:
+            httpx.HTTPError: If the request fails
+        """
+        url = f"{self.base_url}{endpoint}"
+        response = self.client.delete(url)
+        response.raise_for_status()
+        return response.json()
+
+    def close(self):
+        """Close the HTTP client."""
+        self.client.close()
+
+    def __enter__(self):
+        """Context manager entry."""
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Context manager exit."""
+        self.close()

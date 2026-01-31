@@ -1,0 +1,47 @@
+{
+  "name": "data_analysis",
+  "description": "데이터 분석 대시보드",
+  "difficulty": "medium",
+  "category": "ui_application",
+
+  "validation_rules": {
+    "agents": {
+      "min_count": 1,
+      "max_count": 3,
+      "required_roles": [
+        "data analyst",
+        "analyzer"
+      ]
+    },
+
+    "ui": {
+      "requires_ui": true,
+      "ui_framework": "streamlit",
+      "required_components": [
+        "file_uploader",
+        "table",
+        "chart"
+      ]
+    },
+
+    "tools": {
+      "suggested_tools": [
+        "data_analyzer",
+        "file_read"
+      ]
+    }
+  },
+
+  "quality_checks": {
+    "traceability": {
+      "min_coverage_score": 0.85,
+      "max_missing_agents": 0
+    },
+
+    "code_quality": {
+      "no_syntax_errors": true,
+      "has_streamlit_code": true,
+      "has_pandas_usage": true
+    }
+  }
+}

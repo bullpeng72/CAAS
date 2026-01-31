@@ -1,0 +1,13 @@
+# Include README and LICENSE
+include README.md
+include LICENSE
+
+# Include package data
+recursive-include caas_framework/templates *
+recursive-include caas_framework/config *.yaml *.yml *.json
+recursive-include caas_framework *.yaml *.yml *.json
+
+# Exclude unnecessary files
+global-exclude __pycache__
+global-exclude *.py[co]
+global-exclude .DS_Store

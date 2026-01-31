@@ -1,0 +1,349 @@
+{
+  "TASK_MANAGEMENT": [
+    {
+      "name": "사용자 권한 관리",
+      "severity": "high",
+      "keywords": ["권한", "인증", "로그인", "사용자", "auth", "permission"],
+      "questions": [
+        "누가 할일을 생성/수정/삭제할 수 있나요?",
+        "관리자와 일반 사용자를 구분하나요?"
+      ],
+      "auto_fixable": false
+    },
+    {
+      "name": "알림 시스템",
+      "severity": "medium",
+      "keywords": ["알림", "notification", "메일", "푸시", "email"],
+      "questions": [
+        "마감일 임박 시 알림이 필요한가요?",
+        "어떤 채널로 알림을 보내나요? (이메일, 푸시, SMS)"
+      ],
+      "auto_fixable": false
+    },
+    {
+      "name": "태그/카테고리 시스템",
+      "severity": "low",
+      "keywords": ["태그", "tag", "카테고리", "category", "라벨"],
+      "questions": [
+        "할일을 태그나 카테고리로 분류하나요?"
+      ],
+      "auto_fixable": true
+    }
+  ],
+
+  "E_COMMERCE": [
+    {
+      "name": "결제 시스템",
+      "severity": "critical",
+      "keywords": ["결제", "payment", "구매", "카드", "pay"],
+      "questions": [
+        "어떤 결제 수단을 지원하나요?",
+        "정기 결제(구독)가 필요한가요?"
+      ],
+      "auto_fixable": false
+    },
+    {
+      "name": "재고 관리",
+      "severity": "high",
+      "keywords": ["재고", "inventory", "수량", "stock"],
+      "questions": [
+        "재고가 부족할 때 어떻게 처리하나요?",
+        "재고 알림이 필요한가요?"
+      ],
+      "auto_fixable": false
+    },
+    {
+      "name": "배송 추적",
+      "severity": "high",
+      "keywords": ["배송", "shipping", "delivery", "택배"],
+      "questions": [
+        "배송 추적 기능이 필요한가요?",
+        "배송 상태 알림을 보내나요?"
+      ],
+      "auto_fixable": false
+    },
+    {
+      "name": "장바구니",
+      "severity": "medium",
+      "keywords": ["장바구니", "cart", "basket"],
+      "questions": [
+        "로그인하지 않은 사용자도 장바구니를 사용할 수 있나요?",
+        "장바구니 내용을 저장하나요?"
+      ],
+      "auto_fixable": true
+    },
+    {
+      "name": "리뷰/평점 시스템",
+      "severity": "low",
+      "keywords": ["리뷰", "review", "평점", "rating", "별점"],
+      "questions": [
+        "상품 리뷰 기능이 필요한가요?"
+      ],
+      "auto_fixable": true
+    }
+  ],
+
+  "HEALTHCARE": [
+    {
+      "name": "환자 정보 보안",
+      "severity": "critical",
+      "keywords": ["환자", "patient", "의료", "medical", "개인정보", "PHI"],
+      "questions": [
+        "HIPAA 준수가 필요한가요?",
+        "개인정보보호법(GDPR, 국내법) 준수가 필요한가요?",
+        "환자 동의 관리 시스템이 필요한가요?"
+      ],
+      "auto_fixable": false
+    },
+    {
+      "name": "전자 의무 기록(EMR/EHR)",
+      "severity": "critical",
+      "keywords": ["EMR", "EHR", "의무기록", "차트", "진료"],
+      "questions": [
+        "의료 기록 표준(HL7, FHIR)을 준수하나요?",
+        "기존 EMR 시스템과 연동하나요?"
+      ],
+      "auto_fixable": false
+    },
+    {
+      "name": "감사 추적",
+      "severity": "high",
+      "keywords": ["감사", "audit", "로그", "추적"],
+      "questions": [
+        "모든 의료 기록 접근 및 수정을 로깅하나요?"
+      ],
+      "auto_fixable": false
+    }
+  ],
+
+  "FINANCE": [
+    {
+      "name": "금융 규제 준수",
+      "severity": "critical",
+      "keywords": ["금융", "금융위", "규제", "compliance", "법규"],
+      "questions": [
+        "금융위원회 규제를 준수해야 하나요?",
+        "자금세탁방지(AML) 절차가 필요한가요?"
+      ],
+      "auto_fixable": false
+    },
+    {
+      "name": "2단계 인증",
+      "severity": "critical",
+      "keywords": ["2FA", "MFA", "인증", "보안"],
+      "questions": [
+        "2단계 인증(2FA/MFA)이 필요한가요?"
+      ],
+      "auto_fixable": false
+    },
+    {
+      "name": "감사 추적",
+      "severity": "high",
+      "keywords": ["감사", "audit", "거래", "transaction", "로그"],
+      "questions": [
+        "모든 거래 내역을 불변 로그로 저장하나요?",
+        "거래 취소 시 원본 기록도 보존하나요?"
+      ],
+      "auto_fixable": false
+    },
+    {
+      "name": "암호화",
+      "severity": "high",
+      "keywords": ["암호화", "encryption", "보안", "민감정보"],
+      "questions": [
+        "계좌 정보, 카드 정보를 암호화하나요?",
+        "어떤 암호화 방식을 사용하나요? (AES-256 권장)"
+      ],
+      "auto_fixable": false
+    }
+  ],
+
+  "CHATBOT": [
+    {
+      "name": "대화 컨텍스트 관리",
+      "severity": "high",
+      "keywords": ["컨텍스트", "context", "대화", "history"],
+      "questions": [
+        "대화 컨텍스트를 얼마나 유지하나요?",
+        "이전 대화를 기억하나요?"
+      ],
+      "auto_fixable": false
+    },
+    {
+      "name": "다국어 지원",
+      "severity": "medium",
+      "keywords": ["다국어", "multilingual", "언어", "language"],
+      "questions": [
+        "어떤 언어를 지원하나요?",
+        "자동 언어 감지가 필요한가요?"
+      ],
+      "auto_fixable": false
+    },
+    {
+      "name": "감정 분석",
+      "severity": "low",
+      "keywords": ["감정", "sentiment", "톤", "tone"],
+      "questions": [
+        "사용자 감정을 분석하나요?"
+      ],
+      "auto_fixable": true
+    }
+  ],
+
+  "EDUCATION": [
+    {
+      "name": "학생 데이터 보호",
+      "severity": "critical",
+      "keywords": ["학생", "student", "교육", "education", "아동", "청소년"],
+      "questions": [
+        "아동 온라인 프라이버시 보호(COPPA)가 필요한가요?",
+        "학부모 동의가 필요한가요?"
+      ],
+      "auto_fixable": false
+    },
+    {
+      "name": "진도 추적",
+      "severity": "high",
+      "keywords": ["진도", "progress", "학습", "learning"],
+      "questions": [
+        "학습 진도를 추적하나요?",
+        "성적 관리 기능이 필요한가요?"
+      ],
+      "auto_fixable": false
+    }
+  ],
+
+  "SOCIAL_MEDIA": [
+    {
+      "name": "콘텐츠 모더레이션",
+      "severity": "high",
+      "keywords": ["모더레이션", "moderation", "신고", "report", "부적절"],
+      "questions": [
+        "부적절한 콘텐츠를 필터링하나요?",
+        "사용자 신고 시스템이 필요한가요?"
+      ],
+      "auto_fixable": false
+    },
+    {
+      "name": "프라이버시 설정",
+      "severity": "high",
+      "keywords": ["프라이버시", "privacy", "공개", "비공개"],
+      "questions": [
+        "게시물 공개 범위를 설정할 수 있나요? (전체/친구/비공개)",
+        "프로필 비공개 설정이 가능한가요?"
+      ],
+      "auto_fixable": false
+    }
+  ],
+
+  "BOOKING": [
+    {
+      "name": "예약 취소 정책",
+      "severity": "high",
+      "keywords": ["취소", "cancel", "환불", "refund"],
+      "questions": [
+        "예약 취소 정책은 무엇인가요?",
+        "환불 처리가 필요한가요?"
+      ],
+      "auto_fixable": false
+    },
+    {
+      "name": "오버부킹 방지",
+      "severity": "high",
+      "keywords": ["오버부킹", "overbooking", "중복", "동시"],
+      "questions": [
+        "동시 예약을 어떻게 처리하나요?",
+        "예약 가능 수량을 실시간으로 확인하나요?"
+      ],
+      "auto_fixable": false
+    },
+    {
+      "name": "알림 시스템",
+      "severity": "medium",
+      "keywords": ["알림", "notification", "reminder"],
+      "questions": [
+        "예약 확인 알림을 보내나요?",
+        "리마인더가 필요한가요?"
+      ],
+      "auto_fixable": true
+    }
+  ],
+
+  "DATA_ANALYSIS": [
+    {
+      "name": "데이터 소스 연동",
+      "severity": "high",
+      "keywords": ["데이터", "data", "소스", "source", "연동"],
+      "questions": [
+        "어떤 데이터 소스와 연동하나요? (CSV, DB, API 등)",
+        "실시간 데이터 수집이 필요한가요?"
+      ],
+      "auto_fixable": false
+    },
+    {
+      "name": "시각화",
+      "severity": "medium",
+      "keywords": ["시각화", "visualization", "차트", "그래프"],
+      "questions": [
+        "어떤 종류의 차트가 필요한가요? (라인, 바, 파이 등)",
+        "대시보드가 필요한가요?"
+      ],
+      "auto_fixable": true
+    }
+  ],
+
+  "CONTENT_GENERATION": [
+    {
+      "name": "콘텐츠 저장",
+      "severity": "medium",
+      "keywords": ["저장", "save", "export", "다운로드"],
+      "questions": [
+        "생성된 콘텐츠를 저장하나요?",
+        "어떤 형식으로 내보내나요? (PDF, DOCX, MD 등)"
+      ],
+      "auto_fixable": true
+    },
+    {
+      "name": "템플릿 관리",
+      "severity": "low",
+      "keywords": ["템플릿", "template", "양식"],
+      "questions": [
+        "사용자 정의 템플릿을 지원하나요?"
+      ],
+      "auto_fixable": true
+    }
+  ],
+
+  "API_SERVICE": [
+    {
+      "name": "인증/인가",
+      "severity": "critical",
+      "keywords": ["인증", "auth", "API key", "token"],
+      "questions": [
+        "API 인증 방식은? (API Key, OAuth, JWT)",
+        "Rate Limiting이 필요한가요?"
+      ],
+      "auto_fixable": false
+    },
+    {
+      "name": "API 문서",
+      "severity": "high",
+      "keywords": ["문서", "documentation", "swagger", "openapi"],
+      "questions": [
+        "API 문서를 자동 생성하나요? (Swagger/OpenAPI)",
+        "예제 코드가 필요한가요?"
+      ],
+      "auto_fixable": true
+    },
+    {
+      "name": "버전 관리",
+      "severity": "medium",
+      "keywords": ["버전", "version", "v1", "v2"],
+      "questions": [
+        "API 버전 관리가 필요한가요?",
+        "하위 호환성을 유지하나요?"
+      ],
+      "auto_fixable": true
+    }
+  ]
+}

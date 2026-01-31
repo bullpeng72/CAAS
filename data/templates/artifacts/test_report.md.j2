@@ -1,0 +1,421 @@
+# {{ metadata.title }}
+
+**버전**: {{ metadata.version }}
+**작성일**: {{ metadata.created_at | datetime("%Y년 %m월 %d일") }}
+**작성자**: {{ metadata.created_by }}
+
+---
+
+## 1. 테스트 실행 요약
+
+### 1.1 테스트 개요
+
+**프로젝트**: {{ project_name or "N/A" }}
+
+**테스트 기간**: {{ test_start_date | datetime("%Y-%m-%d %H:%M") if test_start_date else "N/A" }} ~ {{ test_end_date | datetime("%Y-%m-%d %H:%M") if test_end_date else "N/A" }}
+
+**테스트 환경**:
+{% if test_environment %}
+- OS: {{ test_environment.os or "Ubuntu 20.04" }}
+- Python: {{ test_environment.python_version or "3.11" }}
+- pytest: {{ test_environment.pytest_version or "7.4.0" }}
+{% else %}
+- OS: Linux/macOS
+- Python: 3.10+
+- pytest: 7.0+
+{% endif %}
+
+### 1.2 전체 결과
+
+{% if test_summary %}
+| 항목 | 값 |
+|------|-----|
+| 총 테스트 수 | {{ test_summary.total or 0 }} |
+| ✅ 성공 (Passed) | {{ test_summary.passed or 0 }} ({{ ((test_summary.passed / test_summary.total * 100) if test_summary.total > 0 else 0) | round(1) }}%) |
+| ❌ 실패 (Failed) | {{ test_summary.failed or 0 }} ({{ ((test_summary.failed / test_summary.total * 100) if test_summary.total > 0 else 0) | round(1) }}%) |
+| ⚠️ 스킵 (Skipped) | {{ test_summary.skipped or 0 }} |
+| ⏱️ 에러 (Error) | {{ test_summary.errors or 0 }} |
+| **성공률** | **{{ test_summary.success_rate or 0 }}%** |
+| 총 실행 시간 | {{ test_summary.duration or 0 }} 초 |
+{% else %}
+| 항목 | 값 |
+|------|-----|
+| 총 테스트 수 | 0 |
+| ✅ 성공 (Passed) | 0 |
+| ❌ 실패 (Failed) | 0 |
+| **성공률** | **N/A** |
+{% endif %}
+
+### 1.3 결과 판정
+
+{% if test_summary and test_summary.success_rate %}
+{% if test_summary.success_rate >= 95 %}
+**판정**: ✅ **통과 (PASS)** - 모든 테스트가 성공적으로 완료되었습니다.
+{% elif test_summary.success_rate >= 80 %}
+**판정**: ⚠️ **조건부 통과 (CONDITIONAL PASS)** - 일부 테스트 실패, 수정 필요
+{% else %}
+**판정**: ❌ **실패 (FAIL)** - 다수의 테스트 실패, 즉시 수정 필요
+{% endif %}
+{% else %}
+**판정**: ⏳ **대기 (PENDING)** - 테스트 실행 필요
+{% endif %}
+
+---
+
+## 2. 테스트 레벨별 결과
+
+### 2.1 단위 테스트 (Unit Tests)
+
+{% if unit_tests %}
+| 테스트 스위트 | 총 | 성공 | 실패 | 성공률 |
+|--------------|-----|------|------|--------|
+{% for suite in unit_tests %}
+| {{ suite.name }} | {{ suite.total }} | {{ suite.passed }} | {{ suite.failed }} | {{ suite.success_rate }}% |
+{% endfor %}
+| **합계** | **{{ unit_tests | sum(attribute='total') }}** | **{{ unit_tests | sum(attribute='passed') }}** | **{{ unit_tests | sum(attribute='failed') }}** | **{{ ((unit_tests | sum(attribute='passed')) / (unit_tests | sum(attribute='total')) * 100) | round(1) }}%** |
+{% else %}
+**상태**: 테스트 미실행 또는 데이터 없음
+{% endif %}
+
+### 2.2 통합 테스트 (Integration Tests)
+
+{% if integration_tests %}
+| 테스트 스위트 | 총 | 성공 | 실패 | 성공률 |
+|--------------|-----|------|------|--------|
+{% for suite in integration_tests %}
+| {{ suite.name }} | {{ suite.total }} | {{ suite.passed }} | {{ suite.failed }} | {{ suite.success_rate }}% |
+{% endfor %}
+| **합계** | **{{ integration_tests | sum(attribute='total') }}** | **{{ integration_tests | sum(attribute='passed') }}** | **{{ integration_tests | sum(attribute='failed') }}** | **{{ ((integration_tests | sum(attribute='passed')) / (integration_tests | sum(attribute='total')) * 100) | round(1) }}%** |
+{% else %}
+**상태**: 테스트 미실행 또는 데이터 없음
+{% endif %}
+
+### 2.3 E2E 테스트 (End-to-End Tests)
+
+{% if e2e_tests %}
+| 시나리오 | 결과 | 실행 시간 |
+|---------|------|----------|
+{% for test in e2e_tests %}
+| {{ test.name }} | {{ "✅ PASS" if test.passed else "❌ FAIL" }} | {{ test.duration }}s |
+{% endfor %}
+{% else %}
+**상태**: E2E 테스트 미실행
+{% endif %}
+
+---
+
+## 3. 실패한 테스트 상세
+
+{% if failed_tests %}
+{% for test in failed_tests %}
+
+### 3.{{ loop.index }} {{ test.name or "Test #" + loop.index|string }}
+
+**테스트 파일**: `{{ test.file or "N/A" }}`
+
+**실패 위치**: Line {{ test.line or "N/A" }}
+
+**실패 사유**:
+```
+{{ test.error_message or "에러 메시지 없음" }}
+```
+
+**스택 트레이스**:
+```
+{{ test.stack_trace or "스택 트레이스 없음" }}
+```
+
+**재현 방법**:
+```bash
+pytest {{ test.file }}::{{ test.name }} -v
+```
+
+**우선순위**: {{ test.priority or "중" }}
+
+**수정 필요 여부**: {{ "✅ 예" if test.needs_fix else "⚠️ 검토 필요" }}
+
+---
+
+{% endfor %}
+{% else %}
+
+**✅ 실패한 테스트 없음** - 모든 테스트가 성공적으로 통과했습니다!
+
+{% endif %}
+
+---
+
+## 4. 코드 커버리지 분석
+
+### 4.1 전체 커버리지
+
+{% if coverage %}
+| 항목 | 커버리지 | 목표 | 상태 |
+|------|----------|------|------|
+| 전체 | {{ coverage.total }}% | > 80% | {{ "✅" if coverage.total >= 80 else "⚠️" }} |
+| Statements | {{ coverage.statements }}% | > 80% | {{ "✅" if coverage.statements >= 80 else "⚠️" }} |
+| Branches | {{ coverage.branches }}% | > 70% | {{ "✅" if coverage.branches >= 70 else "⚠️" }} |
+| Functions | {{ coverage.functions }}% | > 80% | {{ "✅" if coverage.functions >= 80 else "⚠️" }} |
+| Lines | {{ coverage.lines }}% | > 80% | {{ "✅" if coverage.lines >= 80 else "⚠️" }} |
+{% else %}
+**상태**: 커버리지 측정 필요
+
+권장 커버리지 목표:
+- 전체: > 80%
+- Statements: > 80%
+- Branches: > 70%
+- Functions: > 80%
+{% endif %}
+
+### 4.2 파일별 커버리지
+
+{% if file_coverage %}
+| 파일 | Statements | Branches | Functions | Lines | 전체 |
+|------|-----------|----------|-----------|-------|------|
+{% for file in file_coverage[:20] %}
+| {{ file.name }} | {{ file.statements }}% | {{ file.branches }}% | {{ file.functions }}% | {{ file.lines }}% | {{ file.total }}% |
+{% endfor %}
+{% if file_coverage|length > 20 %}
+| ... | ... | ... | ... | ... | ... |
+| ({{ file_coverage|length - 20 }}개 파일 생략) | | | | | |
+{% endif %}
+{% endif %}
+
+### 4.3 미커버 코드
+
+{% if uncovered_lines %}
+**테스트되지 않은 코드 영역**:
+
+{% for item in uncovered_lines[:10] %}
+- `{{ item.file }}`: Lines {{ item.lines }}
+{% endfor %}
+{% if uncovered_lines|length > 10 %}
+- ... 외 {{ uncovered_lines|length - 10 }}개 영역
+{% endif %}
+
+**권장사항**: 미커버 영역에 대한 테스트 케이스 추가 필요
+{% endif %}
+
+---
+
+## 5. 성능 테스트 결과
+
+### 5.1 응답 시간
+
+{% if performance %}
+| 메트릭 | 값 | 목표 | 상태 |
+|--------|-----|------|------|
+| 평균 응답 시간 | {{ performance.avg_response }}s | < 10s | {{ "✅" if performance.avg_response < 10 else "⚠️" }} |
+| 중간값 (Median) | {{ performance.median_response }}s | < 8s | {{ "✅" if performance.median_response < 8 else "⚠️" }} |
+| 95 Percentile | {{ performance.p95_response }}s | < 30s | {{ "✅" if performance.p95_response < 30 else "⚠️" }} |
+| 99 Percentile | {{ performance.p99_response }}s | < 60s | {{ "✅" if performance.p99_response < 60 else "⚠️" }} |
+| 최대 응답 시간 | {{ performance.max_response }}s | - | - |
+| 최소 응답 시간 | {{ performance.min_response }}s | - | - |
+{% else %}
+**상태**: 성능 테스트 미실행
+{% endif %}
+
+### 5.2 처리량 (Throughput)
+
+{% if throughput %}
+| 메트릭 | 값 |
+|--------|-----|
+| Requests/sec | {{ throughput.requests_per_sec }} |
+| 총 처리 요청 | {{ throughput.total_requests }} |
+| 성공률 | {{ throughput.success_rate }}% |
+| 에러율 | {{ throughput.error_rate }}% |
+{% else %}
+**상태**: 처리량 측정 필요
+{% endif %}
+
+### 5.3 리소스 사용률
+
+{% if resource_usage %}
+| 리소스 | 평균 | 최대 | 상태 |
+|--------|------|------|------|
+| CPU | {{ resource_usage.avg_cpu }}% | {{ resource_usage.max_cpu }}% | {{ "✅" if resource_usage.max_cpu < 80 else "⚠️" }} |
+| Memory | {{ resource_usage.avg_memory }}MB | {{ resource_usage.max_memory }}MB | {{ "✅" if resource_usage.max_memory < 2048 else "⚠️" }} |
+| Network I/O | {{ resource_usage.network_io }}MB | - | - |
+{% else %}
+**상태**: 리소스 사용률 측정 필요
+{% endif %}
+
+---
+
+## 6. 버그 및 이슈
+
+### 6.1 발견된 버그
+
+{% if bugs %}
+| ID | 심각도 | 설명 | 상태 |
+|----|--------|------|------|
+{% for bug in bugs %}
+| BUG-{{ "%03d" | format(loop.index) }} | {{ bug.severity }} | {{ bug.description[:60] }}... | {{ bug.status }} |
+{% endfor %}
+
+**버그 통계**:
+- Critical: {{ bugs | selectattr('severity', 'equalto', 'critical') | list | length }}건
+- High: {{ bugs | selectattr('severity', 'equalto', 'high') | list | length }}건
+- Medium: {{ bugs | selectattr('severity', 'equalto', 'medium') | list | length }}건
+- Low: {{ bugs | selectattr('severity', 'equalto', 'low') | list | length }}건
+{% else %}
+**✅ 발견된 버그 없음**
+{% endif %}
+
+### 6.2 알려진 제한사항
+
+{% if known_limitations %}
+{% for limitation in known_limitations %}
+- {{ limitation }}
+{% endfor %}
+{% else %}
+- LLM API 응답 시간에 따른 성능 변동성
+- 외부 API 의존성으로 인한 테스트 불안정성
+{% endif %}
+
+---
+
+## 7. 테스트 환경 및 설정
+
+### 7.1 테스트 구성
+
+**pytest 설정**:
+```ini
+[pytest]
+testpaths = tests
+python_files = test_*.py
+python_classes = Test*
+python_functions = test_*
+addopts = -v --cov=app --cov-report=html --cov-report=term
+```
+
+**환경 변수**:
+{% if test_env_vars %}
+{% for var in test_env_vars %}
+- `{{ var.name }}`: {{ var.description }}
+{% endfor %}
+{% else %}
+- `OPENAI_API_KEY`: 테스트용 API 키
+- `TEST_ENV`: test
+- `LOG_LEVEL`: DEBUG
+{% endif %}
+
+### 7.2 의존성 버전
+
+{% if dependencies %}
+| 패키지 | 버전 |
+|--------|------|
+{% for dep in dependencies %}
+| {{ dep.name }} | {{ dep.version }} |
+{% endfor %}
+{% else %}
+주요 의존성은 `requirements.txt` 참조
+{% endif %}
+
+---
+
+## 8. 개선 권장사항
+
+### 8.1 즉시 조치 필요 (Critical)
+
+{% if critical_recommendations %}
+{% for rec in critical_recommendations %}
+- [ ] {{ rec }}
+{% endfor %}
+{% else %}
+- 없음 ✅
+{% endif %}
+
+### 8.2 단기 개선 (High Priority)
+
+{% if high_priority_recommendations %}
+{% for rec in high_priority_recommendations %}
+- [ ] {{ rec }}
+{% endfor %}
+{% else %}
+- [ ] 실패한 테스트 수정
+- [ ] 커버리지 80% 이상 달성
+- [ ] 성능 병목 지점 개선
+{% endif %}
+
+### 8.3 중장기 개선 (Medium Priority)
+
+- [ ] 테스트 자동화 강화
+- [ ] Mock/Stub 전략 개선
+- [ ] E2E 테스트 시나리오 확대
+- [ ] 테스트 데이터 관리 체계화
+
+---
+
+## 9. 다음 단계
+
+### 9.1 수정 계획
+
+{% if test_summary and test_summary.failed > 0 %}
+1. **실패 테스트 수정**: {{ test_summary.failed }}건의 실패 테스트 분석 및 수정
+2. **회귀 테스트**: 수정 후 전체 테스트 재실행
+3. **커버리지 개선**: 미커버 영역 테스트 추가
+4. **문서 업데이트**: 테스트 문서 최신화
+{% else %}
+1. **커버리지 확대**: 추가 테스트 케이스 작성
+2. **성능 최적화**: 병목 지점 개선
+3. **테스트 유지보수**: 테스트 코드 리팩토링
+{% endif %}
+
+### 9.2 재테스트 일정
+
+- **수정 완료 목표**: {{ retest_target_date | datetime("%Y-%m-%d") if retest_target_date else "TBD" }}
+- **재테스트 일정**: {{ retest_date | datetime("%Y-%m-%d") if retest_date else "수정 후 즉시" }}
+- **최종 검증**: {{ final_verification_date | datetime("%Y-%m-%d") if final_verification_date else "재테스트 후 1일 이내" }}
+
+---
+
+## 10. 결론
+
+### 10.1 종합 평가
+
+{% if test_summary and test_summary.success_rate %}
+{% if test_summary.success_rate >= 95 %}
+테스트 결과가 **매우 우수**합니다. 모든 주요 기능이 정상적으로 동작하며 프로덕션 배포가 가능한 상태입니다.
+{% elif test_summary.success_rate >= 80 %}
+테스트 결과가 **양호**합니다. 일부 개선사항이 있으나 전반적으로 안정적입니다.
+{% elif test_summary.success_rate >= 60 %}
+테스트 결과가 **보통**입니다. 여러 이슈가 발견되어 수정이 필요합니다.
+{% else %}
+테스트 결과가 **미흡**합니다. 즉시 개선 조치가 필요합니다.
+{% endif %}
+{% else %}
+테스트 실행 결과를 기반으로 평가가 필요합니다.
+{% endif %}
+
+### 10.2 배포 권장사항
+
+{% if test_summary and test_summary.success_rate >= 95 %}
+✅ **배포 승인** - 프로덕션 배포 가능
+{% elif test_summary and test_summary.success_rate >= 80 %}
+⚠️ **조건부 승인** - 주요 이슈 수정 후 배포 가능
+{% else %}
+❌ **배포 보류** - 이슈 수정 및 재테스트 필요
+{% endif %}
+
+---
+
+## 11. 승인
+
+| 역할 | 이름 | 승인일 | 서명 |
+|------|------|--------|------|
+| QA 리드 | | | |
+| 개발 리드 | | | |
+| 프로젝트 매니저 | | | |
+
+---
+
+**문서 이력**
+
+| 버전 | 일자 | 변경 내용 | 작성자 |
+|------|------|-----------|--------|
+| {{ metadata.version }} | {{ metadata.created_at | datetime("%Y-%m-%d") }} | 초안 작성 | {{ metadata.created_by }} |
+
+---
+
+*본 문서는 CAAS (CrewAI Agent Auto-generation System)에 의해 자동 생성되었습니다.*

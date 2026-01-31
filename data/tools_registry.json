@@ -1,0 +1,387 @@
+{
+  "tools": {
+    "web_search": {
+      "name": "web_search",
+      "description": "웹 검색 (Serper API)",
+      "source": "crewai",
+      "category": "search",
+      "enabled": true,
+      "parameters": {},
+      "requires_api_key": true,
+      "api_key_name": "SERPER_API_KEY",
+      "class_path": "SerperDevTool",
+      "keywords": [
+        "검색",
+        "search",
+        "google",
+        "웹",
+        "web",
+        "정보",
+        "뉴스",
+        "news",
+        "조사",
+        "research",
+        "찾기"
+      ],
+      "use_cases": [
+        "실시간 정보 검색",
+        "뉴스 수집",
+        "웹 리서치",
+        "최신 데이터 조회",
+        "시장 동향 파악"
+      ],
+      "created_at": "2026-01-10T21:17:11.913683",
+      "updated_at": "2026-01-10T21:17:11.913696"
+    },
+    "scrape_website": {
+      "name": "scrape_website",
+      "description": "웹사이트 크롤링",
+      "source": "crewai",
+      "category": "web",
+      "enabled": true,
+      "parameters": {},
+      "requires_api_key": false,
+      "api_key_name": null,
+      "class_path": "ScrapeWebsiteTool",
+      "keywords": [
+        "크롤링",
+        "scrape",
+        "crawl",
+        "웹사이트",
+        "website",
+        "수집",
+        "추출",
+        "extract",
+        "html",
+        "페이지"
+      ],
+      "use_cases": [
+        "웹페이지 데이터 수집",
+        "HTML 파싱",
+        "콘텐츠 추출",
+        "자동 데이터 수집"
+      ],
+      "created_at": "2026-01-10T21:17:11.913707",
+      "updated_at": "2026-01-10T21:17:11.913709"
+    },
+    "file_read": {
+      "name": "file_read",
+      "description": "파일 읽기",
+      "source": "crewai",
+      "category": "file",
+      "enabled": true,
+      "parameters": {},
+      "requires_api_key": false,
+      "api_key_name": null,
+      "class_path": "FileReadTool",
+      "keywords": [
+        "파일",
+        "file",
+        "읽기",
+        "read",
+        "텍스트",
+        "text",
+        "문서",
+        "document",
+        "불러오기",
+        "load"
+      ],
+      "use_cases": [
+        "텍스트 파일 읽기",
+        "로그 파일 분석",
+        "설정 파일 로드",
+        "문서 내용 확인"
+      ],
+      "created_at": "2026-01-10T21:17:11.913717",
+      "updated_at": "2026-01-10T21:17:11.913721"
+    },
+    "file_write": {
+      "name": "file_write",
+      "description": "Python 코드로 파일 쓰기 (CodeInterpreterTool 사용)",
+      "source": "crewai",
+      "category": "file",
+      "enabled": true,
+      "parameters": {},
+      "requires_api_key": false,
+      "api_key_name": null,
+      "class_path": "CodeInterpreterTool",
+      "keywords": [
+        "파일",
+        "file",
+        "쓰기",
+        "write",
+        "저장",
+        "save",
+        "생성",
+        "create",
+        "작성",
+        "export"
+      ],
+      "use_cases": [
+        "결과 파일 저장",
+        "리포트 생성",
+        "데이터 내보내기",
+        "로그 기록"
+      ],
+      "created_at": "2026-01-10T21:17:11.913728",
+      "updated_at": "2026-01-10T21:17:11.913730"
+    },
+    "directory_read": {
+      "name": "directory_read",
+      "description": "디렉토리 구조 읽기",
+      "source": "crewai",
+      "category": "file",
+      "enabled": true,
+      "parameters": {},
+      "requires_api_key": false,
+      "api_key_name": null,
+      "class_path": "DirectoryReadTool",
+      "keywords": [
+        "디렉토리",
+        "directory",
+        "폴더",
+        "folder",
+        "구조",
+        "structure",
+        "파일목록",
+        "list"
+      ],
+      "use_cases": [
+        "프로젝트 구조 분석",
+        "파일 목록 확인",
+        "디렉토리 탐색"
+      ],
+      "created_at": "2026-01-10T21:17:11.913736",
+      "updated_at": "2026-01-10T21:17:11.913738"
+    },
+    "code_interpreter": {
+      "name": "code_interpreter",
+      "description": "Python 코드 실행",
+      "source": "crewai",
+      "category": "code",
+      "enabled": true,
+      "parameters": {},
+      "requires_api_key": false,
+      "api_key_name": null,
+      "class_path": "CodeInterpreterTool",
+      "keywords": [
+        "코드",
+        "code",
+        "python",
+        "실행",
+        "execute",
+        "계산",
+        "calculate",
+        "분석",
+        "analyze",
+        "처리",
+        "process"
+      ],
+      "use_cases": [
+        "데이터 분석",
+        "수치 계산",
+        "알고리즘 실행",
+        "Python 스크립트 실행"
+      ],
+      "created_at": "2026-01-10T21:17:11.913743",
+      "updated_at": "2026-01-10T21:17:11.913745"
+    },
+    "pdf_search": {
+      "name": "pdf_search",
+      "description": "PDF 문서 검색",
+      "source": "crewai",
+      "category": "document",
+      "enabled": true,
+      "parameters": {},
+      "requires_api_key": false,
+      "api_key_name": null,
+      "class_path": "PDFSearchTool",
+      "keywords": [
+        "pdf",
+        "문서",
+        "document",
+        "논문",
+        "paper",
+        "보고서",
+        "report",
+        "검색",
+        "search"
+      ],
+      "use_cases": [
+        "PDF 문서 내용 검색",
+        "논문 분석",
+        "보고서 검토",
+        "문서 내 키워드 찾기"
+      ],
+      "created_at": "2026-01-10T21:17:11.913751",
+      "updated_at": "2026-01-10T21:17:11.913753"
+    },
+    "csv_search": {
+      "name": "csv_search",
+      "description": "CSV 데이터 검색",
+      "source": "crewai",
+      "category": "data",
+      "enabled": true,
+      "parameters": {},
+      "requires_api_key": false,
+      "api_key_name": null,
+      "class_path": "CSVSearchTool",
+      "keywords": [
+        "csv",
+        "데이터",
+        "data",
+        "엑셀",
+        "excel",
+        "표",
+        "table",
+        "분석",
+        "analyze"
+      ],
+      "use_cases": [
+        "CSV 파일 데이터 검색",
+        "표 형식 데이터 분석",
+        "통계 데이터 조회"
+      ],
+      "created_at": "2026-01-10T21:17:11.913761",
+      "updated_at": "2026-01-10T21:17:11.913764"
+    },
+    "code_docs_search": {
+      "name": "code_docs_search",
+      "description": "코드 문서 검색",
+      "source": "crewai",
+      "category": "code",
+      "enabled": true,
+      "parameters": {},
+      "requires_api_key": false,
+      "api_key_name": null,
+      "class_path": "CodeDocsSearchTool",
+      "keywords": [
+        "코드",
+        "code",
+        "문서",
+        "documentation",
+        "api",
+        "레퍼런스",
+        "reference",
+        "가이드",
+        "guide"
+      ],
+      "use_cases": [
+        "API 문서 검색",
+        "코드 레퍼런스 조회",
+        "개발 가이드 참조"
+      ],
+      "created_at": "2026-01-10T21:17:11.913769",
+      "updated_at": "2026-01-10T21:17:11.913771"
+    },
+    "github_search": {
+      "name": "github_search",
+      "description": "GitHub 저장소 검색",
+      "source": "crewai",
+      "category": "search",
+      "enabled": true,
+      "parameters": {},
+      "requires_api_key": true,
+      "api_key_name": "GITHUB_API_KEY",
+      "class_path": "GithubSearchTool",
+      "keywords": [
+        "github",
+        "git",
+        "저장소",
+        "repository",
+        "코드",
+        "code",
+        "오픈소스",
+        "opensource"
+      ],
+      "use_cases": [
+        "오픈소스 프로젝트 찾기",
+        "코드 예제 검색",
+        "GitHub 레포 조회"
+      ],
+      "created_at": "2026-01-10T21:17:11.913777",
+      "updated_at": "2026-01-10T21:17:11.913779"
+    },
+    "youtube_search": {
+      "name": "youtube_search",
+      "description": "YouTube 동영상 검색",
+      "source": "crewai",
+      "category": "search",
+      "enabled": true,
+      "parameters": {},
+      "requires_api_key": true,
+      "api_key_name": "YOUTUBE_API_KEY",
+      "class_path": "YoutubeVideoSearchTool",
+      "keywords": [
+        "youtube",
+        "유튜브",
+        "동영상",
+        "video",
+        "영상",
+        "검색",
+        "search"
+      ],
+      "use_cases": [
+        "유튜브 영상 검색",
+        "비디오 콘텐츠 조회",
+        "강의 영상 찾기"
+      ],
+      "created_at": "2026-01-10T21:17:11.913785",
+      "updated_at": "2026-01-10T21:17:11.913787"
+    },
+    "json_search": {
+      "name": "json_search",
+      "description": "JSON 파일 검색",
+      "source": "crewai",
+      "category": "data",
+      "enabled": true,
+      "parameters": {},
+      "requires_api_key": false,
+      "api_key_name": null,
+      "class_path": "JSONSearchTool",
+      "keywords": [
+        "json",
+        "데이터",
+        "data",
+        "api",
+        "설정",
+        "config",
+        "구조화"
+      ],
+      "use_cases": [
+        "JSON 파일 데이터 검색",
+        "API 응답 분석",
+        "설정 파일 조회"
+      ],
+      "created_at": "2026-01-10T21:17:11.913792",
+      "updated_at": "2026-01-10T21:17:11.913794"
+    },
+    "xml_search": {
+      "name": "xml_search",
+      "description": "XML 파일 검색",
+      "source": "crewai",
+      "category": "data",
+      "enabled": true,
+      "parameters": {},
+      "requires_api_key": false,
+      "api_key_name": null,
+      "class_path": "XMLSearchTool",
+      "keywords": [
+        "xml",
+        "데이터",
+        "data",
+        "문서",
+        "document",
+        "구조화"
+      ],
+      "use_cases": [
+        "XML 문서 검색",
+        "구조화된 데이터 분석",
+        "XML 설정 파일 조회"
+      ],
+      "created_at": "2026-01-10T21:17:11.913801",
+      "updated_at": "2026-01-10T21:17:11.913803"
+    }
+  },
+  "mcp_servers": {}
+}

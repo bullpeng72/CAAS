@@ -1,0 +1,8 @@
+streamlit>=1.28.0
+httpx>=0.25.0
+{% if enable_auth %}
+streamlit-authenticator>=0.2.0
+{% endif %}
+{% if enable_metrics %}
+plotly>=5.17.0
+{% endif %}

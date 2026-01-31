@@ -1,0 +1,64 @@
+version: "1.0"
+
+project:
+  name: financial_news_analyzer
+  description: 금융 뉴스 수집 및 분석 시스템
+  domain: finance
+
+agents:
+  - id: news_collector
+    role: News Collector
+    goal: 최신 금융 뉴스를 웹에서 검색하고 수집합니다
+    backstory: 금융 시장 전문 리서처로서 최신 뉴스를 빠르게 파악하는 능력이 뛰어납니다
+    tools:
+      - web_search
+    verbose: true
+    memory: true
+    allow_delegation: false
+
+  - id: financial_analyst
+    role: Financial Analyst
+    goal: 수집된 뉴스를 분석하여 투자 인사이트를 도출합니다
+    backstory: 20년 경력의 금융 분석가로서 시장 동향과 투자 기회를 정확히 파악합니다
+    tools:
+      - calculator
+    verbose: true
+    memory: true
+    allow_delegation: false
+
+  - id: report_writer
+    role: Report Writer
+    goal: 분석 결과를 전문적인 투자 리포트로 작성합니다
+    backstory: 금융 저널리스트 출신으로 복잡한 데이터를 명확하게 전달하는 능력이 탁월합니다
+    tools:
+      - file_write
+    verbose: true
+    memory: true
+    allow_delegation: false
+
+tasks:
+  - id: collect_news
+    description: 최신 금융 뉴스를 웹에서 검색하고 수집합니다
+    expected_output: 금융 뉴스 목록 (제목, 요약, 출처 포함)
+    agent: news_collector
+    context: []
+
+  - id: analyze_news
+    description: 수집된 뉴스를 분석하여 투자 인사이트와 시장 동향을 도출합니다
+    expected_output: 투자 인사이트 및 시장 분석 결과
+    agent: financial_analyst
+    context:
+      - collect_news
+
+  - id: write_report
+    description: 분석 결과를 마크다운 형식의 전문 투자 리포트로 작성하고 파일에 저장합니다
+    expected_output: investment_report.md 파일
+    agent: report_writer
+    context:
+      - analyze_news
+    output_file: investment_report.md
+
+crew:
+  process: sequential
+  verbose: true
+  memory: true

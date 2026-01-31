@@ -1,0 +1,65 @@
+{
+  "name": "financial_news",
+  "description": "금융 뉴스 분석 시스템",
+  "difficulty": "medium",
+  "category": "data_analysis",
+
+  "validation_rules": {
+    "agents": {
+      "min_count": 3,
+      "max_count": 3,
+      "required_roles": [
+        "news collector",
+        "financial analyst",
+        "report writer"
+      ]
+    },
+
+    "tasks": {
+      "min_count": 3,
+      "max_count": 3,
+      "required_tasks": [
+        "collect",
+        "analyze",
+        "write"
+      ]
+    },
+
+    "tools": {
+      "required_tools": [
+        "web_search",
+        "calculator",
+        "file_write"
+      ]
+    },
+
+    "workflow": {
+      "type": "sequential",
+      "has_dependencies": true
+    },
+
+    "output": {
+      "has_output_file": true,
+      "output_format": "markdown"
+    }
+  },
+
+  "quality_checks": {
+    "traceability": {
+      "min_coverage_score": 0.9,
+      "max_missing_agents": 0,
+      "max_missing_tasks": 0
+    },
+
+    "code_quality": {
+      "no_syntax_errors": true,
+      "no_security_issues": true,
+      "has_error_handling": true
+    },
+
+    "execution": {
+      "should_complete": true,
+      "max_execution_time_seconds": 180
+    }
+  }
+}

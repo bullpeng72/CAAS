@@ -1,0 +1,47 @@
+{
+  "name": "chatbot",
+  "description": "AI 챗봇 시스템",
+  "difficulty": "easy",
+  "category": "ui_application",
+
+  "validation_rules": {
+    "agents": {
+      "min_count": 1,
+      "max_count": 2,
+      "required_roles": [
+        "chatbot",
+        "assistant"
+      ]
+    },
+
+    "ui": {
+      "requires_ui": true,
+      "ui_framework": "streamlit",
+      "required_components": [
+        "text_input",
+        "chat_message"
+      ]
+    },
+
+    "workflow": {
+      "type": "sequential"
+    }
+  },
+
+  "quality_checks": {
+    "traceability": {
+      "min_coverage_score": 0.85,
+      "max_missing_agents": 0
+    },
+
+    "code_quality": {
+      "no_syntax_errors": true,
+      "has_streamlit_code": true
+    },
+
+    "execution": {
+      "should_complete": true,
+      "max_execution_time_seconds": 60
+    }
+  }
+}

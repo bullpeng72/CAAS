@@ -1,0 +1,229 @@
+# CAAS Auto Deploy - GitLab CI Pipeline
+#
+# Automates the full workflow from requirement to production deployment.
+#
+# Variables:
+#   REQUIREMENT: Natural language requirement (default: "Build a task management system")
+#   DEPLOY_TARGET: docker, kubernetes, or local (default: docker)
+#   OPENAI_API_KEY: OpenAI API key (required, set in GitLab CI/CD variables)
+
+variables:
+  REQUIREMENT: "Build a task management system"
+  DEPLOY_TARGET: "docker"
+  OUTPUT_DIR: "./generated"
+  PYTHON_VERSION: "3.11"
+
+stages:
+  - validate
+  - generate
+  - test
+  - build
+  - deploy
+
+# Cache dependencies
+cache:
+  paths:
+    - .cache/pip
+    - venv/
+
+# Environment validation
+validate:environment:
+  stage: validate
+  image: python:${PYTHON_VERSION}
+  before_script:
+    - pip install --upgrade pip
+    - pip install -e .
+  script:
+    - echo "🔍 Validating environment..."
+    - python scripts/validate_env.py --export-json validation_results.json
+    - echo "✅ Environment validation passed"
+  artifacts:
+    paths:
+      - validation_results.json
+    expire_in: 1 week
+    when: always
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "master"'
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+
+# Code generation
+generate:code:
+  stage: generate
+  image: python:${PYTHON_VERSION}
+  before_script:
+    - pip install --upgrade pip
+    - pip install -e .
+  script:
+    - echo "🔧 Generating code from requirement..."
+    - echo "Requirement: ${REQUIREMENT}"
+    - echo "Target: ${DEPLOY_TARGET}"
+    - |
+      caas generate "${REQUIREMENT}" \
+        -o ${OUTPUT_DIR} \
+        --verbose
+    - echo "✅ Code generation completed"
+    - ls -la ${OUTPUT_DIR}/
+  artifacts:
+    paths:
+      - ${OUTPUT_DIR}/
+    expire_in: 1 month
+  dependencies:
+    - validate:environment
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "master"'
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+
+# Run tests
+test:unit:
+  stage: test
+  image: python:${PYTHON_VERSION}
+  before_script:
+    - cd ${OUTPUT_DIR}
+    - python -m venv venv
+    - source venv/bin/activate
+    - pip install -r requirements.txt
+    - if [ -f "tests/requirements-test.txt" ]; then pip install -r tests/requirements-test.txt; fi
+  script:
+    - echo "🧪 Running unit tests..."
+    - pytest tests/ --cov=src --cov-report=html --cov-report=term -v
+    - echo "✅ Tests passed"
+  artifacts:
+    paths:
+      - ${OUTPUT_DIR}/htmlcov/
+      - ${OUTPUT_DIR}/.coverage
+    expire_in: 1 week
+    when: always
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: ${OUTPUT_DIR}/coverage.xml
+  coverage: '/(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
+  dependencies:
+    - generate:code
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "master"'
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+
+# Code quality checks
+test:quality:
+  stage: test
+  image: python:${PYTHON_VERSION}
+  before_script:
+    - cd ${OUTPUT_DIR}
+    - python -m venv venv
+    - source venv/bin/activate
+    - pip install -r requirements.txt
+    - pip install pylint black mypy
+  script:
+    - echo "✅ Running code quality checks..."
+    - black src/ --check || (echo "⚠️  Code formatting issues found" && exit 0)
+    - pylint src/ --fail-under=7.0 --output-format=colorized || echo "⚠️  Linting score below 7.0"
+    - echo "✅ Code quality checks completed"
+  dependencies:
+    - generate:code
+  allow_failure: true
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "master"'
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+
+# Build Docker image
+build:docker:
+  stage: build
+  image: docker:24
+  services:
+    - docker:24-dind
+  before_script:
+    - docker info
+  script:
+    - echo "🐳 Building Docker image..."
+    - cd ${OUTPUT_DIR}
+    - docker build -t caas-generated:${CI_COMMIT_SHORT_SHA} .
+    - docker tag caas-generated:${CI_COMMIT_SHORT_SHA} caas-generated:latest
+    - echo "✅ Docker image built successfully"
+  dependencies:
+    - generate:code
+    - test:unit
+  rules:
+    - if: '$DEPLOY_TARGET == "docker"'
+      when: on_success
+    - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "master"'
+      when: on_success
+
+# Deploy to Docker
+deploy:docker:
+  stage: deploy
+  image: docker:24
+  services:
+    - docker:24-dind
+  before_script:
+    - docker info
+  script:
+    - echo "🚢 Deploying to Docker..."
+    - cd ${OUTPUT_DIR}
+    - docker-compose up -d --build
+    - sleep 10
+    - docker-compose ps
+    - echo "✅ Deployment completed"
+    - echo "🔗 Access application at configured ports"
+  environment:
+    name: production
+    action: start
+  dependencies:
+    - build:docker
+  rules:
+    - if: '$DEPLOY_TARGET == "docker" && ($CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "master")'
+      when: manual
+    - if: '$CI_PIPELINE_SOURCE == "web" && $DEPLOY_TARGET == "docker"'
+      when: manual
+
+# Deploy to Kubernetes
+deploy:kubernetes:
+  stage: deploy
+  image: bitnami/kubectl:latest
+  before_script:
+    - kubectl version --client
+  script:
+    - echo "🚢 Deploying to Kubernetes..."
+    - cd ${OUTPUT_DIR}
+    - |
+      if [ -d "k8s" ]; then
+        kubectl apply -f k8s/ --dry-run=client
+        echo "✅ Kubernetes manifests validated"
+        # Uncomment for actual deployment:
+        # kubectl apply -f k8s/
+      else
+        echo "⚠️  No k8s directory found"
+        exit 1
+      fi
+  environment:
+    name: production
+    action: start
+  dependencies:
+    - generate:code
+    - test:unit
+  rules:
+    - if: '$DEPLOY_TARGET == "kubernetes" && ($CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "master")'
+      when: manual
+    - if: '$CI_PIPELINE_SOURCE == "web" && $DEPLOY_TARGET == "kubernetes"'
+      when: manual
+
+# Cleanup job
+cleanup:
+  stage: .post
+  image: docker:24
+  services:
+    - docker:24-dind
+  script:
+    - echo "🧹 Cleaning up..."
+    - cd ${OUTPUT_DIR}
+    - docker-compose down || true
+    - echo "✅ Cleanup completed"
+  dependencies: []
+  when: always
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "master"'

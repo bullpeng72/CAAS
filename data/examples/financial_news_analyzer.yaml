@@ -1,0 +1,220 @@
+# Financial News Analysis System
+# Example CrewAI Specification
+# Domain: Finance
+#
+# This example demonstrates a multi-agent system for collecting,
+# analyzing financial news, and generating investment reports.
+
+version: "1.0"
+
+project:
+  name: "Financial News Analyzer"
+  description: "A multi-agent system that collects financial news, analyzes market trends, and generates investment insight reports."
+  domain: "finance"
+
+agents:
+  - id: news_collector
+    role: "Senior Financial News Researcher"
+    goal: |
+      Collect and curate the most relevant and impactful financial news 
+      from reliable sources. Focus on market-moving events, earnings reports,
+      economic indicators, and industry developments.
+    backstory: |
+      You are a seasoned financial journalist with over 15 years of experience 
+      covering Wall Street and global markets. You have developed an extensive 
+      network of sources and have a keen eye for distinguishing noise from 
+      signal in financial news. Your expertise lies in identifying stories 
+      that will have material impact on markets before they become mainstream.
+      
+      You pride yourself on accuracy and timeliness, always cross-referencing 
+      multiple sources before presenting information. You understand the 
+      interconnected nature of global markets and can spot trends that 
+      others might miss.
+    tools:
+      - web_search
+      - scrape_website
+    llm:
+      model: "gpt-4-turbo-preview"
+      temperature: 0.3
+    verbose: true
+    memory: true
+    allow_delegation: false
+    max_iter: 15
+
+  - id: financial_analyst
+    role: "Senior Financial Analyst"
+    goal: |
+      Analyze collected financial news and data to identify market trends,
+      assess risks, and uncover investment opportunities. Provide data-driven
+      insights that can inform investment decisions.
+    backstory: |
+      You are a CFA charterholder with 12 years of experience in equity research 
+      and portfolio management at top-tier investment firms. You have a deep 
+      understanding of financial markets, valuation methodologies, and 
+      macroeconomic analysis.
+      
+      Your analytical approach combines quantitative rigor with qualitative 
+      judgment. You excel at synthesizing complex information into actionable 
+      insights and have a track record of identifying market opportunities 
+      before consensus forms. You're known for your ability to assess both 
+      risks and opportunities objectively.
+    tools:
+      - code_interpreter
+      - calculator
+    llm:
+      model: "gpt-4-turbo-preview"
+      temperature: 0.5
+    verbose: true
+    memory: true
+    allow_delegation: false
+    max_iter: 20
+
+  - id: report_writer
+    role: "Investment Report Writer"
+    goal: |
+      Transform financial analysis into clear, compelling investment reports
+      that provide actionable recommendations. Create professional-grade
+      documents that communicate complex ideas effectively.
+    backstory: |
+      You are an experienced financial writer who has authored research reports 
+      for major investment banks and financial publications. You have a unique 
+      ability to translate complex financial concepts into clear, accessible 
+      language without sacrificing depth or accuracy.
+      
+      Your reports are known for their logical structure, compelling narratives, 
+      and actionable conclusions. You understand what institutional and retail 
+      investors need to make informed decisions and tailor your communication 
+      style accordingly. You pay meticulous attention to detail and always 
+      ensure your recommendations are well-supported by evidence.
+    tools:
+      - file_write
+      - file_read
+    llm:
+      model: "gpt-4-turbo-preview"
+      temperature: 0.7
+    verbose: true
+    memory: true
+    allow_delegation: false
+    max_iter: 15
+
+tasks:
+  - id: collect_news
+    description: |
+      Search and collect the latest financial news from the past 24 hours.
+      
+      Focus on:
+      1. Major market movements and their drivers
+      2. Significant earnings reports and guidance updates
+      3. Economic data releases and their implications
+      4. Central bank communications and policy changes
+      5. Geopolitical events affecting markets
+      6. Industry-specific developments and trends
+      
+      For each news item, capture:
+      - Headline and summary
+      - Source and publication time
+      - Affected sectors/companies
+      - Potential market impact (high/medium/low)
+      
+      Prioritize news from reliable financial sources like Bloomberg,
+      Reuters, CNBC, Financial Times, and Wall Street Journal.
+    expected_output: |
+      A structured JSON document containing:
+      - List of 10-15 most relevant news items
+      - Each item with: headline, summary, source, timestamp, 
+        affected_sectors, impact_level
+      - Brief overview of the day's market sentiment
+    agent: news_collector
+    async_execution: false
+
+  - id: analyze_news
+    description: |
+      Analyze the collected financial news to identify patterns, trends,
+      and investment implications.
+      
+      Your analysis should include:
+      1. Market Sentiment Analysis
+         - Overall market mood (bullish/bearish/neutral)
+         - Key drivers of current sentiment
+         
+      2. Sector Analysis
+         - Sectors showing strength or weakness
+         - Rotation patterns if any
+         
+      3. Risk Assessment
+         - Emerging risks to monitor
+         - Potential black swan events
+         
+      4. Opportunity Identification
+         - Sectors/themes showing momentum
+         - Contrarian opportunities
+         
+      5. Macroeconomic Context
+         - How current news fits broader economic trends
+         - Interest rate and inflation implications
+      
+      Use quantitative analysis where appropriate to support conclusions.
+    expected_output: |
+      A comprehensive analysis report in JSON format containing:
+      - Market sentiment score (-10 to +10) with justification
+      - Sector rankings and rationale
+      - Top 3 risks with probability and impact assessment
+      - Top 3 opportunities with conviction levels
+      - Key metrics and data points supporting the analysis
+      - Summary of actionable insights
+    agent: financial_analyst
+    context:
+      - collect_news
+    async_execution: false
+
+  - id: write_report
+    description: |
+      Create a professional investment insight report based on the
+      news collection and analysis.
+      
+      The report should follow this structure:
+      
+      1. Executive Summary (1 paragraph)
+         - Key takeaways for busy readers
+         
+      2. Market Overview
+         - Current market conditions
+         - Key events and their impact
+         
+      3. Sector Spotlight
+         - Deep dive into most relevant sectors
+         - Winners and losers
+         
+      4. Risk Monitor
+         - Key risks to watch
+         - Hedging considerations
+         
+      5. Investment Ideas
+         - Specific actionable recommendations
+         - Entry points and risk management
+         
+      6. Outlook
+         - Near-term expectations
+         - Key events to watch
+      
+      Use clear, professional language. Include relevant data points
+      but keep the report concise and actionable. Target length: 1500-2000 words.
+    expected_output: |
+      A complete investment report in Markdown format saved to
+      'output/investment_report.md' containing all sections outlined above.
+      The report should be professional, well-structured, and ready
+      for distribution to investment clients.
+    agent: report_writer
+    context:
+      - collect_news
+      - analyze_news
+    output_file: "output/investment_report.md"
+    async_execution: false
+    human_input: false
+
+crew:
+  process: sequential
+  verbose: true
+  memory: true
+  max_rpm: 30
+  share_crew: false

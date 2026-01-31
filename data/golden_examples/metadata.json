@@ -1,0 +1,60 @@
+{
+  "version": "1.0",
+  "description": "CAAS Golden Dataset - 표준 테스트 예제 모음",
+  "created": "2025-01-09",
+  "total_examples": 3,
+
+  "examples": [
+    {
+      "id": "financial_news",
+      "name": "Financial News Analyzer",
+      "category": "data_analysis",
+      "difficulty": "medium",
+      "features": [
+        "multi_agent",
+        "sequential_workflow",
+        "web_search",
+        "file_output"
+      ],
+      "estimated_duration_seconds": 120
+    },
+    {
+      "id": "chatbot",
+      "name": "AI Chatbot",
+      "category": "ui_application",
+      "difficulty": "easy",
+      "features": [
+        "streamlit_ui",
+        "chat_interface",
+        "single_agent"
+      ],
+      "estimated_duration_seconds": 60
+    },
+    {
+      "id": "data_analysis",
+      "name": "Data Analysis Dashboard",
+      "category": "ui_application",
+      "difficulty": "medium",
+      "features": [
+        "streamlit_ui",
+        "file_upload",
+        "data_visualization",
+        "multi_agent"
+      ],
+      "estimated_duration_seconds": 90
+    }
+  ],
+
+  "categories": {
+    "data_analysis": "데이터 수집 및 분석",
+    "ui_application": "UI 기반 애플리케이션",
+    "automation": "업무 자동화",
+    "api_service": "API 서비스"
+  },
+
+  "difficulty_levels": {
+    "easy": "단순 구조, 1-2개 에이전트",
+    "medium": "중간 복잡도, 3-4개 에이전트",
+    "hard": "복잡한 구조, 5개 이상 에이전트"
+  }
+}

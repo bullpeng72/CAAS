@@ -1,0 +1,318 @@
+# {{ metadata.title }}
+
+**버전**: {{ metadata.version }}
+**작성일**: {{ metadata.created_at | datetime("%Y년 %m월 %d일") }}
+**작성자**: {{ metadata.created_by }}
+
+---
+
+## 1. 문서 개요
+
+### 1.1 목적
+본 문서는 AI 에이전트 시스템의 설계를 상세히 기술합니다.
+
+### 1.2 범위
+- Agent 역할 및 책임 정의
+- Task workflow 설계
+- Agent-Task 매핑
+- Tool 할당
+
+---
+
+## 2. Agent 설계
+
+{% if agents %}
+
+### 2.1 Agent 개요
+
+총 **{{ agents | length }}개**의 에이전트가 설계되었습니다.
+
+{% for agent in agents %}
+
+---
+
+## Agent {{ loop.index }}: {{ agent.role or agent.id }}
+
+### 기본 정보
+
+| 항목 | 내용 |
+|------|------|
+| **Agent ID** | `{{ agent.id }}` |
+| **Role** | {{ agent.role }} |
+| **Goal** | {{ agent.goal }} |
+
+### Backstory
+
+{{ agent.backstory or "에이전트의 배경 스토리" }}
+
+### 할당된 Tools
+
+{% if agent.tools %}
+{% for tool in agent.tools %}
+- `{{ tool }}`
+{% endfor %}
+{% else %}
+- (도구 없음)
+{% endif %}
+
+### LLM 설정
+
+- **Model**: {{ agent.llm_model or "gpt-4o" }}
+- **Temperature**: {{ agent.llm_temperature or 0.3 }}
+- **Max Iterations**: {{ agent.max_iter or 15 }}
+
+### Agent 설정
+
+- **Verbose**: {{ agent.verbose or true }}
+- **Memory**: {{ agent.memory or true }}
+- **Allow Delegation**: {{ agent.allow_delegation or false }}
+
+{% if agent.skills %}
+### 주요 스킬
+
+{% for skill in agent.skills %}
+- {{ skill }}
+{% endfor %}
+{% endif %}
+
+{% if agent.constraints %}
+### 제약 사항
+
+{% for constraint in agent.constraints %}
+- {{ constraint }}
+{% endfor %}
+{% endif %}
+
+---
+
+{% endfor %}
+
+{% else %}
+
+에이전트 정보가 제공되지 않았습니다.
+
+{% endif %}
+
+---
+
+## 3. Task 설계
+
+{% if tasks %}
+
+### 3.1 Task 개요
+
+총 **{{ tasks | length }}개**의 태스크가 설계되었습니다.
+
+{% for task in tasks %}
+
+---
+
+## Task {{ loop.index }}: {{ task.name or task.id }}
+
+### 기본 정보
+
+| 항목 | 내용 |
+|------|------|
+| **Task ID** | `{{ task.id }}` |
+| **Name** | {{ task.name or task.id }} |
+| **Type** | {{ task.type or "general" }} |
+
+### Description
+
+{{ task.description or "태스크 설명" }}
+
+### Expected Output
+
+{{ task.expected_output or "태스크의 예상 출력" }}
+
+### 할당된 Agent
+
+{% if task.agent %}
+- **Agent**: {{ task.agent }}
+{% else %}
+- (할당 필요)
+{% endif %}
+
+### 실행 순서
+
+{% if task.dependencies %}
+**의존성**:
+{% for dep in task.dependencies %}
+- `{{ dep }}`
+{% endfor %}
+{% else %}
+- (의존성 없음 - 독립 실행 가능)
+{% endif %}
+
+{% if task.tools %}
+### 사용 도구
+
+{% for tool in task.tools %}
+- `{{ tool }}`
+{% endfor %}
+{% endif %}
+
+{% if task.context %}
+### Context
+
+{% for ctx in task.context %}
+- {{ ctx }}
+{% endfor %}
+{% endif %}
+
+---
+
+{% endfor %}
+
+{% else %}
+
+태스크 정보가 제공되지 않았습니다.
+
+{% endif %}
+
+---
+
+## 4. Agent-Task 매핑
+
+{% if agents and tasks %}
+
+| Agent | 할당된 Tasks | 우선순위 |
+|-------|-------------|----------|
+{% for agent in agents %}
+| {{ agent.role or agent.id }} | {% if agent.assigned_tasks %}{{ agent.assigned_tasks | join(", ") }}{% else %}TBD{% endif %} | {{ agent.priority or "중" }} |
+{% endfor %}
+
+{% endif %}
+
+---
+
+## 5. Workflow 다이어그램
+
+{% if include_diagrams %}
+
+```mermaid
+graph TD
+{% if tasks %}
+{% for task in tasks %}
+    {{ task.id }}["{{ task.name or task.id }}"]
+{% endfor %}
+
+{% for task in tasks %}
+{% if task.dependencies %}
+{% for dep in task.dependencies %}
+    {{ dep }} --> {{ task.id }}
+{% endfor %}
+{% endif %}
+{% endfor %}
+{% else %}
+    Start[시작] --> End[종료]
+{% endif %}
+```
+
+{% else %}
+
+다이어그램 생성이 비활성화되었습니다.
+
+{% endif %}
+
+---
+
+## 6. 에이전트 상호작용
+
+{% if agents and agents | length > 1 %}
+
+### 6.1 Communication Flow
+
+{% for agent in agents %}
+- **{{ agent.role }}**: {{ agent.communication_style or "표준 통신" }}
+{% endfor %}
+
+### 6.2 Delegation Rules
+
+{% for agent in agents %}
+{% if agent.allow_delegation %}
+- **{{ agent.role }}**: 다른 에이전트에게 작업 위임 가능
+{% endif %}
+{% endfor %}
+
+{% if not agents | selectattr("allow_delegation") | list %}
+- 모든 에이전트가 독립적으로 작업 수행 (delegation 비활성화)
+{% endif %}
+
+{% endif %}
+
+---
+
+## 7. 성능 고려사항
+
+### 7.1 최적화 전략
+
+- **병렬 실행**: 의존성 없는 태스크는 병렬 실행
+- **캐싱**: 반복 호출 결과 캐싱
+- **LLM 호출 최소화**: 효율적인 프롬프트 설계
+
+### 7.2 예상 실행 시간
+
+{% if tasks %}
+| Task | 예상 시간 | 복잡도 |
+|------|----------|--------|
+{% for task in tasks %}
+| {{ task.name or task.id }} | {{ task.estimated_time or "~30초" }} | {{ task.complexity or "중간" }} |
+{% endfor %}
+{% endif %}
+
+---
+
+## 8. 에러 처리
+
+### 8.1 Retry 전략
+
+- LLM API 실패: 최대 3회 재시도
+- Tool 실행 실패: 대체 도구 사용
+- Agent 실패: 에러 로깅 및 우아한 종료
+
+### 8.2 Fallback 메커니즘
+
+- Primary Agent 실패 시 Backup Agent 활성화 (구성된 경우)
+- Tool 사용 불가 시 대체 방법 적용
+
+---
+
+## 9. 모니터링 및 로깅
+
+### 9.1 로깅 레벨
+
+- **DEBUG**: 상세 실행 로그
+- **INFO**: 일반 실행 정보
+- **WARNING**: 경고 사항
+- **ERROR**: 에러 정보
+
+### 9.2 모니터링 지표
+
+- Agent 실행 횟수
+- Task 성공/실패율
+- 평균 실행 시간
+- LLM 토큰 사용량
+
+---
+
+## 10. 배포 체크리스트
+
+- [ ] 모든 Agent가 정의됨
+- [ ] 모든 Task가 Agent에 할당됨
+- [ ] 필수 Tool이 구성됨
+- [ ] 의존성이 올바르게 설정됨
+- [ ] 에러 처리가 구현됨
+- [ ] 로깅이 설정됨
+
+---
+
+**문서 이력**
+
+| 버전 | 일자 | 변경 내용 | 작성자 |
+|------|------|-----------|--------|
+| {{ metadata.version }} | {{ metadata.created_at | datetime("%Y-%m-%d") }} | 초안 작성 | {{ metadata.created_by }} |
+
+---
+
+*본 문서는 CAAS (CrewAI Agent Auto-generation System)에 의해 자동 생성되었습니다.*

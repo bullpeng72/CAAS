@@ -1,0 +1,75 @@
+"""Agent Runner page - Execute AI agents."""
+
+import streamlit as st
+from utils.api_client import APIClient
+
+st.set_page_config(page_title="Agent Runner", page_icon="🚀", layout="wide")
+
+# Get API client
+api_client = st.session_state.get("api_client")
+if not api_client:
+    st.error("API client not initialized. Please return to the home page.")
+    st.stop()
+
+st.title("🚀 Agent Runner")
+st.markdown("Execute AI agents and view results in real-time.")
+
+# Input section
+with st.form("agent_form"):
+    st.subheader("Agent Configuration")
+
+    task_description = st.text_area(
+        "Task Description",
+        placeholder="Describe the task you want the agent to perform...",
+        height=150
+    )
+
+    col1, col2 = st.columns(2)
+    with col1:
+        temperature = st.slider("Temperature", 0.0, 1.0, 0.7, 0.1)
+    with col2:
+        max_iterations = st.number_input("Max Iterations", 1, 20, 5)
+
+    submitted = st.form_submit_button("🚀 Run Agent", width='stretch')
+
+if submitted and task_description:
+    with st.spinner("Running agent..."):
+        try:
+            # Call agent endpoint
+            response = api_client.post("/api/v1/agents/run", {
+                "task": task_description,
+                "temperature": temperature,
+                "max_iterations": max_iterations
+            })
+
+            # Display results
+            st.success("✅ Agent execution completed!")
+
+            st.subheader("Results")
+            st.json(response)
+
+            # Display metrics if available
+            if "metrics" in response:
+                st.subheader("Metrics")
+                metrics = response["metrics"]
+                cols = st.columns(len(metrics))
+                for i, (key, value) in enumerate(metrics.items()):
+                    cols[i].metric(key, value)
+
+        except Exception as e:
+            st.error(f"❌ Error running agent: {e}")
+
+# Recent executions
+st.markdown("---")
+st.subheader("Recent Executions")
+
+try:
+    executions = api_client.get("/api/v1/agents/executions")
+    if executions:
+        for execution in executions[:5]:
+            with st.expander(f"Execution {execution.get('id', 'N/A')}"):
+                st.json(execution)
+    else:
+        st.info("No recent executions found.")
+except Exception as e:
+    st.warning(f"Could not load recent executions: {e}")

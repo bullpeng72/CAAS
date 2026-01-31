@@ -1,0 +1,34 @@
+# Development Environment Configuration
+# This file overrides config.yaml for development environment
+# Load this by setting: ENVIRONMENT=development
+
+llm:
+  # Use cheaper model for development
+  model: gpt-3.5-turbo
+  max_tokens: 2048  # Smaller for faster testing
+
+validation:
+  strictness: low  # Less strict for faster iteration
+  max_fix_iterations: 3
+
+codegen:
+  output_format: basic  # Simpler output for dev
+  include_ci_cd: false  # Skip CI/CD in dev
+
+workflow:
+  max_parallel_agents: 3  # Less parallelism for easier debugging
+
+timeouts:
+  # Shorter timeouts in development
+  api_request: 120
+  llm_request: 30
+
+ui:
+  expert_mode: true  # Show advanced options
+  show_hints: true
+  progress_verbosity: VERBOSE  # More logging in dev
+
+logging:
+  level: DEBUG  # More verbose logging
+  format: text  # Easier to read in console
+  output: console

@@ -1,0 +1,977 @@
+{
+  "version": "1.0.0",
+  "tools": [
+    {
+      "id": "tool_file_read",
+      "name": "file_read",
+      "display_name": "File Read",
+      "category": "file",
+      "type": "built_in",
+      "description": "Read contents from files on disk",
+      "use_cases": [
+        "Read configuration files",
+        "Load data files",
+        "Process text files"
+      ],
+      "implementations": [
+        {
+          "crewai_class": "FileReadTool",
+          "name": "CrewAI File Read Tool",
+          "description": "Built-in file reading tool",
+          "requires_api_key": false,
+          "api_key_env": null,
+          "pros": [],
+          "cons": []
+        }
+      ],
+      "default_implementation": "FileReadTool",
+      "compatible_roles": [
+        "Data Analyst",
+        "Developer",
+        "Researcher"
+      ],
+      "compatible_tasks": [
+        "data_analysis",
+        "research",
+        "file_processing"
+      ],
+      "usage_count": 0,
+      "success_rate": 0.0,
+      "tags": [
+        "file",
+        "read",
+        "io"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "tool_file_write",
+      "name": "file_write",
+      "display_name": "File Write",
+      "category": "file",
+      "type": "built_in",
+      "description": "Write content to files on disk",
+      "use_cases": [
+        "Save results",
+        "Generate reports",
+        "Export data"
+      ],
+      "implementations": [
+        {
+          "crewai_class": "FileWriterTool",
+          "name": "CrewAI File Writer Tool",
+          "description": "Built-in file writing tool",
+          "requires_api_key": false,
+          "api_key_env": null,
+          "pros": [],
+          "cons": []
+        }
+      ],
+      "default_implementation": "FileWriterTool",
+      "compatible_roles": [
+        "Data Analyst",
+        "Writer",
+        "Developer"
+      ],
+      "compatible_tasks": [
+        "reporting",
+        "data_export",
+        "documentation"
+      ],
+      "usage_count": 0,
+      "success_rate": 0.0,
+      "tags": [
+        "file",
+        "write",
+        "io",
+        "save"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "tool_directory_read",
+      "name": "directory_read",
+      "display_name": "Directory Read",
+      "category": "file",
+      "type": "built_in",
+      "description": "List files and directories in a path",
+      "use_cases": [
+        "Explore file structure",
+        "Find files",
+        "List directories"
+      ],
+      "implementations": [
+        {
+          "crewai_class": "DirectoryReadTool",
+          "name": "CrewAI Directory Read Tool",
+          "description": "List directory contents",
+          "requires_api_key": false,
+          "api_key_env": null,
+          "pros": [],
+          "cons": []
+        }
+      ],
+      "default_implementation": "DirectoryReadTool",
+      "compatible_roles": [
+        "Developer",
+        "Data Engineer"
+      ],
+      "compatible_tasks": [
+        "file_management",
+        "exploration"
+      ],
+      "usage_count": 0,
+      "success_rate": 0.0,
+      "tags": [
+        "directory",
+        "folder",
+        "list"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "tool_directory_search",
+      "name": "directory_search",
+      "display_name": "Directory Search",
+      "category": "file",
+      "type": "built_in",
+      "description": "Search for files in directories",
+      "use_cases": [
+        "Find specific files",
+        "Search by pattern",
+        "Locate resources"
+      ],
+      "implementations": [
+        {
+          "crewai_class": "DirectorySearchTool",
+          "name": "CrewAI Directory Search Tool",
+          "description": "Search for files in directories",
+          "requires_api_key": false,
+          "api_key_env": null,
+          "pros": [],
+          "cons": []
+        }
+      ],
+      "default_implementation": "DirectorySearchTool",
+      "compatible_roles": [
+        "Developer",
+        "Researcher"
+      ],
+      "compatible_tasks": [
+        "search",
+        "file_finding"
+      ],
+      "usage_count": 0,
+      "success_rate": 0.0,
+      "tags": [
+        "directory",
+        "search",
+        "find"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "tool_web_search",
+      "name": "web_search",
+      "display_name": "Web Search",
+      "category": "search",
+      "type": "built_in",
+      "description": "Search the web for information",
+      "use_cases": [
+        "Research topics",
+        "Find latest information",
+        "Gather data"
+      ],
+      "implementations": [
+        {
+          "crewai_class": "SerperDevTool",
+          "name": "Google Search (Serper)",
+          "description": "Google search using Serper API",
+          "requires_api_key": true,
+          "api_key_env": "SERPER_API_KEY",
+          "pros": [
+            "Most comprehensive results",
+            "Google's search index"
+          ],
+          "cons": [
+            "Requires API key",
+            "Costs money per query"
+          ]
+        },
+        {
+          "crewai_class": "BraveSearchTool",
+          "name": "Brave Search",
+          "description": "Privacy-focused search using Brave Search API",
+          "requires_api_key": true,
+          "api_key_env": "BRAVE_API_KEY",
+          "pros": [
+            "Privacy-focused",
+            "No user tracking"
+          ],
+          "cons": [
+            "Smaller index than Google"
+          ]
+        },
+        {
+          "crewai_class": "TavilySearchTool",
+          "name": "Tavily AI Search",
+          "description": "AI-optimized search using Tavily",
+          "requires_api_key": true,
+          "api_key_env": "TAVILY_API_KEY",
+          "pros": [
+            "AI-optimized results",
+            "Great for research"
+          ],
+          "cons": [
+            "Requires API key"
+          ]
+        }
+      ],
+      "default_implementation": "SerperDevTool",
+      "compatible_roles": [
+        "Researcher",
+        "Data Collector",
+        "Analyst"
+      ],
+      "compatible_tasks": [
+        "research",
+        "data_collection",
+        "fact_checking"
+      ],
+      "usage_count": 0,
+      "success_rate": 0.0,
+      "tags": [
+        "search",
+        "web",
+        "google",
+        "research"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "tool_scrape_website",
+      "name": "scrape_website",
+      "display_name": "Website Scraper",
+      "category": "web_scraping",
+      "type": "built_in",
+      "description": "Extract content from websites",
+      "use_cases": [
+        "Extract webpage content",
+        "Scrape data",
+        "Parse HTML"
+      ],
+      "implementations": [
+        {
+          "crewai_class": "ScrapeWebsiteTool",
+          "name": "Basic Website Scraper",
+          "description": "Simple HTTP-based scraping",
+          "requires_api_key": false,
+          "api_key_env": null,
+          "pros": [],
+          "cons": []
+        },
+        {
+          "crewai_class": "SeleniumScrapingTool",
+          "name": "Selenium Scraper",
+          "description": "Browser-based scraping with JavaScript support",
+          "requires_api_key": false,
+          "api_key_env": null,
+          "pros": [
+            "Handles JavaScript",
+            "Can interact with pages"
+          ],
+          "cons": [
+            "Slower",
+            "Requires browser"
+          ]
+        },
+        {
+          "crewai_class": "FirecrawlScrapeWebsiteTool",
+          "name": "Firecrawl Scraper",
+          "description": "Advanced scraping with Firecrawl",
+          "requires_api_key": true,
+          "api_key_env": "FIRECRAWL_API_KEY",
+          "pros": [
+            "Advanced features",
+            "Clean data"
+          ],
+          "cons": [
+            "Requires API key"
+          ]
+        }
+      ],
+      "default_implementation": "ScrapeWebsiteTool",
+      "compatible_roles": [
+        "Data Collector",
+        "Researcher",
+        "Web Scraper"
+      ],
+      "compatible_tasks": [
+        "data_collection",
+        "web_scraping",
+        "content_extraction"
+      ],
+      "usage_count": 0,
+      "success_rate": 0.0,
+      "tags": [
+        "scrape",
+        "web",
+        "extract",
+        "crawl"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "tool_code_interpreter",
+      "name": "code_interpreter",
+      "display_name": "Code Interpreter",
+      "category": "code",
+      "type": "built_in",
+      "description": "Execute Python code in a sandbox",
+      "use_cases": [
+        "Run calculations",
+        "Process data",
+        "Generate code results"
+      ],
+      "implementations": [
+        {
+          "crewai_class": "CodeInterpreterTool",
+          "name": "CrewAI Code Interpreter",
+          "description": "Execute Python code safely",
+          "requires_api_key": false,
+          "api_key_env": null,
+          "pros": [],
+          "cons": []
+        }
+      ],
+      "default_implementation": "CodeInterpreterTool",
+      "compatible_roles": [
+        "Developer",
+        "Data Analyst",
+        "Researcher"
+      ],
+      "compatible_tasks": [
+        "coding",
+        "data_processing",
+        "calculation"
+      ],
+      "usage_count": 0,
+      "success_rate": 0.0,
+      "tags": [
+        "code",
+        "python",
+        "execute",
+        "programming"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "tool_calculator",
+      "name": "calculator",
+      "display_name": "Calculator",
+      "category": "code",
+      "type": "custom",
+      "description": "Evaluate mathematical expressions safely",
+      "use_cases": [
+        "Mathematical calculations",
+        "Formula evaluation",
+        "Number processing"
+      ],
+      "implementations": [],
+      "default_implementation": null,
+      "compatible_roles": [
+        "Data Analyst",
+        "Researcher",
+        "Accountant"
+      ],
+      "compatible_tasks": [
+        "numerical_calculation",
+        "mathematical_computation",
+        "formula_evaluation"
+      ],
+      "usage_count": 0,
+      "success_rate": 0.0,
+      "tags": [
+        "calculator",
+        "math",
+        "calculation"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "tool_pdf_search",
+      "name": "pdf_search",
+      "display_name": "PDF Search",
+      "category": "document",
+      "type": "built_in",
+      "description": "Search and query PDF files",
+      "use_cases": [
+        "Search pdf documents",
+        "Extract data from pdf"
+      ],
+      "implementations": [
+        {
+          "crewai_class": "PDFSearchTool",
+          "name": "CrewAI PDF Search",
+          "description": "Search tool for pdf files",
+          "requires_api_key": false,
+          "api_key_env": null,
+          "pros": [],
+          "cons": []
+        }
+      ],
+      "default_implementation": "PDFSearchTool",
+      "compatible_roles": [
+        "Researcher",
+        "Data Analyst"
+      ],
+      "compatible_tasks": [
+        "document_search",
+        "data_extraction"
+      ],
+      "usage_count": 0,
+      "success_rate": 0.0,
+      "tags": [
+        "document",
+        "pdf",
+        "search"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "tool_csv_search",
+      "name": "csv_search",
+      "display_name": "CSV Search",
+      "category": "document",
+      "type": "built_in",
+      "description": "Search and query CSV files",
+      "use_cases": [
+        "Search csv documents",
+        "Extract data from csv"
+      ],
+      "implementations": [
+        {
+          "crewai_class": "CSVSearchTool",
+          "name": "CrewAI CSV Search",
+          "description": "Search tool for csv files",
+          "requires_api_key": false,
+          "api_key_env": null,
+          "pros": [],
+          "cons": []
+        }
+      ],
+      "default_implementation": "CSVSearchTool",
+      "compatible_roles": [
+        "Researcher",
+        "Data Analyst"
+      ],
+      "compatible_tasks": [
+        "document_search",
+        "data_extraction"
+      ],
+      "usage_count": 0,
+      "success_rate": 0.0,
+      "tags": [
+        "document",
+        "csv",
+        "search"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "tool_json_search",
+      "name": "json_search",
+      "display_name": "JSON Search",
+      "category": "document",
+      "type": "built_in",
+      "description": "Search and query JSON files",
+      "use_cases": [
+        "Search json documents",
+        "Extract data from json"
+      ],
+      "implementations": [
+        {
+          "crewai_class": "JSONSearchTool",
+          "name": "CrewAI JSON Search",
+          "description": "Search tool for json files",
+          "requires_api_key": false,
+          "api_key_env": null,
+          "pros": [],
+          "cons": []
+        }
+      ],
+      "default_implementation": "JSONSearchTool",
+      "compatible_roles": [
+        "Researcher",
+        "Data Analyst"
+      ],
+      "compatible_tasks": [
+        "document_search",
+        "data_extraction"
+      ],
+      "usage_count": 0,
+      "success_rate": 0.0,
+      "tags": [
+        "document",
+        "json",
+        "search"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "tool_docx_search",
+      "name": "docx_search",
+      "display_name": "DOCX Search",
+      "category": "document",
+      "type": "built_in",
+      "description": "Search and query DOCX files",
+      "use_cases": [
+        "Search docx documents",
+        "Extract data from docx"
+      ],
+      "implementations": [
+        {
+          "crewai_class": "DOCXSearchTool",
+          "name": "CrewAI DOCX Search",
+          "description": "Search tool for docx files",
+          "requires_api_key": false,
+          "api_key_env": null,
+          "pros": [],
+          "cons": []
+        }
+      ],
+      "default_implementation": "DOCXSearchTool",
+      "compatible_roles": [
+        "Researcher",
+        "Data Analyst"
+      ],
+      "compatible_tasks": [
+        "document_search",
+        "data_extraction"
+      ],
+      "usage_count": 0,
+      "success_rate": 0.0,
+      "tags": [
+        "document",
+        "docx",
+        "search"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "tool_txt_search",
+      "name": "txt_search",
+      "display_name": "TXT Search",
+      "category": "document",
+      "type": "built_in",
+      "description": "Search and query TXT files",
+      "use_cases": [
+        "Search txt documents",
+        "Extract data from txt"
+      ],
+      "implementations": [
+        {
+          "crewai_class": "TXTSearchTool",
+          "name": "CrewAI TXT Search",
+          "description": "Search tool for txt files",
+          "requires_api_key": false,
+          "api_key_env": null,
+          "pros": [],
+          "cons": []
+        }
+      ],
+      "default_implementation": "TXTSearchTool",
+      "compatible_roles": [
+        "Researcher",
+        "Data Analyst"
+      ],
+      "compatible_tasks": [
+        "document_search",
+        "data_extraction"
+      ],
+      "usage_count": 0,
+      "success_rate": 0.0,
+      "tags": [
+        "document",
+        "txt",
+        "search"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "tool_xml_search",
+      "name": "xml_search",
+      "display_name": "XML Search",
+      "category": "document",
+      "type": "built_in",
+      "description": "Search and query XML files",
+      "use_cases": [
+        "Search xml documents",
+        "Extract data from xml"
+      ],
+      "implementations": [
+        {
+          "crewai_class": "XMLSearchTool",
+          "name": "CrewAI XML Search",
+          "description": "Search tool for xml files",
+          "requires_api_key": false,
+          "api_key_env": null,
+          "pros": [],
+          "cons": []
+        }
+      ],
+      "default_implementation": "XMLSearchTool",
+      "compatible_roles": [
+        "Researcher",
+        "Data Analyst"
+      ],
+      "compatible_tasks": [
+        "document_search",
+        "data_extraction"
+      ],
+      "usage_count": 0,
+      "success_rate": 0.0,
+      "tags": [
+        "document",
+        "xml",
+        "search"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "tool_mysql_search",
+      "name": "mysql_search",
+      "display_name": "MySQL Search",
+      "category": "database",
+      "type": "built_in",
+      "description": "Query MySQL databases",
+      "use_cases": [
+        "Database queries",
+        "Data retrieval",
+        "SQL operations"
+      ],
+      "implementations": [
+        {
+          "crewai_class": "MySQLSearchTool",
+          "name": "MySQL Query Tool",
+          "description": "Execute SQL queries on MySQL",
+          "requires_api_key": false,
+          "api_key_env": null,
+          "pros": [],
+          "cons": []
+        }
+      ],
+      "default_implementation": "MySQLSearchTool",
+      "compatible_roles": [
+        "Data Analyst",
+        "Data Engineer",
+        "Database Admin"
+      ],
+      "compatible_tasks": [
+        "database_query",
+        "data_retrieval"
+      ],
+      "usage_count": 0,
+      "success_rate": 0.0,
+      "tags": [
+        "database",
+        "mysql",
+        "sql",
+        "query"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "tool_mongodb_search",
+      "name": "mongodb_search",
+      "display_name": "MongoDB Search",
+      "category": "database",
+      "type": "built_in",
+      "description": "Vector search in MongoDB",
+      "use_cases": [
+        "Vector similarity search",
+        "MongoDB queries",
+        "Document retrieval"
+      ],
+      "implementations": [
+        {
+          "crewai_class": "MongoDBVectorSearchTool",
+          "name": "MongoDB Vector Search",
+          "description": "Vector search in MongoDB",
+          "requires_api_key": false,
+          "api_key_env": null,
+          "pros": [],
+          "cons": []
+        }
+      ],
+      "default_implementation": "MongoDBVectorSearchTool",
+      "compatible_roles": [
+        "Data Engineer",
+        "ML Engineer"
+      ],
+      "compatible_tasks": [
+        "vector_search",
+        "database_query"
+      ],
+      "usage_count": 0,
+      "success_rate": 0.0,
+      "tags": [
+        "database",
+        "mongodb",
+        "vector",
+        "nosql"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "tool_vision",
+      "name": "vision",
+      "display_name": "Vision AI",
+      "category": "vision",
+      "type": "built_in",
+      "description": "Image analysis and understanding",
+      "use_cases": [
+        "Analyze images",
+        "Detect objects",
+        "Understand visual content"
+      ],
+      "implementations": [
+        {
+          "crewai_class": "VisionTool",
+          "name": "CrewAI Vision Tool",
+          "description": "AI-powered image analysis",
+          "requires_api_key": true,
+          "api_key_env": "OPENAI_API_KEY",
+          "pros": [],
+          "cons": []
+        }
+      ],
+      "default_implementation": "VisionTool",
+      "compatible_roles": [
+        "Image Analyst",
+        "ML Engineer"
+      ],
+      "compatible_tasks": [
+        "image_analysis",
+        "vision"
+      ],
+      "usage_count": 0,
+      "success_rate": 0.0,
+      "tags": [
+        "vision",
+        "image",
+        "ai",
+        "visual"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "tool_ocr",
+      "name": "ocr",
+      "display_name": "OCR (Text Extraction)",
+      "category": "vision",
+      "type": "built_in",
+      "description": "Extract text from images using OCR (NOT AVAILABLE - Use VisionTool instead)",
+      "use_cases": [
+        "Read text from images",
+        "Scan documents",
+        "Extract printed text"
+      ],
+      "implementations": [
+        {
+          "crewai_class": "OCRTool",
+          "name": "OCR Tool",
+          "description": "Optical Character Recognition (NOT AVAILABLE IN CREWAI_TOOLS)",
+          "requires_api_key": false,
+          "api_key_env": null,
+          "pros": [],
+          "cons": ["Not available in crewai_tools package"]
+        }
+      ],
+      "default_implementation": "OCRTool",
+      "compatible_roles": [
+        "Document Processor",
+        "Data Entry"
+      ],
+      "compatible_tasks": [
+        "text_extraction",
+        "document_processing"
+      ],
+      "usage_count": 0,
+      "success_rate": 0.0,
+      "tags": [
+        "ocr",
+        "text",
+        "image",
+        "recognition"
+      ],
+      "enabled": false
+    },
+    {
+      "id": "tool_dalle",
+      "name": "dalle",
+      "display_name": "DALL-E Image Generation",
+      "category": "ai",
+      "type": "built_in",
+      "description": "Generate images using DALL-E (NOT AVAILABLE - Use custom implementation)",
+      "use_cases": [
+        "Create images from text",
+        "Generate artwork",
+        "Visual content creation"
+      ],
+      "implementations": [
+        {
+          "crewai_class": "DallETool",
+          "name": "DALL-E Image Generator",
+          "description": "OpenAI's DALL-E image generation (NOT AVAILABLE IN CREWAI_TOOLS)",
+          "requires_api_key": true,
+          "api_key_env": "OPENAI_API_KEY",
+          "pros": [],
+          "cons": ["Not available in crewai_tools package"]
+        }
+      ],
+      "default_implementation": "DallETool",
+      "compatible_roles": [
+        "Designer",
+        "Content Creator"
+      ],
+      "compatible_tasks": [
+        "image_generation",
+        "content_creation"
+      ],
+      "usage_count": 0,
+      "success_rate": 0.0,
+      "tags": [
+        "ai",
+        "image",
+        "generation",
+        "dalle"
+      ],
+      "enabled": false
+    },
+    {
+      "id": "tool_youtube_search",
+      "name": "youtube_search",
+      "display_name": "YouTube Search",
+      "category": "youtube",
+      "type": "built_in",
+      "description": "Search YouTube videos",
+      "use_cases": [
+        "Find videos",
+        "Research content",
+        "Collect video data"
+      ],
+      "implementations": [
+        {
+          "crewai_class": "YoutubeVideoSearchTool",
+          "name": "YouTube Video Search",
+          "description": "Search for YouTube videos",
+          "requires_api_key": false,
+          "api_key_env": null,
+          "pros": [],
+          "cons": []
+        }
+      ],
+      "default_implementation": "YoutubeVideoSearchTool",
+      "compatible_roles": [
+        "Researcher",
+        "Content Analyst"
+      ],
+      "compatible_tasks": [
+        "video_search",
+        "content_research"
+      ],
+      "usage_count": 0,
+      "success_rate": 0.0,
+      "tags": [
+        "youtube",
+        "video",
+        "search"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "tool_slack_search",
+      "name": "slack_search",
+      "display_name": "Slack Search",
+      "category": "communication",
+      "type": "built_in",
+      "description": "Search Slack messages and channels (NOT AVAILABLE - Use custom implementation)",
+      "use_cases": [
+        "Find past messages",
+        "Search team communications",
+        "Retrieve information"
+      ],
+      "implementations": [
+        {
+          "crewai_class": "SlackSearchTool",
+          "name": "Slack Search Tool",
+          "description": "Search Slack workspace (NOT AVAILABLE IN CREWAI_TOOLS)",
+          "requires_api_key": true,
+          "api_key_env": "SLACK_API_KEY",
+          "pros": [],
+          "cons": ["Not available in crewai_tools package"]
+        }
+      ],
+      "default_implementation": "SlackSearchTool",
+      "compatible_roles": [
+        "Team Manager",
+        "Support Agent"
+      ],
+      "compatible_tasks": [
+        "communication",
+        "search"
+      ],
+      "usage_count": 0,
+      "success_rate": 0.0,
+      "tags": [
+        "slack",
+        "communication",
+        "search"
+      ],
+      "enabled": false
+    },
+    {
+      "id": "tool_rag",
+      "name": "rag_tool",
+      "display_name": "RAG (Retrieval Augmented Generation)",
+      "category": "other",
+      "type": "built_in",
+      "description": "Retrieval Augmented Generation for knowledge-based responses",
+      "use_cases": [
+        "Knowledge base queries",
+        "Document QA",
+        "Context-aware responses"
+      ],
+      "implementations": [
+        {
+          "crewai_class": "RagTool",
+          "name": "RAG Tool",
+          "description": "Combine retrieval and generation",
+          "requires_api_key": false,
+          "api_key_env": null,
+          "pros": [],
+          "cons": []
+        }
+      ],
+      "default_implementation": "RagTool",
+      "compatible_roles": [
+        "Researcher",
+        "Knowledge Manager"
+      ],
+      "compatible_tasks": [
+        "qa",
+        "knowledge_retrieval"
+      ],
+      "usage_count": 0,
+      "success_rate": 0.0,
+      "tags": [
+        "rag",
+        "retrieval",
+        "knowledge",
+        "ai"
+      ],
+      "enabled": true
+    }
+  ]
+}
