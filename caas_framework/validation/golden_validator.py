@@ -25,21 +25,25 @@ Features:
 
 from datetime import datetime
 from typing import Dict, List, Any
-from app.models.schemas import (
+
+# Import from caas_framework.models (unified location)
+from caas_framework.models import (
     ConcretizedRequirement,
-    RequirementAnalysis,
-    ArchitectureDesign,
-)
-from caas_framework.models.specifications import (
     AgentSpecModel,
     TaskSpecModel,
-)
-from caas_framework.models.validation import (
     GoldenValidationReport,
     MissingItem,
     ExtraItem,
     ComplianceStatus,
 )
+
+# TODO: Migrate these classes from app.models.schemas to caas_framework.models
+# For now, they're accessible via backward compat shim
+try:
+    from caas_framework.models.specifications import RequirementAnalysis, ArchitectureDesign
+except ImportError:
+    # Fallback to app.models (via shim) if not yet migrated
+    from app.models.schemas import RequirementAnalysis, ArchitectureDesign
 from caas_framework.utils.logger import get_logger
 
 logger = get_logger("validation.golden")
