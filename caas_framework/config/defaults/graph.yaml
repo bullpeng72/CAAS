@@ -1,0 +1,11 @@
+# Graph Database Default Configuration
+graph:
+  backend: embedded  # neo4j, arangodb, or embedded
+
+  # Neo4j settings (when backend=neo4j)
+  neo4j_uri: bolt://localhost:7687
+  neo4j_user: neo4j
+  neo4j_database: neo4j
+
+  # Embedded graph settings (when backend=embedded)
+  embedded_storage: ./data/embedded_graph.json

@@ -1,0 +1,10 @@
+# LLM Default Configuration
+llm:
+  provider: openai
+  model: gpt-4o-mini
+  temperature: 0.7
+  max_tokens: 4096
+
+  # Ollama settings (for local LLM)
+  ollama_base_url: http://localhost:11434
+  ollama_model: qwen3:8b

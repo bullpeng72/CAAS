@@ -1,0 +1,14 @@
+# Application Default Configuration
+app:
+  app_name: CAAS
+  app_env: development
+  debug: true
+  log_level: INFO
+
+  # Streamlit settings (if using web UI)
+  streamlit_server_port: 8501
+  streamlit_server_address: localhost
+
+  # Directories
+  output_dir: ./generated
+  template_dir: ./data/templates
