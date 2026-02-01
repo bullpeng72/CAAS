@@ -1,16 +1,17 @@
 """
-CAAS LLM Client
+CAAS Framework LLM Client
 
-다양한 LLM 프로바이더 (OpenAI, Anthropic, Ollama)를 통합 관리하는 클라이언트입니다.
+Unified client for managing various LLM providers (OpenAI, Anthropic, Ollama).
 """
 
+import logging
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional, Union
 from enum import Enum
 
 from pydantic import BaseModel, Field
 
-# 선택적 의존성
+# Optional dependencies
 LANGCHAIN_AVAILABLE = False
 ChatOpenAI = None
 BaseChatModel = object
@@ -20,40 +21,58 @@ try:
     from langchain_core.language_models.chat_models import BaseChatModel
     LANGCHAIN_AVAILABLE = True
 except ImportError as e:
-    # SECURITY: 의존성 누락을 로깅하여 디버깅 용이하게 함
-    import logging
-    logging.getLogger("llm.client").warning(
-        f"LangChain을 사용할 수 없습니다: {e}. "
-        "설치하려면: pip install langchain-openai langchain-core"
+    # SECURITY: Log dependency issues for debugging
+    logging.getLogger("caas_framework.llm.client").warning(
+        f"LangChain not available: {e}. "
+        "Install with: pip install langchain-openai langchain-core"
     )
 
-from app.utils.config import get_settings
-from app.utils.logger import get_logger
+from caas_framework.config import get_settings, get_api_key
 
-logger = get_logger("llm.client")
+logger = logging.getLogger("caas_framework.llm.client")
+
+
+def mask_secret(secret: str, visible_chars: int = 4) -> str:
+    """
+    Mask secret for safe logging.
+
+    Args:
+        secret: Secret to mask
+        visible_chars: Number of characters to show
+
+    Returns:
+        Masked secret (e.g., "sk-...xyz")
+    """
+    if not secret or len(secret) <= visible_chars:
+        return "***"
+
+    prefix_len = min(visible_chars, len(secret) // 4)
+    suffix_len = min(visible_chars, len(secret) // 4)
+
+    return f"{secret[:prefix_len]}...{secret[-suffix_len:]}"
 
 
 class LLMProvider(str, Enum):
-    """지원하는 LLM 프로바이더"""
+    """Supported LLM providers"""
     OPENAI = "openai"
     ANTHROPIC = "anthropic"
     OLLAMA = "ollama"
 
 
 class LLMConfig(BaseModel):
-    """LLM 설정 모델"""
+    """LLM configuration model"""
     provider: LLMProvider = LLMProvider.OPENAI
     model: str = "gpt-4-turbo-preview"
     temperature: float = Field(default=0.3, ge=0.0, le=2.0)
     max_tokens: Optional[int] = Field(default=4096, ge=1)
     top_p: float = Field(default=1.0, ge=0.0, le=1.0)
-    
+
     class Config:
         use_enum_values = True
 
 
 class LLMResponse(BaseModel):
-    """LLM 응답 모델"""
+    """LLM response model"""
     content: str
     model: str
     provider: str
@@ -62,53 +81,50 @@ class LLMResponse(BaseModel):
 
 
 class BaseLLMClient(ABC):
-    """LLM 클라이언트 기본 클래스"""
-    
+    """Base class for LLM clients"""
+
     @abstractmethod
     def chat(
         self,
         messages: List[Dict[str, str]],
         **kwargs
     ) -> LLMResponse:
-        """채팅 완성을 수행합니다."""
-    
+        """Perform chat completion"""
+
     @abstractmethod
     def get_langchain_llm(self) -> BaseChatModel:
-        """LangChain 호환 LLM 객체를 반환합니다."""
+        """Return LangChain-compatible LLM object"""
 
 
 class OpenAIClient(BaseLLMClient):
-    """OpenAI API 클라이언트"""
+    """OpenAI API client"""
 
     def __init__(self, config: Optional[LLMConfig] = None):
-        from app.utils.config import get_api_key
-        from app.utils.secrets import mask_secret
-
         self.settings = get_settings()
         self.config = config or LLMConfig(
             provider=LLMProvider.OPENAI,
             model=self.settings.llm.default_llm_model,
         )
-        # SECURITY: SecretManager에서 API 키 가져오기
+        # SECURITY: Get API key from SecretManager
         self._api_key = get_api_key("OPENAI_API_KEY")
         if not self._api_key:
             raise ValueError(
-                "OPENAI_API_KEY가 설정되지 않았습니다. "
-                ".env 파일에 OPENAI_API_KEY를 설정해주세요."
+                "OPENAI_API_KEY not set. "
+                "Please set OPENAI_API_KEY in .env file."
             )
-        # SECURITY: 마스킹된 버전만 로깅
-        logger.info(f"OpenAI 클라이언트 초기화: model={self.config.model}, key={mask_secret(self._api_key)}")
-    
+        # SECURITY: Only log masked version
+        logger.info(f"OpenAI client initialized: model={self.config.model}, key={mask_secret(self._api_key)}")
+
     def chat(
         self,
         messages: List[Dict[str, str]],
         **kwargs
     ) -> LLMResponse:
-        """OpenAI 채팅 완성을 수행합니다."""
+        """Perform OpenAI chat completion"""
         from openai import OpenAI
-        
+
         client = OpenAI(api_key=self._api_key)
-        
+
         response = client.chat.completions.create(
             model=kwargs.get("model", self.config.model),
             messages=messages,
@@ -116,7 +132,7 @@ class OpenAIClient(BaseLLMClient):
             max_tokens=kwargs.get("max_tokens", self.config.max_tokens),
             top_p=kwargs.get("top_p", self.config.top_p),
         )
-        
+
         return LLMResponse(
             content=response.choices[0].message.content,
             model=response.model,
@@ -128,11 +144,11 @@ class OpenAIClient(BaseLLMClient):
             },
             raw_response=response,
         )
-    
+
     def get_langchain_llm(self):
-        """LangChain ChatOpenAI 객체를 반환합니다."""
+        """Return LangChain ChatOpenAI object"""
         if not LANGCHAIN_AVAILABLE:
-            raise ImportError("langchain가 설치되지 않았습니다. pip install langchain-openai langchain-core")
+            raise ImportError("langchain not installed. pip install langchain-openai langchain-core")
         return ChatOpenAI(
             api_key=self._api_key,
             model=self.config.model,
@@ -142,38 +158,35 @@ class OpenAIClient(BaseLLMClient):
 
 
 class AnthropicClient(BaseLLMClient):
-    """Anthropic API 클라이언트"""
+    """Anthropic API client"""
 
     def __init__(self, config: Optional[LLMConfig] = None):
-        from app.utils.config import get_api_key
-        from app.utils.secrets import mask_secret
-
         self.settings = get_settings()
         self.config = config or LLMConfig(
             provider=LLMProvider.ANTHROPIC,
             model="claude-3-opus-20240229",
         )
-        # SECURITY: SecretManager에서 API 키 가져오기
+        # SECURITY: Get API key from SecretManager
         self._api_key = get_api_key("ANTHROPIC_API_KEY")
         if not self._api_key:
             raise ValueError(
-                "ANTHROPIC_API_KEY가 설정되지 않았습니다. "
-                ".env 파일에 ANTHROPIC_API_KEY를 설정해주세요."
+                "ANTHROPIC_API_KEY not set. "
+                "Please set ANTHROPIC_API_KEY in .env file."
             )
-        # SECURITY: 마스킹된 버전만 로깅
-        logger.info(f"Anthropic 클라이언트 초기화: model={self.config.model}, key={mask_secret(self._api_key)}")
-    
+        # SECURITY: Only log masked version
+        logger.info(f"Anthropic client initialized: model={self.config.model}, key={mask_secret(self._api_key)}")
+
     def chat(
         self,
         messages: List[Dict[str, str]],
         **kwargs
     ) -> LLMResponse:
-        """Anthropic 채팅 완성을 수행합니다."""
+        """Perform Anthropic chat completion"""
         from anthropic import Anthropic
-        
+
         client = Anthropic(api_key=self._api_key)
-        
-        # 시스템 메시지 분리
+
+        # Separate system message
         system_msg = ""
         chat_messages = []
         for msg in messages:
@@ -181,7 +194,7 @@ class AnthropicClient(BaseLLMClient):
                 system_msg = msg["content"]
             else:
                 chat_messages.append(msg)
-        
+
         response = client.messages.create(
             model=kwargs.get("model", self.config.model),
             system=system_msg,
@@ -189,7 +202,7 @@ class AnthropicClient(BaseLLMClient):
             temperature=kwargs.get("temperature", self.config.temperature),
             max_tokens=kwargs.get("max_tokens", self.config.max_tokens or 4096),
         )
-        
+
         return LLMResponse(
             content=response.content[0].text,
             model=response.model,
@@ -200,11 +213,11 @@ class AnthropicClient(BaseLLMClient):
             },
             raw_response=response,
         )
-    
+
     def get_langchain_llm(self) -> BaseChatModel:
-        """LangChain ChatAnthropic 객체를 반환합니다."""
+        """Return LangChain ChatAnthropic object"""
         from langchain_anthropic import ChatAnthropic
-        
+
         return ChatAnthropic(
             api_key=self._api_key,
             model=self.config.model,
@@ -214,8 +227,8 @@ class AnthropicClient(BaseLLMClient):
 
 
 class OllamaClient(BaseLLMClient):
-    """Ollama (로컬 LLM) 클라이언트"""
-    
+    """Ollama (local LLM) client"""
+
     def __init__(self, config: Optional[LLMConfig] = None):
         self.settings = get_settings()
         self.config = config or LLMConfig(
@@ -223,16 +236,16 @@ class OllamaClient(BaseLLMClient):
             model=self.settings.llm.ollama_model,
         )
         self._base_url = self.settings.llm.ollama_base_url
-        logger.info(f"Ollama 클라이언트 초기화: model={self.config.model}")
-    
+        logger.info(f"Ollama client initialized: model={self.config.model}")
+
     def chat(
         self,
         messages: List[Dict[str, str]],
         **kwargs
     ) -> LLMResponse:
-        """Ollama 채팅 완성을 수행합니다."""
+        """Perform Ollama chat completion"""
         import httpx
-        
+
         response = httpx.post(
             f"{self._base_url}/api/chat",
             json={
@@ -247,7 +260,7 @@ class OllamaClient(BaseLLMClient):
         )
         response.raise_for_status()
         data = response.json()
-        
+
         return LLMResponse(
             content=data["message"]["content"],
             model=data.get("model", self.config.model),
@@ -258,11 +271,11 @@ class OllamaClient(BaseLLMClient):
             },
             raw_response=data,
         )
-    
+
     def get_langchain_llm(self) -> BaseChatModel:
-        """LangChain ChatOllama 객체를 반환합니다."""
+        """Return LangChain ChatOllama object"""
         from langchain_community.chat_models import ChatOllama
-        
+
         return ChatOllama(
             base_url=self._base_url,
             model=self.config.model,
@@ -271,14 +284,14 @@ class OllamaClient(BaseLLMClient):
 
 
 class LLMClientFactory:
-    """LLM 클라이언트 팩토리"""
-    
+    """LLM client factory"""
+
     _clients: Dict[str, type] = {
         LLMProvider.OPENAI: OpenAIClient,
         LLMProvider.ANTHROPIC: AnthropicClient,
         LLMProvider.OLLAMA: OllamaClient,
     }
-    
+
     @classmethod
     def create(
         cls,
@@ -286,49 +299,49 @@ class LLMClientFactory:
         config: Optional[LLMConfig] = None,
     ) -> BaseLLMClient:
         """
-        LLM 클라이언트를 생성합니다.
-        
+        Create LLM client
+
         Args:
-            provider: LLM 프로바이더 (openai, anthropic, ollama)
-            config: LLM 설정
-        
+            provider: LLM provider (openai, anthropic, ollama)
+            config: LLM configuration
+
         Returns:
-            BaseLLMClient: LLM 클라이언트 인스턴스
+            BaseLLMClient: LLM client instance
         """
         settings = get_settings()
-        
+
         if provider is None:
             provider = settings.llm.default_llm_provider
-        
+
         if isinstance(provider, str):
             provider = LLMProvider(provider.lower())
-        
+
         client_class = cls._clients.get(provider)
         if not client_class:
-            raise ValueError(f"지원하지 않는 프로바이더: {provider}")
-        
+            raise ValueError(f"Unsupported provider: {provider}")
+
         return client_class(config)
-    
+
     @classmethod
     def get_default_client(cls) -> BaseLLMClient:
-        """기본 설정의 LLM 클라이언트를 반환합니다."""
+        """Return LLM client with default settings"""
         return cls.create()
 
 
-# 편의를 위한 함수
+# Convenience functions
 def get_llm_client(
     provider: Optional[str] = None,
     **kwargs
 ) -> BaseLLMClient:
     """
-    LLM 클라이언트를 가져옵니다.
-    
+    Get LLM client
+
     Args:
-        provider: LLM 프로바이더 (기본값: 환경 설정)
-        **kwargs: 추가 설정
-    
+        provider: LLM provider (default: from environment settings)
+        **kwargs: Additional configuration
+
     Returns:
-        BaseLLMClient: LLM 클라이언트
+        BaseLLMClient: LLM client
     """
     config = LLMConfig(**kwargs) if kwargs else None
     return LLMClientFactory.create(provider, config)
@@ -339,14 +352,14 @@ def get_langchain_llm(
     **kwargs
 ) -> BaseChatModel:
     """
-    LangChain 호환 LLM을 가져옵니다.
-    
+    Get LangChain-compatible LLM
+
     Args:
-        provider: LLM 프로바이더
-        **kwargs: 추가 설정
-    
+        provider: LLM provider
+        **kwargs: Additional configuration
+
     Returns:
-        BaseChatModel: LangChain LLM 객체
+        BaseChatModel: LangChain LLM object
     """
     client = get_llm_client(provider, **kwargs)
     return client.get_langchain_llm()

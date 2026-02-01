@@ -9,10 +9,10 @@ import json
 from typing import Any, Dict, List, Optional, Callable, TypeVar, Type
 from pydantic import BaseModel, ValidationError
 
-from app.utils.logger import get_logger
-from app.utils.json_helper import JSONHelper
+import logging
+from caas_framework.utils.json_helper import JSONHelper
 
-logger = get_logger("llm.response_parser")
+logger = logging.getLogger("caas_framework.llm.response_parser")
 
 T = TypeVar('T', bound=BaseModel)
 

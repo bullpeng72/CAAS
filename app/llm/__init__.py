@@ -1,55 +1,40 @@
 """
-CAAS LLM Package
+App LLM - Backward Compatibility Shim
 
-다양한 LLM 프로바이더 통합 및 체인을 제공합니다.
+DEPRECATED: This module re-exports from caas_framework.llm for backward compatibility.
+
+All new code should import directly from caas_framework.llm:
+    from caas_framework.llm import get_llm_client
+
+This shim will be removed in v3.0.
+
+Migration Guide:
+    # Old (deprecated)
+    from app.llm import get_llm_client
+    from app.llm.chains import RequirementAnalysisChain
+
+    # New (recommended)
+    from caas_framework.llm import get_llm_client
+    from caas_framework.llm import RequirementAnalysisChain
 """
 
-from app.llm.client import (
-    LLMProvider,
-    LLMConfig,
-    LLMResponse,
-    BaseLLMClient,
-    OpenAIClient,
-    AnthropicClient,
-    OllamaClient,
-    LLMClientFactory,
-    get_llm_client,
-    get_langchain_llm,
-)
-from app.llm.chains import (
-    RequirementAnalysis,
-    AgentSpec,
-    TaskSpec,
-    ValidationResult,
-    RequirementAnalysisChain,
-    AgentDesignChain,
-    TaskDesignChain,
-    SpecGenerationChain,
-    SpecValidationChain,
-    AgentGenerationPipeline,
+import warnings
+
+# Issue deprecation warning
+warnings.warn(
+    "Importing from app.llm is deprecated. "
+    "Use 'from caas_framework.llm import ...' instead. "
+    "This shim will be removed in v3.0.",
+    DeprecationWarning,
+    stacklevel=2
 )
 
-__all__ = [
-    # Client
-    "LLMProvider",
-    "LLMConfig",
-    "LLMResponse",
-    "BaseLLMClient",
-    "OpenAIClient",
-    "AnthropicClient",
-    "OllamaClient",
-    "LLMClientFactory",
-    "get_llm_client",
-    "get_langchain_llm",
-    # Chains
-    "RequirementAnalysis",
-    "AgentSpec",
-    "TaskSpec",
-    "ValidationResult",
-    "RequirementAnalysisChain",
-    "AgentDesignChain",
-    "TaskDesignChain",
-    "SpecGenerationChain",
-    "SpecValidationChain",
-    "AgentGenerationPipeline",
-]
+# Re-export everything from caas_framework.llm
+from caas_framework.llm import *
+
+# Also support module-specific imports
+from caas_framework.llm import client as client
+from caas_framework.llm import chains as chains
+from caas_framework.llm import chain_factory as chain_factory
+from caas_framework.llm import response_parser as response_parser
+from caas_framework.llm import prompts as prompts

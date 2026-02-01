@@ -1,19 +1,18 @@
 """
 LLM Chain Factory
 
-LangChain 체인 생성을 위한 팩토리 클래스
+Factory classes for creating LangChain chains.
 """
 
+import logging
 from typing import Optional, Type, Any, Dict
 from abc import ABC, abstractmethod
 
 from pydantic import BaseModel
 
-from app.utils.logger import get_logger, LoggerMixin
+logger = logging.getLogger("caas_framework.llm.chain_factory")
 
-logger = get_logger("llm.chain_factory")
-
-# LangChain 선택적 import
+# LangChain optional import
 LANGCHAIN_AVAILABLE = False
 ChatPromptTemplate = None
 JsonOutputParser = None
@@ -24,31 +23,31 @@ try:
     LANGCHAIN_AVAILABLE = True
 except ImportError as e:
     logger.warning(
-        f"LangChain Core를 사용할 수 없습니다: {e}. "
-        "설치하려면: pip install langchain-core"
+        f"LangChain Core not available: {e}. "
+        "Install with: pip install langchain-core"
     )
 
 
 def check_langchain():
-    """LangChain 가용성 체크"""
+    """Check LangChain availability"""
     if not LANGCHAIN_AVAILABLE:
         raise ImportError(
-            "langchain이 설치되지 않았습니다. "
+            "langchain not installed. "
             "pip install langchain-core langchain-openai"
         )
 
 
-class BaseChainFactory(LoggerMixin, ABC):
+class BaseChainFactory(ABC):
     """
-    LLM Chain 생성 기본 클래스
+    Base class for LLM Chain creation
 
-    공통 기능:
-    - LLM 초기화
-    - Prompt 템플릿 설정
-    - Output Parser 설정 (Function Calling 지원)
-    - Chain 조립
+    Common functionality:
+    - LLM initialization
+    - Prompt template setup
+    - Output Parser setup (Function Calling support)
+    - Chain assembly
 
-    하위 클래스는 다음을 구현해야 합니다:
+    Subclasses must implement:
     - get_system_prompt() -> str
     - get_user_prompt() -> str
     - get_output_model() -> Type[BaseModel]
@@ -56,23 +55,24 @@ class BaseChainFactory(LoggerMixin, ABC):
 
     def __init__(self, llm_config: Optional[Any] = None, use_function_calling: bool = True):
         """
-        Chain 초기화
+        Initialize Chain
 
         Args:
-            llm_config: LLM 설정 (LLMConfig 객체)
-            use_function_calling: Function Calling 사용 여부 (기본: True)
-                - True: LLM의 with_structured_output() 사용 (더 안정적)
-                - False: JsonOutputParser 사용 (기존 방식)
+            llm_config: LLM configuration (LLMConfig object)
+            use_function_calling: Whether to use Function Calling (default: True)
+                - True: Use LLM's with_structured_output() (more stable)
+                - False: Use JsonOutputParser (legacy)
         """
         check_langchain()
 
         self.use_function_calling = use_function_calling
+        self.logger = logging.getLogger(f"{self.__class__.__module__}.{self.__class__.__name__}")
 
-        # LLM 초기화
-        from app.llm.client import get_langchain_llm
+        # Initialize LLM
+        from caas_framework.llm.client import get_langchain_llm
         self.llm = get_langchain_llm(**(llm_config.model_dump() if llm_config else {}))
 
-        # Prompt 템플릿 생성
+        # Create prompt template
         system_prompt = self.get_system_prompt()
         user_prompt = self.get_user_prompt()
 
@@ -81,110 +81,110 @@ class BaseChainFactory(LoggerMixin, ABC):
             ("human", user_prompt),
         ])
 
-        # Output 모델 가져오기
+        # Get output model
         output_model = self.get_output_model()
 
-        # Chain 조립 (Function Calling 여부에 따라)
+        # Assemble chain (depending on Function Calling)
         if use_function_calling and hasattr(self.llm, 'with_structured_output'):
-            # Function Calling 사용: with_structured_output으로 직접 Pydantic 모델 반환
+            # Use Function Calling: with_structured_output returns Pydantic model directly
             structured_llm = self.llm.with_structured_output(output_model)
             self.chain = self.prompt | structured_llm
-            self.log_info(f"Chain 초기화 완료 (Function Calling 사용): {self.__class__.__name__}")
+            self.logger.info(f"Chain initialized (Function Calling): {self.__class__.__name__}")
         else:
-            # 기존 방식: JsonOutputParser 사용
+            # Legacy: Use JsonOutputParser
             self.parser = JsonOutputParser(pydantic_object=output_model)
             self.chain = self.prompt | self.llm | self.parser
-            self.log_info(f"Chain 초기화 완료 (JsonOutputParser 사용): {self.__class__.__name__}")
+            self.logger.info(f"Chain initialized (JsonOutputParser): {self.__class__.__name__}")
 
     @abstractmethod
     def get_system_prompt(self) -> str:
         """
-        시스템 프롬프트 반환 (추상 메서드)
+        Return system prompt (abstract method)
 
         Returns:
-            시스템 프롬프트 문자열
+            System prompt string
         """
         raise NotImplementedError("Subclasses must implement get_system_prompt()")
 
     @abstractmethod
     def get_user_prompt(self) -> str:
         """
-        사용자 프롬프트 반환 (추상 메서드)
+        Return user prompt (abstract method)
 
         Returns:
-            사용자 프롬프트 문자열
+            User prompt string
         """
         raise NotImplementedError("Subclasses must implement get_user_prompt()")
 
     @abstractmethod
     def get_output_model(self) -> Type[BaseModel]:
         """
-        출력 모델 반환 (추상 메서드)
+        Return output model (abstract method)
 
         Returns:
-            Pydantic 모델 클래스
+            Pydantic model class
         """
         raise NotImplementedError("Subclasses must implement get_output_model()")
 
     def invoke(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Chain 실행
+        Execute chain
 
         Args:
-            inputs: 입력 변수 딕셔너리
+            inputs: Input variable dictionary
 
         Returns:
-            파싱된 출력 (dict)
+            Parsed output (dict)
         """
-        self.log_debug(f"Chain 실행 시작: {list(inputs.keys())}")
+        self.logger.debug(f"Chain execution started: {list(inputs.keys())}")
 
         try:
             result = self.chain.invoke(inputs)
 
-            # Function Calling 사용 시 Pydantic 모델이 반환되므로 dict로 변환
+            # Convert Pydantic model to dict when using Function Calling
             if self.use_function_calling and isinstance(result, BaseModel):
                 result = result.model_dump()
 
-            self.log_info("Chain 실행 완료")
+            self.logger.info("Chain execution completed")
             return result
 
         except Exception as e:
-            self.log_error(f"Chain 실행 실패: {e}", exc_info=True)
+            self.logger.error(f"Chain execution failed: {e}", exc_info=True)
             raise
 
     def batch(self, inputs_list: list) -> list:
         """
-        여러 입력에 대해 배치 실행
+        Batch execution for multiple inputs
 
         Args:
-            inputs_list: 입력 딕셔너리 리스트
+            inputs_list: List of input dictionaries
 
         Returns:
-            결과 리스트
+            List of results
         """
-        self.log_info(f"배치 실행 시작: {len(inputs_list)}개 입력")
+        self.logger.info(f"Batch execution started: {len(inputs_list)} inputs")
 
         try:
             results = self.chain.batch(inputs_list)
 
-            # Function Calling 사용 시 Pydantic 모델이 반환되므로 dict로 변환
+            # Convert Pydantic models to dicts when using Function Calling
             if self.use_function_calling:
                 results = [
                     r.model_dump() if isinstance(r, BaseModel) else r
                     for r in results
                 ]
 
-            self.log_info("배치 실행 완료")
+            self.logger.info("Batch execution completed")
             return results
 
         except Exception as e:
-            self.log_error(f"배치 실행 실패: {e}", exc_info=True)
+            self.logger.error(f"Batch execution failed: {e}", exc_info=True)
             raise
 
 
 class SimpleChainFactory:
     """
-    간단한 Chain 생성을 위한 헬퍼 클래스 (non-abstract)
+    Helper class for simple Chain creation (non-abstract)
     """
 
     @staticmethod
@@ -196,21 +196,21 @@ class SimpleChainFactory:
         use_function_calling: bool = True
     ):
         """
-        Chain 생성 (일회성)
+        Create chain (one-time)
 
         Args:
-            system_prompt: 시스템 프롬프트
-            user_prompt: 사용자 프롬프트
-            output_model: 출력 Pydantic 모델
-            llm_config: LLM 설정
-            use_function_calling: Function Calling 사용 여부 (기본: True)
+            system_prompt: System prompt
+            user_prompt: User prompt
+            output_model: Output Pydantic model
+            llm_config: LLM configuration
+            use_function_calling: Whether to use Function Calling (default: True)
 
         Returns:
-            조립된 Chain
+            Assembled Chain
         """
         check_langchain()
 
-        from app.llm.client import get_langchain_llm
+        from caas_framework.llm.client import get_langchain_llm
 
         llm = get_langchain_llm(**(llm_config.model_dump() if llm_config else {}))
 
@@ -219,15 +219,15 @@ class SimpleChainFactory:
             ("human", user_prompt),
         ])
 
-        # Function Calling 지원
+        # Function Calling support
         if use_function_calling and hasattr(llm, 'with_structured_output'):
             structured_llm = llm.with_structured_output(output_model)
             chain = prompt | structured_llm
-            logger.info("Simple Chain 생성 완료 (Function Calling 사용)")
+            logger.info("Simple Chain created (Function Calling)")
         else:
             parser = JsonOutputParser(pydantic_object=output_model)
             chain = prompt | llm | parser
-            logger.info("Simple Chain 생성 완료 (JsonOutputParser 사용)")
+            logger.info("Simple Chain created (JsonOutputParser)")
 
         return chain
 
@@ -238,19 +238,19 @@ class SimpleChainFactory:
         llm_config: Optional[Any] = None
     ):
         """
-        문자열 출력 Chain 생성
+        Create string output Chain
 
         Args:
-            system_prompt: 시스템 프롬프트
-            user_prompt: 사용자 프롬프트
-            llm_config: LLM 설정
+            system_prompt: System prompt
+            user_prompt: User prompt
+            llm_config: LLM configuration
 
         Returns:
-            조립된 Chain (문자열 출력)
+            Assembled Chain (string output)
         """
         check_langchain()
 
-        from app.llm.client import get_langchain_llm
+        from caas_framework.llm.client import get_langchain_llm
         from langchain_core.output_parsers import StrOutputParser
 
         llm = get_langchain_llm(**(llm_config.model_dump() if llm_config else {}))
@@ -264,11 +264,11 @@ class SimpleChainFactory:
 
         chain = prompt | llm | parser
 
-        logger.info("String Chain 생성 완료")
+        logger.info("String Chain created")
         return chain
 
 
-# 편의 함수
+# Convenience functions
 def create_json_chain(
     system_prompt: str,
     user_prompt: str,
@@ -276,7 +276,7 @@ def create_json_chain(
     llm_config: Optional[Any] = None,
     use_function_calling: bool = True
 ):
-    """JSON 출력 Chain 생성 (단축 함수)"""
+    """Create JSON output Chain (shortcut)"""
     return SimpleChainFactory.create_chain(
         system_prompt, user_prompt, output_model, llm_config, use_function_calling
     )
@@ -287,7 +287,7 @@ def create_text_chain(
     user_prompt: str,
     llm_config: Optional[Any] = None
 ):
-    """텍스트 출력 Chain 생성 (단축 함수)"""
+    """Create text output Chain (shortcut)"""
     return SimpleChainFactory.create_string_chain(
         system_prompt, user_prompt, llm_config
     )

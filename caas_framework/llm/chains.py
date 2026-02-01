@@ -9,11 +9,11 @@ import json
 from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
 from pydantic import BaseModel
-from app.utils.json_helper import JSONHelper
+from caas_framework.utils.json_helper import JSONHelper
 
 # 타입 힌트용 import
 if TYPE_CHECKING:
-    from app.llm.client import LLMConfig
+    from caas_framework.llm.client import LLMConfig
 
 # 선택적 의존성
 LANGCHAIN_AVAILABLE = False
@@ -35,7 +35,7 @@ except ImportError as e:
         "설치하려면: pip install langchain-core"
     )
 
-from app.llm.prompts.analysis import (
+from caas_framework.llm.prompts.analysis import (
     REQUIREMENT_ANALYSIS_SYSTEM,
     REQUIREMENT_ANALYSIS_USER,
     AGENT_DESIGN_SYSTEM,
@@ -45,37 +45,37 @@ from app.llm.prompts.analysis import (
     ONTOLOGY_CONTEXT_TEMPLATE,
     PATTERN_CONTEXT_TEMPLATE,
 )
-from app.llm.prompts.domain_classification import (
+from caas_framework.llm.prompts.domain_classification import (
     DOMAIN_CLASSIFICATION_SYSTEM,
     DOMAIN_CLASSIFICATION_USER,
     DOMAIN_CLASSIFICATION_USER_KO,
 )
-from app.llm.prompts.spec_generation import (
+from caas_framework.llm.prompts.spec_generation import (
     SPEC_GENERATION_SYSTEM,
     SPEC_GENERATION_USER,
     SPEC_VALIDATION_SYSTEM,
     SPEC_VALIDATION_USER,
 )
-from app.llm.prompts.concretization import (
+from caas_framework.llm.prompts.concretization import (
     CONCRETIZATION_SYSTEM,
     CONCRETIZATION_USER_TEMPLATE,
 )
-from app.utils.logger import get_logger
-from app.models.schemas import (
+import logging
+from caas_framework.models import (
     RequirementAnalysis,
     AgentSpecModel as AgentSpec,
     TaskSpecModel as TaskSpec,
     ProjectTemplate,
     ConcretizedRequirement,
 )
-from app.models.domain_types import DomainClassification, DomainType, ExecutionPattern
-from app.llm.chain_factory import (
+from caas_framework.models import DomainClassification, DomainType, ExecutionPattern
+from caas_framework.llm.chain_factory import (
     BaseChainFactory,
     SimpleChainFactory,
     check_langchain,
 )
 
-logger = get_logger("llm.chains")
+logger = logging.getLogger("caas_framework.llm.chains")
 
 
 # =============================================================================
@@ -914,7 +914,7 @@ class SpecValidationChain:
 
     def __init__(self, llm_config: Optional["LLMConfig"] = None):
         check_langchain()
-        from app.llm.client import get_langchain_llm
+        from caas_framework.llm.client import get_langchain_llm
         self.llm = get_langchain_llm(**(llm_config.model_dump() if llm_config else {}))
         self.prompt = ChatPromptTemplate.from_messages([
             ("system", SPEC_VALIDATION_SYSTEM),
@@ -1101,7 +1101,7 @@ class DomainClassificationChain(BaseChainFactory):
 
         # Fallback: 직접 LLM 호출
         else:
-            from app.llm.client import create_llm_client
+            from caas_framework.llm.client import create_llm_client
 
             client = create_llm_client(llm_config)
 
@@ -1144,17 +1144,17 @@ class SystemArchitectChain(BaseChainFactory):
 
     def get_system_prompt(self) -> str:
         """시스템 프롬프트 반환"""
-        from app.llm.prompts.architecture import ARCHITECTURE_DESIGN_SYSTEM
+        from caas_framework.llm.prompts.architecture import ARCHITECTURE_DESIGN_SYSTEM
         return ARCHITECTURE_DESIGN_SYSTEM
 
     def get_user_prompt(self) -> str:
         """사용자 프롬프트 반환"""
-        from app.llm.prompts.architecture import ARCHITECTURE_DESIGN_USER
+        from caas_framework.llm.prompts.architecture import ARCHITECTURE_DESIGN_USER
         return ARCHITECTURE_DESIGN_USER
 
     def get_output_model(self):
         """출력 모델 반환"""
-        from app.models.schemas import ArchitectureDesign
+        from caas_framework.models import ArchitectureDesign
         return ArchitectureDesign
 
     def design_architecture(
@@ -1170,7 +1170,7 @@ class SystemArchitectChain(BaseChainFactory):
         Returns:
             ArchitectureDesign: 아키텍처 설계 결과
         """
-        from app.models.schemas import ArchitectureDesign
+        from caas_framework.models import ArchitectureDesign
 
         logger.info("시스템 아키텍처 설계 시작")
 
