@@ -15,6 +15,7 @@ from caas_framework.agents.base import (
     AgentPhase,
     ValidationIssue
 )
+from caas_framework.agents.registry import register_agent
 from caas_framework.models.specifications import (
     ConcretizedRequirement,
     AgentSpecModel,
@@ -25,6 +26,7 @@ from caas_framework.utils import ResponseParser, PromptBuilder, GoldenDataMatche
 from caas_framework.config.settings import LLMConstants
 
 
+@register_agent(phase=AgentPhase.DESIGN)
 class AgentDesignerAgent(BaseExpertAgent):
     """
     Agent Designer Agent

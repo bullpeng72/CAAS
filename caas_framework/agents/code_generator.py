@@ -15,6 +15,7 @@ from caas_framework.agents.base import (
     AgentPhase,
     ValidationIssue
 )
+from caas_framework.agents.registry import register_agent
 from caas_framework.models.specifications import (
     ConcretizedRequirement,
     AgentSpecModel,
@@ -26,6 +27,7 @@ from caas_framework.config.settings import LLMConstants
 from caas_framework.agents.process_selector import ProcessSelector
 
 
+@register_agent(phase=AgentPhase.DELIVERY)
 class CodeGeneratorAgent(BaseExpertAgent):
     """
     Code Generator Agent

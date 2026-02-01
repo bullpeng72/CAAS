@@ -15,11 +15,13 @@ from caas_framework.agents.base import (
     AgentPhase,
     ValidationIssue
 )
+from caas_framework.agents.registry import register_agent
 from caas_framework.models.specifications import ConcretizedRequirement
 from caas_framework.plugins.llm.base import LLMPlugin
 from caas_framework.utils import PromptBuilder, GoldenDataMatcher
 
 
+@register_agent(phase=AgentPhase.DISCOVERY)
 class RequirementAnalystAgent(BaseExpertAgent):
     """
     Requirement Analyst Agent

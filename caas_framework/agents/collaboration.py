@@ -17,11 +17,7 @@ from caas_framework.agents.base import (
     AgentWorkResult,
     ValidationIssue
 )
-from caas_framework.agents.requirement_analyst import RequirementAnalystAgent
-from caas_framework.agents.system_architect import SystemArchitectAgent
-from caas_framework.agents.agent_designer import AgentDesignerAgent
-from caas_framework.agents.code_generator import CodeGeneratorAgent
-from caas_framework.agents.qa_specialist import QASpecialistAgent
+from caas_framework.agents.registry import get_agent_registry, create_agent
 from caas_framework.models.specifications import ConcretizedRequirement
 from caas_framework.plugins.llm.base import LLMPlugin
 from caas_framework.validation.orchestrator import ValidationOrchestrator
@@ -497,14 +493,44 @@ class ExpertAgentCollaboration:
         # Progress reporting (UI-independent Protocol)
         self.reporter = progress_reporter or ProgressReporter(verbosity=VerbosityLevel.NORMAL)
 
-        # Initialize expert agents
+        # Initialize expert agents using REGISTRY (Dependency Inversion Principle)
+        # Agents are discovered dynamically via registry instead of hard-coded imports
+        registry = get_agent_registry()
+
         self.agents: Dict[str, BaseExpertAgent] = {
-            "requirement_analyst": RequirementAnalystAgent(llm_plugin, golden_data),
-            "system_architect": SystemArchitectAgent(llm_plugin, golden_data),
-            "agent_designer": AgentDesignerAgent(llm_plugin, golden_data),
-            "code_generator": CodeGeneratorAgent(llm_plugin, golden_data),
-            "qa_specialist": QASpecialistAgent(llm_plugin, golden_data)
+            "requirement_analyst": create_agent(
+                phase=AgentPhase.DISCOVERY,
+                llm_plugin=llm_plugin,
+                golden_data=golden_data
+            ),
+            "system_architect": create_agent(
+                phase=AgentPhase.ARCHITECTURE,
+                llm_plugin=llm_plugin,
+                golden_data=golden_data
+            ),
+            "agent_designer": create_agent(
+                phase=AgentPhase.DESIGN,
+                llm_plugin=llm_plugin,
+                golden_data=golden_data
+            ),
+            "code_generator": create_agent(
+                phase=AgentPhase.DELIVERY,
+                llm_plugin=llm_plugin,
+                golden_data=golden_data
+            ),
+            "qa_specialist": create_agent(
+                phase=AgentPhase.QUALITY_ASSURANCE,
+                llm_plugin=llm_plugin,
+                golden_data=golden_data
+            )
         }
+
+        # Log registry info
+        registry_info = registry.get_registry_info()
+        self.reporter.info(
+            f"📋 Agent Registry: {registry_info['total_agents']} agents registered "
+            f"covering {registry_info['phases_covered']} phases"
+        )
 
         # Validator (if enabled)
         self.validator: Optional[ValidationOrchestrator] = None
