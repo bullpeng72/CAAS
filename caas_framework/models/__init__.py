@@ -46,6 +46,26 @@ from caas_framework.models.tool_registry import (
     get_tool_registry,
 )
 
+from caas_framework.models.analysis import (
+    RequirementAnalysis,
+    ArchitectureDesign,
+    QualityMetrics,
+    AgentRequirement,
+    TaskRequirement,
+    UIComponentRequirement,
+    UIPageRequirement,
+    BackendAPIRequirement,
+    WorkflowType,
+    ProjectTemplate,
+    HTTPMethod,
+    LLMConfigSpec,
+    ArchitecturalPattern,
+    ComponentType,
+    ComponentSpec,
+    DataFlow,
+    TechnologyStack,
+)
+
 __all__ = [
     # Validation models
     "ValidationIssue",
@@ -79,4 +99,22 @@ __all__ = [
     "MCPServerConfig",
     "ToolRegistry",
     "get_tool_registry",
+    # Analysis models (migrated from app.models.schemas)
+    "RequirementAnalysis",
+    "ArchitectureDesign",
+    "QualityMetrics",
+    "AgentRequirement",
+    "TaskRequirement",
+    "UIComponentRequirement",
+    "UIPageRequirement",
+    "BackendAPIRequirement",
+    "WorkflowType",
+    "ProjectTemplate",
+    "HTTPMethod",
+    "LLMConfigSpec",
+    "ArchitecturalPattern",
+    "ComponentType",
+    "ComponentSpec",
+    "DataFlow",
+    "TechnologyStack",
 ]
