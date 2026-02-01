@@ -89,8 +89,8 @@ class ToolFactory:
         tools_map = {}
 
         try:
-            from app.core.ontology import get_tool_ontology_manager
-            from app.core.ontology.tool_ontology import ToolType as OntologyToolType
+            from caas_framework.knowledge.ontology import get_tool_ontology_manager
+            from caas_framework.knowledge.ontology.tool_ontology import ToolType as OntologyToolType
 
             tool_manager = get_tool_ontology_manager()
             all_tools = tool_manager.get_all_tools(enabled_only=False)
