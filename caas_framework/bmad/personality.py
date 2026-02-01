@@ -8,9 +8,9 @@ from typing import Optional, Dict, Any
 from pydantic import BaseModel, Field
 from enum import Enum
 
-from app.utils.logger import get_logger, LoggerMixin
+import logging
 
-logger = get_logger("bmad.personality")
+logger = logging.getLogger("caas_framework.bmad.personality")
 
 
 class PersonalityTone(str, Enum):

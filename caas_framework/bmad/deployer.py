@@ -7,9 +7,9 @@ requirements.txt, Dockerfile, docker-compose.yml 등을 생성합니다.
 
 from typing import Any, Dict, List
 
-from app.utils.logger import get_logger, LoggerMixin
+import logging
 
-logger = get_logger("bmad.deployer")
+logger = logging.getLogger("caas_framework.bmad.deployer")
 
 
 class DeploymentArtifacts:

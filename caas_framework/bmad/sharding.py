@@ -9,9 +9,9 @@ from pydantic import BaseModel, Field
 from enum import Enum
 import re
 
-from app.utils.logger import get_logger, LoggerMixin
+import logging
 
-logger = get_logger("bmad.sharding")
+logger = logging.getLogger("caas_framework.bmad.sharding")
 
 
 class ShardingStrategy(str, Enum):

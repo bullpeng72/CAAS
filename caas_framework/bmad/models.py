@@ -7,7 +7,7 @@ BMAD Data Models
 from typing import List
 from pydantic import BaseModel, Field
 
-from app.knowledge.ontology import AgentRole, TaskType
+from caas_framework.knowledge.ontology import AgentRole, TaskType
 
 
 class AgentMapping(BaseModel):

@@ -9,10 +9,10 @@ from pydantic import BaseModel, Field
 from datetime import datetime
 from enum import Enum
 
-from app.utils.logger import get_logger, LoggerMixin
-from app.core.bmad.mapper import MappingResult, AgentMapping, TaskMapping
+import logging
+from caas_framework.core.bmad.mapper import MappingResult, AgentMapping, TaskMapping
 
-logger = get_logger("bmad.planner")
+logger = logging.getLogger("caas_framework.bmad.planner")
 
 
 class SprintStatus(str, Enum):

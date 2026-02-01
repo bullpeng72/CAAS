@@ -10,9 +10,9 @@ import tempfile
 from typing import Any, Dict, List
 from pathlib import Path
 
-from app.utils.logger import get_logger, LoggerMixin
+import logging
 
-logger = get_logger("bmad.tester")
+logger = logging.getLogger("caas_framework.bmad.tester")
 
 
 class TestResult:

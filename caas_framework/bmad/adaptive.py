@@ -8,10 +8,10 @@ from typing import List, Dict, Any, Optional
 from pydantic import BaseModel, Field
 from enum import Enum
 
-from app.utils.logger import get_logger, LoggerMixin
-from app.core.bmad.analyzer import AnalysisResult
+import logging
+from caas_framework.core.bmad.analyzer import AnalysisResult
 
-logger = get_logger("bmad.adaptive")
+logger = logging.getLogger("caas_framework.bmad.adaptive")
 
 
 class ProjectScale(str, Enum):

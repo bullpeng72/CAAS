@@ -1,125 +1,70 @@
 """
-CAAS BMAD Package
+App Core BMAD - Backward Compatibility Shim
 
-Breakthrough Method for Agile AI-driven Development 구현체입니다.
+DEPRECATED: This module re-exports from caas_framework.bmad for backward compatibility.
 
-주요 구성요소:
-- BMADEngine: 메인 엔진 (4단계 프로세스 조율)
-- RequirementAnalyzer: 요구사항 분석기
-- RoleMapper: 역할-태스크-도구 매퍼
-- SprintPlanner: 스프린트 계획기
+All new code should import directly from caas_framework.bmad:
+    from caas_framework.bmad import BMADEngine
 
-🆕 Phase 1-3 확장:
-- DocumentSharder: 문서 샤딩 (90% 토큰 절감)
-- ReflectionEngine: 반성 엔진 (CORE)
-- ScaleAdaptiveEngine: 규모 적응형 엔진
-- PersonalityManager: 에이전트 성격 관리
-- MultiLanguageCodeGenerator: 다국어 코드 생성
+This shim will be removed in v3.0.
+
+Migration Guide:
+    # Old (deprecated)
+    from app.core.bmad import BMADEngine
+    from app.core.bmad.reflection import ReflectionEngine
+    from app.core.bmad.analyzer import AnalysisResult
+
+    # New (recommended)
+    from caas_framework.bmad import BMADEngine
+    from caas_framework.bmad.reflection import ReflectionEngine
+    from caas_framework.bmad.code_analyzer import CodeAnalyzer
+
+Component Name Changes:
+    analyzer → code_analyzer
+    validator → completeness_validator
+    mapper → semantic_mapper
 """
 
-from app.core.bmad.engine import (
-    BMADPhase,
-    PhaseStatus,
-    FeatureItem,
-    SprintItem,
-    BMADContext,
-    BMADEngine,
-)
-from app.core.bmad.analyzer import (
-    RequirementAnalyzer,
-    AnalysisResult,
-    ExtractedFeature,
-    DomainContext,
-    RequirementType,
-)
-from app.core.bmad.mapper import RoleMapper
-from app.core.bmad.models import (
-    MappingResult,
-    AgentMapping,
-    TaskMapping,
-)
-from app.core.bmad.planner import (
-    SprintPlanner,
-    SprintPlan,
-    Sprint,
-    PlannedTask,
-    SprintStatus,
-    TaskPriority,
+import warnings
+
+# Issue deprecation warning
+warnings.warn(
+    "Importing from app.core.bmad is deprecated. "
+    "Use 'from caas_framework.bmad import ...' instead. "
+    "This shim will be removed in v3.0.",
+    DeprecationWarning,
+    stacklevel=2
 )
 
-# 🆕 Phase 1: 핵심 BMAD 기능
-from app.core.bmad.sharding import (
-    DocumentSharder,
-    DocumentShard,
-    ShardingStrategy,
-    ShardingResult,
-)
-from app.core.bmad.reflection import (
-    ReflectionEngine,
-    ReflectionResult,
-    ReflectionFeedback,
-)
+# Re-export everything from caas_framework.bmad
+from caas_framework.bmad import *
 
-# 🆕 Phase 2: 지능화
-from app.core.bmad.adaptive import (
-    ScaleAdaptiveEngine,
-    ProjectScale,
-    AdaptiveWorkflowConfig,
-)
+# Component aliases for backward compatibility
+from caas_framework.bmad import code_analyzer as analyzer
+from caas_framework.bmad import completeness_validator as validator
+from caas_framework.bmad import semantic_mapper as mapper
+from caas_framework.bmad import reflection
+from caas_framework.bmad import models
+from caas_framework.bmad import adaptive
+from caas_framework.bmad import personality
+from caas_framework.bmad import planner
+from caas_framework.bmad import sharding
+from caas_framework.bmad import task_refiner
+from caas_framework.bmad import tester
+from caas_framework.bmad import deployer
 
-# 🆕 Phase 3: 개선
-from app.core.bmad.personality import (
-    PersonalityManager,
-    AgentPersonality,
-    PersonalityTone,
-    VerbosityLevel,
-    RiskTolerance,
-    PersonalityPreset,
-)
+# Provide direct aliases for commonly imported classes
+try:
+    from caas_framework.bmad.code_analyzer import CodeAnalyzer as Analyzer
+except ImportError:
+    pass
 
-__all__ = [
-    # Engine
-    "BMADPhase",
-    "PhaseStatus",
-    "FeatureItem",
-    "SprintItem",
-    "BMADContext",
-    "BMADEngine",
-    # Analyzer
-    "RequirementAnalyzer",
-    "AnalysisResult",
-    "ExtractedFeature",
-    "DomainContext",
-    "RequirementType",
-    # Mapper
-    "RoleMapper",
-    "MappingResult",
-    "AgentMapping",
-    "TaskMapping",
-    # Planner
-    "SprintPlanner",
-    "SprintPlan",
-    "Sprint",
-    "PlannedTask",
-    "SprintStatus",
-    "TaskPriority",
-    # Phase 1: 핵심 BMAD
-    "DocumentSharder",
-    "DocumentShard",
-    "ShardingStrategy",
-    "ShardingResult",
-    "ReflectionEngine",
-    "ReflectionResult",
-    "ReflectionFeedback",
-    # Phase 2: 지능화
-    "ScaleAdaptiveEngine",
-    "ProjectScale",
-    "AdaptiveWorkflowConfig",
-    # Phase 3: 개선
-    "PersonalityManager",
-    "AgentPersonality",
-    "PersonalityTone",
-    "VerbosityLevel",
-    "RiskTolerance",
-    "PersonalityPreset",
-]
+try:
+    from caas_framework.bmad.completeness_validator import CompletenessValidator as Validator
+except ImportError:
+    pass
+
+try:
+    from caas_framework.bmad.semantic_mapper import SemanticMapper as Mapper
+except ImportError:
+    pass

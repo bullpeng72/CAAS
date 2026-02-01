@@ -8,9 +8,9 @@ from typing import List, Dict, Optional
 from pydantic import BaseModel, Field
 import ast
 
-from app.utils.logger import get_logger, LoggerMixin
+import logging, LoggerMixin
 
-logger = get_logger("bmad.reflection")
+logger = logging.getLogger("caas_framework.bmad.reflection")
 
 
 class ReflectionFeedback(BaseModel):
