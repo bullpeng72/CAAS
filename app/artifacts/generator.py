@@ -9,7 +9,7 @@ from typing import Optional, Dict, Any, List
 from datetime import datetime
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
-from app.models.artifact_types import (
+from caas_framework.models.artifact_types import (
     Artifact,
     ArtifactType,
     ArtifactFormat,

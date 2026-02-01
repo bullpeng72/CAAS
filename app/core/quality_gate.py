@@ -8,7 +8,7 @@ from typing import Dict, Any, List, Optional, Tuple
 from enum import Enum
 from pydantic import BaseModel, Field
 
-from app.models.schemas import QualityMetrics
+from caas_framework.models.analysis import QualityMetrics
 from app.core.spec_validator import SpecValidator
 from caas_framework.utils.logger import get_logger
 
@@ -106,7 +106,7 @@ class QualityGate:
 
         # Quality Metrics 가져오기
         if quality_metrics is None:
-            from app.models.schemas import RequirementAnalysis
+            from caas_framework.models.analysis import RequirementAnalysis
             analysis_obj = RequirementAnalysis(**requirement_analysis)
             quality_metrics = analysis_obj.compute_quality_metrics()
 

@@ -13,7 +13,7 @@ from enum import Enum
 from typing import Dict, Optional
 from pydantic import BaseModel, Field
 
-from app.models.domain_types import DomainType
+from caas_framework.models.domain_types import DomainType
 from caas_framework.utils.logger import get_logger
 
 logger = get_logger("codegen.strategy")

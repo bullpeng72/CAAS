@@ -955,7 +955,7 @@ class AgentGenerationPipeline:
         self.validation_chain = SpecValidationChain(llm_config)
 
         # 사용 가능한 도구 목록 (Tool Manager에서 동적으로 로드)
-        from app.models.tool_registry import get_enabled_tools_dict
+        from caas_framework.models.tool_registry import get_enabled_tools_dict
         enabled_tools = get_enabled_tools_dict()
         self.available_tools = [
             {"id": tool_id, "description": tool_desc}

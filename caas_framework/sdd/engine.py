@@ -109,7 +109,7 @@ class SpecValidator:
         suggestions = []
 
         # Tool Registry에서 등록된 도구 가져오기
-        from app.models.tool_registry import get_enabled_tools_dict, get_all_tools_dict
+        from caas_framework.models.tool_registry import get_enabled_tools_dict, get_all_tools_dict
         from difflib import get_close_matches
 
         enabled_tools = set(get_enabled_tools_dict().keys())

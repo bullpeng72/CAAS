@@ -7,7 +7,7 @@ TODO 플레이스홀더 대신 실제 동작하는 코드를 생성합니다.
 
 import ast
 from typing import List, Optional
-from app.models.domain_types import DomainType, ExecutionPattern
+from caas_framework.models.domain_types import DomainType, ExecutionPattern
 from caas_framework.utils.logger import get_logger
 
 logger = get_logger("codegen.frontend_logic")

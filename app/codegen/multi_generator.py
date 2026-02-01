@@ -23,7 +23,7 @@ from app.codegen.formatter import CodeFormatter
 from app.codegen.ast_generator import StreamlitASTGenerator
 from app.codegen.frontend_logic import FrontendLogicGenerator
 from app.codegen.backend_logic import BackendLogicGenerator
-from app.models.domain_types import DomainType
+from caas_framework.models.domain_types import DomainType
 
 logger = get_logger("codegen.multi")
 
@@ -219,7 +219,7 @@ if __name__ == "__main__":
                 domain_type = DomainType(self.domain_classification.get('domain_type'))
                 execution_pattern_str = self.domain_classification.get('execution_pattern')
                 if execution_pattern_str:
-                    from app.models.domain_types import ExecutionPattern
+                    from caas_framework.models.domain_types import ExecutionPattern
                     execution_pattern = ExecutionPattern(execution_pattern_str)
                 self.logger.info(f"🎯 Generating backend with domain: {domain_type}")
             except (ValueError, TypeError) as e:

@@ -47,7 +47,7 @@ class AgentFactory(BaseFactory[AgentSpecModel, AgentDefinition]):
         super().__init__()  # Initialize base factory
 
         # Use dynamic tool registry for all tool lookups
-        from app.models.tool_registry import DynamicToolRegistry
+        from caas_framework.models.tool_registry import DynamicToolRegistry
         self.tool_registry = DynamicToolRegistry
     
     def create_definition(self, spec: AgentSpecModel) -> AgentDefinition:

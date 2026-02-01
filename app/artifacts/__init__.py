@@ -5,7 +5,7 @@ Artifacts Package
 """
 
 from app.artifacts.generator import ArtifactGenerator
-from app.models.artifact_types import (
+from caas_framework.models.artifact_types import (
     Artifact,
     ArtifactType,
     ArtifactFormat,

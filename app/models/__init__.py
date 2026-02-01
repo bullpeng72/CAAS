@@ -11,7 +11,7 @@ This shim will be removed in v3.0.
 Migration Guide:
     # Old (deprecated)
     from app.models.schemas import ConcretizedRequirement
-    from app.models.artifact_types import ArtifactType
+    from caas_framework.models.artifact_types import ArtifactType
 
     # New (recommended)
     from caas_framework.models import ConcretizedRequirement

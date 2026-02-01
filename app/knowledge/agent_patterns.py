@@ -6,7 +6,7 @@ Domain Type별 실행 Agent 패턴 정의
 
 import json
 from typing import Dict, List, Optional
-from app.models.domain_types import DomainType, ExecutionPattern
+from caas_framework.models.domain_types import DomainType, ExecutionPattern
 
 
 class AgentPattern:

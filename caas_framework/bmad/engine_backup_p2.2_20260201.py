@@ -184,7 +184,7 @@ class BMADEngine:
         if artifact_config and getattr(artifact_config, 'enabled', False):
             try:
                 from app.artifacts.generator import ArtifactGenerator
-                from app.models.artifact_types import ArtifactGenerationConfig, ArtifactFormat
+                from caas_framework.models.artifact_types import ArtifactGenerationConfig, ArtifactFormat
 
                 # Create ArtifactGenerationConfig
                 gen_config = ArtifactGenerationConfig(
@@ -1265,7 +1265,7 @@ JSON으로 반환하세요 (모든 텍스트 필드는 한국어로)."""
                 context['generated_code'] = result.generated_code
             
             # Generate artifact (synchronous call - no await)
-            from app.models.artifact_types import ArtifactType
+            from caas_framework.models.artifact_types import ArtifactType
             artifact = self.artifact_generator.generate_artifact(
                 artifact_type=getattr(ArtifactType, artifact_type),
                 context=context

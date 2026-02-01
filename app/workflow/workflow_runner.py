@@ -13,7 +13,7 @@ from app.workflow.project_service import get_project_service
 from caas_framework.utils.logger import get_logger
 from app.utils.config import get_settings
 from app.artifacts.generator import ArtifactGenerator
-from app.models.artifact_types import ArtifactType
+from caas_framework.models.artifact_types import ArtifactType
 from app.core.sdd.multi_spec import UIPage, UIComponent, UIComponentType
 
 logger = get_logger("workflow_runner")
@@ -37,7 +37,7 @@ class WorkflowRunner:
         # Initialize artifact generator if enabled
         self.artifact_generator = None
         if settings.artifacts.enabled:
-            from app.models.artifact_types import ArtifactGenerationConfig
+            from caas_framework.models.artifact_types import ArtifactGenerationConfig
             config = ArtifactGenerationConfig(
                 enabled=settings.artifacts.enabled,
                 output_format=settings.artifacts.output_format,

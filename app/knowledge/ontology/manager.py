@@ -672,7 +672,7 @@ class OntologyManager(LoggerMixin):
         except Exception as e:
             self.logger.warning(f"Tool Ontology 로드 실패: {e}, 기본 추론 사용")
             # Fallback: Tool registry에서 기본 도구 목록 가져오기
-            from app.models.tool_registry import get_all_tools_dict
+            from caas_framework.models.tool_registry import get_all_tools_dict
             all_tools = get_all_tools_dict()
             for tool_id in all_tools.keys():
                 capabilities_map[tool_id] = self._infer_tool_capabilities(tool_id)

@@ -350,7 +350,7 @@ class BMADWorkflowBuilder:
     def _architecture_node(self, state: BMADWorkflowState) -> Dict[str, Any]:
         """Architecture 단계 노드"""
         from app.llm.chains import SystemArchitectChain
-        from app.models.schemas import RequirementAnalysis
+        from caas_framework.models.analysis import RequirementAnalysis
 
         chain = SystemArchitectChain()
         # dict를 RequirementAnalysis 객체로 변환
@@ -376,7 +376,7 @@ class BMADWorkflowBuilder:
     def _design_node(self, state: BMADWorkflowState) -> Dict[str, Any]:
         """Design 단계 노드"""
         from app.llm.chains import AgentDesignChain, TaskDesignChain
-        from app.models.schemas import RequirementAnalysis
+        from caas_framework.models.analysis import RequirementAnalysis
 
         # dict를 RequirementAnalysis 객체로 변환
         requirement = RequirementAnalysis(**state["requirement_analysis"])

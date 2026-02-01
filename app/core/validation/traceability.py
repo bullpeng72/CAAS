@@ -125,7 +125,7 @@ class TraceabilityValidator(LoggerMixin):
         self.issues = []
 
         # Tool Registry에서 활성화된 도구 목록 가져오기 (한 번만)
-        from app.models.tool_registry import get_enabled_tools_dict
+        from caas_framework.models.tool_registry import get_enabled_tools_dict
         enabled_tools = get_enabled_tools_dict()
 
         # 1. Forward Tracing: 요구사항 → Spec

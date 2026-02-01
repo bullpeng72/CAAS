@@ -6,14 +6,18 @@ Golden Data 검증 결과를 기반으로 자동으로 Phase Output을 수정합
 
 from typing import Any, Dict, List, Union
 from pydantic import BaseModel
-from app.models.schemas import (
+from caas_framework.models.specifications import (
     ConcretizedRequirement,
-    GoldenValidationReport,
-    RequirementAnalysis,
-    ArchitectureDesign,
     AgentSpecModel,
     TaskSpecModel,
+)
+from caas_framework.models.analysis import (
+    RequirementAnalysis,
+    ArchitectureDesign,
     TaskRequirement,
+)
+from caas_framework.models.validation import (
+    GoldenValidationReport,
 )
 from caas_framework.utils.logger import get_logger
 
