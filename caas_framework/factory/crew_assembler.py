@@ -17,8 +17,9 @@ from caas_framework.sdd import CrewAISpec
 from caas_framework.factory.agent_factory import AgentFactory
 from caas_framework.factory.task_factory import TaskFactory, TaskDefinition
 from caas_framework.models import DomainType
-from app.codegen.domain_strategy import DomainCodeStrategy
-from app.codegen.crud_entity_extractor import CRUDEntityExtractor
+# Lazy imports to avoid circular dependency
+# from app.codegen.domain_strategy import DomainCodeStrategy
+# from app.codegen.crud_entity_extractor import CRUDEntityExtractor
 
 logger = logging.getLogger("caas_framework.factory.crew")
 
@@ -46,6 +47,9 @@ class CrewAssembler:
         self.logger = logger
         self.agent_factory = AgentFactory()
         self.task_factory = TaskFactory()
+
+        # Lazy import to avoid circular dependency
+        from app.codegen.crud_entity_extractor import CRUDEntityExtractor
         self.crud_extractor = CRUDEntityExtractor()
 
         # Initialize Jinja2 template environment
@@ -465,6 +469,9 @@ if __name__ == "__main__":
             Dict[str, str]: 파일명 -> 코드 매핑
         """
         self.logger.info(f"프로젝트 코드 생성: {spec.project.name} (템플릿: {project_template})")
+
+        # Lazy import to avoid circular dependency
+        from app.codegen.domain_strategy import DomainCodeStrategy
 
         # 도메인 타입 파싱 및 전략 결정
         domain_type = self._parse_domain_type(spec.project.domain)
