@@ -65,16 +65,3 @@ def load_builtin_patterns() -> List[AgentPattern]:
     return patterns
 
 
-# Replacement for PatternRepository._load_builtin_patterns()
-def _load_builtin_patterns_refactored(self) -> List[AgentPattern]:
-    """
-    Refactored version (10 lines vs 379 lines).
-
-    Usage in PatternRepository:
-        Replace the 379-line method with this:
-
-        def _load_builtin_patterns(self) -> List[AgentPattern]:
-            from app.knowledge.graph.patterns_loader import load_builtin_patterns
-            return load_builtin_patterns()
-    """
-    return load_builtin_patterns()
