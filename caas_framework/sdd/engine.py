@@ -12,7 +12,7 @@ import yaml
 from pydantic import BaseModel, field_validator
 
 import logging
-from app.utils.security import (
+from caas_framework.utils.security import (
     safe_yaml_load,
     validate_project_name,
     YAMLSecurityError,
