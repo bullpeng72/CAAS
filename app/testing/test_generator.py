@@ -9,7 +9,7 @@ from enum import Enum
 from pydantic import BaseModel, Field
 
 from app.codegen.artifact_generator import GeneratedArtifact, ArtifactType
-from app.utils.logger import get_logger
+from caas_framework.utils.logger import get_logger
 
 logger = get_logger("test_generator")
 

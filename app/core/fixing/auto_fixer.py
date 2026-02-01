@@ -15,7 +15,7 @@ from app.models.schemas import (
     TaskSpecModel,
     TaskRequirement,
 )
-from app.utils.logger import get_logger
+from caas_framework.utils.logger import get_logger
 
 logger = get_logger("fixing.auto_fixer")
 

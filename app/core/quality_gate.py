@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 
 from app.models.schemas import QualityMetrics
 from app.core.spec_validator import SpecValidator
-from app.utils.logger import get_logger
+from caas_framework.utils.logger import get_logger
 
 # Phase 3.2: Monitoring Integration
 from app.monitoring.usage_analytics import get_usage_analytics, EventType

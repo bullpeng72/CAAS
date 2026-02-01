@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field
 from collections import defaultdict
 from enum import Enum
 
-from app.utils.logger import get_logger
+from caas_framework.utils.logger import get_logger
 
 logger = get_logger("usage_analytics")
 

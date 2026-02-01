@@ -26,7 +26,7 @@ except ImportError as e:
     NEO4J_AVAILABLE = False
 
 from app.utils.config import get_settings
-from app.utils.logger import get_logger, LoggerMixin
+from caas_framework.utils.logger import get_logger, LoggerMixin
 from app.utils.security import (
     sanitize_neo4j_label,
     sanitize_neo4j_property_key,

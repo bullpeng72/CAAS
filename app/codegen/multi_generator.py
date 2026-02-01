@@ -8,7 +8,7 @@ CrewAI 에이전트뿐만 아니라 Backend, Frontend, Database 등
 from typing import Dict, Tuple, Optional, List
 import ast
 
-from app.utils.logger import get_logger, LoggerMixin
+from caas_framework.utils.logger import get_logger, LoggerMixin
 from app.core.sdd.multi_spec import (
     MultiProjectSpec,
     BackendSpec,

@@ -11,7 +11,7 @@ from caas_framework.models.specifications import (
     AgentSpecModel,
     TaskSpecModel,
 )
-from app.utils.logger import get_logger
+from caas_framework.utils.logger import get_logger
 
 
 class LLMCodeGenerator:

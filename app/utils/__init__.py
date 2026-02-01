@@ -11,7 +11,7 @@ from app.utils.config import (
     settings,
     PROJECT_ROOT,
 )
-from app.utils.logger import (
+from caas_framework.utils.logger import (
     setup_logger,
     get_logger,
     logger,

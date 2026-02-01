@@ -5,7 +5,7 @@ Generates tool imports and initializations for CrewAI agents.
 """
 
 from typing import List, Dict, Tuple, Optional
-from app.utils.logger import get_logger
+from caas_framework.utils.logger import get_logger
 
 
 # CrewAI 기본 도구 매핑 (카테고리별)

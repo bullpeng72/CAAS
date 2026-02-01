@@ -8,7 +8,7 @@ import ast
 import re
 from typing import Optional, Tuple
 
-from app.utils.logger import get_logger, LoggerMixin
+from caas_framework.utils.logger import get_logger, LoggerMixin
 
 logger = get_logger("codegen.formatter")
 

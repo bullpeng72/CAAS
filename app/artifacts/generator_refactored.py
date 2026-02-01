@@ -21,7 +21,7 @@ from app.models.artifact_types import (
     get_artifact_template_name,
 )
 from app.artifacts.context import ArtifactGenerationContext
-from app.utils.logger import get_logger
+from caas_framework.utils.logger import get_logger
 from app.utils.config import PROJECT_ROOT
 
 logger = get_logger("artifacts.generator")

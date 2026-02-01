@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 from pydantic import BaseModel, Field
 from enum import Enum
 
-from app.utils.logger import get_logger, LoggerMixin
+from caas_framework.utils.logger import get_logger, LoggerMixin
 from app.knowledge.ontology import OntologyManager, AgentRole
 
 

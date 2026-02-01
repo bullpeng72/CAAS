@@ -10,7 +10,7 @@ from datetime import datetime
 
 from app.core.bmad import BMADEngine, BMADContext
 from app.workflow.project_service import get_project_service
-from app.utils.logger import get_logger
+from caas_framework.utils.logger import get_logger
 from app.utils.config import get_settings
 from app.artifacts.generator import ArtifactGenerator
 from app.models.artifact_types import ArtifactType

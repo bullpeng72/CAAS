@@ -58,7 +58,7 @@ Features:
     # 2. Update imports - change app.models to caas_framework.models
     import_replacements = {
         'from app.models.schemas import': 'from caas_framework.models.specifications import',
-        'from app.utils.logger import get_logger': 'from caas_framework.utils.logger import get_logger',
+        'from caas_framework.utils.logger import get_logger': 'from caas_framework.utils.logger import get_logger',
     }
 
     for old_import, new_import in import_replacements.items():

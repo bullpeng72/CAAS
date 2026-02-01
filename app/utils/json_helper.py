@@ -9,7 +9,7 @@ import re
 from typing import Any, Dict, Optional, List
 from pathlib import Path
 
-from app.utils.logger import get_logger
+from caas_framework.utils.logger import get_logger
 from app.utils.file_utils import FileUtils
 
 logger = get_logger("utils.json_helper")

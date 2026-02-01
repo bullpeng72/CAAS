@@ -14,7 +14,7 @@ from typing import Dict, Optional
 from pydantic import BaseModel, Field
 
 from app.models.domain_types import DomainType
-from app.utils.logger import get_logger
+from caas_framework.utils.logger import get_logger
 
 logger = get_logger("codegen.strategy")
 

@@ -11,7 +11,7 @@ from fastapi import HTTPException
 from app.config import settings
 from app.utils.config import get_api_key
 from app.utils.json_helper import JSONHelper
-from app.utils.logger import get_logger
+from caas_framework.utils.logger import get_logger
 
 logger = get_logger("utils.llm_helper")
 

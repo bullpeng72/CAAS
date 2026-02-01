@@ -11,7 +11,7 @@ from contextlib import contextmanager
 from crewai_tools import MCPServerAdapter
 from mcp import StdioServerParameters
 
-from app.utils.logger import get_logger
+from caas_framework.utils.logger import get_logger
 from app.utils.config import get_settings
 
 logger = get_logger("tools.mcp")

@@ -10,7 +10,7 @@ from datetime import datetime
 from pathlib import Path
 import json
 
-from app.utils.logger import get_logger, LoggerMixin
+from caas_framework.utils.logger import get_logger, LoggerMixin
 
 logger = get_logger("knowledge.embedded_graph")
 

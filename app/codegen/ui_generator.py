@@ -11,7 +11,7 @@ from app.codegen.artifact_generator import (
     ArtifactMetadata,
     ArtifactType,
 )
-from app.utils.logger import get_logger
+from caas_framework.utils.logger import get_logger
 
 logger = get_logger("ui_generator")
 

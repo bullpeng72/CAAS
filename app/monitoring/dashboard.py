@@ -12,7 +12,7 @@ from app.monitoring.execution_monitor import (
     get_monitor,
     ExecutionEventType,
 )
-from app.utils.logger import get_logger
+from caas_framework.utils.logger import get_logger
 
 logger = get_logger("dashboard")
 

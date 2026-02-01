@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field
 from enum import Enum
 
-from app.utils.logger import get_logger, LoggerMixin
+from caas_framework.utils.logger import get_logger, LoggerMixin
 from app.knowledge.ontology.manager import OntologyManager, AgentRole, TaskType
 
 logger = get_logger("knowledge.reasoner")

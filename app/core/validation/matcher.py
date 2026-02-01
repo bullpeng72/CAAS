@@ -6,7 +6,7 @@ Golden Data와 Phase Output 간의 항목 매칭을 위한 알고리즘
 
 from typing import List, Tuple, Optional
 from difflib import SequenceMatcher
-from app.utils.logger import get_logger
+from caas_framework.utils.logger import get_logger
 
 logger = get_logger("validation.matcher")
 

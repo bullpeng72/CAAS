@@ -7,7 +7,7 @@ Data Transformer
 from typing import Any, Dict, List, Optional, Type, TypeVar
 from pydantic import BaseModel, ValidationError
 
-from app.utils.logger import get_logger
+from caas_framework.utils.logger import get_logger
 from app.utils.json_helper import sanitize_id
 
 logger = get_logger("utils.data_transformer")

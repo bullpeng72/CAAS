@@ -8,7 +8,7 @@ from typing import Any, Dict, Optional, List
 from pathlib import Path
 import yaml
 
-from app.utils.logger import get_logger
+from caas_framework.utils.logger import get_logger
 from app.utils.security import validate_yaml_size, YAMLSecurityError
 from app.utils.file_utils import FileUtils
 

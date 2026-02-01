@@ -9,7 +9,7 @@ from typing import Dict, Any, List, Optional
 from enum import Enum
 from pydantic import BaseModel, Field
 
-from app.utils.logger import get_logger
+from caas_framework.utils.logger import get_logger
 
 logger = get_logger("artifact_generator")
 

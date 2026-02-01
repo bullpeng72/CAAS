@@ -11,7 +11,7 @@ from enum import Enum
 from collections import defaultdict
 import functools
 
-from app.utils.logger import get_logger
+from caas_framework.utils.logger import get_logger
 
 logger = get_logger("utils.logging_standards")
 

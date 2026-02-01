@@ -11,7 +11,7 @@ import traceback
 import yaml
 from pydantic import ValidationError
 
-from app.utils.logger import get_logger
+from caas_framework.utils.logger import get_logger
 
 logger = get_logger("utils.error_handler")
 

@@ -8,7 +8,7 @@ __version__ = "0.1.0"
 __author__ = "AIDX Team"
 
 from app.utils.config import get_settings, settings
-from app.utils.logger import logger, get_logger
+from caas_framework.utils.logger import logger, get_logger
 
 __all__ = [
     "__version__",

@@ -110,5 +110,36 @@ def get_default_logger() -> logging.Logger:
     return _default_logger
 
 
+class LoggerMixin:
+    """Mixin class that provides logger functionality"""
+
+    @property
+    def logger(self) -> logging.Logger:
+        if not hasattr(self, "_logger"):
+            self._logger = get_logger(self.__class__.__name__)
+        return self._logger
+
+    # Convenience methods for standard logging patterns
+    def log_debug(self, message: str, **context):
+        """Debug log"""
+        self.logger.debug(f"🔍 {message}" + (f" | {context}" if context else ""))
+
+    def log_info(self, message: str, **context):
+        """Info log"""
+        self.logger.info(f"ℹ️ {message}" + (f" | {context}" if context else ""))
+
+    def log_warning(self, message: str, **context):
+        """Warning log"""
+        self.logger.warning(f"⚠️ {message}" + (f" | {context}" if context else ""))
+
+    def log_error(self, message: str, exc_info: bool = False, **context):
+        """Error log"""
+        self.logger.error(f"❌ {message}" + (f" | {context}" if context else ""), exc_info=exc_info)
+
+    def log_success(self, message: str, **context):
+        """Success log"""
+        self.logger.info(f"✅ {message}" + (f" | {context}" if context else ""))
+
+
 # Default logger for backward compatibility
 logger = get_default_logger()

@@ -12,7 +12,7 @@ with the new Tool Ontology system that uses CrewAI tool names.
 """
 
 from typing import List, Dict, Tuple
-from app.utils.logger import get_logger
+from caas_framework.utils.logger import get_logger
 import warnings
 
 logger = get_logger("tool_matcher")

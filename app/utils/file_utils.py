@@ -9,7 +9,7 @@ import yaml
 from typing import Any, Dict, List, Optional
 from pathlib import Path
 
-from app.utils.logger import get_logger
+from caas_framework.utils.logger import get_logger
 
 logger = get_logger("utils.file_utils")
 

@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import List, Optional, Dict, Any
 from app.core.ontology.tool_ontology import ToolOntology, ConceptualTool, ToolCategory
 from app.core.ontology.tool_data_generator import generate_initial_ontology
-from app.utils.logger import get_logger
+from caas_framework.utils.logger import get_logger
 
 logger = get_logger("ontology.tool_manager")
 

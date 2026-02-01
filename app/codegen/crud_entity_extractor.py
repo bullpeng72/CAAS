@@ -7,7 +7,7 @@ Task description과 domain classification에서 엔티티 정보를 추출합니
 import re
 from typing import List, Dict, Any, Optional
 from pydantic import BaseModel
-from app.utils.logger import get_logger, LoggerMixin
+from caas_framework.utils.logger import get_logger, LoggerMixin
 from app.core.bmad.analyzer import AnalysisResult
 from app.core.bmad.models import TaskMapping
 

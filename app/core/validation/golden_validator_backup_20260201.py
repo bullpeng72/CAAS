@@ -17,7 +17,7 @@ from app.models.schemas import (
     ExtraItem,
     ComplianceStatus,
 )
-from app.utils.logger import get_logger
+from caas_framework.utils.logger import get_logger
 
 logger = get_logger("validation.golden")
 

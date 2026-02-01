@@ -11,7 +11,7 @@ from typing import Any, Dict, List, Optional
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from pydantic import BaseModel
 
-from app.utils.logger import get_logger, LoggerMixin
+from caas_framework.utils.logger import get_logger, LoggerMixin
 from app.utils.config import get_settings, PROJECT_ROOT
 from app.utils.security import (
     sanitize_relative_path,

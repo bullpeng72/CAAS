@@ -10,7 +10,7 @@ from enum import Enum
 
 from pydantic import BaseModel
 
-from app.utils.logger import get_logger, LoggerMixin
+from caas_framework.utils.logger import get_logger, LoggerMixin
 
 logger = get_logger("knowledge.ontology")
 

@@ -8,7 +8,7 @@ from typing import Union
 from pathlib import Path
 
 from app.utils.config import get_settings
-from app.utils.logger import get_logger
+from caas_framework.utils.logger import get_logger
 from app.knowledge.graph.embedded_graph import EmbeddedGraphClient
 
 logger = get_logger("knowledge.graph.factory")

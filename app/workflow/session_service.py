@@ -12,7 +12,7 @@ from caas_framework.workflow.state_manager import StateManager
 from caas_framework.workflow.persistence import (
     FilePersistenceBackend
 )
-from app.utils.logger import get_logger
+from caas_framework.utils.logger import get_logger
 
 logger = get_logger("session_service")
 

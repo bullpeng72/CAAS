@@ -7,7 +7,7 @@ run_crew() 호출 대신 execution agents를 직접 실행하는 코드를 생�
 
 from typing import Optional
 from app.models.domain_types import DomainType, ExecutionPattern
-from app.utils.logger import get_logger
+from caas_framework.utils.logger import get_logger
 
 logger = get_logger("codegen.backend_logic")
 

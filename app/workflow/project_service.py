@@ -8,7 +8,7 @@ Projects represent complete code generation tasks with requirements and outputs.
 from typing import Dict, Any, List, Optional
 
 from app.workflow.session_service import SessionService, get_session_service
-from app.utils.logger import get_logger
+from caas_framework.utils.logger import get_logger
 
 logger = get_logger("project_service")
 
