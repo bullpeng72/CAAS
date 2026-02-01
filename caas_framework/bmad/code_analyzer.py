@@ -7,10 +7,55 @@ Phase 3: Analyze generated code to extract implemented features
 import ast
 from typing import Any, Dict, List, Optional
 from dataclasses import dataclass, field
+from pydantic import BaseModel, Field
+from enum import Enum
 import logging
 
 
 logger = logging.getLogger(__name__)
+
+
+class RequirementType(str, Enum):
+    """요구사항 유형"""
+    FUNCTIONAL = "functional"
+    NON_FUNCTIONAL = "non_functional"
+    CONSTRAINT = "constraint"
+    ASSUMPTION = "assumption"
+
+
+class ExtractedFeature(BaseModel):
+    """추출된 기능"""
+    id: str
+    name: str
+    description: str
+    priority: int = Field(default=3, ge=1, le=5)
+    type: RequirementType = RequirementType.FUNCTIONAL
+    dependencies: List[str] = Field(default_factory=list)
+
+
+class DomainContext(BaseModel):
+    """도메인 컨텍스트"""
+    domain: str
+    subdomain: Optional[str] = None
+    keywords: List[str] = Field(default_factory=list)
+    industry_terms: List[str] = Field(default_factory=list)
+    related_domains: List[str] = Field(default_factory=list)
+
+
+class AnalysisResult(BaseModel):
+    """분석 결과"""
+    raw_requirement: str
+    domain_context: DomainContext
+    domain_classification: Optional[Any] = Field(
+        default=None,
+        description="도메인 타입 분류 결과 (DomainType, ExecutionPattern 포함)"
+    )
+    features: List[ExtractedFeature]
+    constraints: List[str] = Field(default_factory=list)
+    assumptions: List[str] = Field(default_factory=list)
+    success_criteria: List[str] = Field(default_factory=list)
+    suggested_workflow: str = "sequential"
+    complexity_score: int = Field(default=5, ge=1, le=10)
 
 
 @dataclass

@@ -8,10 +8,10 @@ from typing import List, Dict, Any, Optional
 from pydantic import BaseModel, Field
 from enum import Enum
 
-import logging
-from caas_framework.bmad.code_analyzer import AnalysisResult
+from app.utils.logger import get_logger, LoggerMixin
+from app.core.bmad.analyzer import AnalysisResult
 
-logger = logging.getLogger("caas_framework.bmad.adaptive")
+logger = get_logger("bmad.adaptive")
 
 
 class ProjectScale(str, Enum):
@@ -35,7 +35,7 @@ class AdaptiveWorkflowConfig(BaseModel):
     quality_threshold: float = 0.7  # Reflection 품질 임계값
 
 
-class ScaleAdaptiveEngine:
+class ScaleAdaptiveEngine(LoggerMixin):
     """
     규모 적응형 엔진
 
@@ -44,7 +44,6 @@ class ScaleAdaptiveEngine:
     """
 
     def __init__(self):
-        self.logger = logger
         self.logger.info("ScaleAdaptiveEngine 초기화")
 
         # 복잡도 기준

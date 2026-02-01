@@ -9,11 +9,11 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
-import logging
-from caas_framework.sdd import TaskSpecModel
-from caas_framework.factory.base_factory import BaseFactory
+from app.utils.logger import get_logger
+from app.core.sdd import TaskSpecModel
+from app.core.factory.base_factory import BaseFactory
 
-logger = logging.getLogger("caas_framework.factory.task")
+logger = get_logger("factory.task")
 
 
 class TaskDefinition(BaseModel):

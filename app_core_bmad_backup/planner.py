@@ -9,11 +9,10 @@ from pydantic import BaseModel, Field
 from datetime import datetime
 from enum import Enum
 
-import logging
-from caas_framework.bmad.semantic_mapper import MappingResult
-from caas_framework.bmad.models import AgentMapping, TaskMapping
+from app.utils.logger import get_logger, LoggerMixin
+from app.core.bmad.mapper import MappingResult, AgentMapping, TaskMapping
 
-logger = logging.getLogger("caas_framework.bmad.planner")
+logger = get_logger("bmad.planner")
 
 
 class SprintStatus(str, Enum):
@@ -69,7 +68,7 @@ class SprintPlan(BaseModel):
     assumptions: List[str] = Field(default_factory=list)
 
 
-class SprintPlanner:
+class SprintPlanner(LoggerMixin):
     """
     스프린트 플래너
     
@@ -77,7 +76,6 @@ class SprintPlanner:
     """
     
     def __init__(self, max_tasks_per_sprint: int = 5):
-        self.logger = logger
         self.max_tasks_per_sprint = max_tasks_per_sprint
     
     def plan(

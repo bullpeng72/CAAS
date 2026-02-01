@@ -9,9 +9,9 @@ from pydantic import BaseModel, Field
 from enum import Enum
 import re
 
-import logging
+from app.utils.logger import get_logger, LoggerMixin
 
-logger = logging.getLogger("caas_framework.bmad.sharding")
+logger = get_logger("bmad.sharding")
 
 
 class ShardingStrategy(str, Enum):
@@ -43,7 +43,7 @@ class ShardingResult(BaseModel):
     reduction_ratio: float  # 토큰 절감 비율
 
 
-class DocumentSharder:
+class DocumentSharder(LoggerMixin):
     """
     문서 샤딩 엔진
 
@@ -56,7 +56,6 @@ class DocumentSharder:
         Args:
             max_tokens_per_shard: 조각당 최대 토큰 수
         """
-        self.logger = logger
         self.max_tokens = max_tokens_per_shard
         self.logger.info(f"DocumentSharder 초기화: max_tokens={max_tokens_per_shard}")
 

@@ -8,9 +8,9 @@ from typing import Optional, Dict, Any
 from pydantic import BaseModel, Field
 from enum import Enum
 
-import logging
+from app.utils.logger import get_logger, LoggerMixin
 
-logger = logging.getLogger("caas_framework.bmad.personality")
+logger = get_logger("bmad.personality")
 
 
 class PersonalityTone(str, Enum):
@@ -62,7 +62,7 @@ class PersonalityPreset(str, Enum):
     FINANCE_ADVISOR = "finance_advisor"
 
 
-class PersonalityManager:
+class PersonalityManager(LoggerMixin):
     """
     성격 관리자
 
@@ -70,7 +70,6 @@ class PersonalityManager:
     """
 
     def __init__(self):
-        self.logger = logger
         self.logger.info("PersonalityManager 초기화")
 
         # 프리셋 정의

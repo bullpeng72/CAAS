@@ -53,6 +53,58 @@ from caas_framework.bmad import task_refiner
 from caas_framework.bmad import tester
 from caas_framework.bmad import deployer
 
+# Legacy classes for backward compatibility (not in framework)
+from enum import Enum
+from typing import Any, Dict, List, Optional
+from pydantic import BaseModel, Field
+
+
+class PhaseStatus(str, Enum):
+    """단계 상태 (Legacy - for backward compatibility only)"""
+    PENDING = "pending"
+    IN_PROGRESS = "in_progress"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+
+class FeatureItem(BaseModel):
+    """기능 항목 (Legacy - for backward compatibility only)"""
+    id: str
+    name: str
+    description: str
+    priority: int = Field(ge=1, le=5)
+    complexity: str = "medium"
+    estimated_effort: Optional[str] = None
+
+
+class SprintItem(BaseModel):
+    """스프린트 항목 (Legacy - for backward compatibility only)"""
+    id: str
+    name: str
+    features: List[str] = []
+    agents: List[str] = []
+    tasks: List[str] = []
+    status: PhaseStatus = PhaseStatus.PENDING
+
+
+class BMADContext(BaseModel):
+    """BMAD 실행 컨텍스트 (Legacy - for backward compatibility only)"""
+    project_name: str
+    requirement: str
+    domain: Optional[str] = None
+    concretized_requirement: Optional[Dict[str, Any]] = None
+    golden_data_validation_enabled: bool = True
+    analysis: Optional[Dict[str, Any]] = None
+    features: List[FeatureItem] = []
+    architecture_design: Optional[Dict[str, Any]] = None
+    agent_specs: List[Dict[str, Any]] = []
+    task_specs: List[Dict[str, Any]] = []
+    spec_yaml: Optional[str] = None
+    generated_code: Optional[Dict[str, str]] = None
+    sprints: List[SprintItem] = []
+    current_sprint_index: int = 0
+
+
 # Provide direct aliases for commonly imported classes
 try:
     from caas_framework.bmad.code_analyzer import CodeAnalyzer as Analyzer

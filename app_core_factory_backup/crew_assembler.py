@@ -10,17 +10,16 @@ from datetime import datetime
 from pydantic import BaseModel
 from jinja2 import Environment, FileSystemLoader
 
-import logging
-from pathlib import Path
-PROJECT_ROOT = Path.cwd()
-from caas_framework.sdd import CrewAISpec
-from caas_framework.factory.agent_factory import AgentFactory
-from caas_framework.factory.task_factory import TaskFactory, TaskDefinition
-from caas_framework.models import DomainType
+from app.utils.logger import get_logger, LoggerMixin
+from app.utils.config import PROJECT_ROOT
+from app.core.sdd import CrewAISpec
+from app.core.factory.agent_factory import AgentFactory
+from app.core.factory.task_factory import TaskFactory, TaskDefinition
+from app.models.domain_types import DomainType
 from app.codegen.domain_strategy import DomainCodeStrategy
 from app.codegen.crud_entity_extractor import CRUDEntityExtractor
 
-logger = logging.getLogger("caas_framework.factory.crew")
+logger = get_logger("factory.crew")
 
 
 class CrewDefinition(BaseModel):
@@ -35,7 +34,7 @@ class CrewDefinition(BaseModel):
     task_ids: List[str] = []
 
 
-class CrewAssembler:
+class CrewAssembler(LoggerMixin):
     """
     Crew 어셈블러
     
@@ -43,7 +42,6 @@ class CrewAssembler:
     """
     
     def __init__(self):
-        self.logger = logger
         self.agent_factory = AgentFactory()
         self.task_factory = TaskFactory()
         self.crud_extractor = CRUDEntityExtractor()

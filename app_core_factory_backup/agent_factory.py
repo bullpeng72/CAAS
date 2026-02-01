@@ -9,11 +9,11 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
-import logging
-from caas_framework.sdd import AgentSpecModel
-from caas_framework.factory.base_factory import BaseFactory
+from app.utils.logger import get_logger
+from app.core.sdd import AgentSpecModel
+from app.core.factory.base_factory import BaseFactory
 
-logger = logging.getLogger("caas_framework.factory.agent")
+logger = get_logger("factory.agent")
 
 
 class AgentDefinition(BaseModel):

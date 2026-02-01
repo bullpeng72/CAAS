@@ -6,7 +6,7 @@ RequirementAnalysis를 MultiProjectSpec으로 변환합니다.
 
 import re
 from typing import List, Optional, Dict, Any
-from caas_framework.models.analysis import (
+from app.llm.chains import (
     RequirementAnalysis,
     AgentRequirement,
     TaskRequirement,
@@ -14,14 +14,14 @@ from caas_framework.models.analysis import (
     UIComponentRequirement,
     BackendAPIRequirement,
 )
-from caas_framework.sdd.engine import (
+from app.core.sdd.engine import (
     ProjectSpec,
     CrewAISpec,
     AgentSpecModel,
     TaskSpecModel,
     CrewConfigSpec,
 )
-from caas_framework.sdd.multi_spec import (
+from app.core.sdd.multi_spec import (
     MultiProjectSpec,
     ProjectTemplate,
     FrontendSpec,
@@ -39,11 +39,11 @@ from caas_framework.sdd.multi_spec import (
     DataField,
     FieldType,
 )
-import logging
-from caas_framework.models import DomainType
+from app.utils.logger import get_logger
+from app.models.domain_types import DomainType
 from app.knowledge.agent_patterns import get_agent_pattern
 
-logger = logging.getLogger("caas_framework.sdd.spec_converter")
+logger = get_logger("sdd.spec_converter")
 
 
 def clean_name(text: str) -> str:

@@ -11,19 +11,17 @@ from abc import ABC, abstractmethod
 from pydantic import BaseModel
 from jinja2 import Environment, FileSystemLoader, Template
 
-import logging
-from caas_framework.config import get_settings
-from pathlib import Path
-PROJECT_ROOT = Path.cwd()
+from app.utils.logger import get_logger, LoggerMixin
+from app.utils.config import get_settings, PROJECT_ROOT
 
 # Type variables for generic factory
 SpecModel = TypeVar('SpecModel', bound=BaseModel)
 Definition = TypeVar('Definition', bound=BaseModel)
 
-logger = logging.getLogger("caas_framework.factory.base")
+logger = get_logger("factory.base")
 
 
-class BaseFactory(ABC, Generic[SpecModel, Definition]):
+class BaseFactory(LoggerMixin, ABC, Generic[SpecModel, Definition]):
     """
     팩토리 기본 클래스
 

@@ -10,9 +10,9 @@ import tempfile
 from typing import Any, Dict, List
 from pathlib import Path
 
-import logging
+from app.utils.logger import get_logger, LoggerMixin
 
-logger = logging.getLogger("caas_framework.bmad.tester")
+logger = get_logger("bmad.tester")
 
 
 class TestResult:
@@ -44,7 +44,7 @@ class TestResult:
         }
 
 
-class TestGenerator:
+class TestGenerator(LoggerMixin):
     """
     테스트 생성 및 실행기
 
@@ -52,7 +52,7 @@ class TestGenerator:
     """
 
     def __init__(self):
-        self.logger = logger
+        pass
 
     def generate_tests(
         self,

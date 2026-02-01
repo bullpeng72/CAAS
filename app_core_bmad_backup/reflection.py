@@ -7,9 +7,10 @@ BMAD Reflection Engine (CORE - Collaboration Optimized Reflection Engine)
 from typing import List, Dict, Optional
 from pydantic import BaseModel, Field
 import ast
-import logging
 
-logger = logging.getLogger("caas_framework.bmad.reflection")
+from app.utils.logger import get_logger, LoggerMixin
+
+logger = get_logger("bmad.reflection")
 
 
 class ReflectionFeedback(BaseModel):
@@ -30,7 +31,7 @@ class ReflectionResult(BaseModel):
     iteration_count: int = 0
 
 
-class ReflectionEngine:
+class ReflectionEngine(LoggerMixin):
     """
     협업 최적화 반성 엔진 (CORE)
 
@@ -43,7 +44,6 @@ class ReflectionEngine:
         Args:
             quality_threshold: 품질 임계값 (이하면 재생성)
         """
-        self.logger = logger
         self.quality_threshold = quality_threshold
         self.logger.info(f"ReflectionEngine 초기화: threshold={quality_threshold}")
 

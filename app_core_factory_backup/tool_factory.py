@@ -8,9 +8,9 @@ from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field
 from enum import Enum
 
-import logging
+from app.utils.logger import get_logger, LoggerMixin
 
-logger = logging.getLogger("caas_framework.factory.tool")
+logger = get_logger("factory.tool")
 
 
 class ToolType(str, Enum):
@@ -45,7 +45,7 @@ class ToolDefinition(BaseModel):
     class_name: str = ""
 
 
-class ToolFactory:
+class ToolFactory(LoggerMixin):
     """
     도구 팩토리
 
@@ -61,7 +61,6 @@ class ToolFactory:
     _capability_tool_map_cache: Optional[Dict[ToolCapability, List[str]]] = None
 
     def __init__(self):
-        self.logger = logger
         self.custom_tools: Dict[str, ToolDefinition] = {}
 
         # Dynamically build tool definitions from Tool Ontology on first access

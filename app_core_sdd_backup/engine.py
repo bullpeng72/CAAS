@@ -11,19 +11,19 @@ from pathlib import Path
 import yaml
 from pydantic import BaseModel, field_validator
 
-import logging
+from app.utils.logger import get_logger, LoggerMixin
 from app.utils.security import (
     safe_yaml_load,
     validate_project_name,
     YAMLSecurityError,
 )
-from caas_framework.models import (
+from app.models.schemas import (
     LLMConfigSpec,
     AgentSpecModel,
     TaskSpecModel,
 )
 
-logger = logging.getLogger("caas_framework.sdd.engine")
+logger = get_logger("sdd.engine")
 
 
 # =============================================================================
@@ -234,12 +234,9 @@ class SpecValidator:
 # Parser & Generator
 # =============================================================================
 
-class SpecParser:
+class SpecParser(LoggerMixin):
     """스펙 파서"""
-
-    def __init__(self):
-        self.logger = logger
-
+    
     def parse_yaml(self, yaml_content: str) -> CrewAISpec:
         """
         YAML 문자열을 파싱합니다.
@@ -286,12 +283,9 @@ class SpecParser:
             return self.parse_yaml(f.read())
 
 
-class SpecGenerator:
+class SpecGenerator(LoggerMixin):
     """스펙 생성기"""
-
-    def __init__(self):
-        self.logger = logger
-
+    
     def generate_yaml(self, spec: CrewAISpec) -> str:
         """
         CrewAI 스펙을 YAML 문자열로 변환합니다.
@@ -344,7 +338,7 @@ class SpecGenerator:
 # SDD Engine
 # =============================================================================
 
-class SDDEngine:
+class SDDEngine(LoggerMixin):
     """
     SDD (Spec-Driven Development) 엔진
     
@@ -356,7 +350,6 @@ class SDDEngine:
     """
     
     def __init__(self):
-        self.logger = logger
         self.parser = SpecParser()
         self.generator = SpecGenerator()
         self.validator = SpecValidator()

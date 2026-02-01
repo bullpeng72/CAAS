@@ -7,9 +7,9 @@ requirements.txt, Dockerfile, docker-compose.yml 등을 생성합니다.
 
 from typing import Any, Dict, List
 
-import logging
+from app.utils.logger import get_logger, LoggerMixin
 
-logger = logging.getLogger("caas_framework.bmad.deployer")
+logger = get_logger("bmad.deployer")
 
 
 class DeploymentArtifacts:
@@ -30,7 +30,7 @@ class DeploymentArtifacts:
         }
 
 
-class DeploymentPreparer:
+class DeploymentPreparer(LoggerMixin):
     """
     배포 준비기
 
@@ -38,7 +38,6 @@ class DeploymentPreparer:
     """
 
     def __init__(self):
-        self.logger = logger
         # 기본 Python 의존성
         self.base_dependencies = [
             "crewai>=0.65.0",
