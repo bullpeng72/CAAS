@@ -9,7 +9,7 @@ Task Description Refiner
 - 도메인별 Task 패턴 적용
 """
 
-from typing import Dict, List, Optional
+from typing import List, Optional
 from app.models.domain_types import DomainType
 from app.core.bmad.models import TaskMapping
 from app.utils.logger import get_logger

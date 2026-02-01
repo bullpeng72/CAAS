@@ -5,12 +5,11 @@ Spec-Driven Development 엔진입니다.
 YAML 스펙 파싱, 검증, 생성을 담당합니다.
 """
 
-import re
 from typing import Any, Dict, List, Optional
 from pathlib import Path
 
 import yaml
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, field_validator
 
 from app.utils.logger import get_logger, LoggerMixin
 from app.utils.security import (
@@ -22,7 +21,6 @@ from app.models.schemas import (
     LLMConfigSpec,
     AgentSpecModel,
     TaskSpecModel,
-    WorkflowType,
 )
 
 logger = get_logger("sdd.engine")

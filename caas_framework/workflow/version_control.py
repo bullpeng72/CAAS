@@ -5,7 +5,6 @@ Integrates workflow state with Git for version tracking and collaboration.
 """
 
 import subprocess
-import shutil
 from pathlib import Path
 from typing import Optional, List, Dict, Any
 from dataclasses import dataclass, field

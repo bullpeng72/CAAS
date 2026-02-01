@@ -4,15 +4,12 @@ CAAS Agent Factory
 CrewAI 에이전트를 생성하고 관리합니다.
 """
 
-from typing import Any, Dict, List, Optional, Set
+from typing import Dict, List, Optional, Set
 from datetime import datetime
-from pathlib import Path
 
 from pydantic import BaseModel
-from jinja2 import Environment, FileSystemLoader
 
 from app.utils.logger import get_logger
-from app.utils.config import get_settings, PROJECT_ROOT
 from app.core.sdd import AgentSpecModel
 from app.core.factory.base_factory import BaseFactory
 

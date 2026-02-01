@@ -7,7 +7,7 @@ pytest 기반 테스트를 생성하고 실행합니다.
 
 import subprocess
 import tempfile
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 from pathlib import Path
 
 from app.utils.logger import get_logger, LoggerMixin

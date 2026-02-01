@@ -5,14 +5,12 @@ BMAD 파이프라인의 실행 상태와 품질 메트릭을 시각화하는 대
 """
 
 import streamlit as st
-from typing import Dict, Any, List, Optional
-from datetime import datetime, timedelta
+from typing import Dict, Any
 import pandas as pd
 
 from app.monitoring.execution_monitor import (
     get_monitor,
     ExecutionEventType,
-    ExecutionStatus,
 )
 from app.utils.logger import get_logger
 

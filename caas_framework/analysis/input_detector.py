@@ -4,8 +4,7 @@ Input Detector
 Automatically detects if user input is needed based on task descriptions.
 """
 
-from typing import List, Dict, Any, Optional
-import re
+from typing import List, Dict, Any
 
 
 class InputDetector:

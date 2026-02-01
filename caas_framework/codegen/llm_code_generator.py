@@ -4,7 +4,7 @@ LLM-Based Code Generator
 Uses LLM to generate actual business logic code for agents, tasks, and tools.
 """
 
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Optional
 from caas_framework.plugins.llm.base import LLMPlugin
 from caas_framework.models.specifications import (
     ConcretizedRequirement,
@@ -622,51 +622,40 @@ from typing import Any
 '''
 
     def _generate_fallback_tools(self, sanitized_tools: dict) -> str:
-        """Generate fallback tools when LLM fails."""
-        tools_code = '''"""
-Custom Tools
+        """
+        Generate fallback tools when LLM fails.
 
-CrewAI custom tool implementations.
-⚠️  Generated using fallback (LLM generation failed)
-"""
+        This is now a thin wrapper around the centralized tool generation utility.
 
-from crewai.tools import BaseTool
-from typing import Any
-import logging
+        Call Path (Legacy Mode):
+            BMADEngine.run() [use_expert_agents=False]
+              → BMADEngine._phase_5_delivery()
+              → CodeGenerationEngine.generate()
+              → LLMCodeGenerator.generate_custom_tools()
+              → (on LLM failure) LLMCodeGenerator._generate_fallback_tools() ← YOU ARE HERE
+              → tool_utils.generate_fallback_tools_code()
 
-logger = logging.getLogger(__name__)
+        Args:
+            sanitized_tools: Dict of {class_name: original_name}
 
+        Returns:
+            Python code for tools.py with stub implementations
 
-'''
+        Configuration:
+            - Fallback warning: Enabled (shows "LLM generation failed" message)
+            - Helper functions: Disabled (no get_all_tools() or instances)
+            - Return type: dict (tools return dicts from _run method)
 
-        for class_name, original_name in sanitized_tools.items():
-            tools_code += f'''
-class {class_name}(BaseTool):
-    """
-    {original_name} tool implementation.
+        See Also:
+            caas_framework.codegen.tool_utils.generate_fallback_tools_code
+            CodeGeneratorAgent._generate_tools_file_fallback (alternative Expert Agent path)
+        """
+        from caas_framework.codegen.tool_utils import generate_fallback_tools_code
 
-    TODO: Implement the actual logic for this tool.
-    This is a fallback stub generated when LLM generation failed.
-    """
-    name: str = "{original_name}"
-    description: str = "Tool for {original_name} operations"
-
-    def _run(self, input_data: str) -> Any:
-        """Execute the tool."""
-        logger.warning(f"{{self.name}} called but not fully implemented")
-
-        # TODO: Implement actual tool logic here
-        # Example:
-        # - Parse input_data
-        # - Execute the operation
-        # - Return results
-
-        return {{
-            "status": "stub",
-            "message": "This is a fallback implementation. Please implement the actual logic.",
-            "input": input_data
-        }}
-
-'''
-
-        return tools_code
+        return generate_fallback_tools_code(
+            tools=sanitized_tools,
+            include_header=True,
+            fallback_warning=True,  # Add "LLM generation failed" warning
+            include_helper_functions=False,  # LLM path doesn't include helpers
+            return_type="dict"  # Return dict from _run method
+        )

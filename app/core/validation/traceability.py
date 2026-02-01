@@ -5,8 +5,8 @@ CAAS Traceability Validator
 누락, 과잉, 불일치를 탐지하여 품질을 보장합니다.
 """
 
-from typing import Dict, List, Set, Any, Optional
-from dataclasses import dataclass, field
+from typing import Dict, List, Any, Optional
+from dataclasses import dataclass
 from enum import Enum
 
 from pydantic import BaseModel

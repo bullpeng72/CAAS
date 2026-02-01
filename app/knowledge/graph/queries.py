@@ -4,7 +4,7 @@ Knowledge Graph Cypher Queries
 Neo4j용 Cypher 쿼리 모음입니다.
 """
 
-from typing import Dict, List, Optional
+from typing import List, Optional
 from dataclasses import dataclass
 
 

@@ -5,7 +5,7 @@ CrewAI의 공식 MCPServerAdapter를 사용하여 MCP 서버와 통합합니다.
 """
 
 import os
-from typing import Any, Dict, List, Optional
+from typing import Any, List, Optional
 from contextlib import contextmanager
 
 from crewai_tools import MCPServerAdapter

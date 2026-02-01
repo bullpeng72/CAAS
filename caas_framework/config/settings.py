@@ -5,7 +5,7 @@ Centralized configuration for all framework components.
 """
 
 import os
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 from pydantic import BaseModel, Field
 from enum import Enum
 

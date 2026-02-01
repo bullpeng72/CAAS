@@ -5,7 +5,7 @@ CAAS LLM Client
 """
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, Union, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, Union
 from enum import Enum
 
 from pydantic import BaseModel, Field
@@ -71,12 +71,10 @@ class BaseLLMClient(ABC):
         **kwargs
     ) -> LLMResponse:
         """채팅 완성을 수행합니다."""
-        pass
     
     @abstractmethod
     def get_langchain_llm(self) -> BaseChatModel:
         """LangChain 호환 LLM 객체를 반환합니다."""
-        pass
 
 
 class OpenAIClient(BaseLLMClient):

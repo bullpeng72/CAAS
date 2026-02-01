@@ -7,8 +7,7 @@ CAAS BMAD Code Validator
 
 import ast
 import re
-from typing import Any, Dict, List, Optional
-from pathlib import Path
+from typing import Any, Dict, List
 
 from app.utils.logger import get_logger, LoggerMixin
 

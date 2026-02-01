@@ -5,7 +5,6 @@ Workflow State Manager
 """
 
 import json
-import os
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 from pathlib import Path

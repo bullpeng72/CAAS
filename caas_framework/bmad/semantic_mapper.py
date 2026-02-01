@@ -4,13 +4,13 @@ Semantic Mapper
 Phase 3: Use LLM to semantically map code to features
 """
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Dict, List, Tuple
 from dataclasses import dataclass, field
 import logging
 
 from caas_framework.plugins.llm.base import LLMPlugin
 from caas_framework.models.specifications import FeatureSpec
-from caas_framework.bmad.code_analyzer import FileAnalysis, FunctionInfo, ClassInfo
+from caas_framework.bmad.code_analyzer import FileAnalysis
 from caas_framework.utils import ResponseParser, PromptBuilder
 from caas_framework.config.settings import LLMConstants
 

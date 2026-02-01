@@ -7,9 +7,7 @@ Validates generated code for CrewAI-specific correctness and best practices.
 import ast
 import sys
 import subprocess
-import tempfile
-import os
-from typing import Dict, List, Optional
+from typing import List, Optional
 from dataclasses import dataclass
 
 from caas_framework.models.validation import ValidationIssue, ValidationResult
@@ -49,7 +47,6 @@ class CrewAIValidator:
 
     def __init__(self):
         """Initialize validator"""
-        pass
 
     def validate_agent_code(self, agent_file_content: str) -> ValidationResult:
         """

@@ -14,7 +14,6 @@ class BaseFixer(ABC):
     @abstractmethod
     def can_fix(self, issue: Any) -> bool:
         """Check if this fixer can handle the issue"""
-        pass
 
     @abstractmethod
     def apply_fix(self, data: Any, issue: Any) -> Tuple[Any, str]:
@@ -24,7 +23,6 @@ class BaseFixer(ABC):
         Returns:
             (fixed_data, fix_description)
         """
-        pass
 
 
 class TemplateFixer(BaseFixer):

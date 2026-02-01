@@ -5,7 +5,7 @@ Rich console-based dashboard for displaying performance metrics in real-time.
 Provides beautiful, colorful visualization of workflow execution metrics.
 """
 
-from typing import List, Optional, Dict, Any
+from typing import Optional, Dict, Any
 from datetime import datetime
 from pathlib import Path
 
@@ -13,10 +13,6 @@ try:
     from rich.console import Console
     from rich.table import Table
     from rich.panel import Panel
-    from rich.layout import Layout
-    from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeElapsedColumn
-    from rich.live import Live
-    from rich.text import Text
     from rich import box
     RICH_AVAILABLE = True
 except ImportError:
@@ -24,7 +20,6 @@ except ImportError:
 
 from caas_framework.monitoring.metrics_collector import (
     WorkflowMetrics,
-    PhaseMetrics,
     MetricsCollector
 )
 

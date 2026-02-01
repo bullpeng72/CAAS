@@ -4,7 +4,7 @@ API Key Validator for Code Generation
 Validates that required API keys are configured before generating code.
 """
 
-from typing import List, Dict, Tuple
+from typing import List, Tuple
 from app.codegen.tool_api_keys import get_tool_api_key_requirements, is_tool_requires_api_key
 from app.utils.env_manager import get_env_manager
 from app.utils.logger import get_logger

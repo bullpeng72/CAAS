@@ -5,7 +5,6 @@ Domain Types
 """
 
 import json
-from pathlib import Path
 from enum import Enum
 from typing import List, Optional, Dict
 from pydantic import BaseModel, Field

@@ -6,7 +6,7 @@ Models for agents, tasks, and requirements.
 
 import re
 import uuid
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 

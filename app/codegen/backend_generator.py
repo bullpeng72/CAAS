@@ -4,7 +4,7 @@ Backend API & Database Schema Generator
 FastAPI Backend와 SQLAlchemy Database Schema 자동 생성
 """
 
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, Optional
 from app.codegen.artifact_generator import (
     BaseArtifactGenerator,
     GeneratedArtifact,

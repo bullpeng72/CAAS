@@ -9,7 +9,6 @@ Expert agent responsible for Phase 2 (Architecture):
 """
 
 from typing import Any, Dict, List, Optional
-import json
 
 from caas_framework.agents.base import (
     BaseExpertAgent,
@@ -18,8 +17,7 @@ from caas_framework.agents.base import (
 )
 from caas_framework.models.specifications import ConcretizedRequirement
 from caas_framework.plugins.llm.base import LLMPlugin
-from caas_framework.utils import ResponseParser, PromptBuilder
-from caas_framework.config.settings import LLMConstants
+from caas_framework.utils import PromptBuilder
 
 
 class SystemArchitectAgent(BaseExpertAgent):

@@ -4,7 +4,7 @@ Tool Generator for CrewAI Code Generation
 Generates tool imports and initializations for CrewAI agents.
 """
 
-from typing import List, Dict, Any, Tuple, Optional
+from typing import List, Dict, Tuple, Optional
 from app.utils.logger import get_logger
 
 

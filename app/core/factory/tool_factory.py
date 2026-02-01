@@ -4,7 +4,7 @@ CAAS Tool Factory
 CrewAI 도구 생성 및 연결을 담당합니다.
 """
 
-from typing import Any, Dict, List, Optional, Type, Callable
+from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field
 from enum import Enum
 

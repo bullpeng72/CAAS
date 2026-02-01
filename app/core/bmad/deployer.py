@@ -6,7 +6,6 @@ requirements.txt, Dockerfile, docker-compose.yml 등을 생성합니다.
 """
 
 from typing import Any, Dict, List
-from pathlib import Path
 
 from app.utils.logger import get_logger, LoggerMixin
 

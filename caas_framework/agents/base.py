@@ -79,19 +79,16 @@ class BaseExpertAgent(ABC):
     @abstractmethod
     def agent_name(self) -> str:
         """Agent's name/identifier"""
-        pass
 
     @property
     @abstractmethod
     def agent_role(self) -> str:
         """Agent's role description"""
-        pass
 
     @property
     @abstractmethod
     def agent_expertise(self) -> List[str]:
         """Agent's areas of expertise"""
-        pass
 
     async def work(
         self,
@@ -168,7 +165,6 @@ class BaseExpertAgent(ABC):
         Returns:
             Agent's output (structure depends on agent type)
         """
-        pass
 
     async def refine(
         self,
@@ -286,7 +282,6 @@ class BaseExpertAgent(ABC):
         Returns:
             Refined output
         """
-        pass
 
     def _build_context_summary(
         self,

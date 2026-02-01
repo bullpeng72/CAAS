@@ -5,7 +5,7 @@ Phase 0: Requirement Concretization
 Converts natural language requirements into structured Golden Data.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 import json
 import logging
 

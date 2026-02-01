@@ -5,12 +5,11 @@ Automated verification of generated code quality.
 Checks syntax, imports, and code style.
 """
 
-from typing import Dict, List, Optional, Callable, Any
+from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, field
 from enum import Enum
 import ast
 import sys
-import io
 import logging
 from datetime import datetime
 

@@ -7,22 +7,19 @@ CAAS Security Utilities
 import re
 import yaml
 from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import Any, Optional
 
 
 class SecurityError(Exception):
     """보안 검증 오류"""
-    pass
 
 
 class PathTraversalError(SecurityError):
     """경로 탐색 시도 감지"""
-    pass
 
 
 class YAMLSecurityError(SecurityError):
     """YAML 보안 검증 오류"""
-    pass
 
 
 # ============================================================================
@@ -535,7 +532,6 @@ def _count_nodes(obj: Any) -> int:
 
 class PromptInjectionError(SecurityError):
     """프롬프트 인젝션 시도 감지"""
-    pass
 
 
 def sanitize_user_input(user_input: str, max_length: int = 10000) -> str:

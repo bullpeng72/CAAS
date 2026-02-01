@@ -40,7 +40,7 @@ from app.core.sdd.multi_spec import (
     FieldType,
 )
 from app.utils.logger import get_logger
-from app.models.domain_types import DomainType, DomainClassification
+from app.models.domain_types import DomainType
 from app.knowledge.agent_patterns import get_agent_pattern
 
 logger = get_logger("sdd.spec_converter")

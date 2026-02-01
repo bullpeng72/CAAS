@@ -4,7 +4,7 @@ Automatic Test Scenario Generator
 생성된 아티팩트를 분석하여 자동으로 테스트 시나리오와 테스트 코드를 생성합니다.
 """
 
-from typing import Dict, Any, List, Optional
+from typing import List, Optional
 from enum import Enum
 from pydantic import BaseModel, Field
 

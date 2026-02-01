@@ -105,7 +105,6 @@ class ErrorHandler:
 
     def _display_yaml_error(self, error: yaml.YAMLError):
         """YAML 에러 표시"""
-        from app.frontend.utils.error_display import ErrorDisplayManager
 
         st.error(f"**{self.operation_name} 실패: YAML 파싱 오류**")
 

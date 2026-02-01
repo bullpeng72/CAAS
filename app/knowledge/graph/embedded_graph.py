@@ -9,7 +9,6 @@ from typing import List, Dict, Any, Optional, Set
 from datetime import datetime
 from pathlib import Path
 import json
-import pickle
 
 from app.utils.logger import get_logger, LoggerMixin
 

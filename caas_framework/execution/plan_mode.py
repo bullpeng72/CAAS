@@ -5,14 +5,13 @@ Allows users to review and approve specifications before generating code.
 This prevents wasted effort from incorrect requirements.
 """
 
-from typing import Any, Dict, Optional, List
+from typing import Any, Dict
 from enum import Enum
-import json
 
 # Type checking imports
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from caas_framework.models.specifications import ConcretizedRequirement
+    pass
 
 
 class ApprovalDecision(Enum):

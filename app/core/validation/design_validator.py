@@ -4,7 +4,7 @@ Design Validator
 Agent와 Task 설계의 일관성을 검증하는 Rule-based Validator
 """
 
-from typing import List, Dict, Any, Optional, Set
+from typing import List, Dict, Any, Optional
 from dataclasses import dataclass
 from enum import Enum
 

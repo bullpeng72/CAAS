@@ -1,0 +1,241 @@
+# Built-in Agent Patterns for CAAS
+# Extracted from app/knowledge/graph/patterns.py (Phase 1 Task P1.2)
+#
+# Version: 1.0
+# Date: 2026-02-01
+
+patterns:
+  - id: "pattern_research_report"
+    name: "Research Report Pattern"
+    description: "Research, analyze, and write comprehensive reports"
+    pattern_type: "workflow"
+    agent_roles:
+      - "researcher"
+      - "analyst"
+      - "writer"
+    task_types:
+      - "research"
+      - "analysis"
+      - "writing"
+    recommended_tools:
+      - "web_search"
+      - "file_write"
+    workflow_type: "sequential"
+    use_case: "Creating research-based reports and documents"
+    usage_count: 100
+    success_rate: 0.92
+    domain: "general"
+    version: "1.2.0"
+    is_builtin: true
+    agents:
+      - role: "Research Coordinator"
+        goal: "Coordinate research activities and gather information"
+        tools:
+          - "web_search"
+          - "document_reader"
+      - role: "Data Analyst"
+        goal: "Analyze collected data and extract insights"
+        tools:
+          - "data_analyzer"
+          - "statistics"
+      - role: "Report Writer"
+        goal: "Synthesize findings into comprehensive reports"
+        tools:
+          - "document_writer"
+          - "formatter"
+    tasks:
+      - name: "gather_information"
+        description: "Gather relevant information from various sources"
+        agent: "Research Coordinator"
+      - name: "analyze_data"
+        description: "Analyze collected data and identify patterns"
+        agent: "Data Analyst"
+      - name: "write_report"
+        description: "Write comprehensive report with findings"
+        agent: "Report Writer"
+
+  - id: "pattern_data_analysis"
+    name: "Data Analysis Pattern"
+    description: "Collect, process, and analyze data"
+    pattern_type: "workflow"
+    agent_roles:
+      - "collector"
+      - "analyst"
+      - "visualizer"
+    task_types:
+      - "data_collection"
+      - "analysis"
+      - "visualization"
+    recommended_tools:
+      - "code_interpreter"
+      - "calculator"
+    workflow_type: "sequential"
+    use_case: "Data-driven analysis and insights"
+    usage_count: 80
+    success_rate: 0.88
+    domain: "technology"
+    version: "1.5.0"
+    is_builtin: true
+    agents:
+      - role: "Data Collector"
+        goal: "Collect data from various sources"
+        tools:
+          - "api_client"
+          - "file_reader"
+          - "database_connector"
+      - role: "Data Analyst"
+        goal: "Process and analyze collected data"
+        tools:
+          - "code_interpreter"
+          - "calculator"
+          - "data_profiler"
+      - role: "Data Visualizer"
+        goal: "Create visualizations and insights"
+        tools:
+          - "chart_generator"
+          - "dashboard_builder"
+    tasks:
+      - name: "collect_data"
+        description: "Collect data from specified sources"
+        agent: "Data Collector"
+      - name: "analyze_data"
+        description: "Process and analyze the collected data"
+        agent: "Data Analyst"
+      - name: "visualize_insights"
+        description: "Create visualizations and present insights"
+        agent: "Data Visualizer"
+
+  - id: "pattern_customer_support"
+    name: "Customer Support Pattern"
+    description: "Handle customer inquiries and issues"
+    pattern_type: "workflow"
+    agent_roles:
+      - "support_agent"
+      - "technical_specialist"
+    task_types:
+      - "inquiry_handling"
+      - "issue_resolution"
+    recommended_tools:
+      - "knowledge_base"
+      - "ticket_system"
+    workflow_type: "hierarchical"
+    use_case: "Customer service automation"
+    usage_count: 150
+    success_rate: 0.95
+    domain: "customer_service"
+    version: "1.0.0"
+    is_builtin: true
+    agents:
+      - role: "Support Agent"
+        goal: "Handle customer inquiries efficiently"
+        tools:
+          - "knowledge_base"
+          - "chat_interface"
+      - role: "Technical Specialist"
+        goal: "Resolve complex technical issues"
+        tools:
+          - "diagnostic_tool"
+          - "ticket_system"
+    tasks:
+      - name: "receive_inquiry"
+        description: "Receive and categorize customer inquiry"
+        agent: "Support Agent"
+      - name: "resolve_issue"
+        description: "Resolve the customer issue"
+        agent: "Technical Specialist"
+
+  - id: "pattern_content_creation"
+    name: "Content Creation Pattern"
+    description: "Create, review, and publish content"
+    pattern_type: "workflow"
+    agent_roles:
+      - "writer"
+      - "editor"
+      - "publisher"
+    task_types:
+      - "writing"
+      - "editing"
+      - "publishing"
+    recommended_tools:
+      - "text_editor"
+      - "grammar_checker"
+    workflow_type: "sequential"
+    use_case: "Content production pipeline"
+    usage_count: 120
+    success_rate: 0.90
+    domain: "content"
+    version: "1.1.0"
+    is_builtin: true
+    agents:
+      - role: "Content Writer"
+        goal: "Create original content"
+        tools:
+          - "text_editor"
+          - "research_tool"
+      - role: "Content Editor"
+        goal: "Review and improve content quality"
+        tools:
+          - "grammar_checker"
+          - "style_guide"
+      - role: "Content Publisher"
+        goal: "Publish content to target platforms"
+        tools:
+          - "cms"
+          - "social_media_api"
+    tasks:
+      - name: "draft_content"
+        description: "Create initial content draft"
+        agent: "Content Writer"
+      - name: "review_content"
+        description: "Review and edit content"
+        agent: "Content Editor"
+      - name: "publish_content"
+        description: "Publish content to platforms"
+        agent: "Content Publisher"
+
+  - id: "pattern_task_management"
+    name: "Task Management Pattern"
+    description: "Organize, prioritize, and track tasks"
+    pattern_type: "workflow"
+    agent_roles:
+      - "task_manager"
+      - "executor"
+    task_types:
+      - "planning"
+      - "execution"
+      - "tracking"
+    recommended_tools:
+      - "task_tracker"
+      - "calendar"
+    workflow_type: "sequential"
+    use_case: "Project and task management"
+    usage_count: 200
+    success_rate: 0.93
+    domain: "productivity"
+    version: "2.0.0"
+    is_builtin: true
+    agents:
+      - role: "Task Manager"
+        goal: "Organize and prioritize tasks"
+        tools:
+          - "task_tracker"
+          - "calendar"
+      - role: "Task Executor"
+        goal: "Execute assigned tasks"
+        tools:
+          - "work_tools"
+          - "status_reporter"
+    tasks:
+      - name: "create_task"
+        description: "Create and organize new tasks"
+        agent: "Task Manager"
+      - name: "execute_task"
+        description: "Execute the assigned task"
+        agent: "Task Executor"
+      - name: "track_progress"
+        description: "Track task completion progress"
+        agent: "Task Manager"
+
+# Note: This is a subset of patterns. Additional patterns can be added here.
+# Original patterns.py contained 10+ patterns totaling 379 lines.
+# YAML format is more maintainable and allows for easy updates.

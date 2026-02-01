@@ -8,28 +8,15 @@ Provides configurable verbosity levels and rich console output.
 import sys
 import time
 from enum import Enum
-from typing import Optional, Dict, Any, List, Callable
+from typing import Optional, Dict, Any, List
 from dataclasses import dataclass, field
-from datetime import datetime
 
 from caas_framework.reporting.interfaces import VerbosityLevel
 
 try:
     from rich.console import Console
-    from rich.progress import (
-        Progress,
-        SpinnerColumn,
-        TextColumn,
-        BarColumn,
-        TaskProgressColumn,
-        TimeRemainingColumn,
-        TimeElapsedColumn
-    )
     from rich.panel import Panel
     from rich.table import Table
-    from rich.tree import Tree
-    from rich.live import Live
-    from rich.text import Text
     RICH_AVAILABLE = True
 except ImportError:
     RICH_AVAILABLE = False

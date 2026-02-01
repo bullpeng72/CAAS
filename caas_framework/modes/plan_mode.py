@@ -17,8 +17,7 @@ from caas_framework.modes.plan_mode_core import (
     ApprovalGate
 )
 from caas_framework.modes.interfaces import (
-    ApprovalDecision,
-    ReviewHandler
+    ApprovalDecision
 )
 from caas_framework.agents.base import AgentPhase
 

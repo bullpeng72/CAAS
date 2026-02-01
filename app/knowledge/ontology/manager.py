@@ -5,14 +5,12 @@ OWL 기반 온톨로지를 관리합니다.
 에이전트, 태스크, 도구 간의 의미적 관계를 정의합니다.
 """
 
-from typing import Any, Dict, List, Optional, Set
-from pathlib import Path
+from typing import Any, Dict, List, Set
 from enum import Enum
 
 from pydantic import BaseModel
 
 from app.utils.logger import get_logger, LoggerMixin
-from app.utils.config import get_settings
 
 logger = get_logger("knowledge.ontology")
 

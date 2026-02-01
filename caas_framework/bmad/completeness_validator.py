@@ -4,13 +4,13 @@ Completeness Validator
 Phase 3: Validate that all features are implemented in generated code
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 from dataclasses import dataclass, field
 import logging
 
 from caas_framework.models.specifications import FeatureSpec
 from caas_framework.plugins.llm.base import LLMPlugin
-from caas_framework.bmad.code_analyzer import CodeAnalyzer, FileAnalysis
+from caas_framework.bmad.code_analyzer import CodeAnalyzer
 from caas_framework.bmad.semantic_mapper import SemanticMapper, FeatureImplementation, MappingResult
 from caas_framework.bmad.traceability import TraceabilityMatrix, ImplementationStatus
 

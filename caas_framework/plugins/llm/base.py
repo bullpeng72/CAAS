@@ -64,7 +64,6 @@ class LLMPlugin(Plugin):
         Returns:
             LLMResponse
         """
-        pass
 
     def invoke(
         self,
@@ -115,7 +114,6 @@ class LLMPlugin(Plugin):
         Yields:
             Token chunks
         """
-        pass
 
     async def health_check(self) -> bool:
         """

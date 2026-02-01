@@ -7,9 +7,8 @@ Automatically validates and fixes generated code after generation.
 from typing import Dict, List, Any, Tuple
 import logging
 
-from caas_framework.validation.task_validator import TaskValidator, TaskValidationIssue
+from caas_framework.validation.task_validator import TaskValidator
 from caas_framework.fixing.tool_fixer import ToolFixer
-from caas_framework.fixing.task_description_fixer import TaskDescriptionFixer
 
 logger = logging.getLogger(__name__)
 

@@ -9,7 +9,6 @@ Expert agent responsible for Phase 6 (Quality Assurance):
 """
 
 from typing import Any, Dict, List, Optional
-import json
 
 from caas_framework.agents.base import (
     BaseExpertAgent,

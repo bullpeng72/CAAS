@@ -7,8 +7,7 @@ Validates generated code for Python 3.11 compatibility.
 import ast
 import re
 import sys
-from typing import Dict, List, Optional
-from dataclasses import dataclass
+from typing import Dict, List
 
 from caas_framework.models.validation import ValidationIssue, ValidationResult
 

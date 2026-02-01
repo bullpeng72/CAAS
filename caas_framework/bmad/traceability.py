@@ -5,14 +5,13 @@ Phase 2: Feature-to-Code Traceability
 Tracks relationships between Features → Tasks → Code to ensure complete implementation.
 """
 
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Set
 from dataclasses import dataclass, field
 from enum import Enum
 import logging
 
 from caas_framework.models.specifications import (
     FeatureSpec,
-    AgentSpecModel,
     TaskSpecModel
 )
 

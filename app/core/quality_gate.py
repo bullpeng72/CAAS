@@ -9,7 +9,7 @@ from enum import Enum
 from pydantic import BaseModel, Field
 
 from app.models.schemas import QualityMetrics
-from app.core.spec_validator import SpecValidator, SpecValidationResult
+from app.core.spec_validator import SpecValidator
 from app.utils.logger import get_logger
 
 # Phase 3.2: Monitoring Integration
@@ -457,7 +457,6 @@ class GoldenDataQualityGate:
         Returns:
             (QualityGateResult, 수정된 출력 or None)
         """
-        from app.models.schemas import GoldenValidationReport
 
         logger.info(f"🔍 Golden Data Quality Gate - {phase.value.upper()} Phase")
 

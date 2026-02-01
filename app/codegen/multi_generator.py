@@ -6,7 +6,6 @@ CrewAI 에이전트뿐만 아니라 Backend, Frontend, Database 등
 """
 
 from typing import Dict, Tuple, Optional, List
-from pathlib import Path
 import ast
 
 from app.utils.logger import get_logger, LoggerMixin
@@ -17,12 +16,11 @@ from app.core.sdd.multi_spec import (
     DatabaseSpec,
     BackendFramework,
     FrontendFramework,
-    HTTPMethod,
 )
 from app.codegen.generator import CodeGenerator
 from app.codegen.validator import ValidationResult
 from app.codegen.formatter import CodeFormatter
-from app.codegen.ast_generator import ASTCodeGenerator, StreamlitASTGenerator
+from app.codegen.ast_generator import StreamlitASTGenerator
 from app.codegen.frontend_logic import FrontendLogicGenerator
 from app.codegen.backend_logic import BackendLogicGenerator
 from app.models.domain_types import DomainType

@@ -5,7 +5,6 @@ Provides interactive guidance for users to write better requirements.
 """
 
 from typing import Optional, List
-import sys
 
 from caas_framework.examples.requirement_examples import (
     RequirementExample,
@@ -22,8 +21,6 @@ try:
     from rich.console import Console
     from rich.table import Table
     from rich.panel import Panel
-    from rich.prompt import Prompt, Confirm
-    from rich.markdown import Markdown
     RICH_AVAILABLE = True
 except ImportError:
     RICH_AVAILABLE = False

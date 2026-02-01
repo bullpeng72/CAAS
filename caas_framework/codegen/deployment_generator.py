@@ -4,7 +4,7 @@ Deployment Generator
 Generates deployment configurations (Docker, Kubernetes, docker-compose, etc.)
 """
 
-from typing import Dict, List, Optional
+from typing import Dict
 from pydantic import BaseModel
 
 

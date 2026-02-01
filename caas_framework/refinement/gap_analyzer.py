@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Dict, List, Optional
 from pydantic import BaseModel, Field
 
-from ..models.specifications import ConcretizedRequirement, FeatureSpec
+from ..models.specifications import ConcretizedRequirement
 from ..utils import ObjectAccessor, JsonExtractor, LLMHelper
 
 

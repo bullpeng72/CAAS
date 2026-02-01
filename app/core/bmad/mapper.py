@@ -5,9 +5,7 @@ BMAD Role Mapper
 온톨로지를 활용하여 최적의 역할-태스크-도구 조합을 결정합니다.
 """
 
-from typing import Any, Dict, List, Optional, Tuple
-from pydantic import BaseModel, Field
-from enum import Enum
+from typing import Dict, List
 
 from app.utils.logger import get_logger, LoggerMixin
 from app.knowledge.ontology import (
@@ -16,7 +14,6 @@ from app.knowledge.ontology import (
     TaskType,
 )
 from app.core.bmad.analyzer import AnalysisResult, ExtractedFeature
-from app.models.domain_types import DomainType
 from app.knowledge.agent_patterns import get_agent_pattern, is_build_agent
 from app.core.bmad.models import AgentMapping, TaskMapping, MappingResult
 from app.core.bmad.task_refiner import TaskRefiner

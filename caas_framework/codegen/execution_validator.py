@@ -9,7 +9,7 @@ import ast
 import subprocess
 import tempfile
 import sys
-from typing import Dict, List, Optional
+from typing import Dict, List
 from dataclasses import dataclass, field
 from pathlib import Path
 

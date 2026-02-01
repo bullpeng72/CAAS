@@ -7,19 +7,12 @@ Uses rich library for beautiful console output.
 
 from typing import Optional, Dict, Any, List
 from dataclasses import dataclass, field
-from datetime import datetime
 import time
 import logging
 
 from rich.console import Console
 from rich.progress import (
-    Progress,
-    SpinnerColumn,
-    TextColumn,
-    BarColumn,
-    TaskProgressColumn,
-    TimeRemainingColumn,
-    TimeElapsedColumn
+    Progress
 )
 from rich.table import Table
 from rich.panel import Panel

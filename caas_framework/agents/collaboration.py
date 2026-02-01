@@ -8,7 +8,6 @@ Implements the collaboration pattern from the framework enhancement proposal.
 from typing import Any, Dict, List, Optional
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import Enum
 import asyncio
 import logging
 
@@ -38,20 +37,16 @@ from caas_framework.events import (
     EventBus,
     PhaseEvent,
     Event,
-    create_phase_event,
-    create_validation_event,
-    create_feedback_event
+    create_phase_event
 )
 from caas_framework.execution.distributed_executor import (
     DistributedPhaseExecutor,
     ExecutionStrategy,
-    DependencyGraph,
-    PhaseExecutionResult
+    DependencyGraph
 )
 from caas_framework.quality.quality_gates import (
     QualityGateSystem,
-    GateEvaluation,
-    GateStatus
+    GateEvaluation
 )
 from caas_framework.patterns.producer_critic import (
     ProducerCriticPattern,

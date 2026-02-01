@@ -36,17 +36,14 @@ class Plugin(ABC):
     @abstractmethod
     async def initialize(self) -> None:
         """Initialize plugin (connect, authenticate, etc.)"""
-        pass
 
     @abstractmethod
     async def health_check(self) -> bool:
         """Check if plugin is healthy"""
-        pass
 
     @abstractmethod
     async def close(self) -> None:
         """Close connections and cleanup"""
-        pass
 
     @property
     def is_initialized(self) -> bool:

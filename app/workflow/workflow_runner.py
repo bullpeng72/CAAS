@@ -5,7 +5,7 @@ Async Workflow Runner
 """
 
 import asyncio
-from typing import Dict, Any, Optional, List
+from typing import Dict, Optional, List
 from datetime import datetime
 
 from app.core.bmad import BMADEngine, BMADContext
@@ -395,7 +395,6 @@ class WorkflowRunner:
         except Exception as e:
             logger.error(f"[{project_id}] Failed to generate {artifact_type}: {e}", exc_info=True)
             # Don't fail the workflow if artifact generation fails
-            pass
 
     def _generate_frontend_sync(
         self,

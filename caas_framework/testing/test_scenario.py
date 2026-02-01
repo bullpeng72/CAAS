@@ -4,7 +4,6 @@ Test Scenario Generator
 기능 명세에서 테스트 시나리오 자동 생성 (BDD 스타일)
 """
 
-import json
 from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field
 

@@ -13,7 +13,6 @@ from datetime import datetime
 from caas_framework.workflow.state_manager import StateManager, Checkpoint
 from caas_framework.workflow.persistence import PersistenceBackend, FilePersistenceBackend
 from caas_framework.session.manager import SessionManager, Session
-from caas_framework.models.specifications import ConcretizedRequirement
 
 
 class WorkflowPhase(str, Enum):

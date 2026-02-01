@@ -4,7 +4,7 @@ BMAD Document Sharding
 대형 요구사항을 여러 조각으로 분할하여 토큰 사용 최적화 (90% 절감)
 """
 
-from typing import List, Dict, Any, Optional
+from typing import List
 from pydantic import BaseModel, Field
 from enum import Enum
 import re

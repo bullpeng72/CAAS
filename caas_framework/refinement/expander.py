@@ -4,8 +4,7 @@ Requirement Expander
 요구사항 자동 확장 - 갭을 채워 완전한 요구사항 생성
 """
 
-import json
-from typing import Dict, List, Optional, Any
+from typing import Dict, List
 from pydantic import BaseModel, Field
 
 from ..models.specifications import (

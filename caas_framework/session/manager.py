@@ -5,7 +5,7 @@ Multi-session support with context isolation and switching.
 """
 
 import uuid
-from typing import Dict, Any, List, Optional, Set
+from typing import Dict, Any, List, Optional
 from datetime import datetime
 from pydantic import BaseModel, Field
 from enum import Enum

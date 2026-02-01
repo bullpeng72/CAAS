@@ -12,7 +12,7 @@ from app.utils.logger import get_logger, LoggerMixin
 from app.models.domain_types import DomainClassification, DomainType, ExecutionPattern
 
 if TYPE_CHECKING:
-    from app.llm.chains import RequirementAnalysisChain, RequirementAnalysis, DomainClassificationChain
+    from app.llm.chains import RequirementAnalysis
 
 logger = get_logger("bmad.analyzer")
 

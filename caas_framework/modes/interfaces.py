@@ -119,7 +119,6 @@ class NullReviewHandler:
         output: Dict[str, Any]
     ) -> None:
         """Do nothing - null implementation"""
-        pass
 
     def request_decision(
         self,
@@ -142,4 +141,3 @@ class NullReviewHandler:
         summary_data: Dict[str, Any]
     ) -> None:
         """Do nothing - null implementation"""
-        pass

@@ -6,8 +6,6 @@ reducing overhead and improving performance.
 """
 
 from typing import List, Dict, Set
-import re
-from caas_framework.models.specifications import FeatureSpec
 
 
 class MinimalToolAssigner:

@@ -5,10 +5,7 @@ Manages code generation projects, built on top of SessionService.
 Projects represent complete code generation tasks with requirements and outputs.
 """
 
-import uuid
-from datetime import datetime
 from typing import Dict, Any, List, Optional
-from pathlib import Path
 
 from app.workflow.session_service import SessionService, get_session_service
 from app.utils.logger import get_logger

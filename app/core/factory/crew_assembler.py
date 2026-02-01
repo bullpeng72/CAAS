@@ -6,15 +6,14 @@ CrewAI Crew를 조립하고 실행 코드를 생성합니다.
 
 from typing import Any, Dict, List, Optional
 from datetime import datetime
-from pathlib import Path
 
 from pydantic import BaseModel
 from jinja2 import Environment, FileSystemLoader
 
 from app.utils.logger import get_logger, LoggerMixin
 from app.utils.config import PROJECT_ROOT
-from app.core.sdd import CrewAISpec, CrewConfigSpec
-from app.core.factory.agent_factory import AgentFactory, AgentDefinition
+from app.core.sdd import CrewAISpec
+from app.core.factory.agent_factory import AgentFactory
 from app.core.factory.task_factory import TaskFactory, TaskDefinition
 from app.models.domain_types import DomainType
 from app.codegen.domain_strategy import DomainCodeStrategy
@@ -876,7 +875,7 @@ Process Type: **{spec.crew.process}**
         Returns:
             엔티티 정의 목록
         """
-        from app.codegen.crud_entity_extractor import EntityDefinition, FieldDefinition
+        from app.codegen.crud_entity_extractor import EntityDefinition
 
         # 1. Core entities from spec
         core_entities = spec.project.core_entities or []

@@ -4,15 +4,12 @@ CAAS Task Factory
 CrewAI 태스크를 생성하고 관리합니다.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 from datetime import datetime
-from pathlib import Path
 
 from pydantic import BaseModel
-from jinja2 import Environment, FileSystemLoader
 
 from app.utils.logger import get_logger
-from app.utils.config import PROJECT_ROOT
 from app.core.sdd import TaskSpecModel
 from app.core.factory.base_factory import BaseFactory
 

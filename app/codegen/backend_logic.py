@@ -5,7 +5,7 @@ Domain-specific backend API 로직을 생성합니다.
 run_crew() 호출 대신 execution agents를 직접 실행하는 코드를 생성합니다.
 """
 
-from typing import Optional, Dict, Any
+from typing import Optional
 from app.models.domain_types import DomainType, ExecutionPattern
 from app.utils.logger import get_logger
 

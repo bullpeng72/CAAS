@@ -5,7 +5,7 @@ Phase 3: Analyze generated code to extract implemented features
 """
 
 import ast
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional
 from dataclasses import dataclass, field
 import logging
 

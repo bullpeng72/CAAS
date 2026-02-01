@@ -8,7 +8,6 @@ Provides a high-level interface to the CAAS framework with event-driven architec
 from typing import Optional, Dict, Any, List, Callable
 from dataclasses import dataclass, field
 import logging
-import asyncio
 from pathlib import Path
 
 from caas_framework.agents.collaboration import ExpertAgentCollaboration

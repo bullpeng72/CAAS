@@ -6,14 +6,14 @@ performance and scalability.
 """
 
 import asyncio
-from typing import List, Dict, Any, Callable, Optional, Awaitable
+from typing import List, Dict, Any, Callable, Optional
 from dataclasses import dataclass, field
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 from enum import Enum
 import time
 import logging
 
-from caas_framework.events.events import PhaseEvent, Event, create_phase_event
+from caas_framework.events.events import PhaseEvent, create_phase_event
 from caas_framework.events.event_bus import EventBus, get_global_event_bus
 
 logger = logging.getLogger(__name__)

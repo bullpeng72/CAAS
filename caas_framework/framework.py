@@ -138,7 +138,6 @@ class CrewAIFramework:
             return
 
         # 1. Initialize LLM plugin
-        from caas_framework.plugins.llm.openai import OpenAIPlugin
 
         llm_config = {
             "model": self.config.llm.model,

@@ -4,9 +4,9 @@ BMAD Sprint Planner
 매핑된 에이전트와 태스크를 스프린트 단위로 계획합니다.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import List
 from pydantic import BaseModel, Field
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
 
 from app.utils.logger import get_logger, LoggerMixin

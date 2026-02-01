@@ -4,7 +4,6 @@ Artifact Generator
 개발 산출물 자동 생성
 """
 
-import os
 from pathlib import Path
 from typing import Optional, Dict, Any, List
 from datetime import datetime
@@ -18,6 +17,7 @@ from app.models.artifact_types import (
     ArtifactGenerationConfig,
     get_artifact_template_name,
 )
+from app.artifacts.context import ArtifactGenerationContext
 from app.utils.logger import get_logger
 from app.utils.config import PROJECT_ROOT
 
@@ -239,39 +239,22 @@ class ArtifactGenerator:
 
     def generate_all_artifacts(
         self,
-        project_name: str,
-        requirement: str,
-        golden_data: Optional[Dict[str, Any]] = None,
-        bmad_mapping: Optional[Dict[str, Any]] = None,
-        agents: Optional[List[Dict[str, Any]]] = None,
-        tasks: Optional[List[Dict[str, Any]]] = None,
-        test_summary: Optional[Dict[str, Any]] = None,
-        test_results: Optional[Dict[str, Any]] = None,
-        coverage: Optional[Dict[str, Any]] = None,
-        validation_result: Optional[Dict[str, Any]] = None,
-        code_files: Optional[List[Dict[str, Any]]] = None,
-        code_metrics: Optional[Dict[str, Any]] = None,
-        security_issues: Optional[Dict[str, Any]] = None,
-        performance_issues: Optional[List[Dict[str, Any]]] = None,
+        context: ArtifactGenerationContext,
     ) -> List[Artifact]:
         """
-        모든 활성화된 산출물 생성
+        모든 활성화된 산출물 생성 (Refactored P1.3: 1 parameter vs 15 parameters)
+
+        Before:
+            generate_all_artifacts(project_name, requirement, golden_data, bmad_mapping,
+                                   agents, tasks, test_summary, test_results, coverage,
+                                   validation_result, code_files, code_metrics,
+                                   security_issues, performance_issues)
+
+        After:
+            generate_all_artifacts(context)
 
         Args:
-            project_name: 프로젝트 이름
-            requirement: 원본 요구사항
-            golden_data: Golden Data
-            bmad_mapping: BMAD 매핑
-            agents: Agent 목록
-            tasks: Task 목록
-            test_summary: 테스트 요약 (TEST_REPORT용)
-            test_results: 테스트 상세 결과 (TEST_REPORT용)
-            coverage: 커버리지 정보 (TEST_REPORT용)
-            validation_result: 검증 결과 (TEST_REPORT, CODE_REVIEW용)
-            code_files: 코드 파일 목록 (CODE_REVIEW용)
-            code_metrics: 코드 메트릭 (CODE_REVIEW용)
-            security_issues: 보안 이슈 (CODE_REVIEW용)
-            performance_issues: 성능 이슈 (CODE_REVIEW용)
+            context: Artifact generation context with all required data
 
         Returns:
             List[Artifact]: 생성된 산출물 목록
@@ -283,31 +266,18 @@ class ArtifactGenerator:
         artifacts = []
         enabled_types = self.config.get_enabled_artifact_types()
 
-        logger.info(f"Generating {len(enabled_types)} artifacts for project: {project_name}")
+        logger.info(
+            f"Generating {len(enabled_types)} artifacts for project: {context.project_name}"
+        )
 
         for artifact_type in enabled_types:
             try:
-                context = self._build_context(
-                    artifact_type,
-                    requirement=requirement,
-                    golden_data=golden_data,
-                    bmad_mapping=bmad_mapping,
-                    agents=agents,
-                    tasks=tasks,
-                    test_summary=test_summary,
-                    test_results=test_results,
-                    coverage=coverage,
-                    validation_result=validation_result,
-                    code_files=code_files,
-                    code_metrics=code_metrics,
-                    security_issues=security_issues,
-                    performance_issues=performance_issues,
-                )
+                render_context = self._build_context(artifact_type, context)
 
                 artifact = self.generate_artifact(
                     artifact_type=artifact_type,
-                    context=context,
-                    project_name=project_name,
+                    context=render_context,
+                    project_name=context.project_name,
                 )
 
                 artifacts.append(artifact)
@@ -322,24 +292,29 @@ class ArtifactGenerator:
     def _build_context(
         self,
         artifact_type: ArtifactType,
-        requirement: str,
-        golden_data: Optional[Dict[str, Any]] = None,
-        bmad_mapping: Optional[Dict[str, Any]] = None,
-        agents: Optional[List[Dict[str, Any]]] = None,
-        tasks: Optional[List[Dict[str, Any]]] = None,
-        test_summary: Optional[Dict[str, Any]] = None,
-        test_results: Optional[Dict[str, Any]] = None,
-        coverage: Optional[Dict[str, Any]] = None,
-        validation_result: Optional[Dict[str, Any]] = None,
-        code_files: Optional[List[Dict[str, Any]]] = None,
-        code_metrics: Optional[Dict[str, Any]] = None,
-        security_issues: Optional[Dict[str, Any]] = None,
-        performance_issues: Optional[List[Dict[str, Any]]] = None,
+        context: ArtifactGenerationContext,
     ) -> Dict[str, Any]:
-        """산출물 타입에 맞는 컨텍스트 구성"""
+        """
+        산출물 타입에 맞는 컨텍스트 구성 (Refactored P1.3: 2 parameters vs 14 parameters)
 
+        Before:
+            _build_context(artifact_type, requirement, golden_data, bmad_mapping,
+                          agents, tasks, test_summary, test_results, coverage,
+                          validation_result, code_files, code_metrics,
+                          security_issues, performance_issues)
+
+        After:
+            _build_context(artifact_type, context)
+
+        Args:
+            artifact_type: 산출물 타입
+            context: Artifact generation context
+
+        Returns:
+            Dict with artifact-specific context data
+        """
         base_context = {
-            "requirement": requirement,
+            "requirement": context.requirement,
             "include_diagrams": self.config.include_diagrams,
             "include_code_samples": self.config.include_code_samples,
             "language": self.config.language,
@@ -356,7 +331,7 @@ class ArtifactGenerator:
             # 요구사항 명세서는 Golden Data 필요
             return {
                 **base_context,
-                "golden_data": golden_data,
+                "golden_data": context.golden_data,
                 "description": "상세 요구사항을 명세합니다.",
             }
 
@@ -364,8 +339,8 @@ class ArtifactGenerator:
             # 아키텍처 설계서는 BMAD 매핑 필요
             return {
                 **base_context,
-                "golden_data": golden_data,
-                "bmad_mapping": bmad_mapping,
+                "golden_data": context.golden_data,
+                "bmad_mapping": context.bmad_mapping,
                 "description": "시스템 아키텍처를 설계합니다.",
             }
 
@@ -373,8 +348,8 @@ class ArtifactGenerator:
             # 에이전트 설계서는 Agent/Task 정보 필요
             return {
                 **base_context,
-                "agents": agents or [],
-                "tasks": tasks or [],
+                "agents": context.agents or [],
+                "tasks": context.tasks or [],
                 "description": "AI 에이전트와 태스크를 설계합니다.",
             }
 
@@ -382,8 +357,8 @@ class ArtifactGenerator:
             # 데이터 설계서
             return {
                 **base_context,
-                "golden_data": golden_data,
-                "agents": agents or [],
+                "golden_data": context.golden_data,
+                "agents": context.agents or [],
                 "description": "데이터 모델과 스키마를 설계합니다.",
             }
 
@@ -391,8 +366,8 @@ class ArtifactGenerator:
             # API 설계서
             return {
                 **base_context,
-                "agents": agents or [],
-                "tasks": tasks or [],
+                "agents": context.agents or [],
+                "tasks": context.tasks or [],
                 "description": "REST API를 설계합니다.",
             }
 
@@ -400,8 +375,8 @@ class ArtifactGenerator:
             # 테스트 계획서
             return {
                 **base_context,
-                "agents": agents or [],
-                "tasks": tasks or [],
+                "agents": context.agents or [],
+                "tasks": context.tasks or [],
                 "description": "테스트 전략과 시나리오를 계획합니다.",
             }
 
@@ -409,10 +384,10 @@ class ArtifactGenerator:
             # 테스트 결과 리포트
             return {
                 **base_context,
-                "test_summary": test_summary or {},
-                "test_results": test_results or {},
-                "coverage": coverage or {},
-                "validation_result": validation_result or {},
+                "test_summary": context.test_summary or {},
+                "test_results": context.test_results or {},
+                "coverage": context.coverage or {},
+                "validation_result": context.validation_result or {},
                 "description": "테스트 실행 결과 및 커버리지를 리포트합니다.",
             }
 
@@ -420,11 +395,11 @@ class ArtifactGenerator:
             # 코드 리뷰 리포트
             return {
                 **base_context,
-                "code_files": code_files or [],
-                "validation_result": validation_result or {},
-                "code_metrics": code_metrics or {},
-                "security_issues": security_issues or {},
-                "performance_issues": performance_issues or [],
+                "code_files": context.code_files or [],
+                "validation_result": context.validation_result or {},
+                "code_metrics": context.code_metrics or {},
+                "security_issues": context.security_issues or {},
+                "performance_issues": context.performance_issues or [],
                 "description": "코드 품질, 보안, 성능을 분석합니다.",
             }
 
@@ -432,7 +407,7 @@ class ArtifactGenerator:
             # 배포 가이드
             return {
                 **base_context,
-                "agents": agents or [],
+                "agents": context.agents or [],
                 "description": "배포 절차를 안내합니다.",
             }
 

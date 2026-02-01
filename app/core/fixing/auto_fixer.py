@@ -4,7 +4,7 @@ Auto-Fixer
 Golden Data 검증 결과를 기반으로 자동으로 Phase Output을 수정합니다.
 """
 
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Union
 from pydantic import BaseModel
 from app.models.schemas import (
     ConcretizedRequirement,
@@ -14,7 +14,6 @@ from app.models.schemas import (
     AgentSpecModel,
     TaskSpecModel,
     TaskRequirement,
-    AgentRequirement,
 )
 from app.utils.logger import get_logger
 

@@ -6,7 +6,7 @@ AST(Abstract Syntax Tree)를 사용하여 정확하고 안전한 Python 코드�
 """
 
 import ast
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 from dataclasses import dataclass
 
 from app.utils.logger import get_logger

@@ -10,7 +10,6 @@ from abc import ABC, abstractmethod
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 from pathlib import Path
-from pydantic import BaseModel
 
 
 class PersistenceBackend(ABC):
@@ -23,27 +22,22 @@ class PersistenceBackend(ABC):
     @abstractmethod
     def save(self, key: str, data: Dict[str, Any]) -> bool:
         """Save data"""
-        pass
 
     @abstractmethod
     def load(self, key: str) -> Optional[Dict[str, Any]]:
         """Load data"""
-        pass
 
     @abstractmethod
     def list_keys(self, prefix: Optional[str] = None) -> List[str]:
         """List all keys"""
-        pass
 
     @abstractmethod
     def delete(self, key: str) -> bool:
         """Delete data"""
-        pass
 
     @abstractmethod
     def exists(self, key: str) -> bool:
         """Check if key exists"""
-        pass
 
 
 class FilePersistenceBackend(PersistenceBackend):

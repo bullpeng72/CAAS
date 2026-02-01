@@ -7,12 +7,9 @@ Manages workflow sessions using StateManager and PersistenceBackend.
 import uuid
 from datetime import datetime, timedelta
 from typing import Dict, Any, List, Optional
-from pathlib import Path
 
-from caas_framework.workflow.state_manager import StateManager, Checkpoint
+from caas_framework.workflow.state_manager import StateManager
 from caas_framework.workflow.persistence import (
-    PersistenceBackend,
-    DatabasePersistenceBackend,
     FilePersistenceBackend
 )
 from app.utils.logger import get_logger

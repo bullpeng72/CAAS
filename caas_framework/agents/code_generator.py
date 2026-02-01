@@ -9,7 +9,6 @@ Expert agent responsible for Phase 5 (Delivery):
 """
 
 from typing import Any, Dict, List, Optional
-import json
 
 from caas_framework.agents.base import (
     BaseExpertAgent,
@@ -24,7 +23,7 @@ from caas_framework.models.specifications import (
 from caas_framework.plugins.llm.base import LLMPlugin
 from caas_framework.utils import ResponseParser, PromptBuilder
 from caas_framework.config.settings import LLMConstants
-from caas_framework.agents.process_selector import ProcessSelector, ProcessType
+from caas_framework.agents.process_selector import ProcessSelector
 
 
 class CodeGeneratorAgent(BaseExpertAgent):
@@ -199,6 +198,11 @@ class CodeGeneratorAgent(BaseExpertAgent):
                 result_files = fallback.get("files", {})
                 logger.info(f"[CodeGenerator] Forced fallback generated {len(result_files)} files")
 
+        # CRITICAL: Auto-fix common Agent bugs and ensure tools.py exists
+        if result_files:
+            result_files = self._autofix_generated_code(result_files, agents)
+            logger.info(f"[CodeGenerator] Auto-fix validation complete")
+
         # CRITICAL: Validate boundaries if specified
         boundaries_violations = []
         if self.golden_data and self.golden_data.boundaries:
@@ -231,7 +235,6 @@ class CodeGeneratorAgent(BaseExpertAgent):
         Returns:
             List of violation messages (empty if no violations)
         """
-        import ast
         import logging
         logger = logging.getLogger(__name__)
 
@@ -306,6 +309,110 @@ class CodeGeneratorAgent(BaseExpertAgent):
 
         return False
 
+    def _autofix_generated_code(
+        self,
+        files: Dict[str, str],
+        agents: List[Any]
+    ) -> Dict[str, str]:
+        """
+        Auto-fix common bugs in LLM-generated code.
+
+        Fixes:
+        1. Remove 'id=' parameter from Agent() calls (causes ValidationError)
+        2. Convert tools=['string'] to tools=[] (causes ValidationError)
+        3. Generate tools.py if missing but agents have tools
+
+        Args:
+            files: Dictionary of filename -> content
+            agents: List of agent specifications
+
+        Returns:
+            Fixed files dictionary
+        """
+        import logging
+        import re
+        from caas_framework.utils import ObjectAccessor
+
+        logger = logging.getLogger(__name__)
+        fixed_files = files.copy()
+
+        # Fix agents.py if it exists
+        if "agents.py" in fixed_files:
+            agents_code = fixed_files["agents.py"]
+            original_code = agents_code
+
+            # Fix #1: Remove id='...' parameter from Agent() calls
+            # Pattern: id='anything', or id="anything",
+            agents_code = re.sub(
+                r"\bid\s*=\s*['\"][^'\"]*['\"],?\s*\n",
+                "",
+                agents_code
+            )
+
+            # Fix #2: Convert tools=['str1', 'str2'] to tools=[]
+            # Pattern: tools=['...', '...'] or tools=["...", "..."]
+            # This is tricky because we need to detect string lists vs variable lists
+            def fix_tools_param(match):
+                tools_value = match.group(1)
+                # Check if it contains quoted strings
+                if "'" in tools_value or '"' in tools_value:
+                    # It's a string list - replace with empty list
+                    logger.warning(f"[AutoFix] Converting invalid tools={tools_value} to tools=[]")
+                    return "tools=[]"
+                else:
+                    # It's a variable list - keep it
+                    return match.group(0)
+
+            agents_code = re.sub(
+                r"tools\s*=\s*\[([^\]]*)\]",
+                fix_tools_param,
+                agents_code
+            )
+
+            # Fix #3: Remove extra parameters not supported by CrewAI Agent
+            # Common issues: memory=, max_iter=, etc.
+            unsupported_params = ['memory', 'max_iter', 'max_execution_time']
+            for param in unsupported_params:
+                agents_code = re.sub(
+                    rf"\b{param}\s*=\s*[^,\n]+,?\s*\n",
+                    "",
+                    agents_code
+                )
+
+            if agents_code != original_code:
+                logger.info("[AutoFix] Fixed agents.py (removed id, invalid tools, unsupported params)")
+                fixed_files["agents.py"] = agents_code
+
+        # Fix #4: Ensure tools.py exists if agents have tools
+        agents_data = ObjectAccessor.to_dict_list(agents)
+        all_tools = set()
+        for agent in agents_data:
+            if agent.get('tools'):
+                all_tools.update(agent['tools'])
+
+        if all_tools and "tools.py" not in fixed_files:
+            logger.warning(f"[AutoFix] tools.py missing but {len(all_tools)} tools needed - generating")
+            tools_py = self._generate_tools_file_fallback(all_tools)
+            fixed_files["tools.py"] = tools_py
+
+            # Also need to add tools import to agents.py if missing
+            if "agents.py" in fixed_files:
+                agents_code = fixed_files["agents.py"]
+                if "from tools import" not in agents_code:
+                    # Find the import section and add tools import
+                    import_match = re.search(r"(from crewai import Agent.*?\n)", agents_code)
+                    if import_match:
+                        import_section = import_match.group(1)
+                        tools_import = f"from tools import {', '.join(sorted(all_tools))}\n"
+                        agents_code = agents_code.replace(
+                            import_section,
+                            import_section + tools_import
+                        )
+                        fixed_files["agents.py"] = agents_code
+                        logger.info(f"[AutoFix] Added tools import to agents.py")
+
+        return fixed_files
+
     def _build_code_generation_prompt(
         self,
         agents: List[Any],
@@ -372,6 +479,9 @@ CRITICAL REQUIREMENT: You MUST generate code using the CrewAI framework.
             "MANDATORY: agents.py MUST define Agent objects using crewai.Agent",
             "MANDATORY: tasks.py MUST define Task objects using crewai.Task",
             "MANDATORY: main.py MUST create a Crew and call crew.kickoff()",
+            "CRITICAL: Agent() constructor - DO NOT use 'id' parameter (it's auto-generated)",
+            "CRITICAL: Agent() tools parameter - use empty list [] if no tools, NEVER use string list",
+            "CRITICAL: If agents need tools, you MUST also generate tools.py with BaseTool classes",
             "Create a working CrewAI application with all agents and tasks from the design",
             "Include proper CrewAI imports: from crewai import Crew, Agent, Task, Process",
             "Add crewai to requirements.txt with other dependencies",
@@ -803,99 +913,39 @@ OPENAI_API_KEY=your_openai_api_key_here
         """
         Generate tools.py file with fallback stub implementations.
 
+        This is now a thin wrapper around the centralized tool generation utility.
+
+        Call Path (Expert Agent Mode - DEFAULT):
+            BMADEngine.run() [use_expert_agents=True]
+              → ExpertAgentCollaboration.collaborate()
+              → CodeGeneratorAgent._do_work() (Phase 5: Delivery)
+              → CodeGeneratorAgent._generate_tools_file_fallback() ← YOU ARE HERE
+              → tool_utils.generate_fallback_tools_code()
+
         Args:
             tools: Set of tool names (e.g., {'file_read', 'file_write', 'web_search'})
 
         Returns:
             Python code for tools.py with CrewAI tool implementations
+
+        Configuration:
+            - Fallback warning: Disabled (Expert Agents don't show LLM failure message)
+            - Helper functions: Enabled (includes get_all_tools() and tool instances)
+            - Return type: str (tools return strings from _run method)
+
+        See Also:
+            caas_framework.codegen.tool_utils.generate_fallback_tools_code
+            LLMCodeGenerator._generate_fallback_tools (alternative Legacy LLM path)
         """
-        import logging
-        logger = logging.getLogger(__name__)
+        from caas_framework.codegen.tool_utils import generate_fallback_tools_code
 
-        logger.info(f"Generating tools.py with {len(tools)} tools: {', '.join(tools)}")
-
-        # Sanitize tool names to valid Python class names
-        def sanitize_tool_name(name: str) -> str:
-            """Convert tool name to PascalCase class name"""
-            # Remove special characters and split by underscore
-            parts = name.replace('-', '_').split('_')
-            # Capitalize each part
-            class_name = ''.join(word.capitalize() for word in parts if word)
-            # Ensure it ends with 'Tool'
-            if not class_name.endswith('Tool'):
-                class_name += 'Tool'
-            return class_name
-
-        # Start with imports and module docstring
-        code = '''"""
-Custom Tools for CrewAI Agents
-
-This file contains tool implementations for the multi-agent system.
-Each tool provides specific capabilities to agents.
-"""
-
-from crewai.tools import BaseTool
-from typing import Type, Any, Optional
-from pydantic import BaseModel, Field
-
-
-'''
-
-        # Generate a tool class for each tool
-        for tool_name in sorted(tools):
-            class_name = sanitize_tool_name(tool_name)
-
-            # Create tool implementation
-            code += f'''
-class {class_name}(BaseTool):
-    """
-    {tool_name.replace('_', ' ').title()} Tool
-
-    Provides {tool_name.replace('_', ' ')} capabilities to agents.
-    """
-    name: str = "{tool_name}"
-    description: str = "Tool for {tool_name.replace('_', ' ')} operations"
-
-    def _run(self, query: str) -> str:
-        """
-        Execute the tool.
-
-        Args:
-            query: Input query or parameters for the tool
-
-        Returns:
-            Result of the tool execution
-        """
-        # TODO: Implement actual {tool_name} logic here
-        # This is a stub implementation
-
-        return f"{{self.name}} executed with query: {{query}}"
-
-
-'''
-
-        # Add convenience function to get all tools
-        tool_classes = [sanitize_tool_name(t) for t in sorted(tools)]
-        tool_list_str = ',\n        '.join(f'{cls}()' for cls in tool_classes)
-
-        code += f'''
-# Export all tools
-def get_all_tools():
-    """Get list of all available tool instances."""
-    return [
-        {tool_list_str}
-    ]
-
-
-# Individual tool instances for easy import
-'''
-
-        # Add individual tool instances
-        for tool_name in sorted(tools):
-            class_name = sanitize_tool_name(tool_name)
-            code += f'{tool_name} = {class_name}()\n'
-
-        return code
+        return generate_fallback_tools_code(
+            tools=tools,  # Will be sanitized internally
+            include_header=True,
+            fallback_warning=False,  # No warning for Expert Agent path
+            include_helper_functions=True,  # Include get_all_tools() and instances
+            return_type="str"  # Return string from _run method
+        )
 
     def _generate_main_file_ast(self, agents: List[Dict], tasks: List[Dict]) -> str:
         """Generate main.py file using AST-based code generation."""
@@ -1057,6 +1107,7 @@ def get_all_tools():
                 all_tools.update(tool_list)
 
             # Create import: from tools import tool1, tool2, ...
+            # Note: Expert Agent path generates tools.py in root, so use 'tools' not 'src.tools'
             imports.append(
                 ast.ImportFrom(
                     module='tools',

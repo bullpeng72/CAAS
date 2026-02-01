@@ -4,8 +4,8 @@ Test First Generator
 테스트 코드 우선 생성 - 테스트 시나리오에서 pytest 코드 생성
 """
 
-from typing import Dict, List, Optional
-from pydantic import BaseModel, Field
+from typing import List
+from pydantic import BaseModel
 
 from .test_scenario import TestScenario
 

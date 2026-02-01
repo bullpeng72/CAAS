@@ -4,7 +4,7 @@ LLM Helper
 LLM 호출을 위한 통합 유틸리티
 """
 
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional
 from openai import AsyncOpenAI
 from fastapi import HTTPException
 

@@ -15,8 +15,8 @@ import ast
 from typing import Any, Dict, List, Optional, Union
 from ast import (
     Module, Import, ImportFrom, FunctionDef, Return, Call, Name, Load, Store,
-    Constant, keyword, alias, arguments, arg, Assign, Subscript, Tuple,
-    Expr, If, Compare, Eq, Pass, List as AstList, Dict as AstDict, Attribute
+    Constant, keyword, alias, arguments, arg, Assign, Subscript, Expr,
+    If, Compare, Eq, List as AstList, Dict as AstDict, Attribute
 )
 
 

@@ -4,8 +4,7 @@ CAAS Ontology Reasoner
 온톨로지 기반 추론 기능을 제공합니다.
 """
 
-from typing import Any, Dict, List, Optional, Set, Tuple
-from pathlib import Path
+from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field
 from enum import Enum
 

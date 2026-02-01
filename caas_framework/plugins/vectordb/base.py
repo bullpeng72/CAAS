@@ -62,7 +62,6 @@ class VectorDBPlugin(Plugin):
         Returns:
             Result metadata
         """
-        pass
 
     @abstractmethod
     async def search(
@@ -84,7 +83,6 @@ class VectorDBPlugin(Plugin):
         Returns:
             List of search results
         """
-        pass
 
     @abstractmethod
     async def delete(
@@ -102,7 +100,6 @@ class VectorDBPlugin(Plugin):
         Returns:
             Delete metadata
         """
-        pass
 
     @abstractmethod
     async def get(
@@ -120,7 +117,6 @@ class VectorDBPlugin(Plugin):
         Returns:
             List of documents
         """
-        pass
 
     @abstractmethod
     async def create_index(self) -> bool:
@@ -130,7 +126,6 @@ class VectorDBPlugin(Plugin):
         Returns:
             True if created or already exists
         """
-        pass
 
     @abstractmethod
     async def delete_index(self) -> bool:
@@ -140,7 +135,6 @@ class VectorDBPlugin(Plugin):
         Returns:
             True if deleted
         """
-        pass
 
     @abstractmethod
     async def index_stats(self) -> Dict[str, Any]:
@@ -150,7 +144,6 @@ class VectorDBPlugin(Plugin):
         Returns:
             Stats dict (count, dimension, etc.)
         """
-        pass
 
     async def health_check(self) -> bool:
         """

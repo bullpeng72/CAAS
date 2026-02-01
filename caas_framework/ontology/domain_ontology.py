@@ -5,9 +5,8 @@ Provides structured domain knowledge representation and reasoning
 for intelligent concept inference and pattern application.
 """
 
-from typing import Dict, List, Set, Optional
+from typing import Dict, List, Optional
 from dataclasses import dataclass, field
-from pydantic import BaseModel, Field
 
 
 @dataclass

@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 from enum import Enum
 
 from app.utils.logger import get_logger, LoggerMixin
-from app.knowledge.ontology import OntologyManager, AgentRole, TaskType
+from app.knowledge.ontology import OntologyManager, AgentRole
 
 
 logger = get_logger("knowledge.validator")

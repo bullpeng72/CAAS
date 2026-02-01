@@ -4,7 +4,7 @@ UI Component Generator
 Streamlit 기반 UI 컴포넌트 자동 생성
 """
 
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, Optional
 from app.codegen.artifact_generator import (
     BaseArtifactGenerator,
     GeneratedArtifact,

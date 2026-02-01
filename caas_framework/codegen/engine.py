@@ -6,7 +6,6 @@ Main engine for production-ready code generation.
 
 from typing import Dict, List, Any, Optional
 from dataclasses import dataclass, field
-from pathlib import Path
 
 from caas_framework.models.specifications import (
     ConcretizedRequirement,

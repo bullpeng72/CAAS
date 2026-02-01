@@ -6,7 +6,7 @@ TODO 플레이스홀더 대신 실제 동작하는 코드를 생성합니다.
 """
 
 import ast
-from typing import List, Dict, Any, Optional
+from typing import List, Optional
 from app.models.domain_types import DomainType, ExecutionPattern
 from app.utils.logger import get_logger
 

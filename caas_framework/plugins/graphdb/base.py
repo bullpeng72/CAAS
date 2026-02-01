@@ -66,7 +66,6 @@ class GraphDBPlugin(Plugin):
         Returns:
             GraphQueryResult
         """
-        pass
 
     @abstractmethod
     async def create_node(
@@ -84,7 +83,6 @@ class GraphDBPlugin(Plugin):
         Returns:
             Created node
         """
-        pass
 
     @abstractmethod
     async def create_relationship(
@@ -106,7 +104,6 @@ class GraphDBPlugin(Plugin):
         Returns:
             Created relationship
         """
-        pass
 
     @abstractmethod
     async def find_nodes(
@@ -126,7 +123,6 @@ class GraphDBPlugin(Plugin):
         Returns:
             List of matching nodes
         """
-        pass
 
     @abstractmethod
     async def find_path(
@@ -148,7 +144,6 @@ class GraphDBPlugin(Plugin):
         Returns:
             List of paths
         """
-        pass
 
     @abstractmethod
     async def delete_node(self, node_id: str) -> bool:
@@ -161,7 +156,6 @@ class GraphDBPlugin(Plugin):
         Returns:
             True if deleted
         """
-        pass
 
     @abstractmethod
     async def delete_relationship(self, relationship_id: str) -> bool:
@@ -174,7 +168,6 @@ class GraphDBPlugin(Plugin):
         Returns:
             True if deleted
         """
-        pass
 
     @abstractmethod
     async def get_schema(self) -> Dict[str, Any]:
@@ -184,7 +177,6 @@ class GraphDBPlugin(Plugin):
         Returns:
             Schema information (labels, relationship types, etc.)
         """
-        pass
 
     async def health_check(self) -> bool:
         """

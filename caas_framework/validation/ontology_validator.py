@@ -10,8 +10,6 @@ from pydantic import BaseModel
 
 from caas_framework.knowledge.ontology import (
     OntologyManager,
-    AgentRole,
-    TaskType,
 )
 from caas_framework.models.validation import (
     ValidationIssue,

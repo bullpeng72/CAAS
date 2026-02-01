@@ -12,7 +12,6 @@ from abc import ABC, abstractmethod
 from caas_framework.agents.capability_assessment import (
     CapabilityAssessment,
     AgentCapability,
-    CapabilityLevel,
     get_capability_registry
 )
 from caas_framework.plugins.llm.base import LLMPlugin
@@ -404,4 +403,3 @@ class SelfAwareAgent(SelfAwareMixin, ABC):
         context: Optional[Dict[str, Any]]
     ) -> Any:
         """Execute the task (implement in subclass)"""
-        pass

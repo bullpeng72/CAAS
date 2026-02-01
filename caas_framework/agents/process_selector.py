@@ -5,7 +5,7 @@ Automatically selects the optimal CrewAI Process type (Sequential vs Hierarchica
 based on task dependencies and agent collaboration patterns.
 """
 
-from typing import List, Dict, Set, Optional
+from typing import List, Dict, Set
 from enum import Enum
 import logging
 

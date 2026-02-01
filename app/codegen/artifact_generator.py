@@ -70,7 +70,6 @@ class BaseArtifactGenerator(ABC):
         Returns:
             GeneratedArtifact: 생성된 아티팩트
         """
-        pass
 
     @abstractmethod
     def validate(self, artifact: GeneratedArtifact) -> bool:
@@ -83,7 +82,6 @@ class BaseArtifactGenerator(ABC):
         Returns:
             bool: 검증 성공 여부
         """
-        pass
 
     def _build_imports(self, dependencies: List[str]) -> List[str]:
         """필요한 import 문을 생성합니다"""

@@ -203,9 +203,7 @@ class BaseFactory(LoggerMixin, ABC, Generic[SpecModel, Definition]):
 
 class CodeGenerationError(Exception):
     """코드 생성 중 발생하는 예외"""
-    pass
 
 
 class TemplateRenderError(Exception):
     """템플릿 렌더링 중 발생하는 예외"""
-    pass

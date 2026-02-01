@@ -543,7 +543,6 @@ class CodeValidator:
                     logger.error(f"❌ {package} 버전 확인 실패: {e}")
                 else:
                     logger.debug(f"⏭️ {package}가 설치되지 않음 (버전 검증 건너뜀)")
-                pass
 
     def _calculate_metrics(self, files: Dict[str, str]) -> Dict[str, Any]:
         """코드 메트릭 계산"""

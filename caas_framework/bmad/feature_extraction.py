@@ -5,7 +5,7 @@ Phase 0 Enhancement: Complete and comprehensive feature extraction
 from requirements using hierarchical decomposition.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 import logging
 
 from caas_framework.models.specifications import FeatureSpec

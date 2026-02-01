@@ -4,9 +4,8 @@ BMAD Reflection Engine (CORE - Collaboration Optimized Reflection Engine)
 생성된 결과를 자체 평가하고 개선하는 피드백 루프
 """
 
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Optional
 from pydantic import BaseModel, Field
-import json
 import ast
 
 from app.utils.logger import get_logger, LoggerMixin

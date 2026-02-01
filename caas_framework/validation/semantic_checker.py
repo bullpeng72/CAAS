@@ -10,8 +10,7 @@ from dataclasses import dataclass
 from pydantic import BaseModel, Field
 
 from caas_framework.models.specifications import (
-    ConcretizedRequirement,
-    FeatureSpec
+    ConcretizedRequirement
 )
 
 

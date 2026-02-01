@@ -11,7 +11,7 @@ This legacy module used hardcoded Python package names which are incompatible
 with the new Tool Ontology system that uses CrewAI tool names.
 """
 
-from typing import List, Dict, Set, Tuple
+from typing import List, Dict, Tuple
 from app.utils.logger import get_logger
 import warnings
 

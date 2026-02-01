@@ -5,7 +5,7 @@ A collection of example requirements to guide users in writing better project sp
 Organized by domain, complexity, and use case.
 """
 
-from typing import Dict, List, Optional
+from typing import Dict, List
 from enum import Enum
 from dataclasses import dataclass
 

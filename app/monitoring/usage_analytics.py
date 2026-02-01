@@ -5,11 +5,11 @@ Usage Analytics
 """
 
 import json
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Dict, Any, List, Optional
 from datetime import datetime, timedelta
 from pathlib import Path
 from pydantic import BaseModel, Field
-from collections import defaultdict, Counter
+from collections import defaultdict
 from enum import Enum
 
 from app.utils.logger import get_logger

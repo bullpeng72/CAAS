@@ -5,10 +5,9 @@ Implements the Producer-Critic pattern where a producer agent generates output
 and a critic agent reviews it iteratively until approved or max iterations reached.
 """
 
-from typing import Any, List, Tuple, Optional, Protocol
+from typing import Any, List, Tuple, Protocol
 from dataclasses import dataclass, field
 from pydantic import BaseModel, Field
-import asyncio
 import logging
 
 logger = logging.getLogger(__name__)

@@ -5,7 +5,7 @@ Manages the ontology of available tools, including conceptual tools
 and their CrewAI implementations.
 """
 
-from typing import List, Dict, Any, Optional
+from typing import List, Optional
 from pydantic import BaseModel, Field
 from enum import Enum
 

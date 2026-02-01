@@ -7,7 +7,6 @@ Jinja2 템플릿을 사용하여 CrewAI 코드를 생성합니다.
 import ast
 from pathlib import Path
 from typing import Any, Dict, List, Optional
-import subprocess
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from pydantic import BaseModel
@@ -22,7 +21,7 @@ from app.utils.security import (
 from app.core.sdd import CrewAISpec
 from app.core.factory import CrewAssembler
 from app.codegen.validator import CodeValidator, ValidationResult
-from app.codegen.api_key_validator import ApiKeyValidator, validate_and_warn
+from app.codegen.api_key_validator import validate_and_warn
 
 logger = get_logger("codegen.generator")
 

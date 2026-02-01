@@ -6,11 +6,10 @@ Secure sandbox environment for executing and testing generated code.
 
 import docker
 import tempfile
-import shutil
 import time
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
-from dataclasses import dataclass, field
+from typing import Dict, List, Optional
+from dataclasses import dataclass
 from enum import Enum
 
 from caas_framework.utils.logger import get_logger

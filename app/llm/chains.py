@@ -8,7 +8,7 @@ LangChain 기반의 복합 체인을 정의합니다.
 import json
 from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from app.utils.json_helper import JSONHelper
 
 # 타입 힌트용 import
@@ -25,8 +25,7 @@ RunnableLambda = None
 
 try:
     from langchain_core.prompts import ChatPromptTemplate
-    from langchain_core.output_parsers import JsonOutputParser, StrOutputParser
-    from langchain_core.runnables import RunnablePassthrough, RunnableLambda
+    from langchain_core.output_parsers import JsonOutputParser
     LANGCHAIN_AVAILABLE = True
 except ImportError as e:
     # SECURITY: 의존성 누락을 로깅하여 디버깅 용이하게 함
@@ -43,7 +42,6 @@ from app.llm.prompts.analysis import (
     AGENT_DESIGN_USER,
     TASK_DESIGN_SYSTEM,
     TASK_DESIGN_USER,
-    BACKSTORY_GENERATION,
     ONTOLOGY_CONTEXT_TEMPLATE,
     PATTERN_CONTEXT_TEMPLATE,
 )
@@ -64,11 +62,6 @@ from app.llm.prompts.concretization import (
 )
 from app.utils.logger import get_logger
 from app.models.schemas import (
-    AgentRequirement,
-    TaskRequirement,
-    UIComponentRequirement,
-    UIPageRequirement,
-    BackendAPIRequirement,
     RequirementAnalysis,
     AgentSpecModel as AgentSpec,
     TaskSpecModel as TaskSpec,
@@ -128,7 +121,6 @@ class RequirementAnalysisChain(BaseChainFactory):
         from app.knowledge.ontology import (
             AgentRole,
             TaskType,
-            ToolCapability,
             ROLE_TASK_MAPPINGS,
             TASK_TOOL_MAPPINGS
         )
@@ -208,7 +200,7 @@ class RequirementAnalysisChain(BaseChainFactory):
         Returns:
             Optional[Dict]: 매칭된 패턴 정보 (없으면 None)
         """
-        from app.knowledge.graph.patterns import PatternMatcher, AgentPattern
+        from app.knowledge.graph.patterns import PatternMatcher
 
         try:
             pattern_matcher = PatternMatcher()
@@ -406,7 +398,7 @@ class RequirementAnalysisChain(BaseChainFactory):
         Returns:
             RequirementAnalysis: 검증 및 보완된 결과
         """
-        from app.knowledge.ontology import OntologyManager, AgentRole, TaskType
+        from app.knowledge.ontology import OntologyManager
 
         ontology = OntologyManager()
 
@@ -852,7 +844,6 @@ class SpecGenerationChain:
         # YAML 구문 검증 및 ID sanitization
         try:
             import yaml
-            import re
 
             # YAML 파싱 검증
             data = yaml.safe_load(result)
@@ -923,7 +914,7 @@ class SpecValidationChain:
 
     def __init__(self, llm_config: Optional["LLMConfig"] = None):
         check_langchain()
-        from app.llm.client import get_langchain_llm, LLMConfig
+        from app.llm.client import get_langchain_llm
         self.llm = get_langchain_llm(**(llm_config.model_dump() if llm_config else {}))
         self.prompt = ChatPromptTemplate.from_messages([
             ("system", SPEC_VALIDATION_SYSTEM),

@@ -5,7 +5,6 @@ LLM을 judge로 사용하여 생성된 코드의 품질을 자동으로 평가�
 다차원 평가 기준을 통해 코드의 정확성, 가독성, 보안성, 성능 등을 검증합니다.
 """
 
-import json
 from typing import Any, Dict, List, Optional
 from dataclasses import dataclass
 from enum import Enum
