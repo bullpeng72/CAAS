@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field
 from enum import Enum
 
-from app.utils.logger import get_logger, LoggerMixin
+import logging
 
 logger = get_logger("factory.tool")
 

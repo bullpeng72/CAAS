@@ -11,8 +11,10 @@ from abc import ABC, abstractmethod
 from pydantic import BaseModel
 from jinja2 import Environment, FileSystemLoader, Template
 
-from app.utils.logger import get_logger, LoggerMixin
-from app.utils.config import get_settings, PROJECT_ROOT
+import logging
+from caas_framework.config import get_settings
+from pathlib import Path
+PROJECT_ROOT = Path.cwd()
 
 # Type variables for generic factory
 SpecModel = TypeVar('SpecModel', bound=BaseModel)

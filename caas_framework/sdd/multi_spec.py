@@ -9,7 +9,7 @@ from typing import List, Dict, Any, Optional
 from pydantic import BaseModel, Field
 from enum import Enum
 
-from app.core.sdd.engine import CrewAISpec, ProjectSpec as BaseProjectSpec
+from caas_framework.sdd.engine import CrewAISpec, ProjectSpec as BaseProjectSpec
 
 
 class ArtifactType(str, Enum):

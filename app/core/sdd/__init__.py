@@ -1,39 +1,38 @@
 """
-CAAS SDD Package
+App Core SDD - Backward Compatibility Shim
 
-Spec-Driven Development 구현체입니다.
+DEPRECATED: This module re-exports from caas_framework.sdd for backward compatibility.
+
+All new code should import directly from caas_framework.sdd:
+    from caas_framework.sdd import SDDEngine
+
+This shim will be removed in v3.0.
+
+Migration Guide:
+    # Old (deprecated)
+    from app.core.sdd import SDDEngine
+    from app.core.sdd.engine import CrewAISpec
+
+    # New (recommended)
+    from caas_framework.sdd import SDDEngine
+    from caas_framework.sdd import CrewAISpec
 """
 
-from app.core.sdd.engine import (
-    LLMConfigSpec,
-    AgentSpecModel,
-    TaskSpecModel,
-    CrewConfigSpec,
-    ProjectSpec,
-    CrewAISpec,
-    ValidationError,
-    ValidationResult,
-    SpecValidator,
-    SpecParser,
-    SpecGenerator,
-    SDDEngine,
+import warnings
+
+# Issue deprecation warning
+warnings.warn(
+    "Importing from app.core.sdd is deprecated. "
+    "Use 'from caas_framework.sdd import ...' instead. "
+    "This shim will be removed in v3.0.",
+    DeprecationWarning,
+    stacklevel=2
 )
 
-__all__ = [
-    # Models
-    "LLMConfigSpec",
-    "AgentSpecModel",
-    "TaskSpecModel",
-    "CrewConfigSpec",
-    "ProjectSpec",
-    "CrewAISpec",
-    # Validation
-    "ValidationError",
-    "ValidationResult",
-    "SpecValidator",
-    # Parser & Generator
-    "SpecParser",
-    "SpecGenerator",
-    # Engine
-    "SDDEngine",
-]
+# Re-export everything from caas_framework.sdd
+from caas_framework.sdd import *
+
+# Also support module-specific imports
+from caas_framework.sdd import engine as engine
+from caas_framework.sdd import multi_spec as multi_spec
+from caas_framework.sdd import spec_converter as spec_converter

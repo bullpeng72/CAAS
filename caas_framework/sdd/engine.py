@@ -11,19 +11,19 @@ from pathlib import Path
 import yaml
 from pydantic import BaseModel, field_validator
 
-from app.utils.logger import get_logger, LoggerMixin
+import logging
 from app.utils.security import (
     safe_yaml_load,
     validate_project_name,
     YAMLSecurityError,
 )
-from app.models.schemas import (
+from caas_framework.models import (
     LLMConfigSpec,
     AgentSpecModel,
     TaskSpecModel,
 )
 
-logger = get_logger("sdd.engine")
+logger = logging.getLogger("caas_framework.sdd.engine")
 
 
 # =============================================================================

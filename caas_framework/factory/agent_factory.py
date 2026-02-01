@@ -9,9 +9,9 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
-from app.utils.logger import get_logger
-from app.core.sdd import AgentSpecModel
-from app.core.factory.base_factory import BaseFactory
+import logging
+from caas_framework.sdd import AgentSpecModel
+from caas_framework.factory.base_factory import BaseFactory
 
 logger = get_logger("factory.agent")
 

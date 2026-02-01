@@ -10,12 +10,13 @@ from datetime import datetime
 from pydantic import BaseModel
 from jinja2 import Environment, FileSystemLoader
 
-from app.utils.logger import get_logger, LoggerMixin
-from app.utils.config import PROJECT_ROOT
-from app.core.sdd import CrewAISpec
-from app.core.factory.agent_factory import AgentFactory
-from app.core.factory.task_factory import TaskFactory, TaskDefinition
-from app.models.domain_types import DomainType
+import logging
+from pathlib import Path
+PROJECT_ROOT = Path.cwd()
+from caas_framework.sdd import CrewAISpec
+from caas_framework.factory.agent_factory import AgentFactory
+from caas_framework.factory.task_factory import TaskFactory, TaskDefinition
+from caas_framework.models import DomainType
 from app.codegen.domain_strategy import DomainCodeStrategy
 from app.codegen.crud_entity_extractor import CRUDEntityExtractor
 
