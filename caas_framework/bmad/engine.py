@@ -183,7 +183,7 @@ class BMADEngine:
         self.artifact_generator: Optional[Any] = None
         if artifact_config and getattr(artifact_config, 'enabled', False):
             try:
-                from app.artifacts.generator import ArtifactGenerator
+                from caas_app.artifacts.generator import ArtifactGenerator
                 from caas_framework.models import ArtifactGenerationConfig, ArtifactFormat
 
                 # Create ArtifactGenerationConfig

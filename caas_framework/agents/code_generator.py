@@ -697,7 +697,7 @@ if __name__ == "__main__":
             if app_path not in sys.path:
                 sys.path.insert(0, app_path)
 
-            from app.codegen.tool_generator import (
+            from caas_app.codegen.tool_generator import (
                 get_recommended_tools_for_task,
                 generate_tool_imports,
                 generate_tools_list,

@@ -11,7 +11,6 @@ from caas_framework.knowledge.ontology import (
     OntologyManager,
     ROLE_TASK_MAPPINGS,
     TASK_TOOL_MAPPINGS,
-    TOOL_CAPABILITIES,
 )
 
 __all__ = [
@@ -21,5 +20,4 @@ __all__ = [
     "OntologyManager",
     "ROLE_TASK_MAPPINGS",
     "TASK_TOOL_MAPPINGS",
-    "TOOL_CAPABILITIES",
 ]

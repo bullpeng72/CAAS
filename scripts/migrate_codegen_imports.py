@@ -38,17 +38,17 @@ def migrate_file(file_path: Path) -> bool:
             # Migrate specific imports
             content = re.sub(
                 r'from app\.codegen\.tool_generator import',
-                r'from app.codegen.tool_generator import',  # Keep for now
+                r'from caas_app.codegen.tool_generator import',  # Keep for now
                 content
             )
             content = re.sub(
                 r'from app\.codegen\.crud_entity_extractor import',
-                r'from app.codegen.crud_entity_extractor import',  # Keep for now
+                r'from caas_app.codegen.crud_entity_extractor import',  # Keep for now
                 content
             )
             content = re.sub(
                 r'from app\.codegen\.domain_strategy import',
-                r'from app.codegen.domain_strategy import',  # Keep for now
+                r'from caas_app.codegen.domain_strategy import',  # Keep for now
                 content
             )
 

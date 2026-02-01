@@ -35,7 +35,7 @@ class ToolFixer:
             if app_path not in sys.path:
                 sys.path.insert(0, app_path)
 
-            from app.codegen.tool_generator import get_recommended_tools_for_task
+            from caas_app.codegen.tool_generator import get_recommended_tools_for_task
             tool_func_available = True
         except ImportError:
             tool_func_available = False

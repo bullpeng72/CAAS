@@ -181,7 +181,7 @@ class AgentFactory(BaseFactory[AgentSpecModel, AgentDefinition]):
         Returns:
             bool: CrewAI 기본 도구이면 True, 커스텀 도구이면 False
         """
-        from app.codegen.tool_generator import is_custom_tool
+        from caas_app.codegen.tool_generator import is_custom_tool
 
         # is_custom_tool의 반대값 반환
         return not is_custom_tool(tool_name)

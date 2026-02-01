@@ -18,8 +18,8 @@ from caas_framework.factory.agent_factory import AgentFactory
 from caas_framework.factory.task_factory import TaskFactory, TaskDefinition
 from caas_framework.models import DomainType
 # Lazy imports to avoid circular dependency
-# from app.codegen.domain_strategy import DomainCodeStrategy
-# from app.codegen.crud_entity_extractor import CRUDEntityExtractor
+# from caas_app.codegen.domain_strategy import DomainCodeStrategy
+# from caas_app.codegen.crud_entity_extractor import CRUDEntityExtractor
 
 logger = logging.getLogger("caas_framework.factory.crew")
 
@@ -49,7 +49,7 @@ class CrewAssembler:
         self.task_factory = TaskFactory()
 
         # Lazy import to avoid circular dependency
-        from app.codegen.crud_entity_extractor import CRUDEntityExtractor
+        from caas_app.codegen.crud_entity_extractor import CRUDEntityExtractor
         self.crud_extractor = CRUDEntityExtractor()
 
         # Initialize Jinja2 template environment
@@ -471,7 +471,7 @@ if __name__ == "__main__":
         self.logger.info(f"프로젝트 코드 생성: {spec.project.name} (템플릿: {project_template})")
 
         # Lazy import to avoid circular dependency
-        from app.codegen.domain_strategy import DomainCodeStrategy
+        from caas_app.codegen.domain_strategy import DomainCodeStrategy
 
         # 도메인 타입 파싱 및 전략 결정
         domain_type = self._parse_domain_type(spec.project.domain)
@@ -884,7 +884,7 @@ Process Type: **{spec.crew.process}**
         Returns:
             엔티티 정의 목록
         """
-        from app.codegen.crud_entity_extractor import EntityDefinition
+        from caas_app.codegen.crud_entity_extractor import EntityDefinition
 
         # 1. Core entities from spec
         core_entities = spec.project.core_entities or []
@@ -939,7 +939,7 @@ Process Type: **{spec.crew.process}**
         task_definitions: List[TaskDefinition]
     ) -> List:
         """Task description에서 필드 추출"""
-        from app.codegen.crud_entity_extractor import FieldDefinition
+        from caas_app.codegen.crud_entity_extractor import FieldDefinition
         import re
 
         fields = {}  # field_name -> FieldDefinition
@@ -1020,7 +1020,7 @@ Process Type: **{spec.crew.process}**
 
     def _add_default_fields(self, fields: List) -> List:
         """기본 필드 추가 (id, created_at, updated_at)"""
-        from app.codegen.crud_entity_extractor import FieldDefinition
+        from caas_app.codegen.crud_entity_extractor import FieldDefinition
 
         field_names = {f.name for f in fields}
 

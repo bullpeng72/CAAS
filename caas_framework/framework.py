@@ -155,7 +155,7 @@ class CrewAIFramework:
 
         # 2. Initialize graph backend
         try:
-            from app.knowledge.graph.factory import get_graph_client
+            from caas_app.knowledge.graph.factory import get_graph_client
             self._graph_client = get_graph_client()
             logger.info("Graph backend initialized successfully")
         except Exception as e:

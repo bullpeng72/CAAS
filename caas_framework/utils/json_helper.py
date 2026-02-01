@@ -1,20 +1,22 @@
 """
 JSON Helper
 
-JSON parsing and extraction utilities for LLM responses.
-Simplified version for framework use (no file I/O dependencies).
+JSON 파싱, 추출, 검증을 위한 유틸리티
 """
 
 import json
 import re
-import logging
 from typing import Any, Dict, Optional, List
+from pathlib import Path
 
-logger = logging.getLogger("caas_framework.utils.json_helper")
+from caas_framework.utils.logger import get_logger
+from caas_app.utils.file_utils import FileUtils
+
+logger = get_logger("utils.json_helper")
 
 
 class JSONHelper:
-    """JSON processing utilities for LLM responses"""
+    """JSON 처리 유틸리티"""
 
     @staticmethod
     def extract_from_markdown(
@@ -22,42 +24,42 @@ class JSONHelper:
         fallback: Optional[Any] = None
     ) -> Optional[Dict[str, Any]]:
         """
-        Extract JSON from Markdown code blocks
+        Markdown 코드 블록에서 JSON 추출
 
-        Extracts JSON from LLM responses in ```json ... ``` format.
+        LLM 응답에서 ```json ... ``` 형식의 JSON을 추출합니다.
 
         Args:
-            content: Markdown string
-            fallback: Value to return on extraction failure
+            content: Markdown 문자열
+            fallback: 추출 실패 시 반환할 값
 
         Returns:
-            Parsed Dict or fallback
+            파싱된 Dict 또는 fallback
         """
         if not content:
-            logger.warning("Content is empty")
+            logger.warning("내용이 비어있음")
             return fallback
 
         content = content.strip()
 
-        # Pattern 1: ```json ... ```
+        # 패턴 1: ```json ... ```
         if "```json" in content:
             try:
                 extracted = content.split("```json")[1].split("```")[0].strip()
-                logger.debug("JSON code block extracted successfully (json)")
+                logger.debug("JSON 코드 블록 추출 성공 (json)")
                 return JSONHelper.safe_parse(extracted, fallback)
             except (IndexError, ValueError) as e:
-                logger.warning(f"JSON block extraction failed: {e}")
+                logger.warning(f"JSON 블록 추출 실패: {e}")
 
-        # Pattern 2: ``` ... ``` (general code block)
+        # 패턴 2: ``` ... ``` (일반 코드 블록)
         if "```" in content:
             try:
                 extracted = content.split("```")[1].split("```")[0].strip()
-                logger.debug("JSON code block extracted successfully (general)")
+                logger.debug("JSON 코드 블록 추출 성공 (일반)")
                 return JSONHelper.safe_parse(extracted, fallback)
             except (IndexError, ValueError) as e:
-                logger.warning(f"Code block extraction failed: {e}")
+                logger.warning(f"코드 블록 추출 실패: {e}")
 
-        # Pattern 3: Direct JSON (no code block)
+        # 패턴 3: 직접 JSON (코드 블록 없음)
         return JSONHelper.safe_parse(content, fallback)
 
     @staticmethod
@@ -66,48 +68,101 @@ class JSONHelper:
         fallback: Optional[Any] = None
     ) -> Optional[Dict[str, Any]]:
         """
-        Safe JSON parsing
+        안전한 JSON 파싱
 
         Args:
-            json_str: JSON string
-            fallback: Value to return on parsing failure
+            json_str: JSON 문자열
+            fallback: 파싱 실패 시 반환할 값
 
         Returns:
-            Parsed Dict or fallback
+            파싱된 Dict 또는 fallback
         """
         if not json_str or not json_str.strip():
-            logger.warning("JSON string is empty")
+            logger.warning("JSON 문자열이 비어있음")
             return fallback
 
         try:
             data = json.loads(json_str)
-            logger.debug(f"JSON parsed successfully: {len(json_str)} bytes")
+            logger.debug(f"JSON 파싱 성공: {len(json_str)} bytes")
             return data
 
         except json.JSONDecodeError as e:
-            logger.error(f"JSON parsing failed: {e}")
-            logger.debug(f"Failed JSON content: {json_str[:200]}...")
+            logger.error(f"JSON 파싱 실패: {e}")
+            logger.debug(f"실패한 JSON 내용: {json_str[:200]}...")
             return fallback
+
+    @staticmethod
+    def safe_load_file(file_path: Path) -> Optional[Dict[str, Any]]:
+        """
+        파일에서 안전한 JSON 로드
+
+        Args:
+            file_path: 파일 경로
+
+        Returns:
+            파싱된 Dict 또는 None
+        """
+        return FileUtils.safe_load_file(file_path, file_type="json")
+
+    @staticmethod
+    def format_dump(
+        data: Any,
+        indent: int = 2,
+        ensure_ascii: bool = False,
+        sort_keys: bool = False
+    ) -> str:
+        """
+        JSON 포맷팅 (일관된 스타일)
+
+        Args:
+            data: 직렬화할 데이터
+            indent: 들여쓰기 크기
+            ensure_ascii: ASCII 전용 여부
+            sort_keys: 키 정렬 여부
+
+        Returns:
+            포맷팅된 JSON 문자열
+        """
+        return FileUtils.format_json(data, indent, ensure_ascii, sort_keys)
+
+    @staticmethod
+    def safe_dump_file(
+        data: Any,
+        file_path: Path,
+        **kwargs
+    ) -> bool:
+        """
+        파일에 안전하게 JSON 저장
+
+        Args:
+            data: 저장할 데이터
+            file_path: 파일 경로
+            **kwargs: format_dump에 전달할 추가 인자
+
+        Returns:
+            성공 여부
+        """
+        return FileUtils.safe_dump_file(data, file_path, file_type="json", **kwargs)
 
     @staticmethod
     def sanitize_response(content: str) -> str:
         """
-        Sanitize LLM response (preprocessing before JSON extraction)
+        LLM 응답 정제 (JSON 추출 전 전처리)
 
         Args:
-            content: LLM response string
+            content: LLM 응답 문자열
 
         Returns:
-            Sanitized string
+            정제된 문자열
         """
         if not content:
             return content
 
-        # Remove leading/trailing whitespace
+        # 앞뒤 공백 제거
         content = content.strip()
 
-        # Remove common LLM response patterns
-        # Example: "Here's the JSON:" explanatory text
+        # 일반적인 LLM 응답 패턴 제거
+        # 예: "Here's the JSON:" 같은 설명 텍스트
         patterns = [
             r"^Here['\s]s the JSON:?\s*",
             r"^The JSON is:?\s*",
@@ -121,89 +176,82 @@ class JSONHelper:
         return content.strip()
 
     @staticmethod
-    def sanitize_id(raw_id: str) -> str:
+    def validate_structure(
+        data: Dict[str, Any],
+        required_keys: Optional[List[str]] = None,
+        optional_keys: Optional[List[str]] = None
+    ) -> tuple[bool, List[str]]:
         """
-        Normalize ID string to snake_case
+        JSON 데이터 구조 검증
 
         Args:
-            raw_id: Original ID
+            data: 검증할 데이터
+            required_keys: 필수 키 목록
+            optional_keys: 선택 키 목록
 
         Returns:
-            Normalized ID
+            (valid, errors): 검증 결과 및 에러 목록
+        """
+        return FileUtils.validate_structure(data, required_keys, optional_keys)
+
+    @staticmethod
+    def sanitize_id(raw_id: str) -> str:
+        """
+        ID 문자열 정규화 (snake_case)
+
+        Args:
+            raw_id: 원본 ID
+
+        Returns:
+            정규화된 ID
         """
         if not raw_id:
             return ""
 
-        # Convert to lowercase
+        # 소문자 변환
         sanitized = raw_id.lower()
 
-        # Replace spaces and hyphens with underscores
+        # 공백과 하이픈을 언더스코어로
         sanitized = sanitized.replace(" ", "_").replace("-", "_")
 
-        # Remove special characters (allow only alphanumeric and underscore)
+        # 특수문자 제거 (알파벳, 숫자, 언더스코어만 허용)
         sanitized = re.sub(r'[^a-z0-9_]', '', sanitized)
 
-        # Collapse consecutive underscores to single
+        # 연속된 언더스코어를 하나로
         sanitized = re.sub(r'__+', '_', sanitized)
 
-        # Remove leading/trailing underscores
+        # 앞뒤 언더스코어 제거
         sanitized = sanitized.strip('_')
 
-        # Handle empty string
+        # 빈 문자열 처리
         if not sanitized:
-            logger.warning(f"ID normalization resulted in empty string: {raw_id}")
+            logger.warning(f"ID 정규화 결과가 비어있음: {raw_id}")
             return "unnamed"
 
-        # Handle IDs starting with digit
+        # 숫자로 시작하는 경우 처리
         if sanitized[0].isdigit():
             sanitized = "id_" + sanitized
 
-        logger.debug(f"ID normalized: {raw_id} -> {sanitized}")
+        logger.debug(f"ID 정규화: {raw_id} -> {sanitized}")
         return sanitized
 
-    @staticmethod
-    def format_dump(
-        data: Any,
-        indent: int = 2,
-        ensure_ascii: bool = False,
-        sort_keys: bool = False
-    ) -> str:
-        """
-        Format JSON (consistent style)
 
-        Args:
-            data: Data to serialize
-            indent: Indentation size
-            ensure_ascii: ASCII-only mode
-            sort_keys: Sort keys alphabetically
-
-        Returns:
-            Formatted JSON string
-        """
-        return json.dumps(
-            data,
-            indent=indent,
-            ensure_ascii=ensure_ascii,
-            sort_keys=sort_keys
-        )
-
-
-# Convenience functions
+# 편의 함수들
 def extract_json(content: str, fallback: Optional[Any] = None) -> Optional[Dict[str, Any]]:
-    """Extract JSON from Markdown (shortcut)"""
+    """Markdown에서 JSON 추출 (단축 함수)"""
     return JSONHelper.extract_from_markdown(content, fallback)
 
 
 def parse_json(json_str: str, fallback: Optional[Any] = None) -> Optional[Dict[str, Any]]:
-    """Parse JSON (shortcut)"""
+    """JSON 파싱 (단축 함수)"""
     return JSONHelper.safe_parse(json_str, fallback)
 
 
 def dump_json(data: Any, **kwargs) -> str:
-    """Dump JSON (shortcut)"""
+    """JSON 덤프 (단축 함수)"""
     return JSONHelper.format_dump(data, **kwargs)
 
 
 def sanitize_id(raw_id: str) -> str:
-    """Normalize ID (shortcut)"""
+    """ID 정규화 (단축 함수)"""
     return JSONHelper.sanitize_id(raw_id)
