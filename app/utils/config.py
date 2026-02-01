@@ -257,7 +257,7 @@ class Settings(BaseSettings):
         super().__init__(**kwargs)
 
         # SECURITY: API 키를 os.environ 대신 SecretManager에 저장
-        from app.utils.secrets import get_secret_manager
+        from caas_framework.config.secrets import get_secret_manager
         secret_manager = get_secret_manager()
 
         if self.llm.openai_api_key:
@@ -301,7 +301,7 @@ def get_api_key(key_name: str) -> Optional[str]:
     Returns:
         str: API 키 값 또는 None
     """
-    from app.utils.secrets import get_secret_manager
+    from caas_framework.config.secrets import get_secret_manager
 
     secret_manager = get_secret_manager()
 
@@ -337,7 +337,7 @@ def set_subprocess_env(base_env: Optional[Dict[str, str]] = None) -> Dict[str, s
     Returns:
         dict: 비밀이 포함된 환경 dict
     """
-    from app.utils.secrets import get_secret_manager
+    from caas_framework.config.secrets import get_secret_manager
 
     env = base_env.copy() if base_env else os.environ.copy()
 

@@ -531,7 +531,7 @@ class UnifiedConfigLoader:
         From: app/utils/config.py pattern
         """
         try:
-            from app.utils.secrets import get_secret_manager
+            from caas_framework.config.secrets import get_secret_manager
             secret_manager = get_secret_manager()
 
             # Move OpenAI key to SecretManager
@@ -647,7 +647,7 @@ def get_api_key(key_name: str) -> Optional[str]:
         API key value or None
     """
     try:
-        from app.utils.secrets import get_secret_manager
+        from caas_framework.config.secrets import get_secret_manager
         secret_manager = get_secret_manager()
 
         # Try SecretManager first
@@ -676,7 +676,7 @@ def set_subprocess_env(base_env: Optional[Dict[str, str]] = None) -> Dict[str, s
     env = base_env.copy() if base_env else os.environ.copy()
 
     try:
-        from app.utils.secrets import get_secret_manager
+        from caas_framework.config.secrets import get_secret_manager
         secret_manager = get_secret_manager()
 
         # Add necessary secrets
