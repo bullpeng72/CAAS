@@ -55,13 +55,7 @@ class PostGenerationFixer:
             for issue in issues:
                 logger.warning(f"  [{issue.severity.upper()}] {issue.message}")
 
-        # 2. Fix task descriptions - DISABLED
-        # TaskDescriptionFixer is no longer used.
-        # Input placeholders are now injected by InputDetector.inject_input_placeholders()
-        # in CodeGenerator._generate_tasks_file() which handles both removal and injection.
-        # tasks_dict = TaskDescriptionFixer.fix_all_tasks(tasks_dict)
-
-        # 3. Fix human_input misuse
+        # 2. Fix human_input misuse
         for issue in issues:
             if issue.issue_type == "human_input_misuse":
                 # Find and fix the task
