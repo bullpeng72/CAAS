@@ -263,7 +263,9 @@ async def _execute_phase_0(framework, requirement, domain, output_path, verbose)
 
     engine = BMADEngine(
         llm_plugin=framework.llm_plugin,
-        validation_orchestrator=framework.validation_orchestrator
+        enable_validation=True,
+        enable_auto_fix=True,
+        use_expert_agents=True
     )
 
     golden_data = await engine._phase_0_concretization(requirement, domain)
@@ -294,7 +296,9 @@ async def _execute_phase_1(framework, input_dir, output_path, verbose):
 
     engine = BMADEngine(
         llm_plugin=framework.llm_plugin,
-        validation_orchestrator=framework.validation_orchestrator
+        enable_validation=True,
+        enable_auto_fix=True,
+        use_expert_agents=True
     )
 
     analysis = await engine._phase_1_discovery(golden_data)
@@ -325,7 +329,9 @@ async def _execute_phase_2(framework, input_dir, workflow_type, output_path, ver
 
     engine = BMADEngine(
         llm_plugin=framework.llm_plugin,
-        validation_orchestrator=framework.validation_orchestrator
+        enable_validation=True,
+        enable_auto_fix=True,
+        use_expert_agents=True
     )
 
     architecture, agents, tasks = await engine._phase_2_architecture(
@@ -364,7 +370,9 @@ async def _execute_phase_3(framework, input_dir, output_path, verbose):
 
     engine = BMADEngine(
         llm_plugin=framework.llm_plugin,
-        validation_orchestrator=framework.validation_orchestrator
+        enable_validation=True,
+        enable_auto_fix=True,
+        use_expert_agents=True
     )
 
     enhanced_agents, enhanced_tasks, traceability = await engine._phase_3_design(
@@ -406,7 +414,9 @@ async def _execute_phase_4(framework, input_dir, output_path, verbose):
 
     engine = BMADEngine(
         llm_plugin=framework.llm_plugin,
-        validation_orchestrator=framework.validation_orchestrator
+        enable_validation=True,
+        enable_auto_fix=True,
+        use_expert_agents=True
     )
 
     spec_yaml, validation_reports = await engine._phase_4_development(agents, tasks)
@@ -441,7 +451,9 @@ async def _execute_phase_5(framework, input_dir, deployment_target, output_path,
 
     engine = BMADEngine(
         llm_plugin=framework.llm_plugin,
-        validation_orchestrator=framework.validation_orchestrator
+        enable_validation=True,
+        enable_auto_fix=True,
+        use_expert_agents=True
     )
 
     generated_code = await engine._phase_5_delivery(spec_yaml, deployment_target)
