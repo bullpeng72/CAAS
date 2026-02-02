@@ -10,12 +10,8 @@ Expert agent responsible for Phase 1 (Discovery):
 
 from typing import Any, Dict, List, Optional
 
-from caas_framework.agents.base import (
-    BaseExpertAgent,
-    AgentPhase,
-    ValidationIssue
-)
-from caas_framework.agents.executors import RefinementExecutor, GoldenDataEnhancer
+from caas_framework.agents.base import AgentPhase, BaseExpertAgent, ValidationIssue
+from caas_framework.agents.executors import GoldenDataEnhancer, RefinementExecutor
 from caas_framework.agents.registry import register_agent
 from caas_framework.models.specifications import ConcretizedRequirement
 from caas_framework.plugins.llm.base import LLMPlugin
@@ -31,11 +27,7 @@ class RequirementAnalystAgent(BaseExpertAgent):
     with Golden Data features and acceptance criteria.
     """
 
-    def __init__(
-        self,
-        llm_plugin: LLMPlugin,
-        golden_data: Optional[ConcretizedRequirement] = None
-    ):
+    def __init__(self, llm_plugin: LLMPlugin, golden_data: Optional[ConcretizedRequirement] = None):
         super().__init__(llm_plugin, golden_data, AgentPhase.DISCOVERY)
 
     @property
@@ -54,14 +46,14 @@ class RequirementAnalystAgent(BaseExpertAgent):
             "Non-functional requirement analysis",
             "Acceptance criteria definition",
             "Constraint identification",
-            "Traceability matrix creation"
+            "Traceability matrix creation",
         ]
 
     async def _do_work(
         self,
         requirement: Optional[str],
         context: Optional[Dict[str, Any]],
-        previous_outputs: Optional[Dict[AgentPhase, Any]]
+        previous_outputs: Optional[Dict[AgentPhase, Any]],
     ) -> Dict[str, Any]:
         """
         Analyze requirements and produce structured analysis.
@@ -82,8 +74,13 @@ class RequirementAnalystAgent(BaseExpertAgent):
         # Use unified LLM helper
         analysis = await self._invoke_llm_structured(
             prompt=prompt,
-            expected_fields=['functional_requirements', 'non_functional_requirements', 'constraints', 'success_criteria'],
-            fallback_factory=lambda: self._create_fallback_analysis(requirement)
+            expected_fields=[
+                "functional_requirements",
+                "non_functional_requirements",
+                "constraints",
+                "success_criteria",
+            ],
+            fallback_factory=lambda: self._create_fallback_analysis(requirement),
         )
 
         # Enhance with Golden Data traceability
@@ -104,8 +101,7 @@ class RequirementAnalystAgent(BaseExpertAgent):
         # Add golden data if available
         if self.golden_data:
             builder.add_golden_data(
-                self.golden_data,
-                fields=['domain', 'project_name', 'features', 'data_models']
+                self.golden_data, fields=["domain", "project_name", "features", "data_models"]
             )
 
         # Add context if provided
@@ -113,73 +109,69 @@ class RequirementAnalystAgent(BaseExpertAgent):
             builder.add_context("Additional Context", context)
 
         # Add output format
-        builder.add_output_format({
-            "functional_requirements": [
-                {
-                    "id": "FR1",
-                    "description": "functional requirement description",
-                    "priority": "high|medium|low",
-                    "source": "derived from which feature or requirement",
-                    "acceptance_criteria": ["criterion 1", "criterion 2"]
-                }
-            ],
-            "non_functional_requirements": {
-                "performance": ["requirement 1", "requirement 2"],
-                "security": ["requirement 1", "requirement 2"],
-                "scalability": ["requirement 1", "requirement 2"],
-                "usability": ["requirement 1", "requirement 2"],
-                "reliability": ["requirement 1", "requirement 2"]
+        builder.add_output_format(
+            {
+                "functional_requirements": [
+                    {
+                        "id": "FR1",
+                        "description": "functional requirement description",
+                        "priority": "high|medium|low",
+                        "source": "derived from which feature or requirement",
+                        "acceptance_criteria": ["criterion 1", "criterion 2"],
+                    }
+                ],
+                "non_functional_requirements": {
+                    "performance": ["requirement 1", "requirement 2"],
+                    "security": ["requirement 1", "requirement 2"],
+                    "scalability": ["requirement 1", "requirement 2"],
+                    "usability": ["requirement 1", "requirement 2"],
+                    "reliability": ["requirement 1", "requirement 2"],
+                },
+                "success_criteria": [
+                    "Measurable success criterion 1",
+                    "Measurable success criterion 2",
+                ],
+                "constraints": ["Technical constraint 1", "Business constraint 2"],
+                "risks": [
+                    {
+                        "risk": "risk description",
+                        "impact": "high|medium|low",
+                        "mitigation": "mitigation strategy",
+                    }
+                ],
+                "assumptions": ["Assumption 1", "Assumption 2"],
+                "dependencies": ["External dependency 1", "External dependency 2"],
+                "boundaries": {
+                    "always_allowed": [
+                        "Read files in project directory",
+                        "Write to project directory",
+                        "Install packages from requirements.txt",
+                    ],
+                    "ask_first": [
+                        "Make API calls to external services",
+                        "Modify system configuration",
+                        "Delete files or directories",
+                    ],
+                    "never_allowed": [
+                        "Execute shell commands with sudo",
+                        "Modify files outside project directory",
+                        "Disable security features",
+                    ],
+                },
             },
-            "success_criteria": [
-                "Measurable success criterion 1",
-                "Measurable success criterion 2"
-            ],
-            "constraints": [
-                "Technical constraint 1",
-                "Business constraint 2"
-            ],
-            "risks": [
-                {
-                    "risk": "risk description",
-                    "impact": "high|medium|low",
-                    "mitigation": "mitigation strategy"
-                }
-            ],
-            "assumptions": [
-                "Assumption 1",
-                "Assumption 2"
-            ],
-            "dependencies": [
-                "External dependency 1",
-                "External dependency 2"
-            ],
-            "boundaries": {
-                "always_allowed": [
-                    "Read files in project directory",
-                    "Write to project directory",
-                    "Install packages from requirements.txt"
-                ],
-                "ask_first": [
-                    "Make API calls to external services",
-                    "Modify system configuration",
-                    "Delete files or directories"
-                ],
-                "never_allowed": [
-                    "Execute shell commands with sudo",
-                    "Modify files outside project directory",
-                    "Disable security features"
-                ]
-            }
-        }, "Provide detailed requirements analysis in JSON format:")
+            "Provide detailed requirements analysis in JSON format:",
+        )
 
-        builder.add_guidelines([
-            "Be thorough and align with Golden Data features when provided",
-            "Ensure all functional requirements have clear acceptance criteria",
-            "Identify both technical and business constraints",
-            "CRITICAL: Define security boundaries based on the requirement's needs",
-            "Always set 'never_allowed' to prevent dangerous operations",
-            "Use 'ask_first' for operations that could be risky or costly"
-        ])
+        builder.add_guidelines(
+            [
+                "Be thorough and align with Golden Data features when provided",
+                "Ensure all functional requirements have clear acceptance criteria",
+                "Identify both technical and business constraints",
+                "CRITICAL: Define security boundaries based on the requirement's needs",
+                "Always set 'never_allowed' to prevent dangerous operations",
+                "Use 'ask_first' for operations that could be risky or costly",
+            ]
+        )
 
         return builder.build()
 
@@ -192,7 +184,7 @@ class RequirementAnalystAgent(BaseExpertAgent):
                     "description": requirement[:200],
                     "priority": "high",
                     "source": "Original requirement",
-                    "acceptance_criteria": ["System should fulfill the requirement"]
+                    "acceptance_criteria": ["System should fulfill the requirement"],
                 }
             ],
             "non_functional_requirements": {
@@ -200,13 +192,13 @@ class RequirementAnalystAgent(BaseExpertAgent):
                 "security": [],
                 "scalability": [],
                 "usability": [],
-                "reliability": []
+                "reliability": [],
             },
             "success_criteria": ["System is operational"],
             "constraints": [],
             "risks": [],
             "assumptions": [],
-            "dependencies": []
+            "dependencies": [],
         }
 
     def _enhance_with_golden_data(self, analysis: Dict[str, Any]) -> Dict[str, Any]:
@@ -216,7 +208,7 @@ class RequirementAnalystAgent(BaseExpertAgent):
             output=analysis,
             items_key="functional_requirements",
             item_text_keys=["description"],
-            item_id_key="id"
+            item_id_key="id",
         )
 
     async def _refine_implementation(
@@ -224,7 +216,7 @@ class RequirementAnalystAgent(BaseExpertAgent):
         output: Dict[str, Any],
         issues: List[ValidationIssue],
         context: Optional[Dict[str, Any]],
-        iteration: int
+        iteration: int,
     ) -> Dict[str, Any]:
         """
         Refine analysis based on validation feedback.
@@ -234,7 +226,7 @@ class RequirementAnalystAgent(BaseExpertAgent):
         executor = RefinementExecutor.create_for_agent(
             agent=self,
             agent_role="Expert Requirements Analyst",
-            output_type="requirements analysis"
+            output_type="requirements analysis",
         )
 
         return await executor.refine_output(
@@ -245,6 +237,6 @@ class RequirementAnalystAgent(BaseExpertAgent):
                 "Address each issue specifically",
                 "Maintain consistency with Golden Data features",
                 "Ensure all functional requirements have acceptance criteria",
-                "Verify traceability to Golden Data features"
-            ]
+                "Verify traceability to Golden Data features",
+            ],
         )

@@ -4,23 +4,23 @@ Validation Orchestrator
 Coordinates multiple validators and provides a unified validation interface.
 """
 
-from typing import Any, Dict, List, Optional
 from dataclasses import dataclass
+from typing import Any, Dict, List, Optional
 
 from caas_framework.models.specifications import (
-    ConcretizedRequirement,
     AgentSpecModel,
+    ConcretizedRequirement,
     TaskSpecModel,
 )
 from caas_framework.models.validation import (
-    ValidationResult,
-    GoldenValidationReport,
     DependencyIssue,
+    GoldenValidationReport,
+    ValidationResult,
 )
-from caas_framework.validation.ontology_validator import OntologyValidator
-from caas_framework.validation.golden_validator import GoldenDataValidator
-from caas_framework.validation.dependency_validator import DependencyValidator
 from caas_framework.utils import ObjectAccessor
+from caas_framework.validation.dependency_validator import DependencyValidator
+from caas_framework.validation.golden_validator import GoldenDataValidator
+from caas_framework.validation.ontology_validator import OntologyValidator
 
 
 @dataclass
@@ -28,6 +28,7 @@ class ComprehensiveValidationResult:
     """
     Comprehensive validation result from all validators.
     """
+
     ontology_result: Optional[ValidationResult] = None
     golden_result: Optional[GoldenValidationReport] = None
     dependency_valid: bool = True
@@ -89,7 +90,7 @@ class ValidationOrchestrator:
     def __init__(
         self,
         golden_data: Optional[ConcretizedRequirement] = None,
-        enabled_tools: Optional[List[str]] = None
+        enabled_tools: Optional[List[str]] = None,
     ):
         """
         Initialize orchestrator.
@@ -113,7 +114,7 @@ class ValidationOrchestrator:
         validate_golden: bool = True,
         validate_ontology: bool = True,
         validate_dependencies: bool = True,
-        validate_requirement_alignment: bool = True
+        validate_requirement_alignment: bool = True,
     ) -> ComprehensiveValidationResult:
         """
         Comprehensive design validation.
@@ -138,8 +139,7 @@ class ValidationOrchestrator:
         # 1. Ontology Validation
         if validate_ontology:
             result.ontology_result = self.ontology_validator.validate_agents_and_tasks(
-                agents_dict,
-                tasks_dict
+                agents_dict, tasks_dict
             )
 
         # 2. Requirement-Task Alignment Validation
@@ -147,8 +147,7 @@ class ValidationOrchestrator:
             # Convert golden data to dict if needed
             golden_dict = ObjectAccessor.to_dict(self.golden_data) if self.golden_data else {}
             alignment_issues = self.ontology_validator.validate_requirement_task_alignment(
-                golden_dict,
-                tasks_dict
+                golden_dict, tasks_dict
             )
 
             # Add alignment issues to ontology result
@@ -156,13 +155,22 @@ class ValidationOrchestrator:
                 result.ontology_result.issues.extend(alignment_issues)
                 # Update summary
                 result.ontology_result.summary["total"] += len(alignment_issues)
-                result.ontology_result.summary["warnings"] += len([i for i in alignment_issues if i.severity == "warning"])
-                result.ontology_result.summary["errors"] += len([i for i in alignment_issues if i.severity == "error"])
-                result.ontology_result.summary["info"] += len([i for i in alignment_issues if i.severity == "info"])
-                result.ontology_result.summary["auto_fixable"] += len([i for i in alignment_issues if i.auto_fix_available])
+                result.ontology_result.summary["warnings"] += len(
+                    [i for i in alignment_issues if i.severity == "warning"]
+                )
+                result.ontology_result.summary["errors"] += len(
+                    [i for i in alignment_issues if i.severity == "error"]
+                )
+                result.ontology_result.summary["info"] += len(
+                    [i for i in alignment_issues if i.severity == "info"]
+                )
+                result.ontology_result.summary["auto_fixable"] += len(
+                    [i for i in alignment_issues if i.auto_fix_available]
+                )
             else:
                 # Create new ontology result if not exists
                 from caas_framework.models.validation import ValidationResult
+
                 result.ontology_result = ValidationResult(
                     is_valid=len([i for i in alignment_issues if i.severity == "error"]) == 0,
                     issues=alignment_issues,
@@ -172,15 +180,12 @@ class ValidationOrchestrator:
                         "warnings": len([i for i in alignment_issues if i.severity == "warning"]),
                         "info": len([i for i in alignment_issues if i.severity == "info"]),
                         "auto_fixable": len([i for i in alignment_issues if i.auto_fix_available]),
-                    }
+                    },
                 )
 
         # 3. Golden Data Validation
         if validate_golden and self.golden_validator:
-            result.golden_result = self.golden_validator.validate_design(
-                agents,
-                tasks
-            )
+            result.golden_result = self.golden_validator.validate_design(agents, tasks)
 
         # 4. Dependency Validation
         if validate_dependencies:
@@ -189,10 +194,7 @@ class ValidationOrchestrator:
 
         return result
 
-    def validate_code(
-        self,
-        generated_spec: Dict[str, Any]
-    ) -> ComprehensiveValidationResult:
+    def validate_code(self, generated_spec: Dict[str, Any]) -> ComprehensiveValidationResult:
         """
         Validate generated code against Golden Data.
 
@@ -260,7 +262,9 @@ class ValidationOrchestrator:
 
         return "\n".join(lines)
 
-    def get_auto_fixable_issues(self, result: ComprehensiveValidationResult) -> List[Dict[str, Any]]:
+    def get_auto_fixable_issues(
+        self, result: ComprehensiveValidationResult
+    ) -> List[Dict[str, Any]]:
         """
         Extract all auto-fixable issues.
 
@@ -275,10 +279,12 @@ class ValidationOrchestrator:
         if result.ontology_result:
             for issue in result.ontology_result.issues:
                 if issue.auto_fix_available:
-                    fixable_issues.append({
-                        "source": "ontology",
-                        "issue": issue,
-                    })
+                    fixable_issues.append(
+                        {
+                            "source": "ontology",
+                            "issue": issue,
+                        }
+                    )
 
         return fixable_issues
 
@@ -286,7 +292,7 @@ class ValidationOrchestrator:
         self,
         agents: List[AgentSpecModel],
         tasks: List[TaskSpecModel],
-        result: ComprehensiveValidationResult
+        result: ComprehensiveValidationResult,
     ) -> tuple[List[AgentSpecModel], List[TaskSpecModel], List[str]]:
         """
         Apply all auto-fixable issues automatically.
@@ -310,9 +316,7 @@ class ValidationOrchestrator:
             for issue in result.ontology_result.issues:
                 if issue.auto_fix_available:
                     agents_dict, tasks_dict = self.ontology_validator.apply_auto_fix(
-                        agents_dict,
-                        tasks_dict,
-                        issue
+                        agents_dict, tasks_dict, issue
                     )
                     fixes_applied.append(f"[Ontology] {issue.message}")
 

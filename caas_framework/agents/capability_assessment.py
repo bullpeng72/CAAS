@@ -5,17 +5,18 @@ Provides capability self-assessment and delegation mechanisms for agents.
 """
 
 from dataclasses import dataclass, field
-from typing import List, Optional, Dict, Any
 from enum import Enum
+from typing import Any, Dict, List, Optional
 
 
 class CapabilityLevel(str, Enum):
     """Agent capability confidence levels"""
-    EXPERT = "expert"          # 0.9-1.0: Highly confident
+
+    EXPERT = "expert"  # 0.9-1.0: Highly confident
     PROFICIENT = "proficient"  # 0.7-0.9: Confident
-    CAPABLE = "capable"        # 0.5-0.7: Somewhat confident
-    LIMITED = "limited"        # 0.3-0.5: Low confidence
-    UNABLE = "unable"          # 0.0-0.3: Cannot perform
+    CAPABLE = "capable"  # 0.5-0.7: Somewhat confident
+    LIMITED = "limited"  # 0.3-0.5: Low confidence
+    UNABLE = "unable"  # 0.0-0.3: Cannot perform
 
 
 @dataclass
@@ -88,7 +89,7 @@ class CapabilityAssessment:
             "suggested_agents": self.suggested_agents,
             "missing_tools": self.missing_tools,
             "difficulty": self.difficulty,
-            "metadata": self.metadata
+            "metadata": self.metadata,
         }
 
     def __repr__(self) -> str:
@@ -176,7 +177,7 @@ class AgentCapability:
             "task_types": self.task_types,
             "min_confidence": self.min_confidence,
             "backstory": self.backstory,
-            "goal": self.goal
+            "goal": self.goal,
         }
 
 

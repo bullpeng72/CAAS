@@ -6,11 +6,11 @@ Provides security scanning capabilities for generated code.
 
 from caas_framework.security.code_scanner import (
     CodeSecurityScanner,
-    SecurityReport,
-    SecurityIssue,
-    Severity,
     IssueType,
-    scan_generated_code
+    SecurityIssue,
+    SecurityReport,
+    Severity,
+    scan_generated_code,
 )
 
 __all__ = [
@@ -19,5 +19,5 @@ __all__ = [
     "SecurityIssue",
     "Severity",
     "IssueType",
-    "scan_generated_code"
+    "scan_generated_code",
 ]

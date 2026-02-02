@@ -5,12 +5,11 @@ CAAS BMAD Test Generator
 pytest 기반 테스트를 생성하고 실행합니다.
 """
 
+import logging
 import subprocess
 import tempfile
-from typing import Any, Dict, List
 from pathlib import Path
-
-import logging
+from typing import Any, Dict, List
 
 logger = logging.getLogger("caas_framework.bmad.tester")
 
@@ -74,14 +73,10 @@ class TestGenerator:
         test_files = {}
 
         # 1. 에이전트 테스트 생성
-        test_files["tests/test_agents.py"] = self._generate_agent_tests(
-            project_name, agent_specs
-        )
+        test_files["tests/test_agents.py"] = self._generate_agent_tests(project_name, agent_specs)
 
         # 2. 태스크 테스트 생성
-        test_files["tests/test_tasks.py"] = self._generate_task_tests(
-            project_name, task_specs
-        )
+        test_files["tests/test_tasks.py"] = self._generate_task_tests(project_name, task_specs)
 
         # 3. 통합 테스트 생성
         test_files["tests/test_integration.py"] = self._generate_integration_tests(
@@ -230,26 +225,26 @@ class TestIntegration:
 
         # 에이전트 생성
         for agent in agent_specs:
-            test_code += f'''        agents.append(Agent(
+            test_code += f"""        agents.append(Agent(
             role="{agent.get('role', '')}",
             goal="{agent.get('goal', '')}",
             backstory="{agent.get('backstory', '')}",
         ))
-'''
+"""
 
-        test_code += '''
+        test_code += """
         # Create tasks
         tasks = []
-'''
+"""
 
         # 태스크 생성 (에이전트 매핑)
         for i, task in enumerate(task_specs):
-            test_code += f'''        tasks.append(Task(
+            test_code += f"""        tasks.append(Task(
             description="{task.get('description', '')[:100]}...",
             expected_output="{task.get('expected_output', '')}",
             agent=agents[{min(i, len(agent_specs) - 1)}],
         ))
-'''
+"""
 
         test_code += '''
         return {"agents": agents, "tasks": tasks}
@@ -364,11 +359,14 @@ def project_config():
             try:
                 # pytest with json report
                 cmd = [
-                    "python", "-m", "pytest",
+                    "python",
+                    "-m",
+                    "pytest",
                     str(tmp_path / "tests"),
                     "-v",
                     "--tb=short",
-                    "-m", "not slow",  # 느린 테스트는 스킵
+                    "-m",
+                    "not slow",  # 느린 테스트는 스킵
                 ]
 
                 process = subprocess.run(
@@ -387,9 +385,7 @@ def project_config():
 
                 result.success = process.returncode == 0
 
-                self.logger.info(
-                    f"테스트 완료: {result.passed_tests}/{result.total_tests} passed"
-                )
+                self.logger.info(f"테스트 완료: {result.passed_tests}/{result.total_tests} passed")
 
             except subprocess.TimeoutExpired:
                 self.logger.error(f"테스트 타임아웃 ({timeout}초)")
@@ -442,9 +438,11 @@ def project_config():
 
             # 실패한 테스트 추출
             if "FAILED" in line:
-                result.failures.append({
-                    "test": line.strip(),
-                    "message": "Test failed",
-                })
+                result.failures.append(
+                    {
+                        "test": line.strip(),
+                        "message": "Test failed",
+                    }
+                )
 
         result.total_tests = result.passed_tests + result.failed_tests + result.skipped_tests

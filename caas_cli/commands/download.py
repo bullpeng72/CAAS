@@ -4,12 +4,13 @@ Download Command
 Download generated code.
 """
 
-import click
 from pathlib import Path
+
+import click
+from caas_cli.config import get_config
+from caas_cli.utils import echo_error, echo_progress, echo_success
 from caas_sdk import CAAS
 from caas_sdk.exceptions import CAASError
-from caas_cli.config import get_config
-from caas_cli.utils import echo_success, echo_error, echo_progress
 
 
 @click.command()

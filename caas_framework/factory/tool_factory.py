@@ -4,17 +4,18 @@ CAAS Tool Factory
 CrewAI 도구 생성 및 연결을 담당합니다.
 """
 
-from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, Field
-from enum import Enum
-
 import logging
+from enum import Enum
+from typing import Any, Dict, List, Optional
+
+from pydantic import BaseModel, Field
 
 logger = logging.getLogger("caas_framework.factory.tool")
 
 
 class ToolType(str, Enum):
     """도구 유형"""
+
     BUILTIN = "builtin"
     CUSTOM = "custom"
     LANGCHAIN = "langchain"
@@ -22,6 +23,7 @@ class ToolType(str, Enum):
 
 class ToolCapability(str, Enum):
     """도구 기능"""
+
     WEB_SEARCH = "web_search"
     WEB_SCRAPE = "web_scrape"
     FILE_READ = "file_read"
@@ -34,6 +36,7 @@ class ToolCapability(str, Enum):
 
 class ToolDefinition(BaseModel):
     """도구 정의"""
+
     id: str
     name: str
     description: str
@@ -99,7 +102,15 @@ class ToolFactory:
             capability_keywords = {
                 ToolCapability.WEB_SEARCH: ["search", "google", "youtube", "github"],
                 ToolCapability.WEB_SCRAPE: ["scrape", "crawl", "extract"],
-                ToolCapability.FILE_READ: ["read", "file", "pdf", "directory", "csv", "json", "xml"],
+                ToolCapability.FILE_READ: [
+                    "read",
+                    "file",
+                    "pdf",
+                    "directory",
+                    "csv",
+                    "json",
+                    "xml",
+                ],
                 ToolCapability.FILE_WRITE: ["write", "save", "create"],
                 ToolCapability.CODE_EXECUTE: ["code", "python", "execute", "interpreter"],
                 ToolCapability.CALCULATION: ["calculator", "calculation", "math"],
@@ -170,6 +181,7 @@ class ToolFactory:
         except Exception as e:
             self.logger.error(f"Tool Ontology 로드 실패: {e}")
             import traceback
+
             self.logger.error(f"Traceback: {traceback.format_exc()}")
             # Return empty dict as fallback
             return {}
@@ -190,34 +202,34 @@ class ToolFactory:
 
         self.logger.debug(f"Capability map 생성 완료: {len(cap_map)}개 capability")
         return cap_map
-    
+
     def get_tool_definition(self, tool_id: str) -> Optional[ToolDefinition]:
         """
         도구 정의를 조회합니다.
-        
+
         Args:
             tool_id: 도구 ID
-        
+
         Returns:
             Optional[ToolDefinition]: 도구 정의
         """
         # 내장 도구에서 먼저 검색
         if tool_id in self.BUILTIN_TOOLS:
             return self.BUILTIN_TOOLS[tool_id]
-        
+
         # 커스텀 도구에서 검색
         return self.custom_tools.get(tool_id)
-    
+
     def register_custom_tool(self, definition: ToolDefinition) -> None:
         """
         커스텀 도구를 등록합니다.
-        
+
         Args:
             definition: 도구 정의
         """
         self.custom_tools[definition.id] = definition
         self.logger.info(f"커스텀 도구 등록: {definition.id}")
-    
+
     def recommend_tools(
         self,
         capabilities: List[ToolCapability],
@@ -225,51 +237,51 @@ class ToolFactory:
     ) -> List[str]:
         """
         필요한 기능에 맞는 도구를 추천합니다.
-        
+
         Args:
             capabilities: 필요한 기능 목록
             max_tools: 최대 도구 수
-        
+
         Returns:
             List[str]: 추천 도구 ID 목록
         """
         recommended = set()
-        
+
         for cap in capabilities:
             if cap in self.CAPABILITY_TOOL_MAP:
                 tools = self.CAPABILITY_TOOL_MAP[cap]
                 # 첫 번째 도구를 우선 추천
                 if tools:
                     recommended.add(tools[0])
-        
+
         return list(recommended)[:max_tools]
-    
+
     def create_tool_import_code(self, tool_ids: List[str]) -> str:
         """
         도구 임포트 코드를 생성합니다.
-        
+
         Args:
             tool_ids: 도구 ID 목록
-        
+
         Returns:
             str: 임포트 코드
         """
         imports = {}
-        
+
         for tool_id in tool_ids:
             definition = self.get_tool_definition(tool_id)
             if definition:
                 if definition.import_path not in imports:
                     imports[definition.import_path] = []
                 imports[definition.import_path].append(definition.class_name)
-        
+
         lines = []
         for import_path, class_names in imports.items():
             classes = ", ".join(sorted(set(class_names)))
             lines.append(f"from {import_path} import {classes}")
-        
+
         return "\n".join(sorted(lines))
-    
+
     def create_tool_instantiation_code(
         self,
         tool_ids: List[str],
@@ -277,31 +289,31 @@ class ToolFactory:
     ) -> str:
         """
         도구 인스턴스화 코드를 생성합니다.
-        
+
         Args:
             tool_ids: 도구 ID 목록
             variable_prefix: 변수 접두사
-        
+
         Returns:
             str: 인스턴스화 코드
         """
         lines = []
-        
+
         for tool_id in tool_ids:
             definition = self.get_tool_definition(tool_id)
             if definition:
                 var_name = f"{variable_prefix}{tool_id}"
-                
+
                 # 파라미터 처리
                 params = ""
                 if definition.parameters:
                     param_items = [f"{k}={repr(v)}" for k, v in definition.parameters.items()]
                     params = ", ".join(param_items)
-                
+
                 lines.append(f"{var_name} = {definition.class_name}({params})")
-        
+
         return "\n".join(lines)
-    
+
     def create_tool_list_code(
         self,
         tool_ids: List[str],
@@ -309,68 +321,64 @@ class ToolFactory:
     ) -> str:
         """
         도구 리스트 코드를 생성합니다.
-        
+
         Args:
             tool_ids: 도구 ID 목록
             variable_prefix: 변수 접두사
-        
+
         Returns:
             str: 리스트 코드
         """
         var_names = [f"{variable_prefix}{tid}" for tid in tool_ids]
         return f"[{', '.join(var_names)}]"
-    
+
     def get_all_tools(self) -> Dict[str, ToolDefinition]:
         """모든 도구 정의 반환"""
         all_tools = dict(self.BUILTIN_TOOLS)
         all_tools.update(self.custom_tools)
         return all_tools
-    
+
     def get_tools_by_capability(
         self,
         capability: ToolCapability,
     ) -> List[ToolDefinition]:
         """
         기능별 도구 목록 반환
-        
+
         Args:
             capability: 도구 기능
-        
+
         Returns:
             List[ToolDefinition]: 도구 정의 목록
         """
         tool_ids = self.CAPABILITY_TOOL_MAP.get(capability, [])
-        return [
-            self.BUILTIN_TOOLS[tid]
-            for tid in tool_ids
-            if tid in self.BUILTIN_TOOLS
-        ]
-    
+        return [self.BUILTIN_TOOLS[tid] for tid in tool_ids if tid in self.BUILTIN_TOOLS]
+
     def validate_tools(self, tool_ids: List[str]) -> Dict[str, Any]:
         """
         도구 유효성 검증
-        
+
         Args:
             tool_ids: 도구 ID 목록
-        
+
         Returns:
             Dict: 검증 결과
         """
         valid = []
         invalid = []
         warnings = []
-        
+
         for tool_id in tool_ids:
             definition = self.get_tool_definition(tool_id)
-            
+
             if definition is None:
                 invalid.append(f"Unknown tool: {tool_id}")
             else:
                 valid.append(tool_id)
-                
+
                 if definition.requires_api_key:
                     warnings.append(f"Tool '{tool_id}' requires API key configuration")
-        
+
         return {
             "valid": len(invalid) == 0,
             "valid_tools": valid,
@@ -405,10 +413,10 @@ TOOL_ALIASES: Dict[str, str] = {
 def resolve_tool_alias(tool_name: str) -> str:
     """
     도구 별칭을 실제 도구 ID로 변환합니다.
-    
+
     Args:
         tool_name: 도구 이름 또는 별칭
-    
+
     Returns:
         str: 도구 ID
     """

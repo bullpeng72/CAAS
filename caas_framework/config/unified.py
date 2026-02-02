@@ -17,19 +17,19 @@ Date: 2026-02-01
 """
 
 import os
-from pathlib import Path
-from typing import Any, Dict, Optional, List
 from functools import lru_cache
-import yaml
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
+import yaml
+from dotenv import load_dotenv
 from pydantic import BaseModel, Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from dotenv import load_dotenv
-
 
 # ============================================================================
 # Helper Functions
 # ============================================================================
+
 
 def find_project_root() -> Path:
     """Find project root directory by looking for pyproject.toml"""
@@ -53,6 +53,7 @@ if ENV_FILE.exists():
 # Configuration Models
 # ============================================================================
 
+
 class LLMConfig(BaseModel):
     """
     LLM provider configuration
@@ -61,15 +62,12 @@ class LLMConfig(BaseModel):
     - app/utils/config.py: LLMSettings
     - caas_framework/config/settings.py: LLMConfig
     """
+
     # Provider settings
     provider: str = Field(
-        default="openai",
-        description="LLM provider: openai, anthropic, ollama, azure_openai"
+        default="openai", description="LLM provider: openai, anthropic, ollama, azure_openai"
     )
-    model: str = Field(
-        default="gpt-4o-mini",
-        description="Model name"
-    )
+    model: str = Field(default="gpt-4o-mini", description="Model name")
 
     # API keys (will be moved to SecretManager)
     openai_api_key: Optional[SecretStr] = None
@@ -98,11 +96,9 @@ class GraphConfig(BaseModel):
     - app/utils/config.py: Neo4jSettings
     - caas_framework/config/settings.py: GraphConfig
     """
+
     # Backend selection
-    backend: str = Field(
-        default="embedded",
-        description="Graph backend: neo4j, arangodb, embedded"
-    )
+    backend: str = Field(default="embedded", description="Graph backend: neo4j, arangodb, embedded")
 
     # Neo4j settings
     neo4j_uri: str = Field(default="bolt://localhost:7687")
@@ -123,6 +119,7 @@ class MCPConfig(BaseModel):
 
     From: app/utils/config.py: MCPSettings
     """
+
     enabled: bool = Field(default=False)
     transport_type: str = Field(default="http")  # stdio, sse, http
     server_url: str = Field(default="http://localhost:3000")
@@ -155,6 +152,7 @@ class VectorDBConfig(BaseModel):
 
     From: caas_framework/config/settings.py: VectorDBConfig
     """
+
     backend: Optional[str] = None  # pinecone, qdrant, chroma, weaviate
     api_key: Optional[SecretStr] = None
     environment: Optional[str] = None
@@ -170,6 +168,7 @@ class ValidationConfig(BaseModel):
 
     From: caas_framework/config/settings.py: ValidationConfig
     """
+
     enabled: bool = True
     strictness: str = Field(default="medium")  # low, medium, high
     auto_fix: bool = True
@@ -189,6 +188,7 @@ class CodeGenerationConfig(BaseModel):
 
     From: caas_framework/config/settings.py: CodeGenerationConfig
     """
+
     output_format: str = Field(default="production")  # basic, production, enterprise
     include_tests: bool = True
     include_docs: bool = True
@@ -207,6 +207,7 @@ class WorkflowConfig(BaseModel):
 
     From: caas_framework/config/settings.py: WorkflowConfig
     """
+
     enable_checkpoints: bool = True
     enable_versioning: bool = True
     enable_caching: bool = True
@@ -225,6 +226,7 @@ class ArtifactConfig(BaseModel):
     - app/utils/config.py: ArtifactSettings
     - caas_framework/config/settings.py: ArtifactConfig
     """
+
     # Master switch
     enabled: bool = Field(default=True)
 
@@ -259,6 +261,7 @@ class AppConfig(BaseModel):
 
     From: app/utils/config.py: AppSettings
     """
+
     app_name: str = Field(default="CAAS")
     app_env: str = Field(default="development")
     debug: bool = Field(default=True)
@@ -345,6 +348,7 @@ class CaaSConfig(BaseModel):
 # Configuration Loader with Priority System
 # ============================================================================
 
+
 class UnifiedConfigLoader:
     """
     Unified configuration loader with priority cascade
@@ -361,11 +365,7 @@ class UnifiedConfigLoader:
     - caas_framework/config/loader.py: YAML priority handling
     """
 
-    def __init__(
-        self,
-        config_file: Optional[Path] = None,
-        use_secrets: bool = True
-    ):
+    def __init__(self, config_file: Optional[Path] = None, use_secrets: bool = True):
         """
         Initialize unified config loader
 
@@ -402,7 +402,7 @@ class UnifiedConfigLoader:
 
         for yaml_file in sorted(defaults_dir.glob("*.yaml")):
             try:
-                with open(yaml_file, 'r', encoding='utf-8') as f:
+                with open(yaml_file, "r", encoding="utf-8") as f:
                     data = yaml.safe_load(f) or {}
                     self._merge_dict(self._config_data, data)
             except Exception as e:
@@ -411,7 +411,7 @@ class UnifiedConfigLoader:
     def _merge_yaml(self, yaml_path: Path):
         """Load and merge YAML file into config"""
         try:
-            with open(yaml_path, 'r', encoding='utf-8') as f:
+            with open(yaml_path, "r", encoding="utf-8") as f:
                 data = yaml.safe_load(f) or {}
                 self._merge_dict(self._config_data, data)
         except Exception as e:
@@ -473,8 +473,12 @@ class UnifiedConfigLoader:
             graph=GraphConfig(**graph_dict) if graph_dict else GraphConfig(),
             mcp=MCPConfig(**mcp_dict) if mcp_dict else MCPConfig(),
             vectordb=VectorDBConfig(**vectordb_dict) if vectordb_dict else None,
-            validation=ValidationConfig(**validation_dict) if validation_dict else ValidationConfig(),
-            codegen=CodeGenerationConfig(**codegen_dict) if codegen_dict else CodeGenerationConfig(),
+            validation=(
+                ValidationConfig(**validation_dict) if validation_dict else ValidationConfig()
+            ),
+            codegen=(
+                CodeGenerationConfig(**codegen_dict) if codegen_dict else CodeGenerationConfig()
+            ),
             workflow=WorkflowConfig(**workflow_dict) if workflow_dict else WorkflowConfig(),
             artifacts=ArtifactConfig(**artifacts_dict) if artifacts_dict else ArtifactConfig(),
             app=AppConfig(**app_dict) if app_dict else AppConfig(),
@@ -532,29 +536,27 @@ class UnifiedConfigLoader:
         """
         try:
             from caas_framework.config.secrets import get_secret_manager
+
             secret_manager = get_secret_manager()
 
             # Move OpenAI key to SecretManager
             if config.llm.openai_api_key:
                 secret_manager.set_secret(
-                    "OPENAI_API_KEY",
-                    config.llm.openai_api_key.get_secret_value()
+                    "OPENAI_API_KEY", config.llm.openai_api_key.get_secret_value()
                 )
                 config.llm.openai_api_key = None
 
             # Move Anthropic key to SecretManager
             if config.llm.anthropic_api_key:
                 secret_manager.set_secret(
-                    "ANTHROPIC_API_KEY",
-                    config.llm.anthropic_api_key.get_secret_value()
+                    "ANTHROPIC_API_KEY", config.llm.anthropic_api_key.get_secret_value()
                 )
                 config.llm.anthropic_api_key = None
 
             # Move Neo4j password to SecretManager
             if config.graph.neo4j_password:
                 secret_manager.set_secret(
-                    "NEO4J_PASSWORD",
-                    config.graph.neo4j_password.get_secret_value()
+                    "NEO4J_PASSWORD", config.graph.neo4j_password.get_secret_value()
                 )
                 # Keep password in config for framework use, but secured
 
@@ -573,9 +575,7 @@ _loader_instance: Optional[UnifiedConfigLoader] = None
 
 @lru_cache(maxsize=1)
 def get_config(
-    config_file: Optional[Path] = None,
-    force_reload: bool = False,
-    **overrides
+    config_file: Optional[Path] = None, force_reload: bool = False, **overrides
 ) -> CaaSConfig:
     """
     **PRIMARY ENTRY POINT**
@@ -634,6 +634,7 @@ def reload_config(**overrides) -> CaaSConfig:
 # Helper Functions for Backward Compatibility
 # ============================================================================
 
+
 def get_api_key(key_name: str) -> Optional[str]:
     """
     Get API key from SecretManager or environment
@@ -648,6 +649,7 @@ def get_api_key(key_name: str) -> Optional[str]:
     """
     try:
         from caas_framework.config.secrets import get_secret_manager
+
         secret_manager = get_secret_manager()
 
         # Try SecretManager first
@@ -677,6 +679,7 @@ def set_subprocess_env(base_env: Optional[Dict[str, str]] = None) -> Dict[str, s
 
     try:
         from caas_framework.config.secrets import get_secret_manager
+
         secret_manager = get_secret_manager()
 
         # Add necessary secrets

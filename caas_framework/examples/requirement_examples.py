@@ -5,13 +5,14 @@ A collection of example requirements to guide users in writing better project sp
 Organized by domain, complexity, and use case.
 """
 
-from typing import Dict, List
-from enum import Enum
 from dataclasses import dataclass
+from enum import Enum
+from typing import Dict, List
 
 
 class Domain(str, Enum):
     """Domain categories"""
+
     WEB_APP = "web_app"
     API = "api"
     DATA_ANALYSIS = "data_analysis"
@@ -27,6 +28,7 @@ class Domain(str, Enum):
 
 class Complexity(str, Enum):
     """Complexity levels"""
+
     SIMPLE = "simple"
     MODERATE = "moderate"
     COMPLEX = "complex"
@@ -35,6 +37,7 @@ class Complexity(str, Enum):
 @dataclass
 class RequirementExample:
     """Example requirement specification"""
+
     title: str
     domain: Domain
     complexity: Complexity
@@ -90,11 +93,10 @@ The app should have a clean, minimal interface and persist data locally in the b
             "Task CRUD operations",
             "Status filtering",
             "Local storage persistence",
-            "Minimal UI"
+            "Minimal UI",
         ],
-        tags=["todo", "task-management", "simple", "beginner"]
+        tags=["todo", "task-management", "simple", "beginner"],
     ),
-
     RequirementExample(
         title="Weather Information Bot",
         domain=Domain.CHATBOT,
@@ -113,11 +115,10 @@ The bot should respond conversationally and be easy to use.""",
             "Weather API integration",
             "Current conditions",
             "3-day forecast",
-            "Error handling"
+            "Error handling",
         ],
-        tags=["chatbot", "weather", "api-integration", "simple"]
+        tags=["chatbot", "weather", "api-integration", "simple"],
     ),
-
     RequirementExample(
         title="Basic REST API for Blog",
         domain=Domain.API,
@@ -141,11 +142,10 @@ Include basic validation and return appropriate HTTP status codes.""",
             "CRUD operations for posts",
             "Comments functionality",
             "RESTful design",
-            "Input validation"
+            "Input validation",
         ],
-        tags=["api", "rest", "blog", "crud"]
+        tags=["api", "rest", "blog", "crud"],
     ),
-
     # ========== Moderate Examples ==========
     RequirementExample(
         title="Customer Support Ticket System",
@@ -179,11 +179,10 @@ The system should have a clean UI and support real-time updates.""",
             "Comments and attachments",
             "Email notifications",
             "Dashboard with analytics",
-            "Real-time updates"
+            "Real-time updates",
         ],
-        tags=["support", "tickets", "multi-user", "moderate"]
+        tags=["support", "tickets", "multi-user", "moderate"],
     ),
-
     RequirementExample(
         title="E-Commerce Product Catalog",
         domain=Domain.E_COMMERCE,
@@ -223,11 +222,10 @@ Checkout:
             "User accounts",
             "Order management",
             "Payment integration",
-            "Reviews and ratings"
+            "Reviews and ratings",
         ],
-        tags=["e-commerce", "shopping", "payments", "moderate"]
+        tags=["e-commerce", "shopping", "payments", "moderate"],
     ),
-
     RequirementExample(
         title="Data Analysis Dashboard",
         domain=Domain.DATA_ANALYSIS,
@@ -267,11 +265,10 @@ The dashboard should be responsive and handle datasets up to 100,000 rows.""",
             "Automated analysis",
             "Interactive visualizations",
             "Export capabilities",
-            "Performance optimization"
+            "Performance optimization",
         ],
-        tags=["data-analysis", "dashboard", "visualization", "moderate"]
+        tags=["data-analysis", "dashboard", "visualization", "moderate"],
     ),
-
     # ========== Complex Examples ==========
     RequirementExample(
         title="Financial Trading Platform",
@@ -321,11 +318,10 @@ System Requirements:
             "Portfolio analytics",
             "Backtesting engine",
             "Security and compliance",
-            "High performance and scalability"
+            "High performance and scalability",
         ],
-        tags=["finance", "trading", "real-time", "complex", "high-performance"]
+        tags=["finance", "trading", "real-time", "complex", "high-performance"],
     ),
-
     RequirementExample(
         title="Healthcare Patient Management System",
         domain=Domain.HEALTHCARE,
@@ -384,11 +380,10 @@ Security & Compliance:
             "Billing and insurance",
             "Clinical analytics",
             "HIPAA compliance",
-            "Secure communication"
+            "Secure communication",
         ],
-        tags=["healthcare", "ehr", "hipaa", "complex", "compliance"]
+        tags=["healthcare", "ehr", "hipaa", "complex", "compliance"],
     ),
-
     RequirementExample(
         title="Learning Management System",
         domain=Domain.EDUCATION,
@@ -452,11 +447,10 @@ Mobile Support:
             "Student engagement tools",
             "Analytics and reporting",
             "Gamification",
-            "Mobile support"
+            "Mobile support",
         ],
-        tags=["education", "lms", "e-learning", "complex", "multi-user"]
+        tags=["education", "lms", "e-learning", "complex", "multi-user"],
     ),
-
     # ========== Automation Examples ==========
     RequirementExample(
         title="Email Newsletter Automation",
@@ -478,11 +472,10 @@ Run the automation daily at 8 AM EST.""",
             "Content curation",
             "Email template generation",
             "Scheduled sending",
-            "Analytics tracking"
+            "Analytics tracking",
         ],
-        tags=["automation", "email", "newsletter", "scheduling"]
+        tags=["automation", "email", "newsletter", "scheduling"],
     ),
-
     RequirementExample(
         title="Social Media Content Scheduler",
         domain=Domain.AUTOMATION,
@@ -523,9 +516,9 @@ Team Features:
             "Content scheduling",
             "Analytics dashboard",
             "Team collaboration",
-            "Automation features"
+            "Automation features",
         ],
-        tags=["automation", "social-media", "scheduling", "moderate"]
+        tags=["automation", "social-media", "scheduling", "moderate"],
     ),
 ]
 
@@ -533,6 +526,7 @@ Team Features:
 # ============================================================================
 # Helper Functions
 # ============================================================================
+
 
 def get_examples_by_domain(domain: Domain) -> List[RequirementExample]:
     """Get all examples for a specific domain"""
@@ -565,9 +559,11 @@ def search_examples(query: str) -> List[RequirementExample]:
 
     for ex in REQUIREMENT_EXAMPLES:
         # Search in title, description, and tags
-        if (query_lower in ex.title.lower() or
-            query_lower in ex.description.lower() or
-            any(query_lower in tag.lower() for tag in ex.tags)):
+        if (
+            query_lower in ex.title.lower()
+            or query_lower in ex.description.lower()
+            or any(query_lower in tag.lower() for tag in ex.tags)
+        ):
             results.append(ex)
 
     return results
@@ -577,14 +573,11 @@ def get_example_summary() -> Dict[str, int]:
     """Get summary statistics of examples"""
     return {
         "total": len(REQUIREMENT_EXAMPLES),
-        "by_domain": {
-            domain.value: len(get_examples_by_domain(domain))
-            for domain in Domain
-        },
+        "by_domain": {domain.value: len(get_examples_by_domain(domain)) for domain in Domain},
         "by_complexity": {
             complexity.value: len(get_examples_by_complexity(complexity))
             for complexity in Complexity
-        }
+        },
     }
 
 

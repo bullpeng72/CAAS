@@ -5,17 +5,18 @@ Allows users to review and approve specifications before generating code.
 This prevents wasted effort from incorrect requirements.
 """
 
-from typing import Any, Dict
 from enum import Enum
 
 # Type checking imports
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict
+
 if TYPE_CHECKING:
     pass
 
 
 class ApprovalDecision(Enum):
     """User approval decision"""
+
     APPROVE = "approve"
     REJECT = "reject"
     EDIT = "edit"
@@ -40,10 +41,7 @@ class PlanMode:
         """
         self.auto_approve: bool = auto_approve
 
-    def review_concretized_requirements(
-        self,
-        concretized: Any
-    ) -> ApprovalDecision:
+    def review_concretized_requirements(self, concretized: Any) -> ApprovalDecision:
         """
         Review concretized requirements (after Phase 0).
 
@@ -68,7 +66,11 @@ class PlanMode:
         if concretized.features:
             print(f"\n✨ Features ({len(concretized.features)}):")
             for i, feature in enumerate(concretized.features[:10], 1):  # Limit to 10
-                priority_emoji = "🔴" if feature.priority == "high" else "🟡" if feature.priority == "medium" else "⚪"
+                priority_emoji = (
+                    "🔴"
+                    if feature.priority == "high"
+                    else "🟡" if feature.priority == "medium" else "⚪"
+                )
                 print(f"  {i}. [{priority_emoji} {feature.priority}] {feature.name}")
                 if len(feature.description) <= 80:
                     print(f"     {feature.description}")
@@ -80,10 +82,12 @@ class PlanMode:
                 print(f"  {i}. {model.entity_name}: {len(model.attributes)} attributes")
 
         # Display boundaries if available
-        if hasattr(concretized, 'boundaries') and concretized.boundaries:
+        if hasattr(concretized, "boundaries") and concretized.boundaries:
             print(f"\n🔒 Security Boundaries:")
             if concretized.boundaries.never_allowed:
-                print(f"  ❌ Never Allowed: {len(concretized.boundaries.never_allowed)} restrictions")
+                print(
+                    f"  ❌ Never Allowed: {len(concretized.boundaries.never_allowed)} restrictions"
+                )
             if concretized.boundaries.ask_first:
                 print(f"  ⚠️ Ask First: {len(concretized.boundaries.ask_first)} operations")
 
@@ -91,17 +95,14 @@ class PlanMode:
         print("\n" + "=" * 70)
         choice = input("Review this specification? (approve/edit/reject): ").lower()
 
-        if choice in ['a', 'approve', 'yes', 'y']:
+        if choice in ["a", "approve", "yes", "y"]:
             return ApprovalDecision.APPROVE
-        elif choice in ['e', 'edit']:
+        elif choice in ["e", "edit"]:
             return ApprovalDecision.EDIT
         else:
             return ApprovalDecision.REJECT
 
-    def review_design(
-        self,
-        design: Dict[str, Any]
-    ) -> ApprovalDecision:
+    def review_design(self, design: Dict[str, Any]) -> ApprovalDecision:
         """
         Review agent and task design (after Phase 3).
 
@@ -153,17 +154,14 @@ class PlanMode:
         print("\n" + "=" * 70)
         choice = input("Proceed to code generation? (approve/reject/redesign): ").lower()
 
-        if choice in ['a', 'approve', 'yes', 'y']:
+        if choice in ["a", "approve", "yes", "y"]:
             return ApprovalDecision.APPROVE
-        elif choice in ['r', 'redesign', 'edit']:
+        elif choice in ["r", "redesign", "edit"]:
             return ApprovalDecision.EDIT
         else:
             return ApprovalDecision.REJECT
 
-    def review_final_code(
-        self,
-        generated_code: Dict[str, str]
-    ) -> ApprovalDecision:
+    def review_final_code(self, generated_code: Dict[str, str]) -> ApprovalDecision:
         """
         Review generated code (after Phase 5).
 
@@ -183,7 +181,7 @@ class PlanMode:
         # Display file list
         print(f"\n📄 Generated Files ({len(generated_code)}):")
         for i, (filename, content) in enumerate(generated_code.items(), 1):
-            lines = content.count('\n') + 1
+            lines = content.count("\n") + 1
             size_kb = len(content) / 1024
             print(f"  {i}. {filename} ({lines} lines, {size_kb:.1f} KB)")
 
@@ -191,9 +189,9 @@ class PlanMode:
         if "main.py" in generated_code:
             print("\n📝 Preview of main.py:")
             print("-" * 70)
-            preview_lines = generated_code["main.py"].split('\n')[:30]
-            print('\n'.join(preview_lines))
-            if len(generated_code["main.py"].split('\n')) > 30:
+            preview_lines = generated_code["main.py"].split("\n")[:30]
+            print("\n".join(preview_lines))
+            if len(generated_code["main.py"].split("\n")) > 30:
                 print("... (truncated)")
             print("-" * 70)
 
@@ -201,7 +199,7 @@ class PlanMode:
         print("\n" + "=" * 70)
         choice = input("Save generated code? (yes/no): ").lower()
 
-        if choice in ['y', 'yes', 'approve']:
+        if choice in ["y", "yes", "approve"]:
             return ApprovalDecision.APPROVE
         else:
             return ApprovalDecision.REJECT
@@ -218,8 +216,8 @@ class PlanMode:
         print("-" * 70)
 
         # Simple line-by-line diff
-        before_lines = before.split('\n')
-        after_lines = after.split('\n')
+        before_lines = before.split("\n")
+        after_lines = after.split("\n")
 
         for i, (b_line, a_line) in enumerate(zip(before_lines, after_lines), 1):
             if b_line != a_line:

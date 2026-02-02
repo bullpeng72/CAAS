@@ -5,8 +5,8 @@ Factory classes for creating LangChain chains.
 """
 
 import logging
-from typing import Optional, Type, Any, Dict
 from abc import ABC, abstractmethod
+from typing import Any, Dict, Optional, Type
 
 from pydantic import BaseModel
 
@@ -18,23 +18,20 @@ ChatPromptTemplate = None
 JsonOutputParser = None
 
 try:
-    from langchain_core.prompts import ChatPromptTemplate
     from langchain_core.output_parsers import JsonOutputParser
+    from langchain_core.prompts import ChatPromptTemplate
+
     LANGCHAIN_AVAILABLE = True
 except ImportError as e:
     logger.warning(
-        f"LangChain Core not available: {e}. "
-        "Install with: pip install langchain-core"
+        f"LangChain Core not available: {e}. " "Install with: pip install langchain-core"
     )
 
 
 def check_langchain():
     """Check LangChain availability"""
     if not LANGCHAIN_AVAILABLE:
-        raise ImportError(
-            "langchain not installed. "
-            "pip install langchain-core langchain-openai"
-        )
+        raise ImportError("langchain not installed. " "pip install langchain-core langchain-openai")
 
 
 class BaseChainFactory(ABC):
@@ -70,22 +67,25 @@ class BaseChainFactory(ABC):
 
         # Initialize LLM
         from caas_framework.llm.client import get_langchain_llm
+
         self.llm = get_langchain_llm(**(llm_config.model_dump() if llm_config else {}))
 
         # Create prompt template
         system_prompt = self.get_system_prompt()
         user_prompt = self.get_user_prompt()
 
-        self.prompt = ChatPromptTemplate.from_messages([
-            ("system", system_prompt),
-            ("human", user_prompt),
-        ])
+        self.prompt = ChatPromptTemplate.from_messages(
+            [
+                ("system", system_prompt),
+                ("human", user_prompt),
+            ]
+        )
 
         # Get output model
         output_model = self.get_output_model()
 
         # Assemble chain (depending on Function Calling)
-        if use_function_calling and hasattr(self.llm, 'with_structured_output'):
+        if use_function_calling and hasattr(self.llm, "with_structured_output"):
             # Use Function Calling: with_structured_output returns Pydantic model directly
             structured_llm = self.llm.with_structured_output(output_model)
             self.chain = self.prompt | structured_llm
@@ -169,10 +169,7 @@ class BaseChainFactory(ABC):
 
             # Convert Pydantic models to dicts when using Function Calling
             if self.use_function_calling:
-                results = [
-                    r.model_dump() if isinstance(r, BaseModel) else r
-                    for r in results
-                ]
+                results = [r.model_dump() if isinstance(r, BaseModel) else r for r in results]
 
             self.logger.info("Batch execution completed")
             return results
@@ -193,7 +190,7 @@ class SimpleChainFactory:
         user_prompt: str,
         output_model: Type[BaseModel],
         llm_config: Optional[Any] = None,
-        use_function_calling: bool = True
+        use_function_calling: bool = True,
     ):
         """
         Create chain (one-time)
@@ -214,13 +211,15 @@ class SimpleChainFactory:
 
         llm = get_langchain_llm(**(llm_config.model_dump() if llm_config else {}))
 
-        prompt = ChatPromptTemplate.from_messages([
-            ("system", system_prompt),
-            ("human", user_prompt),
-        ])
+        prompt = ChatPromptTemplate.from_messages(
+            [
+                ("system", system_prompt),
+                ("human", user_prompt),
+            ]
+        )
 
         # Function Calling support
-        if use_function_calling and hasattr(llm, 'with_structured_output'):
+        if use_function_calling and hasattr(llm, "with_structured_output"):
             structured_llm = llm.with_structured_output(output_model)
             chain = prompt | structured_llm
             logger.info("Simple Chain created (Function Calling)")
@@ -232,11 +231,7 @@ class SimpleChainFactory:
         return chain
 
     @staticmethod
-    def create_string_chain(
-        system_prompt: str,
-        user_prompt: str,
-        llm_config: Optional[Any] = None
-    ):
+    def create_string_chain(system_prompt: str, user_prompt: str, llm_config: Optional[Any] = None):
         """
         Create string output Chain
 
@@ -250,15 +245,18 @@ class SimpleChainFactory:
         """
         check_langchain()
 
-        from caas_framework.llm.client import get_langchain_llm
         from langchain_core.output_parsers import StrOutputParser
+
+        from caas_framework.llm.client import get_langchain_llm
 
         llm = get_langchain_llm(**(llm_config.model_dump() if llm_config else {}))
 
-        prompt = ChatPromptTemplate.from_messages([
-            ("system", system_prompt),
-            ("human", user_prompt),
-        ])
+        prompt = ChatPromptTemplate.from_messages(
+            [
+                ("system", system_prompt),
+                ("human", user_prompt),
+            ]
+        )
 
         parser = StrOutputParser()
 
@@ -274,7 +272,7 @@ def create_json_chain(
     user_prompt: str,
     output_model: Type[BaseModel],
     llm_config: Optional[Any] = None,
-    use_function_calling: bool = True
+    use_function_calling: bool = True,
 ):
     """Create JSON output Chain (shortcut)"""
     return SimpleChainFactory.create_chain(
@@ -282,12 +280,6 @@ def create_json_chain(
     )
 
 
-def create_text_chain(
-    system_prompt: str,
-    user_prompt: str,
-    llm_config: Optional[Any] = None
-):
+def create_text_chain(system_prompt: str, user_prompt: str, llm_config: Optional[Any] = None):
     """Create text output Chain (shortcut)"""
-    return SimpleChainFactory.create_string_chain(
-        system_prompt, user_prompt, llm_config
-    )
+    return SimpleChainFactory.create_string_chain(system_prompt, user_prompt, llm_config)

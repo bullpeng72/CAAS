@@ -5,16 +5,17 @@ Ontology-based knowledge management for agent-task-tool relationships.
 Provides semantic validation and recommendation capabilities.
 """
 
-from typing import Dict, List, Set
 from enum import Enum
-
+from typing import Dict, List, Set
 
 # =============================================================================
 # Ontology Enums
 # =============================================================================
 
+
 class AgentRole(str, Enum):
     """Agent role ontology (BMAD-extended)"""
+
     # Core roles
     RESEARCHER = "researcher"
     ANALYST = "analyst"
@@ -49,6 +50,7 @@ class AgentRole(str, Enum):
 
 class TaskType(str, Enum):
     """Task type ontology (BMAD-extended)"""
+
     # Core tasks
     RESEARCH = "research"
     ANALYSIS = "analysis"
@@ -102,6 +104,7 @@ class TaskType(str, Enum):
 
 class ToolCapability(str, Enum):
     """Tool capability ontology"""
+
     SEARCH = "search"
     READ = "read"
     WRITE = "write"
@@ -124,7 +127,6 @@ ROLE_TASK_MAPPINGS: Dict[AgentRole, List[TaskType]] = {
     AgentRole.MANAGER: [TaskType.PLANNING, TaskType.REVIEW, TaskType.TEAM_COORDINATION],
     AgentRole.PLANNER: [TaskType.PLANNING, TaskType.ANALYSIS, TaskType.SPRINT_PLANNING],
     AgentRole.EXECUTOR: [TaskType.EXECUTION, TaskType.CODING, TaskType.DEPLOYMENT],
-
     # BMAD specialized roles - Architecture
     AgentRole.ARCHITECT: [
         TaskType.SYSTEM_DESIGN,
@@ -142,7 +144,6 @@ ROLE_TASK_MAPPINGS: Dict[AgentRole, List[TaskType]] = {
         TaskType.SYSTEM_DESIGN,
         TaskType.REVIEW,
     ],
-
     # BMAD specialized roles - Product
     AgentRole.PRODUCT_MANAGER: [
         TaskType.PRODUCT_PLANNING,
@@ -160,7 +161,6 @@ ROLE_TASK_MAPPINGS: Dict[AgentRole, List[TaskType]] = {
         TaskType.TEST_AUTOMATION,
         TaskType.REVIEW,
     ],
-
     # BMAD specialized roles - Development
     AgentRole.UX_DESIGNER: [
         TaskType.UI_DESIGN,
@@ -185,7 +185,6 @@ ROLE_TASK_MAPPINGS: Dict[AgentRole, List[TaskType]] = {
         TaskType.DATA_PIPELINE,
         TaskType.DATABASE_DESIGN,
     ],
-
     # BMAD specialized roles - Leadership
     AgentRole.SCRUM_MASTER: [
         TaskType.SPRINT_PLANNING,
@@ -216,7 +215,6 @@ TASK_TOOL_MAPPINGS: Dict[TaskType, List[ToolCapability]] = {
     TaskType.PLANNING: [ToolCapability.READ, ToolCapability.WRITE],
     TaskType.EXECUTION: [ToolCapability.COMPUTE, ToolCapability.WRITE],
     TaskType.SYNTHESIS: [ToolCapability.READ, ToolCapability.WRITE],
-
     # BMAD specialized tasks
     TaskType.SYSTEM_DESIGN: [ToolCapability.READ, ToolCapability.WRITE, ToolCapability.VISUALIZE],
     TaskType.API_DESIGN: [ToolCapability.READ, ToolCapability.WRITE],
@@ -245,7 +243,11 @@ TASK_TOOL_MAPPINGS: Dict[TaskType, List[ToolCapability]] = {
     TaskType.GENERAL: [ToolCapability.READ, ToolCapability.WRITE],
     TaskType.SUMMARIZATION: [ToolCapability.READ, ToolCapability.WRITE],
     TaskType.TRANSLATION: [ToolCapability.READ, ToolCapability.WRITE],
-    TaskType.PERFORMANCE_OPTIMIZATION: [ToolCapability.COMPUTE, ToolCapability.READ, ToolCapability.WRITE],
+    TaskType.PERFORMANCE_OPTIMIZATION: [
+        ToolCapability.COMPUTE,
+        ToolCapability.READ,
+        ToolCapability.WRITE,
+    ],
 }
 
 # Tool capabilities (basic set - can be extended)
@@ -263,6 +265,7 @@ TOOL_CAPABILITIES: Dict[str, List[ToolCapability]] = {
 # =============================================================================
 # Ontology Manager
 # =============================================================================
+
 
 class OntologyManager:
     """
@@ -354,7 +357,9 @@ class OntologyManager:
                 role.value.replace("_", "-"),
             ]
             for variant in role_variants:
-                if f" {variant} " in f" {description_lower} " or description_lower.startswith(f"{variant} "):
+                if f" {variant} " in f" {description_lower} " or description_lower.startswith(
+                    f"{variant} "
+                ):
                     return role
 
         # Priority 2: Keyword matching
@@ -404,7 +409,11 @@ class OntologyManager:
 
         # Priority 1: Specialized task types
         priority_keywords = {
-            TaskType.BACKEND_DEVELOPMENT: ["backend development", "backend api", "server development"],
+            TaskType.BACKEND_DEVELOPMENT: [
+                "backend development",
+                "backend api",
+                "server development",
+            ],
             TaskType.FRONTEND_DEVELOPMENT: ["frontend development", "ui development", "streamlit"],
             TaskType.DATA_PIPELINE: ["data pipeline", "etl pipeline"],
             TaskType.UI_DESIGN: ["ui design", "interface design", "ux design"],

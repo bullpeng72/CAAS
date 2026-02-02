@@ -8,6 +8,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 from typing import List, Optional
+
 from pydantic import BaseModel, Field
 
 
@@ -94,9 +95,7 @@ class TestExecutor:
                 )
 
                 # 결과 파싱
-                return self._parse_pytest_output(
-                    result.stdout, result.stderr, result.returncode
-                )
+                return self._parse_pytest_output(result.stdout, result.stderr, result.returncode)
 
             except subprocess.TimeoutExpired:
                 return TestResult(
@@ -136,9 +135,7 @@ class TestExecutor:
                     ],
                 )
 
-    def _parse_pytest_output(
-        self, stdout: str, stderr: str, returncode: int
-    ) -> TestResult:
+    def _parse_pytest_output(self, stdout: str, stderr: str, returncode: int) -> TestResult:
         """Pytest 출력 파싱"""
 
         # 기본값

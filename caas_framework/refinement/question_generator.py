@@ -6,10 +6,11 @@ Interactive Question Generator
 
 from enum import Enum
 from typing import Any, Dict, List, Optional
+
 from pydantic import BaseModel, Field
 
-from .gap_analyzer import RequirementGap, GapType
 from ..utils import JsonExtractor, LLMHelper
+from .gap_analyzer import GapType, RequirementGap
 
 
 class QuestionType(str, Enum):
@@ -44,9 +45,7 @@ class QuestionnaireResult(BaseModel):
     """설문 결과"""
 
     answers: Dict[str, Any] = Field(default_factory=dict)
-    confidence_score: float = Field(
-        default=1.0, description="0.0 ~ 1.0"
-    )
+    confidence_score: float = Field(default=1.0, description="0.0 ~ 1.0")
     remaining_ambiguities: List[str] = Field(default_factory=list)
 
 
@@ -62,9 +61,7 @@ class InteractiveQuestionGenerator:
         # Question templates (currently not loaded from external file)
         self.question_templates = {}
 
-    def generate_questions(
-        self, gaps: List[RequirementGap], domain: str
-    ) -> List[Question]:
+    def generate_questions(self, gaps: List[RequirementGap], domain: str) -> List[Question]:
         """
         갭 기반 질문 생성
 
@@ -101,9 +98,7 @@ class InteractiveQuestionGenerator:
 
         return optimized
 
-    def _create_question_from_gap(
-        self, gap: RequirementGap, domain: str
-    ) -> Optional[Question]:
+    def _create_question_from_gap(self, gap: RequirementGap, domain: str) -> Optional[Question]:
         """갭에서 질문 생성"""
 
         if gap.gap_type == GapType.MISSING_SECURITY:
@@ -280,7 +275,7 @@ class InteractiveQuestionGenerator:
                         default_value=q_data.get("default_value"),
                         help_text=q_data.get("help_text"),
                         placeholder=q_data.get("placeholder"),
-                        required=True  # 기본적으로 필수
+                        required=True,  # 기본적으로 필수
                     )
                     questions.append(question)
                 except Exception:

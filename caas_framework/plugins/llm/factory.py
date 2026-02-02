@@ -7,14 +7,14 @@ Helper functions to create LLM plugins and multi-model routers from configuratio
 import logging
 from typing import Dict, List, Optional
 
+from caas_framework.agents.base import AgentPhase
+from caas_framework.config.settings import LLMConfig, LLMProvider, MultiModelConfig
 from caas_framework.plugins.llm.base import LLMPlugin
 from caas_framework.plugins.llm.multi_model_router import (
-    MultiModelRouter,
     ModelConfig,
-    ModelSelectionStrategy
+    ModelSelectionStrategy,
+    MultiModelRouter,
 )
-from caas_framework.config.settings import LLMConfig, LLMProvider, MultiModelConfig
-from caas_framework.agents.base import AgentPhase
 
 
 def create_llm_plugin(
@@ -24,7 +24,7 @@ def create_llm_plugin(
     api_base: Optional[str] = None,
     temperature: float = 0.3,
     max_tokens: Optional[int] = None,
-    **kwargs
+    **kwargs,
 ) -> LLMPlugin:
     """
     Create an LLM plugin based on provider.
@@ -47,11 +47,12 @@ def create_llm_plugin(
         "api_base": api_base,
         "temperature": temperature,
         "max_tokens": max_tokens,
-        **kwargs
+        **kwargs,
     }
 
     if provider == LLMProvider.OPENAI:
         from caas_framework.plugins.llm.openai import OpenAIPlugin
+
         return OpenAIPlugin(name=f"openai-{model}", config=config)
 
     elif provider == LLMProvider.ANTHROPIC:
@@ -71,8 +72,7 @@ def create_llm_plugin(
 
 
 def create_multi_model_router(
-    llm_config: LLMConfig,
-    logger: Optional[logging.Logger] = None
+    llm_config: LLMConfig, logger: Optional[logging.Logger] = None
 ) -> MultiModelRouter:
     """
     Create a multi-model router from configuration.
@@ -101,7 +101,7 @@ def create_multi_model_router(
             api_key=llm_config.api_key,
             api_base=llm_config.api_base,
             temperature=llm_config.temperature,
-            max_tokens=multi_model_cfg.max_tokens
+            max_tokens=multi_model_cfg.max_tokens,
         )
 
         # Map phase names to AgentPhase enum
@@ -120,7 +120,7 @@ def create_multi_model_router(
             cost_per_1k_tokens=multi_model_cfg.cost_per_1k_tokens,
             max_tokens=multi_model_cfg.max_tokens,
             suitable_phases=suitable_phases,
-            priority=multi_model_cfg.priority
+            priority=multi_model_cfg.priority,
         )
 
         model_configs.append(model_config)
@@ -130,8 +130,7 @@ def create_multi_model_router(
         strategy = ModelSelectionStrategy(llm_config.model_selection_strategy)
     except ValueError:
         logger.warning(
-            f"Unknown strategy: {llm_config.model_selection_strategy}, "
-            f"using PHASE_BASED"
+            f"Unknown strategy: {llm_config.model_selection_strategy}, " f"using PHASE_BASED"
         )
         strategy = ModelSelectionStrategy.PHASE_BASED
 
@@ -141,15 +140,14 @@ def create_multi_model_router(
         models=model_configs,
         strategy=strategy,
         enable_fallback=llm_config.enable_model_fallback,
-        logger=logger
+        logger=logger,
     )
 
     return router
 
 
 def create_default_multi_model_setup(
-    api_key: Optional[str] = None,
-    logger: Optional[logging.Logger] = None
+    api_key: Optional[str] = None, logger: Optional[logging.Logger] = None
 ) -> LLMConfig:
     """
     Create a default multi-model configuration with sensible defaults.
@@ -183,9 +181,8 @@ def create_default_multi_model_setup(
                 cost_per_1k_tokens=0.01,  # $0.01 per 1K tokens (input)
                 max_tokens=4096,
                 suitable_phases=["ARCHITECTURE", "DESIGN", "DELIVERY"],
-                priority=2  # Higher priority
+                priority=2,  # Higher priority
             ),
-
             # GPT-3.5 Turbo - Fast, cost-effective for simpler phases
             MultiModelConfig(
                 name="gpt-3.5-turbo",
@@ -194,15 +191,14 @@ def create_default_multi_model_setup(
                 cost_per_1k_tokens=0.0005,  # $0.0005 per 1K tokens
                 max_tokens=4096,
                 suitable_phases=["DISCOVERY", "QUALITY_ASSURANCE"],
-                priority=1  # Lower priority (fallback)
-            )
-        ]
+                priority=1,  # Lower priority (fallback)
+            ),
+        ],
     )
 
 
 def create_cost_optimized_setup(
-    api_key: Optional[str] = None,
-    logger: Optional[logging.Logger] = None
+    api_key: Optional[str] = None, logger: Optional[logging.Logger] = None
 ) -> LLMConfig:
     """
     Create a cost-optimized multi-model configuration.
@@ -232,10 +228,15 @@ def create_cost_optimized_setup(
                 model="gpt-3.5-turbo",
                 cost_per_1k_tokens=0.0005,
                 max_tokens=4096,
-                suitable_phases=["DISCOVERY", "ARCHITECTURE", "DESIGN", "DELIVERY", "QUALITY_ASSURANCE"],
-                priority=2  # Higher priority
+                suitable_phases=[
+                    "DISCOVERY",
+                    "ARCHITECTURE",
+                    "DESIGN",
+                    "DELIVERY",
+                    "QUALITY_ASSURANCE",
+                ],
+                priority=2,  # Higher priority
             ),
-
             # GPT-4 - Fallback only for when 3.5 fails
             MultiModelConfig(
                 name="gpt-4",
@@ -244,15 +245,14 @@ def create_cost_optimized_setup(
                 cost_per_1k_tokens=0.03,
                 max_tokens=4096,
                 suitable_phases=["ARCHITECTURE", "DESIGN", "DELIVERY"],
-                priority=1  # Lower priority (fallback)
-            )
-        ]
+                priority=1,  # Lower priority (fallback)
+            ),
+        ],
     )
 
 
 def create_performance_first_setup(
-    api_key: Optional[str] = None,
-    logger: Optional[logging.Logger] = None
+    api_key: Optional[str] = None, logger: Optional[logging.Logger] = None
 ) -> LLMConfig:
     """
     Create a performance-first multi-model configuration.
@@ -282,10 +282,15 @@ def create_performance_first_setup(
                 model="gpt-4-turbo-preview",
                 cost_per_1k_tokens=0.01,
                 max_tokens=4096,
-                suitable_phases=["DISCOVERY", "ARCHITECTURE", "DESIGN", "DELIVERY", "QUALITY_ASSURANCE"],
-                priority=2
+                suitable_phases=[
+                    "DISCOVERY",
+                    "ARCHITECTURE",
+                    "DESIGN",
+                    "DELIVERY",
+                    "QUALITY_ASSURANCE",
+                ],
+                priority=2,
             ),
-
             # GPT-3.5 - Fallback
             MultiModelConfig(
                 name="gpt-3.5-turbo",
@@ -294,7 +299,7 @@ def create_performance_first_setup(
                 cost_per_1k_tokens=0.0005,
                 max_tokens=4096,
                 suitable_phases=["DISCOVERY", "QUALITY_ASSURANCE"],
-                priority=1
-            )
-        ]
+                priority=1,
+            ),
+        ],
     )

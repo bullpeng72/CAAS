@@ -4,14 +4,15 @@ Analyze Gaps Command
 요구사항 갭 분석 명령 - caas_framework를 직접 사용
 """
 
-import click
 import asyncio
+
+import click
 from caas_cli.utils import (
-    echo_success,
     echo_error,
     echo_info,
+    echo_success,
     echo_warning,
-    handle_keyboard_interrupt
+    handle_keyboard_interrupt,
 )
 
 
@@ -22,13 +23,13 @@ from caas_cli.utils import (
     "-g",
     type=click.Path(exists=True),
     required=True,
-    help="[Phase 0] Golden Data JSON file to analyze against"
+    help="[Phase 0] Golden Data JSON file to analyze against",
 )
 @click.option(
     "--output",
     "-o",
     type=click.Path(),
-    help="Output JSON file path for gap analysis results (default: gaps.json)"
+    help="Output JSON file path for gap analysis results (default: gaps.json)",
 )
 @handle_keyboard_interrupt
 def analyze_gaps(requirement, golden_data, output):
@@ -101,13 +102,14 @@ def analyze_gaps(requirement, golden_data, output):
     """
     import json
     from pathlib import Path
-    from caas_framework.refinement import RequirementGapAnalyzer
+
     from caas_framework.models.specifications import ConcretizedRequirement
     from caas_framework.plugins.llm.openai import OpenAIPlugin
+    from caas_framework.refinement import RequirementGapAnalyzer
 
     # Load golden data
     try:
-        with open(golden_data, 'r', encoding='utf-8') as f:
+        with open(golden_data, "r", encoding="utf-8") as f:
             golden_data_dict = json.load(f)
 
         # Convert to ConcretizedRequirement
@@ -116,12 +118,14 @@ def analyze_gaps(requirement, golden_data, output):
         echo_error(f"Failed to load golden data: {e}")
         return
 
-    click.echo("""
+    click.echo(
+        """
 ╔══════════════════════════════════════════════════════════════╗
 ║                  CAAS Gap Analysis                            ║
 ║            (Using caas_framework directly)                   ║
 ╚══════════════════════════════════════════════════════════════╝
-""")
+"""
+    )
 
     echo_info(f"Requirement: {requirement}")
     echo_info(f"Golden Data: {golden_data}")
@@ -166,16 +170,17 @@ def analyze_gaps(requirement, golden_data, output):
 
             for i, gap in enumerate(result.gaps[:10], 1):  # Show first 10
                 severity_color = {
-                    'critical': 'red',
-                    'high': 'yellow',
-                    'medium': 'blue',
-                    'low': 'green'
-                }.get(gap.severity, 'white')
+                    "critical": "red",
+                    "high": "yellow",
+                    "medium": "blue",
+                    "low": "green",
+                }.get(gap.severity, "white")
 
-                click.echo(click.style(
-                    f"{i}. [{gap.severity.upper()}] {gap.description}",
-                    fg=severity_color
-                ))
+                click.echo(
+                    click.style(
+                        f"{i}. [{gap.severity.upper()}] {gap.description}", fg=severity_color
+                    )
+                )
 
                 if gap.suggestions:
                     for suggestion in gap.suggestions[:2]:  # Show first 2 suggestions
@@ -200,10 +205,10 @@ def analyze_gaps(requirement, golden_data, output):
                 "low_gaps": result.low_gaps,
                 "auto_fixable_gaps": result.auto_fixable_gaps,
                 "completeness_score": result.completeness_score,
-                "gaps": [gap.model_dump() for gap in result.gaps]
+                "gaps": [gap.model_dump() for gap in result.gaps],
             }
 
-            with open(output_path, 'w', encoding='utf-8') as f:
+            with open(output_path, "w", encoding="utf-8") as f:
                 json.dump(result_dict, f, indent=2, ensure_ascii=False)
 
             echo_success(f"Results saved to: {output}")
@@ -211,4 +216,5 @@ def analyze_gaps(requirement, golden_data, output):
     except Exception as e:
         echo_error(f"Error: {e}")
         import traceback
+
         echo_error(traceback.format_exc())

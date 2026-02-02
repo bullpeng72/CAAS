@@ -6,11 +6,17 @@ Manage CAAS configuration.
 
 import click
 from caas_cli.config import get_config
-from caas_cli.utils import echo_success, echo_info, print_table
+from caas_cli.utils import echo_info, echo_success, print_table
 
 
 @click.command()
-@click.option("--set", "set_value", type=(str, str), multiple=True, help="Set configuration value(s) - can be used multiple times")
+@click.option(
+    "--set",
+    "set_value",
+    type=(str, str),
+    multiple=True,
+    help="Set configuration value(s) - can be used multiple times",
+)
 @click.option("--get", "get_key", type=str, help="Get specific configuration value")
 @click.option("--list", "list_all", is_flag=True, help="List all configuration settings")
 @click.option("--reset", is_flag=True, help="Reset configuration to default values")
@@ -120,11 +126,13 @@ def config(set_value, get_key, list_all, reset):
         # List all configuration
         config_data = cfg.get_all()
 
-        click.echo("""
+        click.echo(
+            """
 ╔══════════════════════════════════════════════════════════════╗
 ║                  CAAS Configuration                          ║
 ╚══════════════════════════════════════════════════════════════╝
-""")
+"""
+        )
 
         # Hide sensitive values
         for key in config_data:

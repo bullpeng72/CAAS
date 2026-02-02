@@ -4,39 +4,34 @@ Fix Command
 Auto-fix design issues using 3-level strategy
 """
 
-import click
 from pathlib import Path
+
+import click
 from caas_cli.utils import (
-    echo_success,
     echo_error,
     echo_info,
     echo_progress,
+    echo_success,
     echo_warning,
     handle_keyboard_interrupt,
+    initialize_framework,
     load_json,
     save_json,
-    initialize_framework
 )
 
 
 @click.command()
 @click.option(
-    "--agents",
-    type=click.Path(exists=True),
-    required=True,
-    help="Path to agents.json file"
+    "--agents", type=click.Path(exists=True), required=True, help="Path to agents.json file"
 )
 @click.option(
-    "--tasks",
-    type=click.Path(exists=True),
-    required=True,
-    help="Path to tasks.json file"
+    "--tasks", type=click.Path(exists=True), required=True, help="Path to tasks.json file"
 )
 @click.option(
     "--golden-data",
     type=click.Path(exists=True),
     required=True,
-    help="Path to golden_data.json (required for validation)"
+    help="Path to golden_data.json (required for validation)",
 )
 @click.option(
     "--level",
@@ -46,27 +41,17 @@ from caas_cli.utils import (
     \b
     Level 1: Template-based (fast, deterministic)
     Level 2: Rule-based (medium, pattern-matching)
-    Level 3: LLM-based (slow, intelligent)"""
+    Level 3: LLM-based (slow, intelligent)""",
 )
-@click.option(
-    "--max-iterations",
-    type=int,
-    default=3,
-    help="Maximum fix iterations (default: 3)"
-)
+@click.option("--max-iterations", type=int, default=3, help="Maximum fix iterations (default: 3)")
 @click.option(
     "--output",
     "-o",
     type=click.Path(),
     default="./fixed_output",
-    help="Output directory (default: ./fixed_output)"
+    help="Output directory (default: ./fixed_output)",
 )
-@click.option(
-    "--verbose",
-    "-v",
-    is_flag=True,
-    help="Show detailed fixing output"
-)
+@click.option("--verbose", "-v", is_flag=True, help="Show detailed fixing output")
 @handle_keyboard_interrupt
 async def fix(agents, tasks, golden_data, level, max_iterations, output, verbose):
     """
@@ -172,14 +157,14 @@ async def fix(agents, tasks, golden_data, level, max_iterations, output, verbose
         click.echo()
         echo_progress("Step 1/3: Validating design...")
 
-        from caas_framework.validation.golden_validator import GoldenDataValidator
         from caas_framework.models.specifications import ConcretizedRequirement as GoldenData
+        from caas_framework.validation.golden_validator import GoldenDataValidator
 
         golden = GoldenData(**golden_data_dict)
         validator = GoldenDataValidator(golden)
         validation_report = validator.validate(agents_list, tasks_list)
 
-        if not hasattr(validation_report, 'errors') or not validation_report.errors:
+        if not hasattr(validation_report, "errors") or not validation_report.errors:
             echo_success("No issues found! Design is valid.")
             return 0
 
@@ -198,29 +183,17 @@ async def fix(agents, tasks, golden_data, level, max_iterations, output, verbose
         if level == 3:
             # LLM-based fixing
             fixed_result = await _fix_with_llm(
-                agents_list,
-                tasks_list,
-                golden,
-                validation_report,
-                max_iterations,
-                verbose
+                agents_list, tasks_list, golden, validation_report, max_iterations, verbose
             )
         elif level == 2:
             # Rule-based fixing
             fixed_result = await _fix_with_rules(
-                agents_list,
-                tasks_list,
-                golden,
-                validation_report,
-                verbose
+                agents_list, tasks_list, golden, validation_report, verbose
             )
         else:
             # Template-based fixing
             fixed_result = await _fix_with_templates(
-                agents_list,
-                tasks_list,
-                validation_report,
-                verbose
+                agents_list, tasks_list, validation_report, verbose
             )
 
         # Step 3: Save fixed design
@@ -241,7 +214,7 @@ async def fix(agents, tasks, golden_data, level, max_iterations, output, verbose
             "issues_found": len(validation_report.errors),
             "issues_fixed": fixed_result.get("issues_fixed", 0),
             "changes": fixed_result.get("changes", []),
-            "success": fixed_result.get("success", True)
+            "success": fixed_result.get("success", True),
         }
         save_json(output_path / "fix_report.json", fix_report)
 
@@ -254,7 +227,7 @@ async def fix(agents, tasks, golden_data, level, max_iterations, output, verbose
         click.echo(f"  Issues fixed: {fix_report['issues_fixed']}")
         click.echo(f"  Changes made: {len(fix_report['changes'])}")
 
-        if fix_report['success']:
+        if fix_report["success"]:
             echo_success("Auto-fix completed successfully!")
         else:
             echo_warning("Auto-fix completed with some remaining issues")
@@ -264,9 +237,11 @@ async def fix(agents, tasks, golden_data, level, max_iterations, output, verbose
         click.echo(click.style("Next steps:", bold=True))
         click.echo(f"  1. Review fixed files in {output}/")
         click.echo(f"  2. Check fix_report.json for details")
-        click.echo(f"  3. Re-validate: caas validate --agents {output}/fixed_agents.json --tasks {output}/fixed_tasks.json")
+        click.echo(
+            f"  3. Re-validate: caas validate --agents {output}/fixed_agents.json --tasks {output}/fixed_tasks.json"
+        )
 
-        return 0 if fix_report['success'] else 1
+        return 0 if fix_report["success"] else 1
 
     except ImportError as e:
         echo_error(f"Failed to import fix modules: {e}")
@@ -275,12 +250,15 @@ async def fix(agents, tasks, golden_data, level, max_iterations, output, verbose
     except Exception as e:
         echo_error(f"Fix error: {e}")
         import traceback
+
         if verbose:
             echo_error(traceback.format_exc())
         return 1
 
 
-async def _fix_with_llm(agents_list, tasks_list, golden_data, validation_report, max_iterations, verbose):
+async def _fix_with_llm(
+    agents_list, tasks_list, golden_data, validation_report, max_iterations, verbose
+):
     """Fix using LLM (Level 3)"""
     from caas_framework.fixing.auto_fixer import AutoFixer
 
@@ -297,12 +275,7 @@ async def _fix_with_llm(agents_list, tasks_list, golden_data, validation_report,
         fixer = AutoFixer(golden_data=golden_data, llm_plugin=llm_plugin)
 
         # Apply fixes
-        result = await fixer.fix_design(
-            agents_list,
-            tasks_list,
-            validation_report,
-            max_iterations
-        )
+        result = await fixer.fix_design(agents_list, tasks_list, validation_report, max_iterations)
 
         if verbose:
             click.echo()
@@ -317,7 +290,7 @@ async def _fix_with_llm(agents_list, tasks_list, golden_data, validation_report,
             "iterations": result.iterations_used,
             "issues_fixed": result.issues_fixed,
             "changes": result.changes_made,
-            "success": result.success
+            "success": result.success,
         }
 
     except Exception as e:
@@ -350,7 +323,7 @@ async def _fix_with_rules(agents_list, tasks_list, golden_data, validation_repor
         "iterations": 1,
         "issues_fixed": len(result.get("changes", [])),
         "changes": result.get("changes", []),
-        "success": True
+        "success": True,
     }
 
 
@@ -376,5 +349,5 @@ async def _fix_with_templates(agents_list, tasks_list, validation_report, verbos
         "iterations": 1,
         "issues_fixed": len(result.get("changes", [])),
         "changes": result.get("changes", []),
-        "success": True
+        "success": True,
     }

@@ -5,12 +5,12 @@ Neo4j 없이도 동작하는 임베디드 그래프 데이터베이스입니다.
 개발 환경이나 빠른 시작을 위해 사용됩니다.
 """
 
-from typing import List, Dict, Any, Optional, Set
+import json
 from datetime import datetime
 from pathlib import Path
-import json
+from typing import Any, Dict, List, Optional, Set
 
-from caas_framework.utils.logger import get_logger, LoggerMixin
+from caas_framework.utils.logger import LoggerMixin, get_logger
 
 logger = get_logger("knowledge.embedded_graph")
 
@@ -162,8 +162,7 @@ class EmbeddedGraphClient(LoggerMixin):
 
         # 노드 로드
         self.nodes = {
-            nid: EmbeddedGraphNode.from_dict(ndata)
-            for nid, ndata in data["nodes"].items()
+            nid: EmbeddedGraphNode.from_dict(ndata) for nid, ndata in data["nodes"].items()
         }
 
         # 관계 로드
@@ -370,15 +369,17 @@ class EmbeddedGraphClient(LoggerMixin):
                 if not any(kw in pattern_keywords for kw in keywords):
                     continue
 
-            results.append({
-                "id": props.get("id"),
-                "name": props.get("name"),
-                "description": props.get("description"),
-                "domain": props.get("domain"),
-                "keywords": props.get("keywords", []),
-                "success_rate": props.get("success_rate", 0.0),
-                "usage_count": props.get("usage_count", 0),
-            })
+            results.append(
+                {
+                    "id": props.get("id"),
+                    "name": props.get("name"),
+                    "description": props.get("description"),
+                    "domain": props.get("domain"),
+                    "keywords": props.get("keywords", []),
+                    "success_rate": props.get("success_rate", 0.0),
+                    "usage_count": props.get("usage_count", 0),
+                }
+            )
 
             if len(results) >= limit:
                 break

@@ -5,12 +5,13 @@ UI-independent interfaces for Plan Mode approval gates.
 Allows different UIs (CLI, Streamlit, VSCode) to implement their own review handlers.
 """
 
-from typing import Protocol, Dict, Any, Optional, Tuple
 from enum import Enum
+from typing import Any, Dict, Optional, Protocol, Tuple
 
 
 class ApprovalDecision(str, Enum):
     """User approval decisions"""
+
     APPROVE = "approve"
     REJECT = "reject"
     EDIT = "edit"
@@ -43,10 +44,7 @@ class ReviewHandler(Protocol):
     """
 
     def display_phase_output(
-        self,
-        phase_name: str,
-        description: str,
-        output: Dict[str, Any]
+        self, phase_name: str, description: str, output: Dict[str, Any]
     ) -> None:
         """
         Display phase output for user review.
@@ -59,9 +57,7 @@ class ReviewHandler(Protocol):
         ...
 
     def request_decision(
-        self,
-        phase_name: str,
-        options: Optional[Dict[str, str]] = None
+        self, phase_name: str, options: Optional[Dict[str, str]] = None
     ) -> ApprovalDecision:
         """
         Request user decision on phase output.
@@ -76,9 +72,7 @@ class ReviewHandler(Protocol):
         ...
 
     def request_feedback(
-        self,
-        phase_name: str,
-        current_output: Dict[str, Any]
+        self, phase_name: str, current_output: Dict[str, Any]
     ) -> Tuple[Dict[str, Any], str]:
         """
         Request user feedback for refinement.
@@ -92,10 +86,7 @@ class ReviewHandler(Protocol):
         """
         ...
 
-    def display_summary(
-        self,
-        summary_data: Dict[str, Any]
-    ) -> None:
+    def display_summary(self, summary_data: Dict[str, Any]) -> None:
         """
         Display approval gates summary.
 
@@ -113,31 +104,21 @@ class NullReviewHandler:
     """
 
     def display_phase_output(
-        self,
-        phase_name: str,
-        description: str,
-        output: Dict[str, Any]
+        self, phase_name: str, description: str, output: Dict[str, Any]
     ) -> None:
         """Do nothing - null implementation"""
 
     def request_decision(
-        self,
-        phase_name: str,
-        options: Optional[Dict[str, str]] = None
+        self, phase_name: str, options: Optional[Dict[str, str]] = None
     ) -> ApprovalDecision:
         """Auto-approve"""
         return ApprovalDecision.APPROVE
 
     def request_feedback(
-        self,
-        phase_name: str,
-        current_output: Dict[str, Any]
+        self, phase_name: str, current_output: Dict[str, Any]
     ) -> Tuple[Dict[str, Any], str]:
         """Return original output with no feedback"""
         return current_output, ""
 
-    def display_summary(
-        self,
-        summary_data: Dict[str, Any]
-    ) -> None:
+    def display_summary(self, summary_data: Dict[str, Any]) -> None:
         """Do nothing - null implementation"""

@@ -8,12 +8,12 @@ TTL management, and comprehensive metrics.
 import hashlib
 import json
 import logging
-from typing import Any, Dict, List, Optional, Callable
 from dataclasses import dataclass, field
 from datetime import datetime
+from typing import Any, Callable, Dict, List, Optional
 
-from caas_framework.caching.backends import CacheBackend, CacheEntry
 from caas_framework.agents.base import AgentPhase
+from caas_framework.caching.backends import CacheBackend, CacheEntry
 
 
 @dataclass
@@ -23,6 +23,7 @@ class CacheKey:
 
     Ensures consistent cache keys across runs.
     """
+
     namespace: str  # e.g., "llm_response", "validation", "golden_data"
     phase: Optional[AgentPhase] = None
     model: Optional[str] = None
@@ -41,7 +42,7 @@ class CacheKey:
             "phase": self.phase.value if self.phase else None,
             "model": self.model,
             "requirement_hash": self.requirement_hash,
-            "additional_params": self.additional_params
+            "additional_params": self.additional_params,
         }
 
         # Sort dict for deterministic JSON
@@ -59,6 +60,7 @@ class CacheKey:
 @dataclass
 class CacheMetrics:
     """Aggregated cache metrics"""
+
     total_requests: int = 0
     cache_hits: int = 0
     cache_misses: int = 0
@@ -100,7 +102,7 @@ class CacheMetrics:
             "cache_hits": self.cache_hits,
             "cache_misses": self.cache_misses,
             "hit_rate": f"{self.hit_rate_percent:.1f}%",
-            "namespaces": self.namespaces
+            "namespaces": self.namespaces,
         }
 
 
@@ -121,7 +123,7 @@ class CacheManager:
         backend: CacheBackend,
         default_ttl: int = 3600,
         enable_metrics: bool = True,
-        logger: Optional[logging.Logger] = None
+        logger: Optional[logging.Logger] = None,
     ):
         """
         Initialize cache manager.
@@ -141,17 +143,13 @@ class CacheManager:
 
         # Namespace-specific TTLs
         self.ttl_overrides: Dict[str, int] = {
-            "llm_response": 3600,      # 1 hour
-            "validation": 1800,         # 30 minutes
-            "golden_data": 7200,        # 2 hours
-            "phase_output": 3600        # 1 hour
+            "llm_response": 3600,  # 1 hour
+            "validation": 1800,  # 30 minutes
+            "golden_data": 7200,  # 2 hours
+            "phase_output": 3600,  # 1 hour
         }
 
-    async def get(
-        self,
-        cache_key: CacheKey,
-        default: Any = None
-    ) -> Optional[Any]:
+    async def get(self, cache_key: CacheKey, default: Any = None) -> Optional[Any]:
         """
         Get cached value.
 
@@ -183,7 +181,7 @@ class CacheManager:
         cache_key: CacheKey,
         value: Any,
         ttl: Optional[int] = None,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
     ) -> None:
         """
         Set cached value.
@@ -202,27 +200,20 @@ class CacheManager:
 
         # Add cache metadata
         cache_metadata = metadata or {}
-        cache_metadata.update({
-            "namespace": cache_key.namespace,
-            "cached_at": datetime.now().isoformat(),
-            "ttl_seconds": ttl
-        })
-
-        await self.backend.set(
-            key=key_str,
-            value=value,
-            ttl_seconds=ttl,
-            metadata=cache_metadata
+        cache_metadata.update(
+            {
+                "namespace": cache_key.namespace,
+                "cached_at": datetime.now().isoformat(),
+                "ttl_seconds": ttl,
+            }
         )
+
+        await self.backend.set(key=key_str, value=value, ttl_seconds=ttl, metadata=cache_metadata)
 
         self.logger.debug(f"💾 Cached: {cache_key.namespace} (TTL: {ttl}s)")
 
     async def get_or_compute(
-        self,
-        cache_key: CacheKey,
-        compute_fn: Callable,
-        ttl: Optional[int] = None,
-        **compute_kwargs
+        self, cache_key: CacheKey, compute_fn: Callable, ttl: Optional[int] = None, **compute_kwargs
     ) -> Any:
         """
         Get from cache or compute and cache.
@@ -251,10 +242,7 @@ class CacheManager:
 
         return computed_value
 
-    async def invalidate(
-        self,
-        cache_key: CacheKey
-    ) -> bool:
+    async def invalidate(self, cache_key: CacheKey) -> bool:
         """
         Invalidate specific cache entry.
 
@@ -272,10 +260,7 @@ class CacheManager:
 
         return deleted
 
-    async def invalidate_namespace(
-        self,
-        namespace: str
-    ) -> int:
+    async def invalidate_namespace(self, namespace: str) -> int:
         """
         Invalidate all entries in a namespace.
 
@@ -309,10 +294,7 @@ class CacheManager:
         """
         backend_metrics = self.backend.get_metrics()
 
-        return {
-            "manager_metrics": self.metrics.to_dict(),
-            "backend_metrics": backend_metrics
-        }
+        return {"manager_metrics": self.metrics.to_dict(), "backend_metrics": backend_metrics}
 
     def get_hit_rate(self, namespace: Optional[str] = None) -> float:
         """

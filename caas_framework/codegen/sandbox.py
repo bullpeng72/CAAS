@@ -4,13 +4,14 @@ Code Execution Sandbox
 Secure sandbox environment for executing and testing generated code.
 """
 
-import docker
 import tempfile
 import time
-from pathlib import Path
-from typing import Dict, List, Optional
 from dataclasses import dataclass
 from enum import Enum
+from pathlib import Path
+from typing import Dict, List, Optional
+
+import docker
 
 from caas_framework.utils.logger import get_logger
 
@@ -19,6 +20,7 @@ logger = get_logger("sandbox")
 
 class SandboxType(str, Enum):
     """Sandbox types"""
+
     DOCKER = "docker"
     PROCESS = "process"  # Subprocess-based (less secure)
     VIRTUAL_ENV = "venv"  # Virtual environment-based
@@ -27,6 +29,7 @@ class SandboxType(str, Enum):
 @dataclass
 class SandboxConfig:
     """Sandbox configuration"""
+
     sandbox_type: SandboxType = SandboxType.DOCKER
     timeout: int = 30  # seconds
     memory_limit: str = "512m"  # Docker memory limit
@@ -38,6 +41,7 @@ class SandboxConfig:
 @dataclass
 class ExecutionResult:
     """Sandbox execution result"""
+
     success: bool
     exit_code: int
     stdout: str = ""
@@ -71,10 +75,7 @@ class DockerSandbox:
             self.available = False
 
     def execute(
-        self,
-        files: Dict[str, str],
-        command: str,
-        entry_point: str = "main.py"
+        self, files: Dict[str, str], command: str, entry_point: str = "main.py"
     ) -> ExecutionResult:
         """
         Execute code in Docker container.
@@ -89,9 +90,7 @@ class DockerSandbox:
         """
         if not self.available:
             return ExecutionResult(
-                success=False,
-                exit_code=-1,
-                error_message="Docker is not available"
+                success=False, exit_code=-1, error_message="Docker is not available"
             )
 
         start_time = time.time()
@@ -119,9 +118,7 @@ class DockerSandbox:
                 # Build image
                 logger.info("Building Docker image...")
                 image, build_logs = self.docker_client.images.build(
-                    path=str(temp_path),
-                    tag=f"caas-sandbox:{int(time.time())}",
-                    rm=True
+                    path=str(temp_path), tag=f"caas-sandbox:{int(time.time())}", rm=True
                 )
 
                 # Run container
@@ -134,17 +131,17 @@ class DockerSandbox:
                     cpu_period=100000,
                     cpu_quota=int(100000 * self.config.cpu_limit),
                     network_disabled=not self.config.network_enabled,
-                    detach=True
+                    detach=True,
                 )
 
                 # Wait for completion with timeout
                 try:
                     result = container.wait(timeout=self.config.timeout)
-                    exit_code = result['StatusCode']
+                    exit_code = result["StatusCode"]
 
                     # Get logs
-                    stdout = container.logs(stdout=True, stderr=False).decode('utf-8')
-                    stderr = container.logs(stdout=False, stderr=True).decode('utf-8')
+                    stdout = container.logs(stdout=True, stderr=False).decode("utf-8")
+                    stderr = container.logs(stdout=False, stderr=True).decode("utf-8")
 
                     execution_time = time.time() - start_time
 
@@ -153,7 +150,7 @@ class DockerSandbox:
                         exit_code=exit_code,
                         stdout=stdout,
                         stderr=stderr,
-                        execution_time=execution_time
+                        execution_time=execution_time,
                     )
 
                 except Exception as e:
@@ -169,7 +166,7 @@ class DockerSandbox:
                         success=False,
                         exit_code=-1,
                         error_message=f"Execution timeout or error: {e}",
-                        execution_time=time.time() - start_time
+                        execution_time=time.time() - start_time,
                     )
 
                 finally:
@@ -185,7 +182,7 @@ class DockerSandbox:
                     success=False,
                     exit_code=-1,
                     error_message=f"Docker build failed: {e}",
-                    execution_time=time.time() - start_time
+                    execution_time=time.time() - start_time,
                 )
 
             except Exception as e:
@@ -193,7 +190,7 @@ class DockerSandbox:
                     success=False,
                     exit_code=-1,
                     error_message=f"Docker execution failed: {e}",
-                    execution_time=time.time() - start_time
+                    execution_time=time.time() - start_time,
                 )
 
     def _create_dockerfile(self) -> str:
@@ -255,10 +252,28 @@ CMD ["python", "main.py"]
     def _is_third_party(self, module: str) -> bool:
         """Check if module is third-party (not stdlib)"""
         stdlib_modules = {
-            "abc", "ast", "asyncio", "collections", "dataclasses", "datetime",
-            "enum", "functools", "itertools", "json", "logging", "math",
-            "os", "pathlib", "random", "re", "subprocess", "sys", "tempfile",
-            "time", "typing", "uuid"
+            "abc",
+            "ast",
+            "asyncio",
+            "collections",
+            "dataclasses",
+            "datetime",
+            "enum",
+            "functools",
+            "itertools",
+            "json",
+            "logging",
+            "math",
+            "os",
+            "pathlib",
+            "random",
+            "re",
+            "subprocess",
+            "sys",
+            "tempfile",
+            "time",
+            "typing",
+            "uuid",
         }
 
         return module not in stdlib_modules
@@ -291,10 +306,7 @@ class Sandbox:
         logger.info(f"Sandbox initialized: type={self.config.sandbox_type}")
 
     def execute(
-        self,
-        files: Dict[str, str],
-        command: Optional[str] = None,
-        entry_point: str = "main.py"
+        self, files: Dict[str, str], command: Optional[str] = None, entry_point: str = "main.py"
     ) -> ExecutionResult:
         """
         Execute code in sandbox.
@@ -316,10 +328,7 @@ class Sandbox:
             return self._execute_subprocess(files, command, entry_point)
 
     def _execute_subprocess(
-        self,
-        files: Dict[str, str],
-        command: str,
-        entry_point: str
+        self, files: Dict[str, str], command: str, entry_point: str
     ) -> ExecutionResult:
         """
         Fallback: Execute in subprocess (less secure).
@@ -352,7 +361,7 @@ class Sandbox:
                     cwd=temp_path,
                     capture_output=True,
                     text=True,
-                    timeout=self.config.timeout
+                    timeout=self.config.timeout,
                 )
 
                 execution_time = time.time() - start_time
@@ -362,7 +371,7 @@ class Sandbox:
                     exit_code=result.returncode,
                     stdout=result.stdout,
                     stderr=result.stderr,
-                    execution_time=execution_time
+                    execution_time=execution_time,
                 )
 
             except subprocess.TimeoutExpired:
@@ -370,7 +379,7 @@ class Sandbox:
                     success=False,
                     exit_code=-1,
                     error_message="Execution timeout",
-                    execution_time=time.time() - start_time
+                    execution_time=time.time() - start_time,
                 )
 
             except Exception as e:
@@ -378,7 +387,7 @@ class Sandbox:
                     success=False,
                     exit_code=-1,
                     error_message=f"Execution error: {e}",
-                    execution_time=time.time() - start_time
+                    execution_time=time.time() - start_time,
                 )
 
 
@@ -386,7 +395,7 @@ def execute_in_sandbox(
     files: Dict[str, str],
     command: Optional[str] = None,
     entry_point: str = "main.py",
-    timeout: int = 30
+    timeout: int = 30,
 ) -> ExecutionResult:
     """
     Convenient function to execute code in sandbox.

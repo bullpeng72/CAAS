@@ -5,17 +5,18 @@ Requirement Expander
 """
 
 from typing import Dict, List
+
 from pydantic import BaseModel, Field
 
 from ..models.specifications import (
     ConcretizedRequirement,
-    FeatureSpec,
     DataModel,
-    UIComponent,
+    FeatureSpec,
     NonFunctionalRequirements,
+    UIComponent,
 )
-from .gap_analyzer import RequirementGap, GapType
-from ..utils import ObjectAccessor, JsonExtractor
+from ..utils import JsonExtractor, ObjectAccessor
+from .gap_analyzer import GapType, RequirementGap
 
 
 class AutoFixResult(BaseModel):
@@ -44,9 +45,7 @@ class ExpandedRequirement(BaseModel):
     auto_expanded_features: List[FeatureSpec] = Field(default_factory=list)
     auto_expanded_data_models: List[DataModel] = Field(default_factory=list)
     auto_expanded_ui_components: List[UIComponent] = Field(default_factory=list)
-    suggested_nfr: NonFunctionalRequirements = Field(
-        default_factory=NonFunctionalRequirements
-    )
+    suggested_nfr: NonFunctionalRequirements = Field(default_factory=NonFunctionalRequirements)
     best_practices: List[BestPractice] = Field(default_factory=list)
     remaining_gaps: List[RequirementGap] = Field(default_factory=list)
     expansion_summary: str = ""
@@ -217,9 +216,7 @@ class RequirementExpander:
 
         # 관련 기능 찾기
         features = spec.features if spec.features else []
-        feature = next(
-            (f for f in features if f.id == gap.related_feature_id), None
-        )
+        feature = next((f for f in features if f.id == gap.related_feature_id), None)
         if not feature:
             return []
 
@@ -247,9 +244,7 @@ class RequirementExpander:
                 "에러 없이 완료됨",
             ]
 
-    def _generate_ui_components(
-        self, spec: ConcretizedRequirement
-    ) -> List[UIComponent]:
+    def _generate_ui_components(self, spec: ConcretizedRequirement) -> List[UIComponent]:
         """UI 컴포넌트 자동 생성"""
         if not self.llm:
             return []
@@ -298,9 +293,7 @@ class RequirementExpander:
                 ),
             ]
 
-    def _generate_nfr(
-        self, spec: ConcretizedRequirement, gap: RequirementGap
-    ) -> Dict[str, str]:
+    def _generate_nfr(self, spec: ConcretizedRequirement, gap: RequirementGap) -> Dict[str, str]:
         """비기능 요구사항 생성"""
         nfr_updates = {}
 
@@ -328,9 +321,7 @@ class RequirementExpander:
         }
         return defaults.get(domain, "응답 시간 3초 이내, 100명 동시 사용자 지원")
 
-    def _apply_best_practices(
-        self, spec: ConcretizedRequirement
-    ) -> List[BestPractice]:
+    def _apply_best_practices(self, spec: ConcretizedRequirement) -> List[BestPractice]:
         """도메인별 모범 사례 적용"""
         practices = []
 
@@ -388,10 +379,16 @@ class RequirementExpander:
         nfr = original.non_functional_requirements
 
         # 기존 NFR에 업데이트 적용
-        security = ObjectAccessor.get_value(nfr, 'security') or fixes.nfr_updates.get("security")
-        performance = ObjectAccessor.get_value(nfr, 'performance') or fixes.nfr_updates.get("performance")
-        scalability = ObjectAccessor.get_value(nfr, 'scalability') or fixes.nfr_updates.get("scalability")
-        reliability = ObjectAccessor.get_value(nfr, 'reliability') or fixes.nfr_updates.get("reliability")
+        security = ObjectAccessor.get_value(nfr, "security") or fixes.nfr_updates.get("security")
+        performance = ObjectAccessor.get_value(nfr, "performance") or fixes.nfr_updates.get(
+            "performance"
+        )
+        scalability = ObjectAccessor.get_value(nfr, "scalability") or fixes.nfr_updates.get(
+            "scalability"
+        )
+        reliability = ObjectAccessor.get_value(nfr, "reliability") or fixes.nfr_updates.get(
+            "reliability"
+        )
 
         return NonFunctionalRequirements(
             security=security,
@@ -410,24 +407,16 @@ class RequirementExpander:
             summary_parts.append(f"✅ {fixes.fixed_gap_count}개 항목 자동 보완")
 
         if fixes.features:
-            summary_parts.append(
-                f"📋 {len(fixes.features)}개 기능 인수 기준 추가"
-            )
+            summary_parts.append(f"📋 {len(fixes.features)}개 기능 인수 기준 추가")
 
         if fixes.data_models:
-            summary_parts.append(
-                f"💾 {len(fixes.data_models)}개 데이터 모델 생성"
-            )
+            summary_parts.append(f"💾 {len(fixes.data_models)}개 데이터 모델 생성")
 
         if fixes.ui_components:
-            summary_parts.append(
-                f"🎨 {len(fixes.ui_components)}개 UI 컴포넌트 추가"
-            )
+            summary_parts.append(f"🎨 {len(fixes.ui_components)}개 UI 컴포넌트 추가")
 
         if practices:
-            summary_parts.append(
-                f"💡 {len(practices)}개 모범 사례 제안"
-            )
+            summary_parts.append(f"💡 {len(practices)}개 모범 사례 제안")
 
         return "\n".join(summary_parts) if summary_parts else "확장 사항 없음"
 

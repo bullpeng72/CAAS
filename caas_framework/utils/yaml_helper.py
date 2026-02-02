@@ -4,13 +4,14 @@ YAML Helper
 YAML 파싱, 검증, 포맷팅을 위한 유틸리티
 """
 
-from typing import Any, Dict, Optional, List
 from pathlib import Path
+from typing import Any, Dict, List, Optional
+
 import yaml
 
-from caas_framework.utils.logger import get_logger
-from caas_framework.utils.security import validate_yaml_size, YAMLSecurityError
 from caas_framework.utils.file_utils import FileUtils
+from caas_framework.utils.logger import get_logger
+from caas_framework.utils.security import YAMLSecurityError, validate_yaml_size
 
 logger = get_logger("utils.yaml_helper")
 
@@ -20,9 +21,7 @@ class YAMLHelper:
 
     @staticmethod
     def safe_load(
-        yaml_content: str,
-        validate_size: bool = True,
-        max_size_mb: int = 10
+        yaml_content: str, validate_size: bool = True, max_size_mb: int = 10
     ) -> Optional[Dict[str, Any]]:
         """
         안전한 YAML 로드
@@ -71,9 +70,7 @@ class YAMLHelper:
 
     @staticmethod
     def safe_load_file(
-        file_path: Path,
-        validate_size: bool = True,
-        max_size_mb: int = 10
+        file_path: Path, validate_size: bool = True, max_size_mb: int = 10
     ) -> Optional[Dict[str, Any]]:
         """
         파일에서 안전한 YAML 로드
@@ -93,7 +90,7 @@ class YAMLHelper:
             return None
 
         try:
-            with open(file_path, 'r', encoding='utf-8') as f:
+            with open(file_path, "r", encoding="utf-8") as f:
                 yaml_content = f.read()
 
             logger.info(f"YAML 파일 읽기: {file_path}")
@@ -109,7 +106,7 @@ class YAMLHelper:
         indent: int = 2,
         sort_keys: bool = False,
         default_flow_style: bool = False,
-        allow_unicode: bool = True
+        allow_unicode: bool = True,
     ) -> str:
         """
         YAML 포맷팅 (일관된 스타일)
@@ -129,15 +126,11 @@ class YAMLHelper:
             indent=indent,
             sort_keys=sort_keys,
             default_flow_style=default_flow_style,
-            allow_unicode=allow_unicode
+            allow_unicode=allow_unicode,
         )
 
     @staticmethod
-    def safe_dump_file(
-        data: Any,
-        file_path: Path,
-        **kwargs
-    ) -> bool:
+    def safe_dump_file(data: Any, file_path: Path, **kwargs) -> bool:
         """
         파일에 안전하게 YAML 저장
 
@@ -155,7 +148,7 @@ class YAMLHelper:
     def validate_structure(
         data: Dict[str, Any],
         required_keys: Optional[List[str]] = None,
-        optional_keys: Optional[List[str]] = None
+        optional_keys: Optional[List[str]] = None,
     ) -> tuple[bool, List[str]]:
         """
         YAML 데이터 구조 검증
@@ -172,9 +165,7 @@ class YAMLHelper:
 
     @staticmethod
     def merge_yaml(
-        base: Dict[str, Any],
-        override: Dict[str, Any],
-        deep: bool = True
+        base: Dict[str, Any], override: Dict[str, Any], deep: bool = True
     ) -> Dict[str, Any]:
         """
         YAML 딕셔너리 병합

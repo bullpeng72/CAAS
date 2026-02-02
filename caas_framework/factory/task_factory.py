@@ -4,20 +4,21 @@ CAAS Task Factory
 CrewAI 태스크를 생성하고 관리합니다.
 """
 
-from typing import Dict, List, Optional
+import logging
 from datetime import datetime
+from typing import Dict, List, Optional
 
 from pydantic import BaseModel
 
-import logging
-from caas_framework.sdd import TaskSpecModel
 from caas_framework.factory.base_factory import BaseFactory
+from caas_framework.sdd import TaskSpecModel
 
 logger = logging.getLogger("caas_framework.factory.task")
 
 
 class TaskDefinition(BaseModel):
     """태스크 정의 (코드 생성용)"""
+
     id: str
     description: str
     expected_output: str
@@ -38,10 +39,10 @@ class TaskFactory(BaseFactory[TaskSpecModel, TaskDefinition]):
     def create_definition(self, spec: TaskSpecModel) -> TaskDefinition:
         """
         TaskSpec에서 TaskDefinition을 생성합니다.
-        
+
         Args:
             spec: 태스크 스펙
-        
+
         Returns:
             TaskDefinition: 태스크 정의
         """
@@ -55,7 +56,7 @@ class TaskFactory(BaseFactory[TaskSpecModel, TaskDefinition]):
             output_file=spec.output_file,
             human_input=spec.human_input,
         )
-    
+
     def create_code(self, definition: TaskDefinition, **kwargs) -> str:
         """
         태스크 정의를 Python 코드로 변환합니다.
@@ -72,12 +73,12 @@ class TaskFactory(BaseFactory[TaskSpecModel, TaskDefinition]):
         if definition.context_tasks:
             context_list = ", ".join(definition.context_tasks)
             context_str = f"\n    context=[{context_list}],"
-        
+
         # 출력 파일
         output_file_str = ""
         if definition.output_file:
             output_file_str = f'\n    output_file="{definition.output_file}",'
-        
+
         code = f'''
 {definition.id} = Task(
     description="""{definition.description}""",
@@ -100,7 +101,7 @@ class TaskFactory(BaseFactory[TaskSpecModel, TaskDefinition]):
         definitions: List[TaskDefinition],
         project_info: Optional[Dict[str, str]] = None,
         agent_definitions: Optional[List[Dict[str, str]]] = None,
-        use_error_handling: bool = True
+        use_error_handling: bool = True,
     ) -> str:
         """
         모든 태스크의 코드를 생성합니다.
@@ -125,7 +126,7 @@ class TaskFactory(BaseFactory[TaskSpecModel, TaskDefinition]):
         self,
         definitions: List[TaskDefinition],
         project_info: Optional[Dict[str, str]] = None,
-        agent_definitions: Optional[List[Dict[str, str]]] = None
+        agent_definitions: Optional[List[Dict[str, str]]] = None,
     ) -> str:
         """템플릿 기반 코드 생성 (에러 핸들링 포함)"""
         # Load template
@@ -135,7 +136,7 @@ class TaskFactory(BaseFactory[TaskSpecModel, TaskDefinition]):
         project = project_info or {
             "name": "Generated Tasks",
             "description": "AI Task System",
-            "domain": "general"
+            "domain": "general",
         }
 
         # Convert definitions to template format
@@ -149,7 +150,7 @@ class TaskFactory(BaseFactory[TaskSpecModel, TaskDefinition]):
                 "context": defn.context_tasks,
                 "async_execution": defn.async_execution,
                 "output_file": defn.output_file,
-                "human_input": defn.human_input
+                "human_input": defn.human_input,
             }
             tasks_context.append(task_data)
 
@@ -164,7 +165,7 @@ class TaskFactory(BaseFactory[TaskSpecModel, TaskDefinition]):
             "project": project,
             "tasks": tasks_context,
             "agents": agents,
-            "generated_at": datetime.now().isoformat()
+            "generated_at": datetime.now().isoformat(),
         }
 
         return template.render(**context)

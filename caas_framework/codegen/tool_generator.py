@@ -4,9 +4,9 @@ Tool Generator for CrewAI Code Generation
 Generates tool imports and initializations for CrewAI agents.
 """
 
-from typing import List, Dict, Tuple, Optional
-from caas_framework.utils.logger import get_logger
+from typing import Dict, List, Optional, Tuple
 
+from caas_framework.utils.logger import get_logger
 
 # CrewAI 기본 도구 매핑 (카테고리별)
 CREWAI_TOOLS_BY_CATEGORY = {
@@ -80,9 +80,12 @@ def get_tool_name_to_crewai() -> Dict[str, Optional[str]]:
     mapping = {}
 
     try:
-        from caas_app.core.ontology import get_tool_ontology_manager
+        from caas_framework.knowledge.ontology.tool_manager import get_tool_ontology_manager
+
         tool_manager = get_tool_ontology_manager()
-        all_tools = tool_manager.get_all_tools(enabled_only=False)  # Include disabled for completeness
+        all_tools = tool_manager.get_all_tools(
+            enabled_only=False
+        )  # Include disabled for completeness
 
         for tool in all_tools:
             # Get default implementation
@@ -129,6 +132,7 @@ def _initialize_mappings():
     global TOOL_NAME_TO_CREWAI, CREWAI_TO_TOOL_NAME
     TOOL_NAME_TO_CREWAI = get_tool_name_to_crewai()
     CREWAI_TO_TOOL_NAME = get_crewai_to_tool_name()
+
 
 # Initialize immediately on module import
 _initialize_mappings()
@@ -202,7 +206,9 @@ def get_crewai_tool_class(tool_name: str) -> str:
     return mapped_class
 
 
-def generate_tool_imports(tool_names: List[str], use_mcp: bool = False) -> Tuple[List[str], List[str]]:
+def generate_tool_imports(
+    tool_names: List[str], use_mcp: bool = False
+) -> Tuple[List[str], List[str]]:
     """
     도구 이름 목록에서 import 문과 도구 초기화 코드를 생성합니다.
 
@@ -246,11 +252,13 @@ def generate_tool_imports(tool_names: List[str], use_mcp: bool = False) -> Tuple
 
     # MCP import (필요 시)
     if use_mcp:
-        import_lines.extend([
-            "from crewai_tools import MCPServerAdapter",
-            "from mcp import StdioServerParameters",
-            "import os",
-        ])
+        import_lines.extend(
+            [
+                "from crewai_tools import MCPServerAdapter",
+                "from mcp import StdioServerParameters",
+                "import os",
+            ]
+        )
 
     # 커스텀 도구를 위한 import
     if custom_tools:
@@ -266,88 +274,96 @@ def generate_tool_imports(tool_names: List[str], use_mcp: bool = False) -> Tuple
 
     # MCP 도구 초기화
     if use_mcp:
-        tool_init_lines.extend([
-            "",
-            "# Initialize MCP Tools",
-            "try:",
-            "    # MCP 서버 설정 (예시: filesystem MCP 서버)",
-            "    mcp_server_params = StdioServerParameters(",
-            "        command=\"npx\",",
-            "        args=[\"-y\", \"@modelcontextprotocol/server-filesystem\", \".\"],",
-            "        env={**os.environ}",
-            "    )",
-            "    ",
-            "    # MCP 서버 어댑터 생성",
-            "    mcp_adapter = MCPServerAdapter(mcp_server_params)",
-            "    mcp_tools = list(mcp_adapter.__enter__())",
-            "except Exception as e:",
-            "    print(f'Warning: MCP tools initialization failed: {e}')",
-            "    mcp_tools = []",
-        ])
+        tool_init_lines.extend(
+            [
+                "",
+                "# Initialize MCP Tools",
+                "try:",
+                "    # MCP 서버 설정 (예시: filesystem MCP 서버)",
+                "    mcp_server_params = StdioServerParameters(",
+                '        command="npx",',
+                '        args=["-y", "@modelcontextprotocol/server-filesystem", "."],',
+                "        env={**os.environ}",
+                "    )",
+                "    ",
+                "    # MCP 서버 어댑터 생성",
+                "    mcp_adapter = MCPServerAdapter(mcp_server_params)",
+                "    mcp_tools = list(mcp_adapter.__enter__())",
+                "except Exception as e:",
+                "    print(f'Warning: MCP tools initialization failed: {e}')",
+                "    mcp_tools = []",
+            ]
+        )
 
     # 커스텀 도구 정의 (데코레이터 방식)
     if custom_tools:
-        tool_init_lines.extend([
-            "",
-            "# Define Custom Tools with @tool decorator",
-        ])
+        tool_init_lines.extend(
+            [
+                "",
+                "# Define Custom Tools with @tool decorator",
+            ]
+        )
 
         for custom_tool in custom_tools:
             # Calculator에 대한 특별한 구현
             if custom_tool == "calculator":
-                tool_init_lines.extend([
-                    '@tool("calculator")',
-                    'def calculator_tool(expression: str) -> str:',
-                    '    """',
-                    '    Evaluate mathematical expressions safely',
-                    '    ',
-                    '    Args:',
-                    '        expression: Mathematical expression to evaluate (e.g., "2 + 2", "sqrt(16)")',
-                    '    ',
-                    '    Returns:',
-                    '        Result of the calculation',
-                    '    """',
-                    '    import math',
-                    '    import re',
-                    '    ',
-                    '    # Whitelist of safe operations',
-                    '    safe_dict = {',
-                    '        "abs": abs, "round": round, "min": min, "max": max,',
-                    '        "sum": sum, "pow": pow,',
-                    '        "sqrt": math.sqrt, "log": math.log, "log10": math.log10,',
-                    '        "sin": math.sin, "cos": math.cos, "tan": math.tan,',
-                    '        "pi": math.pi, "e": math.e',
-                    '    }',
-                    '    ',
-                    '    try:',
-                    '        # Remove any potentially dangerous characters',
-                    '        if re.search(r"[^0-9+\\-*/.()\\s,a-z]", expression, re.IGNORECASE):',
-                    '            return f"Error: Expression contains invalid characters"',
-                    '        ',
-                    '        result = eval(expression, {"__builtins__": {}}, safe_dict)',
-                    '        return f"Result: {result}"',
-                    '    except Exception as e:',
-                    '        return f"Error: {str(e)}"',
-                    "",
-                ])
+                tool_init_lines.extend(
+                    [
+                        '@tool("calculator")',
+                        "def calculator_tool(expression: str) -> str:",
+                        '    """',
+                        "    Evaluate mathematical expressions safely",
+                        "    ",
+                        "    Args:",
+                        '        expression: Mathematical expression to evaluate (e.g., "2 + 2", "sqrt(16)")',
+                        "    ",
+                        "    Returns:",
+                        "        Result of the calculation",
+                        '    """',
+                        "    import math",
+                        "    import re",
+                        "    ",
+                        "    # Whitelist of safe operations",
+                        "    safe_dict = {",
+                        '        "abs": abs, "round": round, "min": min, "max": max,',
+                        '        "sum": sum, "pow": pow,',
+                        '        "sqrt": math.sqrt, "log": math.log, "log10": math.log10,',
+                        '        "sin": math.sin, "cos": math.cos, "tan": math.tan,',
+                        '        "pi": math.pi, "e": math.e',
+                        "    }",
+                        "    ",
+                        "    try:",
+                        "        # Remove any potentially dangerous characters",
+                        '        if re.search(r"[^0-9+\\-*/.()\\s,a-z]", expression, re.IGNORECASE):',
+                        '            return f"Error: Expression contains invalid characters"',
+                        "        ",
+                        '        result = eval(expression, {"__builtins__": {}}, safe_dict)',
+                        '        return f"Result: {result}"',
+                        "    except Exception as e:",
+                        '        return f"Error: {str(e)}"',
+                        "",
+                    ]
+                )
             else:
                 # 다른 custom tool들은 기본 템플릿 사용
-                tool_init_lines.extend([
-                    f'@tool("{custom_tool}")',
-                    f'def {custom_tool}_tool(input_data: str) -> str:',
-                    f'    """',
-                    f'    Custom tool: {custom_tool}',
-                    f'    ',
-                    f'    Args:',
-                    f'        input_data: Input data for the tool',
-                    f'    ',
-                    f'    Returns:',
-                    f'        Result of the tool execution',
-                    f'    """',
-                    f'    # TODO: Implement {custom_tool} logic',
-                    f'    return f"Executed {custom_tool} with input: {{input_data}}"',
-                    "",
-                ])
+                tool_init_lines.extend(
+                    [
+                        f'@tool("{custom_tool}")',
+                        f"def {custom_tool}_tool(input_data: str) -> str:",
+                        f'    """',
+                        f"    Custom tool: {custom_tool}",
+                        f"    ",
+                        f"    Args:",
+                        f"        input_data: Input data for the tool",
+                        f"    ",
+                        f"    Returns:",
+                        f"        Result of the tool execution",
+                        f'    """',
+                        f"    # TODO: Implement {custom_tool} logic",
+                        f'    return f"Executed {custom_tool} with input: {{input_data}}"',
+                        "",
+                    ]
+                )
 
     tool_init_lines.append("")
 
@@ -412,11 +428,16 @@ def get_valid_tools(tool_names: List[str]) -> List[str]:
     """
     # 존재하지 않는 도구 목록 (하드코딩)
     INVALID_TOOLS = {
-        "slack_search", "slacksearchtool",
-        "email_search", "emailsearchtool",
-        "ocr", "ocrtool",
-        "dalle", "dalletool",
-        "stable_diffusion", "stablediffusiontool"
+        "slack_search",
+        "slacksearchtool",
+        "email_search",
+        "emailsearchtool",
+        "ocr",
+        "ocrtool",
+        "dalle",
+        "dalletool",
+        "stable_diffusion",
+        "stablediffusiontool",
     }
 
     valid_tools = []
@@ -445,13 +466,22 @@ def get_recommended_tools_for_task(task_description: str, agent_role: str) -> Li
     role_lower = agent_role.lower()
 
     # 파일 관련
-    if any(word in desc_lower or word in role_lower for word in ["file", "read", "write", "파일", "읽기", "쓰기"]):
+    if any(
+        word in desc_lower or word in role_lower
+        for word in ["file", "read", "write", "파일", "읽기", "쓰기"]
+    ):
         recommended.extend(["file_read", "file_write"])
-    if any(word in desc_lower or word in role_lower for word in ["directory", "folder", "디렉토리", "폴더"]):
+    if any(
+        word in desc_lower or word in role_lower
+        for word in ["directory", "folder", "디렉토리", "폴더"]
+    ):
         recommended.extend(["directory_read", "directory_search"])
 
     # 웹 검색
-    if any(word in desc_lower or word in role_lower for word in ["search", "web", "website", "검색", "웹"]):
+    if any(
+        word in desc_lower or word in role_lower
+        for word in ["search", "web", "website", "검색", "웹"]
+    ):
         recommended.append("web_search")
     if any(word in desc_lower or word in role_lower for word in ["brave"]):
         recommended.append("brave_search")
@@ -459,15 +489,23 @@ def get_recommended_tools_for_task(task_description: str, agent_role: str) -> Li
         recommended.append("tavily_search")
 
     # 웹 스크래핑
-    if any(word in desc_lower or word in role_lower for word in ["scrape", "crawl", "extract", "스크래핑", "크롤링"]):
+    if any(
+        word in desc_lower or word in role_lower
+        for word in ["scrape", "crawl", "extract", "스크래핑", "크롤링"]
+    ):
         recommended.append("scrape_website")
     if "selenium" in desc_lower:
         recommended.append("selenium_scraping")
 
     # 코드 해석
-    if any(word in desc_lower or word in role_lower for word in ["code", "python", "execute", "코드", "실행"]):
+    if any(
+        word in desc_lower or word in role_lower
+        for word in ["code", "python", "execute", "코드", "실행"]
+    ):
         recommended.append("code_interpreter")
-    if any(word in desc_lower or word in role_lower for word in ["calculate", "math", "계산", "수학"]):
+    if any(
+        word in desc_lower or word in role_lower for word in ["calculate", "math", "계산", "수학"]
+    ):
         recommended.append("calculator")
     if "github" in desc_lower or "github" in role_lower:
         recommended.append("github_search")
@@ -485,7 +523,10 @@ def get_recommended_tools_for_task(task_description: str, agent_role: str) -> Li
         recommended.append("xml_search")
 
     # 데이터베이스
-    if any(word in desc_lower or word in role_lower for word in ["database", "sql", "mysql", "데이터베이스"]):
+    if any(
+        word in desc_lower or word in role_lower
+        for word in ["database", "sql", "mysql", "데이터베이스"]
+    ):
         recommended.append("mysql_search")
     if "mongodb" in desc_lower or "mongo" in desc_lower:
         recommended.append("mongodb_search")
@@ -493,7 +534,19 @@ def get_recommended_tools_for_task(task_description: str, agent_role: str) -> Li
         recommended.append("snowflake_search")
 
     # 비전/이미지
-    if any(word in desc_lower or word in role_lower for word in ["image", "vision", "visual", "이미지", "시각", "ocr", "text extraction", "문자 인식"]):
+    if any(
+        word in desc_lower or word in role_lower
+        for word in [
+            "image",
+            "vision",
+            "visual",
+            "이미지",
+            "시각",
+            "ocr",
+            "text extraction",
+            "문자 인식",
+        ]
+    ):
         recommended.append("vision")
 
     # 유튜브
@@ -501,7 +554,10 @@ def get_recommended_tools_for_task(task_description: str, agent_role: str) -> Li
         recommended.append("youtube_search")
 
     # RAG
-    if any(word in desc_lower or word in role_lower for word in ["rag", "retrieval", "knowledge base", "검색 증강"]):
+    if any(
+        word in desc_lower or word in role_lower
+        for word in ["rag", "retrieval", "knowledge base", "검색 증강"]
+    ):
         recommended.append("rag_tool")
 
     return list(set(recommended))  # 중복 제거

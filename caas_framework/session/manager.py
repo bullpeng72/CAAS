@@ -5,14 +5,16 @@ Multi-session support with context isolation and switching.
 """
 
 import uuid
-from typing import Dict, Any, List, Optional
 from datetime import datetime
-from pydantic import BaseModel, Field
 from enum import Enum
+from typing import Any, Dict, List, Optional
+
+from pydantic import BaseModel, Field
 
 
 class SessionStatus(str, Enum):
     """Session status"""
+
     ACTIVE = "active"
     PAUSED = "paused"
     COMPLETED = "completed"
@@ -22,6 +24,7 @@ class SessionStatus(str, Enum):
 
 class Session(BaseModel):
     """Session model"""
+
     session_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     workflow_id: Optional[str] = None
     status: SessionStatus = SessionStatus.ACTIVE
@@ -107,7 +110,7 @@ class SessionManager:
         name: Optional[str] = None,
         description: Optional[str] = None,
         tags: Optional[List[str]] = None,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
     ) -> Session:
         """
         Create a new session.
@@ -127,7 +130,7 @@ class SessionManager:
             name=name,
             description=description,
             tags=tags or [],
-            metadata=metadata or {}
+            metadata=metadata or {},
         )
 
         self.sessions[session.session_id] = session
@@ -146,7 +149,7 @@ class SessionManager:
         self,
         status: Optional[SessionStatus] = None,
         workflow_id: Optional[str] = None,
-        tags: Optional[List[str]] = None
+        tags: Optional[List[str]] = None,
     ) -> List[Session]:
         """
         List sessions with optional filters.
@@ -246,11 +249,7 @@ class SessionManager:
 
     # ========== State Management ==========
 
-    def update_session_state(
-        self,
-        session_id: str,
-        state_updates: Dict[str, Any]
-    ) -> bool:
+    def update_session_state(self, session_id: str, state_updates: Dict[str, Any]) -> bool:
         """
         Update session state.
 
@@ -270,11 +269,7 @@ class SessionManager:
 
         return False
 
-    def set_session_phase(
-        self,
-        session_id: str,
-        phase: str
-    ) -> bool:
+    def set_session_phase(self, session_id: str, phase: str) -> bool:
         """
         Set session's current phase.
 
@@ -325,11 +320,7 @@ class SessionManager:
 
         return False
 
-    def complete_session(
-        self,
-        session_id: str,
-        success: bool = True
-    ) -> bool:
+    def complete_session(self, session_id: str, success: bool = True) -> bool:
         """
         Mark session as completed.
 
@@ -409,7 +400,7 @@ class SessionManager:
             "paused": paused,
             "completed": completed,
             "failed": failed,
-            "has_active_session": self.active_session_id is not None
+            "has_active_session": self.active_session_id is not None,
         }
 
     # ========== Cleanup ==========
@@ -425,15 +416,13 @@ class SessionManager:
             int: Number of sessions deleted
         """
         completed_sessions = [
-            s for s in self.sessions.values()
+            s
+            for s in self.sessions.values()
             if s.status in [SessionStatus.COMPLETED, SessionStatus.FAILED]
         ]
 
         # Sort by completion time (newest first)
-        completed_sessions.sort(
-            key=lambda s: s.completed_at or s.updated_at,
-            reverse=True
-        )
+        completed_sessions.sort(key=lambda s: s.completed_at or s.updated_at, reverse=True)
 
         # Delete old ones
         deleted = 0

@@ -2,38 +2,33 @@
 CLI Commands
 """
 
-from caas_cli.commands import (
-    generate,
-    init,
-    config,
-    env,
-    status,
-    list_projects,
-    download,
+from caas_cli.commands import (  # Phase 1: Core Features; Phase 2: Advanced Features; Phase 2 Enhancement: Monitoring & Performance; Phase 3: Management Features; Phase 4: Production Ready
     analyze_gaps,
-    expand_requirement,
-    interactive_questions,
-    traceability,
-    examples,
-    # Phase 1: Core Features
-    validate_cmd,
-    codegen_cmd,
-    generate_code_cmd,
-    fix_cmd,
-    # Phase 2: Advanced Features
-    generate_phase,
-    test_cmd,
-    # Phase 2 Enhancement: Monitoring & Performance
+    auto_deploy_cmd,
     cache_cmd,
-    monitor_cmd,
+    codegen_cmd,
+    config,
+    download,
+    env,
+    examples,
+    expand_requirement,
+    fix_cmd,
+    generate,
+    generate_code_cmd,
+    generate_phase,
+    init,
+    interactive_questions,
+    list_projects,
     models_cmd,
-    profile_cmd,
-    # Phase 3: Management Features
-    session_cmd,
-    workflow_cmd,
+    monitor_cmd,
     plugins_cmd,
-    # Phase 4: Production Ready
-    auto_deploy_cmd
+    profile_cmd,
+    session_cmd,
+    status,
+    test_cmd,
+    traceability,
+    validate_cmd,
+    workflow_cmd,
 )
 
 __all__ = [
@@ -67,5 +62,5 @@ __all__ = [
     "workflow_cmd",
     "plugins_cmd",
     # Phase 4
-    "auto_deploy_cmd"
+    "auto_deploy_cmd",
 ]

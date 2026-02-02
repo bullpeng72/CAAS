@@ -5,11 +5,7 @@ CAAS Framework Fixing Module
 """
 
 from caas_framework.fixing.auto_fixer import AutoFixer, FixResult
-from caas_framework.fixing.levels import (
-    TemplateFixer,
-    RuleFixer,
-    LLMFixer,
-)
+from caas_framework.fixing.levels import LLMFixer, RuleFixer, TemplateFixer
 
 __all__ = [
     "AutoFixer",

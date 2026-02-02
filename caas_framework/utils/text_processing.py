@@ -61,15 +61,15 @@ class ObjectAccessor:
         """
         if isinstance(obj, dict):
             return obj
-        elif hasattr(obj, 'model_dump'):
+        elif hasattr(obj, "model_dump"):
             # Pydantic v2
             return obj.model_dump()
-        elif hasattr(obj, 'dict'):
+        elif hasattr(obj, "dict"):
             # Pydantic v1 or similar
             return obj.dict()
-        elif hasattr(obj, '__dict__'):
+        elif hasattr(obj, "__dict__"):
             # Generic object with __dict__
-            return {k: v for k, v in obj.__dict__.items() if not k.startswith('_')}
+            return {k: v for k, v in obj.__dict__.items() if not k.startswith("_")}
         else:
             # Fallback: return empty dict
             return {}
@@ -114,13 +114,13 @@ class JsonExtractor:
         import re
 
         # Try to extract from ```json ... ``` block using regex (more robust)
-        json_block_pattern = r'```json\s*\n(.*?)\n```'
+        json_block_pattern = r"```json\s*\n(.*?)\n```"
         match = re.search(json_block_pattern, text, re.DOTALL)
         if match:
             return match.group(1).strip()
 
         # Try generic ``` ... ``` block
-        code_block_pattern = r'```\s*\n(.*?)\n```'
+        code_block_pattern = r"```\s*\n(.*?)\n```"
         match = re.search(code_block_pattern, text, re.DOTALL)
         if match:
             return match.group(1).strip()
@@ -129,7 +129,7 @@ class JsonExtractor:
         # This handles cases where LLM returns JSON without code blocks
         json_start = -1
         for i, char in enumerate(text):
-            if char in ('{', '['):
+            if char in ("{", "["):
                 json_start = i
                 break
 
@@ -139,11 +139,70 @@ class JsonExtractor:
         return text.strip()
 
     @staticmethod
+    def _attempt_json_repair(text: str, error: json.JSONDecodeError) -> Optional[str]:
+        """
+        Attempt to repair common JSON syntax errors.
+
+        Common LLM JSON errors:
+        1. Missing commas between array/object elements
+        2. Trailing commas before closing brackets
+        3. Unescaped quotes in strings
+        4. Missing closing brackets
+        5. Comments in JSON
+
+        Args:
+            text: Malformed JSON string
+            error: The JSONDecodeError with position information
+
+        Returns:
+            Repaired JSON string or None if repair not possible
+        """
+        import re
+
+        repaired = text
+
+        # 1. Remove comments (// and /* */)
+        repaired = re.sub(r"//.*?$", "", repaired, flags=re.MULTILINE)
+        repaired = re.sub(r"/\*.*?\*/", "", repaired, flags=re.DOTALL)
+
+        # 2. Fix trailing commas before closing brackets
+        repaired = re.sub(r",\s*([}\]])", r"\1", repaired)
+
+        # 3. Add missing commas between } and { or ] and [
+        repaired = re.sub(r"}\s*\n\s*{", "},\n{", repaired)
+        repaired = re.sub(r"]\s*\n\s*\[", "],\n[", repaired)
+
+        # 4. Add missing commas between } and [ or ] and {
+        repaired = re.sub(r"}\s*\n\s*\[", "},\n[", repaired)
+        repaired = re.sub(r"]\s*\n\s*{", "],\n{", repaired)
+
+        # 5. Add missing commas after closing quotes if followed by opening quote
+        # This handles: "field": "value" "field2": "value2" -> "field": "value", "field2": "value2"
+        repaired = re.sub(r'"\s*\n\s*"', '",\n"', repaired)
+
+        # 6. Fix common string escape issues
+        # Replace unescaped quotes within strings (heuristic)
+        # This is tricky and might break things, so we're conservative
+
+        # 7. Try to balance brackets if missing
+        open_braces = repaired.count("{")
+        close_braces = repaired.count("}")
+        if open_braces > close_braces:
+            repaired += "}" * (open_braces - close_braces)
+
+        open_brackets = repaired.count("[")
+        close_brackets = repaired.count("]")
+        if open_brackets > close_brackets:
+            repaired += "]" * (open_brackets - close_brackets)
+
+        return repaired if repaired != text else None
+
+    @staticmethod
     def safe_parse(
         text: str,
         default: Any = None,
         extract_markdown: bool = True,
-        return_type: Optional[type] = None
+        return_type: Optional[type] = None,
     ) -> Any:
         """
         Safely parse JSON with automatic markdown extraction and error handling.
@@ -166,10 +225,10 @@ class JsonExtractor:
             return text
 
         # Extract content from response objects (LLM responses)
-        if hasattr(text, 'content'):
+        if hasattr(text, "content"):
             text = text.content
-        elif isinstance(text, dict) and 'content' in text:
-            text = text['content']
+        elif isinstance(text, dict) and "content" in text:
+            text = text["content"]
 
         # Convert to string
         text_str = str(text)
@@ -185,16 +244,48 @@ class JsonExtractor:
             # Validate return type if specified
             if return_type is not None and not isinstance(result, return_type):
                 import logging
+
                 logger = logging.getLogger(__name__)
-                logger.warning(f"JSON parsed but wrong type: expected {return_type}, got {type(result)}")
+                logger.warning(
+                    f"JSON parsed but wrong type: expected {return_type}, got {type(result)}"
+                )
                 return default if default is not None else ([] if return_type == list else {})
 
             return result
         except json.JSONDecodeError as e:
             import logging
+
             logger = logging.getLogger(__name__)
             logger.error(f"JSON decode error: {e}")
-            logger.debug(f"Failed to parse text (first 500 chars): {text_str[:500]}")
+
+            # Try to repair common JSON errors
+            logger.info("Attempting to repair JSON...")
+            repaired_json = JsonExtractor._attempt_json_repair(text_str, e)
+
+            if repaired_json:
+                try:
+                    result = json.loads(repaired_json)
+                    logger.info("✅ JSON repair successful!")
+
+                    # Validate return type if specified
+                    if return_type is not None and not isinstance(result, return_type):
+                        logger.warning(
+                            f"Repaired JSON has wrong type: expected {return_type}, got {type(result)}"
+                        )
+                        return (
+                            default if default is not None else ([] if return_type == list else {})
+                        )
+
+                    return result
+                except json.JSONDecodeError:
+                    logger.warning("❌ JSON repair failed")
+
+            # Log more context for debugging
+            error_pos = getattr(e, "pos", 0)
+            context_start = max(0, error_pos - 100)
+            context_end = min(len(text_str), error_pos + 100)
+            logger.debug(f"Failed JSON context: ...{text_str[context_start:context_end]}...")
+
             return default if default is not None else None
 
 
@@ -214,15 +305,15 @@ class TextNormalizer:
             tasks_data: List of task dictionaries
         """
         for agent in agents_data:
-            if 'id' in agent:
-                agent['id'] = TextNormalizer.normalize_id(agent['id'])
+            if "id" in agent:
+                agent["id"] = TextNormalizer.normalize_id(agent["id"])
 
         for task in tasks_data:
-            if 'id' in task:
-                task['id'] = TextNormalizer.normalize_id(task['id'])
+            if "id" in task:
+                task["id"] = TextNormalizer.normalize_id(task["id"])
             # Also normalize agent reference
-            if 'agent' in task:
-                task['agent'] = TextNormalizer.normalize_id(task['agent'])
+            if "agent" in task:
+                task["agent"] = TextNormalizer.normalize_id(task["agent"])
 
     @staticmethod
     def normalize_id(text: str, max_length: int = 100, ascii_only: bool = False) -> str:
@@ -241,33 +332,29 @@ class TextNormalizer:
         normalized = text.lower()
 
         # Replace special characters with underscores
-        normalized = re.sub(r'[^\w가-힣\s-]', '_', normalized)
+        normalized = re.sub(r"[^\w가-힣\s-]", "_", normalized)
 
         # Replace whitespace and hyphens with underscores
-        normalized = re.sub(r'[\s-]+', '_', normalized)
+        normalized = re.sub(r"[\s-]+", "_", normalized)
 
         # Remove consecutive underscores
-        normalized = re.sub(r'_+', '_', normalized)
+        normalized = re.sub(r"_+", "_", normalized)
 
         # Strip leading/trailing underscores
-        normalized = normalized.strip('_')
+        normalized = normalized.strip("_")
 
         # Remove non-ASCII if requested
         if ascii_only:
-            normalized = re.sub(r'[^\x00-\x7F]+', '', normalized)
+            normalized = re.sub(r"[^\x00-\x7F]+", "", normalized)
 
         # Limit length
         if len(normalized) > max_length:
-            normalized = normalized[:max_length].rstrip('_')
+            normalized = normalized[:max_length].rstrip("_")
 
         return normalized or "unnamed"
 
     @staticmethod
-    def sanitize_for_mermaid(
-        text: str,
-        max_length: int = 50,
-        allow_korean: bool = True
-    ) -> str:
+    def sanitize_for_mermaid(text: str, max_length: int = 50, allow_korean: bool = True) -> str:
         """
         Sanitize text for use in Mermaid diagrams.
 
@@ -286,18 +373,18 @@ class TextNormalizer:
 
         # Remove problematic characters for Mermaid
         # Replace special characters that break Mermaid syntax
-        sanitized = re.sub(r'[\"\'`\[\]\{\}\(\)<>]', '', text)
+        sanitized = re.sub(r"[\"\'`\[\]\{\}\(\)<>]", "", text)
 
         # Replace other special chars with spaces
-        sanitized = re.sub(r'[^\w가-힣\s.-]', ' ', sanitized)
+        sanitized = re.sub(r"[^\w가-힣\s.-]", " ", sanitized)
 
         # Normalize whitespace
-        sanitized = re.sub(r'\s+', ' ', sanitized).strip()
+        sanitized = re.sub(r"\s+", " ", sanitized).strip()
 
         # Remove Korean if not allowed
         if not allow_korean:
-            sanitized = re.sub(r'[가-힣]+', '', sanitized)
-            sanitized = re.sub(r'\s+', ' ', sanitized).strip()
+            sanitized = re.sub(r"[가-힣]+", "", sanitized)
+            sanitized = re.sub(r"\s+", " ", sanitized).strip()
 
         # Limit length
         if len(sanitized) > max_length:
@@ -306,11 +393,7 @@ class TextNormalizer:
         return sanitized or "label"
 
     @staticmethod
-    def sanitize_mermaid_id(
-        text: str,
-        allow_korean: bool = True,
-        max_length: int = 64
-    ) -> str:
+    def sanitize_mermaid_id(text: str, allow_korean: bool = True, max_length: int = 64) -> str:
         """
         Sanitize text to be a valid Mermaid node ID.
 
@@ -332,23 +415,23 @@ class TextNormalizer:
 
         # Replace non-alphanumeric characters with underscores
         if allow_korean:
-            sanitized = re.sub(r'[^\w가-힣]', '_', text)
+            sanitized = re.sub(r"[^\w가-힣]", "_", text)
         else:
-            sanitized = re.sub(r'[^a-zA-Z0-9_]', '_', text)
+            sanitized = re.sub(r"[^a-zA-Z0-9_]", "_", text)
 
         # Remove consecutive underscores
-        sanitized = re.sub(r'_+', '_', sanitized)
+        sanitized = re.sub(r"_+", "_", sanitized)
 
         # Strip leading/trailing underscores
-        sanitized = sanitized.strip('_')
+        sanitized = sanitized.strip("_")
 
         # Ensure doesn't start with digit (Mermaid requirement)
         if sanitized and sanitized[0].isdigit():
-            sanitized = 'n_' + sanitized
+            sanitized = "n_" + sanitized
 
         # Default if empty
         if not sanitized:
-            sanitized = 'node'
+            sanitized = "node"
 
         # Limit length
         if len(sanitized) > max_length:
@@ -376,19 +459,19 @@ class TextNormalizer:
 
         # Truncate if too long
         if len(text) > max_length:
-            text = text[:max_length-3] + "..."
+            text = text[: max_length - 3] + "..."
 
         # Entity escape problematic characters
         # IMPORTANT: Escape # first to avoid double-escaping
-        text = text.replace('#', '#hash;')
-        text = text.replace('"', '#quot;')
-        text = text.replace('<', '#lt;')
-        text = text.replace('>', '#gt;')
-        text = text.replace('|', '#vert;')
+        text = text.replace("#", "#hash;")
+        text = text.replace('"', "#quot;")
+        text = text.replace("<", "#lt;")
+        text = text.replace(">", "#gt;")
+        text = text.replace("|", "#vert;")
 
         # Normalize whitespace
-        text = text.replace('\n', ' ').replace('\r', ' ').replace('\t', ' ')
-        text = ' '.join(text.split())
+        text = text.replace("\n", " ").replace("\r", " ").replace("\t", " ")
+        text = " ".join(text.split())
 
         return text.strip()
 
@@ -411,7 +494,7 @@ class TextNormalizer:
         cleaned = text.strip()
 
         # Normalize whitespace (collapse multiple spaces)
-        cleaned = re.sub(r'\s+', ' ', cleaned)
+        cleaned = re.sub(r"\s+", " ", cleaned)
 
         # Limit length
         if len(cleaned) > max_length:
@@ -439,7 +522,7 @@ class CodeExtractor:
             return []
 
         # Split on whitespace and punctuation
-        words = re.findall(r'\b\w+\b', text.lower())
+        words = re.findall(r"\b\w+\b", text.lower())
 
         # Filter by length
         keywords = [w for w in words if len(w) >= min_length]
@@ -470,12 +553,12 @@ class CodeExtractor:
 
         if pattern_type in ("functions", "all"):
             # Extract function definitions
-            func_pattern = r'def\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\('
+            func_pattern = r"def\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\("
             identifiers.extend(re.findall(func_pattern, code))
 
         if pattern_type in ("classes", "all"):
             # Extract class definitions
-            class_pattern = r'class\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*[\(:]'
+            class_pattern = r"class\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*[\(:]"
             identifiers.extend(re.findall(class_pattern, code))
 
         return identifiers

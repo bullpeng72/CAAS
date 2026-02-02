@@ -5,10 +5,11 @@ Implements the Producer-Critic pattern where a producer agent generates output
 and a critic agent reviews it iteratively until approved or max iterations reached.
 """
 
-from typing import Any, List, Tuple, Protocol
-from dataclasses import dataclass, field
-from pydantic import BaseModel, Field
 import logging
+from dataclasses import dataclass, field
+from typing import Any, List, Protocol, Tuple
+
+from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
 
@@ -16,6 +17,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class Critique:
     """Represents a critique from the critic agent."""
+
     approved: bool
     score: int  # 1-10 rating
     feedback: str
@@ -26,17 +28,14 @@ class Critique:
 
 class CritiqueResponse(BaseModel):
     """Pydantic model for structured critique responses."""
+
     approved: bool = Field(description="Whether the output is approved")
     score: int = Field(ge=1, le=10, description="Quality score from 1 to 10")
     feedback: str = Field(description="Overall feedback on the output")
     suggestions: List[str] = Field(
-        default_factory=list,
-        description="Specific suggestions for improvement"
+        default_factory=list, description="Specific suggestions for improvement"
     )
-    issues: List[str] = Field(
-        default_factory=list,
-        description="Issues or problems found"
-    )
+    issues: List[str] = Field(default_factory=list, description="Issues or problems found")
 
 
 class ProducerAgent(Protocol):
@@ -46,12 +45,7 @@ class ProducerAgent(Protocol):
         """Execute the task and produce initial output."""
         ...
 
-    async def refine(
-        self,
-        task: str,
-        previous_output: Any,
-        critique: Critique
-    ) -> Any:
+    async def refine(self, task: str, previous_output: Any, critique: Critique) -> Any:
         """Refine the previous output based on critique."""
         ...
 
@@ -77,7 +71,7 @@ class CriticAgentPattern:
         producer: ProducerAgent,
         critic: CriticAgent,
         max_iterations: int = 3,
-        min_score_threshold: int = 7
+        min_score_threshold: int = 7,
     ):
         """
         Initialize the critic pattern.
@@ -94,9 +88,7 @@ class CriticAgentPattern:
         self.min_score_threshold = min_score_threshold
 
     async def produce_with_critique(
-        self,
-        task: str,
-        verbose: bool = True
+        self, task: str, verbose: bool = True
     ) -> Tuple[Any, List[Critique]]:
         """
         Execute producer-critic loop.
@@ -128,9 +120,7 @@ class CriticAgentPattern:
                 if verbose:
                     logger.info("📝 Producer refining based on critique...")
                 output = await self.producer.refine(
-                    task=task,
-                    previous_output=output,
-                    critique=critiques[-1]
+                    task=task, previous_output=output, critique=critiques[-1]
                 )
 
             # Critic: Review output
@@ -148,9 +138,7 @@ class CriticAgentPattern:
             # Check if approved
             if critique.approved or critique.score >= self.min_score_threshold:
                 if verbose:
-                    logger.info(
-                        f"\n✅ Output approved after {iteration + 1} iteration(s)"
-                    )
+                    logger.info(f"\n✅ Output approved after {iteration + 1} iteration(s)")
                 break
 
             # Check if max iterations reached
@@ -180,10 +168,7 @@ class CriticAgentPattern:
             for suggestion in critique.suggestions:
                 logger.info(f"      • {suggestion}")
 
-    def get_improvement_summary(
-        self,
-        critiques: List[Critique]
-    ) -> dict:
+    def get_improvement_summary(self, critiques: List[Critique]) -> dict:
         """
         Generate summary of improvement across iterations.
 
@@ -195,11 +180,11 @@ class CriticAgentPattern:
         """
         if not critiques:
             return {
-                'iterations': 0,
-                'initial_score': 0,
-                'final_score': 0,
-                'improvement': 0,
-                'approved': False
+                "iterations": 0,
+                "initial_score": 0,
+                "final_score": 0,
+                "improvement": 0,
+                "approved": False,
             }
 
         initial_score = critiques[0].score
@@ -207,14 +192,14 @@ class CriticAgentPattern:
         improvement = final_score - initial_score
 
         return {
-            'iterations': len(critiques),
-            'initial_score': initial_score,
-            'final_score': final_score,
-            'improvement': improvement,
-            'improvement_percent': (improvement / initial_score * 100) if initial_score > 0 else 0,
-            'approved': critiques[-1].approved,
-            'total_issues_found': sum(len(c.issues) for c in critiques),
-            'total_suggestions': sum(len(c.suggestions) for c in critiques)
+            "iterations": len(critiques),
+            "initial_score": initial_score,
+            "final_score": final_score,
+            "improvement": improvement,
+            "improvement_percent": (improvement / initial_score * 100) if initial_score > 0 else 0,
+            "approved": critiques[-1].approved,
+            "total_issues_found": sum(len(c.issues) for c in critiques),
+            "total_suggestions": sum(len(c.suggestions) for c in critiques),
         }
 
 
@@ -225,24 +210,14 @@ class SimpleSyncCriticPattern:
     Same functionality as CriticAgentPattern but uses sync methods.
     """
 
-    def __init__(
-        self,
-        producer,
-        critic,
-        max_iterations: int = 3,
-        min_score_threshold: int = 7
-    ):
+    def __init__(self, producer, critic, max_iterations: int = 3, min_score_threshold: int = 7):
         """Initialize sync critic pattern."""
         self.producer = producer
         self.critic = critic
         self.max_iterations = max_iterations
         self.min_score_threshold = min_score_threshold
 
-    def produce_with_critique(
-        self,
-        task: str,
-        verbose: bool = True
-    ) -> Tuple[Any, List[Critique]]:
+    def produce_with_critique(self, task: str, verbose: bool = True) -> Tuple[Any, List[Critique]]:
         """
         Execute producer-critic loop synchronously.
 
@@ -271,9 +246,7 @@ class SimpleSyncCriticPattern:
                 if verbose:
                     logger.info("📝 Producer refining based on critique...")
                 output = self.producer.refine(
-                    task=task,
-                    previous_output=output,
-                    critique=critiques[-1]
+                    task=task, previous_output=output, critique=critiques[-1]
                 )
 
             # Critic: Review output
@@ -291,9 +264,7 @@ class SimpleSyncCriticPattern:
             # Check if approved
             if critique.approved or critique.score >= self.min_score_threshold:
                 if verbose:
-                    logger.info(
-                        f"\n✅ Output approved after {iteration + 1} iteration(s)"
-                    )
+                    logger.info(f"\n✅ Output approved after {iteration + 1} iteration(s)")
                 break
 
             # Check if max iterations reached
@@ -323,18 +294,15 @@ class SimpleSyncCriticPattern:
             for suggestion in critique.suggestions:
                 logger.info(f"      • {suggestion}")
 
-    def get_improvement_summary(
-        self,
-        critiques: List[Critique]
-    ) -> dict:
+    def get_improvement_summary(self, critiques: List[Critique]) -> dict:
         """Generate summary of improvement across iterations."""
         if not critiques:
             return {
-                'iterations': 0,
-                'initial_score': 0,
-                'final_score': 0,
-                'improvement': 0,
-                'approved': False
+                "iterations": 0,
+                "initial_score": 0,
+                "final_score": 0,
+                "improvement": 0,
+                "approved": False,
             }
 
         initial_score = critiques[0].score
@@ -342,23 +310,19 @@ class SimpleSyncCriticPattern:
         improvement = final_score - initial_score
 
         return {
-            'iterations': len(critiques),
-            'initial_score': initial_score,
-            'final_score': final_score,
-            'improvement': improvement,
-            'improvement_percent': (improvement / initial_score * 100) if initial_score > 0 else 0,
-            'approved': critiques[-1].approved,
-            'total_issues_found': sum(len(c.issues) for c in critiques),
-            'total_suggestions': sum(len(c.suggestions) for c in critiques)
+            "iterations": len(critiques),
+            "initial_score": initial_score,
+            "final_score": final_score,
+            "improvement": improvement,
+            "improvement_percent": (improvement / initial_score * 100) if initial_score > 0 else 0,
+            "approved": critiques[-1].approved,
+            "total_issues_found": sum(len(c.issues) for c in critiques),
+            "total_suggestions": sum(len(c.suggestions) for c in critiques),
         }
 
 
 def create_critic_pattern(
-    producer,
-    critic,
-    max_iterations: int = 3,
-    min_score_threshold: int = 7,
-    async_mode: bool = True
+    producer, critic, max_iterations: int = 3, min_score_threshold: int = 7, async_mode: bool = True
 ) -> Any:
     """
     Factory function to create appropriate critic pattern.
@@ -378,12 +342,12 @@ def create_critic_pattern(
             producer=producer,
             critic=critic,
             max_iterations=max_iterations,
-            min_score_threshold=min_score_threshold
+            min_score_threshold=min_score_threshold,
         )
     else:
         return SimpleSyncCriticPattern(
             producer=producer,
             critic=critic,
             max_iterations=max_iterations,
-            min_score_threshold=min_score_threshold
+            min_score_threshold=min_score_threshold,
         )

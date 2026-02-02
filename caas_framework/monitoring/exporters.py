@@ -6,9 +6,9 @@ Export metrics to various formats and monitoring tools.
 
 import json
 import logging
-from typing import Dict, List, Any, Optional
 from abc import ABC, abstractmethod
 from datetime import datetime
+from typing import Any, Dict, List, Optional
 
 from caas_framework.monitoring.metrics_collector import EnhancedMetricsCollector, Metric
 
@@ -75,7 +75,7 @@ class PrometheusExporter(MetricsExporter):
                 "counter": "counter",
                 "gauge": "gauge",
                 "histogram": "histogram",
-                "timer": "histogram"
+                "timer": "histogram",
             }.get(metric_type, "gauge")
 
             lines.append(f"# TYPE {metric_name} {prom_type}")
@@ -84,10 +84,8 @@ class PrometheusExporter(MetricsExporter):
             for metric in metrics:
                 labels = self._format_labels(metric.labels)
                 timestamp_ms = int(metric.timestamp.timestamp() * 1000)
-                
-                lines.append(
-                    f"{metric_name}{labels} {metric.value} {timestamp_ms}"
-                )
+
+                lines.append(f"{metric_name}{labels} {metric.value} {timestamp_ms}")
 
         return "\n".join(lines)
 
@@ -125,7 +123,7 @@ class JSONExporter(MetricsExporter):
         data = {
             "timestamp": datetime.now().isoformat(),
             "summary": metrics_collector.get_summary(),
-            "metrics": metrics_collector.export_all()
+            "metrics": metrics_collector.export_all(),
         }
 
         if self.pretty:
@@ -142,9 +140,7 @@ class DashboardDataExporter:
     """
 
     def __init__(
-        self,
-        metrics_collector: EnhancedMetricsCollector,
-        logger: Optional[logging.Logger] = None
+        self, metrics_collector: EnhancedMetricsCollector, logger: Optional[logging.Logger] = None
     ):
         """
         Initialize dashboard exporter.
@@ -167,7 +163,7 @@ class DashboardDataExporter:
             "summary": self.metrics.get_summary(),
             "timeseries": self._get_timeseries(),
             "distributions": self._get_distributions(),
-            "top_metrics": self._get_top_metrics()
+            "top_metrics": self._get_top_metrics(),
         }
 
     def _get_timeseries(self) -> Dict[str, List[Dict[str, Any]]]:
@@ -177,22 +173,14 @@ class DashboardDataExporter:
         # LLM calls over time
         llm_calls = self.metrics.get_metrics_by_name("llm_calls_total")
         timeseries["llm_calls"] = [
-            {
-                "timestamp": m.timestamp.isoformat(),
-                "value": m.value,
-                "labels": m.labels
-            }
+            {"timestamp": m.timestamp.isoformat(), "value": m.value, "labels": m.labels}
             for m in llm_calls
         ]
 
         # Quality scores over time
         quality_scores = self.metrics.get_metrics_by_name("quality_score")
         timeseries["quality_scores"] = [
-            {
-                "timestamp": m.timestamp.isoformat(),
-                "value": m.value,
-                "labels": m.labels
-            }
+            {"timestamp": m.timestamp.isoformat(), "value": m.value, "labels": m.labels}
             for m in quality_scores
         ]
 
@@ -203,27 +191,23 @@ class DashboardDataExporter:
         distributions = {}
 
         # LLM duration distribution
-        llm_durations = [
-            m.value for m in self.metrics.get_metrics_by_name("llm_duration")
-        ]
+        llm_durations = [m.value for m in self.metrics.get_metrics_by_name("llm_duration")]
         if llm_durations:
             distributions["llm_duration"] = {
                 "min": min(llm_durations),
                 "max": max(llm_durations),
                 "avg": sum(llm_durations) / len(llm_durations),
-                "count": len(llm_durations)
+                "count": len(llm_durations),
             }
 
         # Quality score distribution
-        quality_scores = [
-            m.value for m in self.metrics.get_metrics_by_name("quality_score")
-        ]
+        quality_scores = [m.value for m in self.metrics.get_metrics_by_name("quality_score")]
         if quality_scores:
             distributions["quality_score"] = {
                 "min": min(quality_scores),
                 "max": max(quality_scores),
                 "avg": sum(quality_scores) / len(quality_scores),
-                "count": len(quality_scores)
+                "count": len(quality_scores),
             }
 
         return distributions
@@ -234,18 +218,10 @@ class DashboardDataExporter:
 
         # Top phases by duration
         phase_durations = self.metrics.get_metrics_by_name("phase_duration")
-        top_phases = sorted(
-            phase_durations,
-            key=lambda m: m.value,
-            reverse=True
-        )[:count]
+        top_phases = sorted(phase_durations, key=lambda m: m.value, reverse=True)[:count]
 
         top_metrics["slowest_phases"] = [
-            {
-                "phase": m.labels.get("phase", "unknown"),
-                "duration_ms": m.value
-            }
-            for m in top_phases
+            {"phase": m.labels.get("phase", "unknown"), "duration_ms": m.value} for m in top_phases
         ]
 
         return top_metrics

@@ -7,9 +7,9 @@ Pluggable persistence backends for workflow state.
 import json
 import sqlite3
 from abc import ABC, abstractmethod
-from typing import Dict, Any, List, Optional
 from datetime import datetime
 from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 
 class PersistenceBackend(ABC):
@@ -135,19 +135,23 @@ class DatabasePersistenceBackend(PersistenceBackend):
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
-        cursor.execute('''
+        cursor.execute(
+            """
             CREATE TABLE IF NOT EXISTS persistence (
                 key TEXT PRIMARY KEY,
                 data TEXT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
-        ''')
+        """
+        )
 
-        cursor.execute('''
+        cursor.execute(
+            """
             CREATE INDEX IF NOT EXISTS idx_key_prefix
             ON persistence (key)
-        ''')
+        """
+        )
 
         conn.commit()
         conn.close()
@@ -161,10 +165,13 @@ class DatabasePersistenceBackend(PersistenceBackend):
             data_json = json.dumps(data, default=str)
             now = datetime.utcnow().isoformat()
 
-            cursor.execute('''
+            cursor.execute(
+                """
                 INSERT OR REPLACE INTO persistence (key, data, updated_at)
                 VALUES (?, ?, ?)
-            ''', (key, data_json, now))
+            """,
+                (key, data_json, now),
+            )
 
             conn.commit()
             conn.close()
@@ -179,9 +186,12 @@ class DatabasePersistenceBackend(PersistenceBackend):
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
 
-            cursor.execute('''
+            cursor.execute(
+                """
                 SELECT data FROM persistence WHERE key = ?
-            ''', (key,))
+            """,
+                (key,),
+            )
 
             row = cursor.fetchone()
             conn.close()
@@ -199,13 +209,18 @@ class DatabasePersistenceBackend(PersistenceBackend):
             cursor = conn.cursor()
 
             if prefix:
-                cursor.execute('''
+                cursor.execute(
+                    """
                     SELECT key FROM persistence WHERE key LIKE ?
-                ''', (f"{prefix}%",))
+                """,
+                    (f"{prefix}%",),
+                )
             else:
-                cursor.execute('''
+                cursor.execute(
+                    """
                     SELECT key FROM persistence
-                ''')
+                """
+                )
 
             keys = [row[0] for row in cursor.fetchall()]
             conn.close()
@@ -220,9 +235,12 @@ class DatabasePersistenceBackend(PersistenceBackend):
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
 
-            cursor.execute('''
+            cursor.execute(
+                """
                 DELETE FROM persistence WHERE key = ?
-            ''', (key,))
+            """,
+                (key,),
+            )
 
             deleted = cursor.rowcount > 0
 
@@ -239,9 +257,12 @@ class DatabasePersistenceBackend(PersistenceBackend):
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
 
-            cursor.execute('''
+            cursor.execute(
+                """
                 SELECT 1 FROM persistence WHERE key = ? LIMIT 1
-            ''', (key,))
+            """,
+                (key,),
+            )
 
             exists = cursor.fetchone() is not None
             conn.close()
@@ -267,9 +288,12 @@ class DatabasePersistenceBackend(PersistenceBackend):
             cutoff = datetime.utcnow().timestamp() - (days * 24 * 3600)
             cutoff_str = datetime.fromtimestamp(cutoff).isoformat()
 
-            cursor.execute('''
+            cursor.execute(
+                """
                 DELETE FROM persistence WHERE updated_at < ?
-            ''', (cutoff_str,))
+            """,
+                (cutoff_str,),
+            )
 
             deleted = cursor.rowcount
 

@@ -4,16 +4,15 @@ Completeness Validator
 Phase 3: Validate that all features are implemented in generated code
 """
 
-from typing import Dict, List, Optional
-from dataclasses import dataclass, field
 import logging
+from dataclasses import dataclass, field
+from typing import Dict, List, Optional
 
+from caas_framework.bmad.code_analyzer import CodeAnalyzer
+from caas_framework.bmad.semantic_mapper import FeatureImplementation, MappingResult, SemanticMapper
+from caas_framework.bmad.traceability import ImplementationStatus, TraceabilityMatrix
 from caas_framework.models.specifications import FeatureSpec
 from caas_framework.plugins.llm.base import LLMPlugin
-from caas_framework.bmad.code_analyzer import CodeAnalyzer
-from caas_framework.bmad.semantic_mapper import SemanticMapper, FeatureImplementation, MappingResult
-from caas_framework.bmad.traceability import TraceabilityMatrix, ImplementationStatus
-
 
 logger = logging.getLogger(__name__)
 
@@ -73,7 +72,7 @@ class CompletenessValidator:
         self,
         features: List[FeatureSpec],
         generated_code: Dict[str, str],
-        traceability: Optional[TraceabilityMatrix] = None
+        traceability: Optional[TraceabilityMatrix] = None,
     ) -> CompletenessReport:
         """
         Validate completeness of generated code
@@ -101,9 +100,7 @@ class CompletenessValidator:
 
         # Step 2: Semantic mapping
         self.logger.info("Step 2/4: Performing semantic mapping...")
-        mapping_result = await self.semantic_mapper.map_features_to_code(
-            features, code_analyses
-        )
+        mapping_result = await self.semantic_mapper.map_features_to_code(features, code_analyses)
 
         self.logger.info(
             f"Semantic mapping: {len(mapping_result.feature_implementations)} "
@@ -129,9 +126,7 @@ class CompletenessValidator:
         return report
 
     def _update_traceability(
-        self,
-        mapping_result: MappingResult,
-        traceability: TraceabilityMatrix
+        self, mapping_result: MappingResult, traceability: TraceabilityMatrix
     ) -> None:
         """
         Update traceability matrix with actual implementation status
@@ -166,9 +161,7 @@ class CompletenessValidator:
         self.logger.debug(f"Updated {len(mapping_result.feature_implementations)} feature traces")
 
     def _generate_report(
-        self,
-        features: List[FeatureSpec],
-        mapping_result: MappingResult
+        self, features: List[FeatureSpec], mapping_result: MappingResult
     ) -> CompletenessReport:
         """
         Generate completeness report
@@ -193,24 +186,26 @@ class CompletenessValidator:
             elif impl.is_partially_implemented:
                 report.partially_implemented += 1
 
-        report.not_implemented = report.total_features - report.fully_implemented - report.partially_implemented
+        report.not_implemented = (
+            report.total_features - report.fully_implemented - report.partially_implemented
+        )
 
         # Calculate implementation rate
         report.implementation_rate = (
             (report.fully_implemented + report.partially_implemented * 0.5)
-            / report.total_features * 100
-            if report.total_features > 0 else 0
+            / report.total_features
+            * 100
+            if report.total_features > 0
+            else 0
         )
 
         # Find unimplemented features
         implemented_ids = {impl.feature_id for impl in mapping_result.feature_implementations}
-        report.unimplemented_features = [
-            f for f in features if f.id not in implemented_ids
-        ]
+        report.unimplemented_features = [f for f in features if f.id not in implemented_ids]
 
         # Identify critical missing features
         for feature in report.unimplemented_features:
-            if feature.priority.lower() in ('critical', 'high'):
+            if feature.priority.lower() in ("critical", "high"):
                 report.missing_critical_features.append(
                     f"{feature.name} ({feature.id}) - Priority: {feature.priority}"
                 )
@@ -223,8 +218,7 @@ class CompletenessValidator:
 
         # Determine if complete
         report.is_complete = (
-            report.completeness_score >= 90.0 and
-            len(report.missing_critical_features) == 0
+            report.completeness_score >= 90.0 and len(report.missing_critical_features) == 0
         )
 
         return report
@@ -235,9 +229,7 @@ class CompletenessValidator:
 
         # Missing features
         if report.not_implemented > 0:
-            recommendations.append(
-                f"누락된 {report.not_implemented}개 기능을 구현하세요"
-            )
+            recommendations.append(f"누락된 {report.not_implemented}개 기능을 구현하세요")
 
         # Partially implemented features
         if report.partially_implemented > 0:
@@ -257,9 +249,7 @@ class CompletenessValidator:
                 "구현률이 매우 낮습니다. 더 구체적인 지시사항으로 코드를 재생성하는 것을 고려하세요."
             )
         elif report.implementation_rate < 80:
-            recommendations.append(
-                "구현률이 중간 수준입니다. 검토하고 누락된 부분을 채우세요."
-            )
+            recommendations.append("구현률이 중간 수준입니다. 검토하고 누락된 부분을 채우세요.")
 
         return recommendations
 
@@ -305,9 +295,21 @@ class CompletenessValidator:
             "전체 지표 (OVERALL METRICS)",
             "-" * 80,
             f"전체 기능:               {report.total_features}",
-            f"완전 구현:               {report.fully_implemented} ({report.fully_implemented/report.total_features*100:.1f}%)" if report.total_features > 0 else "완전 구현:               0",
-            f"부분 구현:               {report.partially_implemented} ({report.partially_implemented/report.total_features*100:.1f}%)" if report.total_features > 0 else "부분 구현:               0",
-            f"미구현:                  {report.not_implemented} ({report.not_implemented/report.total_features*100:.1f}%)" if report.total_features > 0 else "미구현:                  0",
+            (
+                f"완전 구현:               {report.fully_implemented} ({report.fully_implemented/report.total_features*100:.1f}%)"
+                if report.total_features > 0
+                else "완전 구현:               0"
+            ),
+            (
+                f"부분 구현:               {report.partially_implemented} ({report.partially_implemented/report.total_features*100:.1f}%)"
+                if report.total_features > 0
+                else "부분 구현:               0"
+            ),
+            (
+                f"미구현:                  {report.not_implemented} ({report.not_implemented/report.total_features*100:.1f}%)"
+                if report.total_features > 0
+                else "미구현:                  0"
+            ),
             f"구현률:                  {report.implementation_rate:.1f}%",
             f"완전성 점수:             {report.completeness_score:.1f}/100",
             f"상태:                    {'✅ 완료' if report.is_complete else '⚠️ 미완료'}",
@@ -316,13 +318,14 @@ class CompletenessValidator:
 
         # Fully implemented features
         if report.fully_implemented > 0:
-            lines.extend([
-                "완전 구현된 기능 (FULLY IMPLEMENTED FEATURES)",
-                "-" * 80,
-            ])
+            lines.extend(
+                [
+                    "완전 구현된 기능 (FULLY IMPLEMENTED FEATURES)",
+                    "-" * 80,
+                ]
+            )
             fully_impl = [
-                impl for impl in report.feature_implementations
-                if impl.is_fully_implemented
+                impl for impl in report.feature_implementations if impl.is_fully_implemented
             ]
             for impl in fully_impl[:10]:  # Limit to 10
                 lines.append(
@@ -337,13 +340,14 @@ class CompletenessValidator:
 
         # Partially implemented features
         if report.partially_implemented > 0:
-            lines.extend([
-                "부분 구현된 기능 (PARTIALLY IMPLEMENTED FEATURES)",
-                "-" * 80,
-            ])
+            lines.extend(
+                [
+                    "부분 구현된 기능 (PARTIALLY IMPLEMENTED FEATURES)",
+                    "-" * 80,
+                ]
+            )
             partial_impl = [
-                impl for impl in report.feature_implementations
-                if impl.is_partially_implemented
+                impl for impl in report.feature_implementations if impl.is_partially_implemented
             ]
             for impl in partial_impl[:5]:
                 lines.append(
@@ -356,12 +360,14 @@ class CompletenessValidator:
 
         # Missing features
         if report.unimplemented_features:
-            lines.extend([
-                "미구현 기능 (UNIMPLEMENTED FEATURES)",
-                "-" * 80,
-            ])
+            lines.extend(
+                [
+                    "미구현 기능 (UNIMPLEMENTED FEATURES)",
+                    "-" * 80,
+                ]
+            )
             for feature in report.unimplemented_features[:10]:
-                priority_marker = "🔴" if feature.priority.lower() in ('critical', 'high') else "⚪"
+                priority_marker = "🔴" if feature.priority.lower() in ("critical", "high") else "⚪"
                 lines.append(
                     f"  {priority_marker} {feature.name} ({feature.id}) - "
                     f"우선순위: {feature.priority}"
@@ -372,20 +378,24 @@ class CompletenessValidator:
 
         # Missing critical features
         if report.missing_critical_features:
-            lines.extend([
-                "⚠️  누락된 핵심 기능 (MISSING CRITICAL FEATURES)",
-                "-" * 80,
-            ])
+            lines.extend(
+                [
+                    "⚠️  누락된 핵심 기능 (MISSING CRITICAL FEATURES)",
+                    "-" * 80,
+                ]
+            )
             for feature_desc in report.missing_critical_features:
                 lines.append(f"  🔴 {feature_desc}")
             lines.append("")
 
         # Recommendations
         if report.recommendations:
-            lines.extend([
-                "권장사항 (RECOMMENDATIONS)",
-                "-" * 80,
-            ])
+            lines.extend(
+                [
+                    "권장사항 (RECOMMENDATIONS)",
+                    "-" * 80,
+                ]
+            )
             for i, rec in enumerate(report.recommendations, 1):
                 lines.append(f"  {i}. {rec}")
             lines.append("")

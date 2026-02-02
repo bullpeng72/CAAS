@@ -5,23 +5,25 @@ UI-independent interfaces for progress reporting.
 Allows different UIs (CLI, Streamlit, VSCode) to implement their own reporters.
 """
 
-from typing import Protocol, Optional, Dict, Any, List
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any, Dict, List, Optional, Protocol
 
 
 class VerbosityLevel(Enum):
     """Verbosity levels for progress reporting"""
-    QUIET = 0      # Only critical errors
-    MINIMAL = 1    # Phase transitions only
-    NORMAL = 2     # Phase + agent execution (default)
-    VERBOSE = 3    # + validation + feedback loops
-    DEBUG = 4      # Everything including agent outputs
+
+    QUIET = 0  # Only critical errors
+    MINIMAL = 1  # Phase transitions only
+    NORMAL = 2  # Phase + agent execution (default)
+    VERBOSE = 3  # + validation + feedback loops
+    DEBUG = 4  # Everything including agent outputs
 
 
 @dataclass
 class PhaseInfo:
     """Phase information for UI-independent reporting"""
+
     phase_name: str
     agent_name: str
     description: str
@@ -31,6 +33,7 @@ class PhaseInfo:
 @dataclass
 class PhaseResult:
     """Phase completion result"""
+
     phase_name: str
     duration: float
     success: bool
@@ -70,12 +73,7 @@ class ProgressReporter(Protocol):
         """
         ...
 
-    def start_phase(
-        self,
-        phase_name: str,
-        agent_name: str,
-        description: str
-    ) -> None:
+    def start_phase(self, phase_name: str, agent_name: str, description: str) -> None:
         """
         Report phase start.
 
@@ -87,10 +85,7 @@ class ProgressReporter(Protocol):
         ...
 
     def update_phase_progress(
-        self,
-        phase_name: str,
-        message: str,
-        progress: Optional[float] = None
+        self, phase_name: str, message: str, progress: Optional[float] = None
     ) -> None:
         """
         Update phase progress (optional).
@@ -102,12 +97,7 @@ class ProgressReporter(Protocol):
         """
         ...
 
-    def complete_phase(
-        self,
-        phase_name: str,
-        duration: float,
-        success: bool
-    ) -> None:
+    def complete_phase(self, phase_name: str, duration: float, success: bool) -> None:
         """
         Report phase completion.
 
@@ -118,11 +108,7 @@ class ProgressReporter(Protocol):
         """
         ...
 
-    def log_message(
-        self,
-        message: str,
-        level: str = "info"
-    ) -> None:
+    def log_message(self, message: str, level: str = "info") -> None:
         """
         Log a message.
 
@@ -133,10 +119,7 @@ class ProgressReporter(Protocol):
         ...
 
     def log_validation(
-        self,
-        phase_name: str,
-        passed: bool,
-        issues: Optional[List[str]] = None
+        self, phase_name: str, passed: bool, issues: Optional[List[str]] = None
     ) -> None:
         """
         Log validation result (optional).
@@ -149,10 +132,7 @@ class ProgressReporter(Protocol):
         ...
 
     def log_feedback_iteration(
-        self,
-        phase_name: str,
-        iteration: int,
-        total_iterations: int
+        self, phase_name: str, iteration: int, total_iterations: int
     ) -> None:
         """
         Log feedback loop iteration (optional).
@@ -165,10 +145,7 @@ class ProgressReporter(Protocol):
         ...
 
     def end_workflow(
-        self,
-        success: bool,
-        duration: float,
-        summary: Optional[Dict[str, Any]] = None
+        self, success: bool, duration: float, summary: Optional[Dict[str, Any]] = None
     ) -> None:
         """
         End workflow reporting.
@@ -191,57 +168,31 @@ class NullProgressReporter:
     def start_workflow(self, description: str) -> None:
         pass
 
-    def start_phase(
-        self,
-        phase_name: str,
-        agent_name: str,
-        description: str
-    ) -> None:
+    def start_phase(self, phase_name: str, agent_name: str, description: str) -> None:
         pass
 
     def update_phase_progress(
-        self,
-        phase_name: str,
-        message: str,
-        progress: Optional[float] = None
+        self, phase_name: str, message: str, progress: Optional[float] = None
     ) -> None:
         pass
 
-    def complete_phase(
-        self,
-        phase_name: str,
-        duration: float,
-        success: bool
-    ) -> None:
+    def complete_phase(self, phase_name: str, duration: float, success: bool) -> None:
         pass
 
-    def log_message(
-        self,
-        message: str,
-        level: str = "info"
-    ) -> None:
+    def log_message(self, message: str, level: str = "info") -> None:
         pass
 
     def log_validation(
-        self,
-        phase_name: str,
-        passed: bool,
-        issues: Optional[List[str]] = None
+        self, phase_name: str, passed: bool, issues: Optional[List[str]] = None
     ) -> None:
         pass
 
     def log_feedback_iteration(
-        self,
-        phase_name: str,
-        iteration: int,
-        total_iterations: int
+        self, phase_name: str, iteration: int, total_iterations: int
     ) -> None:
         pass
 
     def end_workflow(
-        self,
-        success: bool,
-        duration: float,
-        summary: Optional[Dict[str, Any]] = None
+        self, success: bool, duration: float, summary: Optional[Dict[str, Any]] = None
     ) -> None:
         pass

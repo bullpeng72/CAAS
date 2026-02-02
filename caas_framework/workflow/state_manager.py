@@ -5,14 +5,16 @@ Manages workflow state with checkpoint/resume capabilities.
 """
 
 import json
-from typing import Dict, Any, List, Optional
 from datetime import datetime
 from pathlib import Path
+from typing import Any, Dict, List, Optional
+
 from pydantic import BaseModel, Field
 
 
 class Checkpoint(BaseModel):
     """Checkpoint data model"""
+
     checkpoint_id: str
     session_id: str
     workflow_id: str
@@ -25,6 +27,7 @@ class Checkpoint(BaseModel):
 
 class StateHistory(BaseModel):
     """State history entry"""
+
     timestamp: datetime
     event: str  # "update", "checkpoint", "rollback", "restore"
     phase: str
@@ -68,7 +71,7 @@ class StateManager:
         phase: str,
         state: Dict[str, Any],
         metadata: Optional[Dict[str, Any]] = None,
-        parent_checkpoint_id: Optional[str] = None
+        parent_checkpoint_id: Optional[str] = None,
     ) -> str:
         """
         Save a checkpoint.
@@ -85,7 +88,9 @@ class StateManager:
             str: Checkpoint ID
         """
         timestamp = datetime.utcnow()
-        checkpoint_id = f"{session_id}_{workflow_id}_{phase}_{timestamp.strftime('%Y%m%d_%H%M%S_%f')}"
+        checkpoint_id = (
+            f"{session_id}_{workflow_id}_{phase}_{timestamp.strftime('%Y%m%d_%H%M%S_%f')}"
+        )
 
         checkpoint = Checkpoint(
             checkpoint_id=checkpoint_id,
@@ -95,7 +100,7 @@ class StateManager:
             phase=phase,
             state=state,
             metadata=metadata or {},
-            parent_checkpoint_id=parent_checkpoint_id
+            parent_checkpoint_id=parent_checkpoint_id,
         )
 
         # Save to file
@@ -109,7 +114,7 @@ class StateManager:
             event="checkpoint",
             phase=phase,
             state=state,
-            metadata={"checkpoint_id": checkpoint_id}
+            metadata={"checkpoint_id": checkpoint_id},
         )
 
         return checkpoint_id
@@ -135,9 +140,7 @@ class StateManager:
         return Checkpoint(**data)
 
     def list_checkpoints(
-        self,
-        session_id: Optional[str] = None,
-        workflow_id: Optional[str] = None
+        self, session_id: Optional[str] = None, workflow_id: Optional[str] = None
     ) -> List[Checkpoint]:
         """
         List checkpoints.
@@ -173,9 +176,7 @@ class StateManager:
         return checkpoints
 
     def get_latest_checkpoint(
-        self,
-        session_id: str,
-        workflow_id: Optional[str] = None
+        self, session_id: str, workflow_id: Optional[str] = None
     ) -> Optional[Checkpoint]:
         """Get the latest checkpoint for a session/workflow"""
         checkpoints = self.list_checkpoints(session_id, workflow_id)
@@ -199,7 +200,7 @@ class StateManager:
             session_id=session_id,
             event="update",
             phase=state.get("current_phase", "unknown"),
-            state=state
+            state=state,
         )
 
     def get_state(self, session_id: str) -> Optional[Dict[str, Any]]:
@@ -217,7 +218,7 @@ class StateManager:
             session_id=session_id,
             event="update",
             phase=updates.get("current_phase", "unknown"),
-            state=self.active_states[session_id]
+            state=self.active_states[session_id],
         )
 
     def clear_state(self, session_id: str):
@@ -250,7 +251,7 @@ class StateManager:
             event="rollback",
             phase=checkpoint.phase,
             state=checkpoint.state,
-            metadata={"checkpoint_id": checkpoint_id}
+            metadata={"checkpoint_id": checkpoint_id},
         )
 
         return checkpoint.state
@@ -286,7 +287,7 @@ class StateManager:
         event: str,
         phase: str,
         state: Dict[str, Any],
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
     ):
         """Record state change in history"""
         if session_id not in self.history:
@@ -297,7 +298,7 @@ class StateManager:
             event=event,
             phase=phase,
             state_snapshot=state.copy(),
-            metadata=metadata or {}
+            metadata=metadata or {},
         )
 
         self.history[session_id].append(entry)
@@ -310,11 +311,7 @@ class StateManager:
         """Get state history for a session"""
         return self.history.get(session_id, [])
 
-    def get_state_at_time(
-        self,
-        session_id: str,
-        timestamp: datetime
-    ) -> Optional[Dict[str, Any]]:
+    def get_state_at_time(self, session_id: str, timestamp: datetime) -> Optional[Dict[str, Any]]:
         """Get state at a specific timestamp"""
         history = self.get_history(session_id)
 
@@ -366,7 +363,7 @@ class StateManager:
             "session_id": session_id,
             "export_time": datetime.utcnow().isoformat(),
             "checkpoints": [c.model_dump(mode="json") for c in checkpoints],
-            "history": [h.model_dump(mode="json") for h in history]
+            "history": [h.model_dump(mode="json") for h in history],
         }
 
         with open(output_path, "w") as f:
@@ -395,8 +392,6 @@ class StateManager:
                 json.dump(checkpoint.model_dump(mode="json"), f, indent=2, default=str)
 
         # Import history
-        self.history[session_id] = [
-            StateHistory(**h) for h in import_data["history"]
-        ]
+        self.history[session_id] = [StateHistory(**h) for h in import_data["history"]]
 
         return session_id

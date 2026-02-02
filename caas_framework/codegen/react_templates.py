@@ -16,7 +16,7 @@ class ReactTemplates:
         props_interface: Optional[str] = None,
         has_state: bool = False,
         state_type: Optional[str] = None,
-        has_effect: bool = False
+        has_effect: bool = False,
     ) -> str:
         """Generate React functional component"""
 
@@ -43,7 +43,9 @@ class ReactTemplates:
         # State hooks
         state_hooks = ""
         if has_state and state_type:
-            state_hooks = f"\n  const [state, setState] = useState<{state_type}>(/* initial state */);\n"
+            state_hooks = (
+                f"\n  const [state, setState] = useState<{state_type}>(/* initial state */);\n"
+            )
 
         # Effect hook
         effect_hook = ""
@@ -70,11 +72,7 @@ class ReactTemplates:
 """
 
     @staticmethod
-    def list_component_template(
-        name: str,
-        item_type: str,
-        item_render: str = "item"
-    ) -> str:
+    def list_component_template(name: str, item_type: str, item_render: str = "item") -> str:
         """Generate list component with map"""
 
         return f"""import React, {{ useState, useEffect }} from 'react';
@@ -125,10 +123,7 @@ export const {name}: React.FC<{name}Props> = ({{ onItemSelect }}) => {{
 """
 
     @staticmethod
-    def form_component_template(
-        name: str,
-        fields: List[Dict[str, str]]
-    ) -> str:
+    def form_component_template(name: str, fields: List[Dict[str, str]]) -> str:
         """Generate form component"""
 
         # Build state type
@@ -138,11 +133,11 @@ export const {name}: React.FC<{name}Props> = ({{ onItemSelect }}) => {{
         # Build initial state
         initial_values = []
         for field in fields:
-            if field['type'] == 'string':
+            if field["type"] == "string":
                 initial_values.append(f"    {field['name']}: '',")
-            elif field['type'] == 'number':
+            elif field["type"] == "number":
                 initial_values.append(f"    {field['name']}: 0,")
-            elif field['type'] == 'boolean':
+            elif field["type"] == "boolean":
                 initial_values.append(f"    {field['name']}: false,")
             else:
                 initial_values.append(f"    {field['name']}: null,")
@@ -153,12 +148,13 @@ export const {name}: React.FC<{name}Props> = ({{ onItemSelect }}) => {{
         form_inputs = []
         for field in fields:
             input_type = "text"
-            if field['type'] == 'number':
+            if field["type"] == "number":
                 input_type = "number"
-            elif field['type'] == 'boolean':
+            elif field["type"] == "boolean":
                 input_type = "checkbox"
 
-            form_inputs.append(f"""        <div className="form-field">
+            form_inputs.append(
+                f"""        <div className="form-field">
           <label htmlFor="{field['name']}">{field['name'].title()}</label>
           <input
             id="{field['name']}"
@@ -166,7 +162,8 @@ export const {name}: React.FC<{name}Props> = ({{ onItemSelect }}) => {{
             value={{formData.{field['name']}}}
             onChange={{(e) => setFormData({{ ...formData, {field['name']}: e.target.value }})}}
           />
-        </div>""")
+        </div>"""
+            )
 
         form_fields = "\n".join(form_inputs)
 
@@ -201,11 +198,7 @@ export const {name}: React.FC<{name}Props> = ({{ onSubmit, onCancel }}) => {{
 """
 
     @staticmethod
-    def typescript_interface(
-        name: str,
-        fields: List[Dict[str, str]],
-        export: bool = True
-    ) -> str:
+    def typescript_interface(name: str, fields: List[Dict[str, str]], export: bool = True) -> str:
         """Generate TypeScript interface"""
 
         export_keyword = "export " if export else ""
@@ -218,39 +211,44 @@ export const {name}: React.FC<{name}Props> = ({{ onSubmit, onCancel }}) => {{
 """
 
     @staticmethod
-    def api_client_template(
-        base_url: str = "/api",
-        endpoints: List[Dict[str, str]] = None
-    ) -> str:
+    def api_client_template(base_url: str = "/api", endpoints: List[Dict[str, str]] = None) -> str:
         """Generate API client with Axios"""
 
         methods = []
         if endpoints:
             for endpoint in endpoints:
-                method_name = endpoint.get('name', 'getData')
-                return_type = endpoint.get('return_type', 'any')
-                path = endpoint.get('path', '/data')
-                http_method = endpoint.get('method', 'GET').lower()
+                method_name = endpoint.get("name", "getData")
+                return_type = endpoint.get("return_type", "any")
+                path = endpoint.get("path", "/data")
+                http_method = endpoint.get("method", "GET").lower()
 
-                if http_method == 'get':
-                    methods.append(f"""
+                if http_method == "get":
+                    methods.append(
+                        f"""
   async {method_name}(): Promise<{return_type}> {{
     const response = await this.client.get<APIResponse<{return_type}>>('{path}');
     return response.data.data;
-  }}""")
-                elif http_method == 'post':
-                    param_type = endpoint.get('param_type', 'any')
-                    methods.append(f"""
+  }}"""
+                    )
+                elif http_method == "post":
+                    param_type = endpoint.get("param_type", "any")
+                    methods.append(
+                        f"""
   async {method_name}(data: {param_type}): Promise<{return_type}> {{
     const response = await this.client.post<APIResponse<{return_type}>>('{path}', data);
     return response.data.data;
-  }}""")
+  }}"""
+                    )
 
-        methods_str = "".join(methods) if methods else """
+        methods_str = (
+            "".join(methods)
+            if methods
+            else """
   async getData(): Promise<any> {
     const response = await this.client.get('/data');
     return response.data;
   }"""
+        )
 
         return f"""import axios, {{ AxiosInstance }} from 'axios';
 
@@ -277,10 +275,7 @@ export const apiClient = new APIClient();
 """
 
     @staticmethod
-    def package_json_template(
-        name: str,
-        description: str = "Generated by CAAS"
-    ) -> str:
+    def package_json_template(name: str, description: str = "Generated by CAAS") -> str:
         """Generate package.json"""
 
         return f"""{{

@@ -6,11 +6,11 @@ JSON 파싱, 추출, 검증을 위한 유틸리티
 
 import json
 import re
-from typing import Any, Dict, Optional, List
 from pathlib import Path
+from typing import Any, Dict, List, Optional
 
-from caas_framework.utils.logger import get_logger
 from caas_framework.utils.file_utils import FileUtils
+from caas_framework.utils.logger import get_logger
 
 logger = get_logger("utils.json_helper")
 
@@ -20,8 +20,7 @@ class JSONHelper:
 
     @staticmethod
     def extract_from_markdown(
-        content: str,
-        fallback: Optional[Any] = None
+        content: str, fallback: Optional[Any] = None
     ) -> Optional[Dict[str, Any]]:
         """
         Markdown 코드 블록에서 JSON 추출
@@ -63,10 +62,7 @@ class JSONHelper:
         return JSONHelper.safe_parse(content, fallback)
 
     @staticmethod
-    def safe_parse(
-        json_str: str,
-        fallback: Optional[Any] = None
-    ) -> Optional[Dict[str, Any]]:
+    def safe_parse(json_str: str, fallback: Optional[Any] = None) -> Optional[Dict[str, Any]]:
         """
         안전한 JSON 파싱
 
@@ -106,10 +102,7 @@ class JSONHelper:
 
     @staticmethod
     def format_dump(
-        data: Any,
-        indent: int = 2,
-        ensure_ascii: bool = False,
-        sort_keys: bool = False
+        data: Any, indent: int = 2, ensure_ascii: bool = False, sort_keys: bool = False
     ) -> str:
         """
         JSON 포맷팅 (일관된 스타일)
@@ -126,11 +119,7 @@ class JSONHelper:
         return FileUtils.format_json(data, indent, ensure_ascii, sort_keys)
 
     @staticmethod
-    def safe_dump_file(
-        data: Any,
-        file_path: Path,
-        **kwargs
-    ) -> bool:
+    def safe_dump_file(data: Any, file_path: Path, **kwargs) -> bool:
         """
         파일에 안전하게 JSON 저장
 
@@ -179,7 +168,7 @@ class JSONHelper:
     def validate_structure(
         data: Dict[str, Any],
         required_keys: Optional[List[str]] = None,
-        optional_keys: Optional[List[str]] = None
+        optional_keys: Optional[List[str]] = None,
     ) -> tuple[bool, List[str]]:
         """
         JSON 데이터 구조 검증
@@ -215,13 +204,13 @@ class JSONHelper:
         sanitized = sanitized.replace(" ", "_").replace("-", "_")
 
         # 특수문자 제거 (알파벳, 숫자, 언더스코어만 허용)
-        sanitized = re.sub(r'[^a-z0-9_]', '', sanitized)
+        sanitized = re.sub(r"[^a-z0-9_]", "", sanitized)
 
         # 연속된 언더스코어를 하나로
-        sanitized = re.sub(r'__+', '_', sanitized)
+        sanitized = re.sub(r"__+", "_", sanitized)
 
         # 앞뒤 언더스코어 제거
-        sanitized = sanitized.strip('_')
+        sanitized = sanitized.strip("_")
 
         # 빈 문자열 처리
         if not sanitized:

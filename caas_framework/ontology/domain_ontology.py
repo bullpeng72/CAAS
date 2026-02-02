@@ -5,8 +5,8 @@ Provides structured domain knowledge representation and reasoning
 for intelligent concept inference and pattern application.
 """
 
-from typing import Dict, List, Optional
 from dataclasses import dataclass, field
+from typing import Dict, List, Optional
 
 
 @dataclass
@@ -16,6 +16,7 @@ class Concept:
 
     Examples: User, Post, Comment, Product, Order, etc.
     """
+
     name: str
     properties: List[str] = field(default_factory=list)
     relationships: Dict[str, List[str]] = field(default_factory=dict)
@@ -45,6 +46,7 @@ class DesignPattern:
 
     Examples: CRUD_with_Auth, Shopping_Cart, Payment_Flow, etc.
     """
+
     name: str
     applies_to: List[str]  # Concept names this pattern applies to
     required_components: List[str] = field(default_factory=list)
@@ -64,6 +66,7 @@ class DomainOntology:
     Provides structured domain knowledge for a specific domain
     (e.g., web apps, e-commerce, APIs).
     """
+
     domain_name: str
     concepts: Dict[str, Concept] = field(default_factory=dict)
     patterns: List[DesignPattern] = field(default_factory=list)
@@ -102,9 +105,7 @@ class OntologyReasoner:
         self.ontology = ontology
 
     def infer_missing_concepts(
-        self,
-        mentioned_concepts: List[str],
-        max_depth: int = 2
+        self, mentioned_concepts: List[str], max_depth: int = 2
     ) -> List[str]:
         """
         Infer concepts that are likely needed based on mentioned concepts.
@@ -155,10 +156,7 @@ class OntologyReasoner:
         # Return inferred concepts (excluding originally mentioned)
         return list(inferred - set(mentioned_concepts))
 
-    def suggest_operations(
-        self,
-        concept_name: str
-    ) -> List[str]:
+    def suggest_operations(self, concept_name: str) -> List[str]:
         """
         Suggest typical operations for a concept.
 
@@ -174,10 +172,7 @@ class OntologyReasoner:
 
         return concept.typical_operations.copy()
 
-    def suggest_properties(
-        self,
-        concept_name: str
-    ) -> List[str]:
+    def suggest_properties(self, concept_name: str) -> List[str]:
         """
         Suggest typical properties for a concept.
 
@@ -193,10 +188,7 @@ class OntologyReasoner:
 
         return concept.properties.copy()
 
-    def apply_patterns(
-        self,
-        concepts: List[str]
-    ) -> List[DesignPattern]:
+    def apply_patterns(self, concepts: List[str]) -> List[DesignPattern]:
         """
         Find design patterns applicable to given concepts.
 
@@ -209,9 +201,7 @@ class OntologyReasoner:
         return self.ontology.get_patterns_for_concepts(concepts)
 
     def get_related_concepts(
-        self,
-        concept_name: str,
-        relation_type: Optional[str] = None
+        self, concept_name: str, relation_type: Optional[str] = None
     ) -> List[str]:
         """
         Get concepts related to given concept.
@@ -229,10 +219,7 @@ class OntologyReasoner:
 
         return concept.get_related_concepts(relation_type)
 
-    def analyze_completeness(
-        self,
-        mentioned_concepts: List[str]
-    ) -> Dict[str, any]:
+    def analyze_completeness(self, mentioned_concepts: List[str]) -> Dict[str, any]:
         """
         Analyze completeness of concept set.
 
@@ -250,19 +237,16 @@ class OntologyReasoner:
         coverage = len(mentioned_concepts) / len(all_concepts) if all_concepts else 1.0
 
         return {
-            'mentioned_concepts': mentioned_concepts,
-            'missing_concepts': missing,
-            'all_required_concepts': list(all_concepts),
-            'coverage': coverage,
-            'coverage_percent': coverage * 100,
-            'applicable_patterns': [p.name for p in applicable_patterns],
-            'is_complete': len(missing) == 0
+            "mentioned_concepts": mentioned_concepts,
+            "missing_concepts": missing,
+            "all_required_concepts": list(all_concepts),
+            "coverage": coverage,
+            "coverage_percent": coverage * 100,
+            "applicable_patterns": [p.name for p in applicable_patterns],
+            "is_complete": len(missing) == 0,
         }
 
-    def suggest_enhancements(
-        self,
-        mentioned_concepts: List[str]
-    ) -> Dict[str, List[str]]:
+    def suggest_enhancements(self, mentioned_concepts: List[str]) -> Dict[str, List[str]]:
         """
         Suggest enhancements for concept set.
 
@@ -273,30 +257,30 @@ class OntologyReasoner:
             Dictionary with suggested enhancements
         """
         suggestions = {
-            'missing_concepts': [],
-            'recommended_operations': {},
-            'applicable_patterns': [],
-            'related_concepts': {}
+            "missing_concepts": [],
+            "recommended_operations": {},
+            "applicable_patterns": [],
+            "related_concepts": {},
         }
 
         # Find missing concepts
-        suggestions['missing_concepts'] = self.infer_missing_concepts(mentioned_concepts)
+        suggestions["missing_concepts"] = self.infer_missing_concepts(mentioned_concepts)
 
         # Suggest operations for each concept
         for concept_name in mentioned_concepts:
             operations = self.suggest_operations(concept_name)
             if operations:
-                suggestions['recommended_operations'][concept_name] = operations
+                suggestions["recommended_operations"][concept_name] = operations
 
         # Find applicable patterns
         patterns = self.apply_patterns(mentioned_concepts)
-        suggestions['applicable_patterns'] = [p.name for p in patterns]
+        suggestions["applicable_patterns"] = [p.name for p in patterns]
 
         # Find related concepts
         for concept_name in mentioned_concepts:
             related = self.get_related_concepts(concept_name)
             if related:
-                suggestions['related_concepts'][concept_name] = related
+                suggestions["related_concepts"][concept_name] = related
 
         return suggestions
 

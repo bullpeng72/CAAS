@@ -10,21 +10,17 @@ Expert agent responsible for Phase 3 (Design):
 
 from typing import Any, Dict, List, Optional
 
-from caas_framework.agents.base import (
-    BaseExpertAgent,
-    AgentPhase,
-    ValidationIssue
-)
+from caas_framework.agents.base import AgentPhase, BaseExpertAgent, ValidationIssue
 from caas_framework.agents.executors import GoldenDataEnhancer
 from caas_framework.agents.registry import register_agent
+from caas_framework.config.settings import LLMConstants
 from caas_framework.models.specifications import (
-    ConcretizedRequirement,
     AgentSpecModel,
-    TaskSpecModel
+    ConcretizedRequirement,
+    TaskSpecModel,
 )
 from caas_framework.plugins.llm.base import LLMPlugin
-from caas_framework.utils import ResponseParser, PromptBuilder, ObjectAccessor
-from caas_framework.config.settings import LLMConstants
+from caas_framework.utils import ObjectAccessor, PromptBuilder, ResponseParser
 
 
 @register_agent(phase=AgentPhase.DESIGN)
@@ -36,11 +32,7 @@ class AgentDesignerAgent(BaseExpertAgent):
     that implement the architecture and fulfill requirements.
     """
 
-    def __init__(
-        self,
-        llm_plugin: LLMPlugin,
-        golden_data: Optional[ConcretizedRequirement] = None
-    ):
+    def __init__(self, llm_plugin: LLMPlugin, golden_data: Optional[ConcretizedRequirement] = None):
         super().__init__(llm_plugin, golden_data, AgentPhase.DESIGN)
 
     @property
@@ -60,14 +52,14 @@ class AgentDesignerAgent(BaseExpertAgent):
             "Workflow orchestration",
             "Tool selection and integration",
             "Agent collaboration patterns",
-            "Task dependency management"
+            "Task dependency management",
         ]
 
     async def _do_work(
         self,
         requirement: Optional[str],
         context: Optional[Dict[str, Any]],
-        previous_outputs: Optional[Dict[AgentPhase, Any]]
+        previous_outputs: Optional[Dict[AgentPhase, Any]],
     ) -> Dict[str, Any]:
         """
         Design agents and tasks.
@@ -85,21 +77,17 @@ class AgentDesignerAgent(BaseExpertAgent):
         req_analysis = previous_outputs.get(AgentPhase.DISCOVERY) if previous_outputs else None
         architecture = previous_outputs.get(AgentPhase.ARCHITECTURE) if previous_outputs else None
 
-        prompt = self._build_design_prompt(
-            requirement,
-            req_analysis,
-            architecture,
-            context_summary
-        )
+        prompt = self._build_design_prompt(requirement, req_analysis, architecture, context_summary)
 
         response = await self.llm.ainvoke(
             messages=[{"role": "user", "content": prompt}],
             response_format=LLMConstants.RESPONSE_FORMAT_JSON,
-            temperature=LLMConstants.TEMPERATURE_BALANCED
+            temperature=LLMConstants.TEMPERATURE_BALANCED,
         )
 
         # Debug logging
         import logging
+
         logger = logging.getLogger(__name__)
 
         # Log raw response
@@ -108,11 +96,13 @@ class AgentDesignerAgent(BaseExpertAgent):
 
         design = ResponseParser.parse_structured_response(
             response,
-            expected_fields=['agents', 'tasks', 'workflow_type', 'agent_collaboration_pattern'],
-            fallback_factory=self._create_fallback_design
+            expected_fields=["agents", "tasks", "workflow_type", "agent_collaboration_pattern"],
+            fallback_factory=self._create_fallback_design,
         )
 
-        logger.info(f"Parsed design: agents={len(design.get('agents', []))}, tasks={len(design.get('tasks', []))}, keys={list(design.keys())}")
+        logger.info(
+            f"Parsed design: agents={len(design.get('agents', []))}, tasks={len(design.get('tasks', []))}, keys={list(design.keys())}"
+        )
 
         # Convert to Pydantic models
         # Safety checks: ensure agents and tasks are lists
@@ -128,6 +118,7 @@ class AgentDesignerAgent(BaseExpertAgent):
 
         # Normalize IDs to snake_case before creating models
         from caas_framework.utils import TextNormalizer
+
         TextNormalizer.normalize_agent_task_ids(agents_data, tasks_data)
 
         agents = [AgentSpecModel(**agent) for agent in agents_data]
@@ -137,7 +128,9 @@ class AgentDesignerAgent(BaseExpertAgent):
             "agents": agents,
             "tasks": tasks,
             "workflow_type": design.get("workflow_type", "sequential"),
-            "agent_collaboration_pattern": design.get("agent_collaboration_pattern", "hierarchical")
+            "agent_collaboration_pattern": design.get(
+                "agent_collaboration_pattern", "hierarchical"
+            ),
         }
 
         # Enhance with Golden Data
@@ -147,6 +140,7 @@ class AgentDesignerAgent(BaseExpertAgent):
         # Apply post-generation fixes
         try:
             from caas_framework.fixing.post_generation_fixer import apply_post_generation_fixes
+
             result = apply_post_generation_fixes(result)
             logger.info("[AgentDesigner] Applied post-generation fixes")
         except Exception as e:
@@ -164,9 +158,7 @@ class AgentDesignerAgent(BaseExpertAgent):
 
             # Get optimized tool assignments
             optimized_agents = optimize_agent_tools(
-                agents=agents_dict,
-                tasks=tasks_dict,
-                verbose=False
+                agents=agents_dict, tasks=tasks_dict, verbose=False
             )
 
             # Update agents with optimized tools
@@ -193,7 +185,7 @@ class AgentDesignerAgent(BaseExpertAgent):
         requirement: str,
         req_analysis: Optional[Dict[str, Any]],
         architecture: Optional[Dict[str, Any]],
-        context: str
+        context: str,
     ) -> str:
         """Build LLM prompt for agent/task design."""
 
@@ -202,8 +194,12 @@ class AgentDesignerAgent(BaseExpertAgent):
 
         prompt_parts.append("당신은 CrewAI 멀티 에이전트 시스템 설계 전문가입니다.")
         prompt_parts.append("")
-        prompt_parts.append("**중요: 모든 텍스트 값(role, goal, backstory, description, expected_output 등)을 한국어로 작성하세요.**")
-        prompt_parts.append("JSON 키(key)는 영어로 유지하되, 값(value)은 반드시 한국어로 작성하세요.")
+        prompt_parts.append(
+            "**중요: 모든 텍스트 값(role, goal, backstory, description, expected_output 등)을 한국어로 작성하세요.**"
+        )
+        prompt_parts.append(
+            "JSON 키(key)는 영어로 유지하되, 값(value)은 반드시 한국어로 작성하세요."
+        )
         prompt_parts.append("")
         prompt_parts.append("## 요구사항")
         prompt_parts.append(f"{requirement}")
@@ -266,16 +262,21 @@ class AgentDesignerAgent(BaseExpertAgent):
         prompt_parts.append("- youtube_search: 유튜브 동영상 검색")
         prompt_parts.append("")
         prompt_parts.append("**중요:** 에이전트의 역할과 목표에 맞는 도구를 선택하세요.")
-        prompt_parts.append("예: 웹 검색 에이전트 → [\"web_search\", \"scrape_website\"]")
-        prompt_parts.append("예: 데이터 분석 에이전트 → [\"code_interpreter\", \"csv_search\"]")
-        prompt_parts.append("예: 파일 관리 에이전트 → [\"file_read\", \"file_write\", \"directory_read\"]")
+        prompt_parts.append('예: 웹 검색 에이전트 → ["web_search", "scrape_website"]')
+        prompt_parts.append('예: 데이터 분석 에이전트 → ["code_interpreter", "csv_search"]')
+        prompt_parts.append(
+            '예: 파일 관리 에이전트 → ["file_read", "file_write", "directory_read"]'
+        )
         prompt_parts.append("")
 
         # Add output format
         prompt_parts.append("## 출력 형식")
-        prompt_parts.append("다음 JSON 형식으로 멀티 에이전트 시스템을 설계하세요 (모든 텍스트 값은 한국어로):")
+        prompt_parts.append(
+            "다음 JSON 형식으로 멀티 에이전트 시스템을 설계하세요 (모든 텍스트 값은 한국어로):"
+        )
         prompt_parts.append("")
-        prompt_parts.append('''{
+        prompt_parts.append(
+            """{
     "agents": [
         {
             "id": "고유_에이전트_id",
@@ -300,7 +301,8 @@ class AgentDesignerAgent(BaseExpertAgent):
     ],
     "workflow_type": "sequential|hierarchical|parallel",
     "agent_collaboration_pattern": "에이전트들이 협업하는 방식에 대한 설명"
-}''')
+}"""
+        )
         prompt_parts.append("")
 
         # Add guidelines
@@ -318,10 +320,16 @@ class AgentDesignerAgent(BaseExpertAgent):
         prompt_parts.append("**중요: 사용자 입력 처리 방법**")
         prompt_parts.append("- ❌ human_input을 사용자 입력 수집 용도로 사용하지 마세요")
         prompt_parts.append("- ✅ human_input=true는 태스크 완료 후 '피드백'을 받을 때만 사용")
-        prompt_parts.append("- ✅ 사용자 입력이 필요하면 태스크 설명에서 '입력'을 빼고 '처리/분석/검증'만 명시")
-        prompt_parts.append("- 예: '키워드를 입력받고 검증' → '키워드의 유효성을 검증' (입력은 crew.kickoff로 전달)")
+        prompt_parts.append(
+            "- ✅ 사용자 입력이 필요하면 태스크 설명에서 '입력'을 빼고 '처리/분석/검증'만 명시"
+        )
+        prompt_parts.append(
+            "- 예: '키워드를 입력받고 검증' → '키워드의 유효성을 검증' (입력은 crew.kickoff로 전달)"
+        )
         prompt_parts.append("")
-        prompt_parts.append("- **모든 role, goal, backstory, description, expected_output 값을 한국어로 작성하세요**")
+        prompt_parts.append(
+            "- **모든 role, goal, backstory, description, expected_output 값을 한국어로 작성하세요**"
+        )
         prompt_parts.append("- 오직 유효한 JSON만 반환하세요")
 
         return "\n".join(prompt_parts)
@@ -342,7 +350,7 @@ class AgentDesignerAgent(BaseExpertAgent):
                 "backstory": "경험 많은 프로젝트 관리자로서 여러 팀원들의 작업을 효과적으로 조율하고 관리합니다",
                 "tools": ["file_read", "directory_read"],
                 "allow_delegation": True,
-                "verbose": True
+                "verbose": True,
             },
             {
                 "id": "executor",
@@ -351,8 +359,8 @@ class AgentDesignerAgent(BaseExpertAgent):
                 "backstory": "숙련된 실행자로서 주어진 작업을 정확하고 효율적으로 완수합니다",
                 "tools": ["code_interpreter", "file_read", "file_write"],
                 "allow_delegation": False,
-                "verbose": True
-            }
+                "verbose": True,
+            },
         ]
 
         tasks = [
@@ -363,7 +371,7 @@ class AgentDesignerAgent(BaseExpertAgent):
                 "agent": "executor",
                 "context": [],
                 "async_execution": False,
-                "human_input": False
+                "human_input": False,
             }
         ]
 
@@ -371,7 +379,7 @@ class AgentDesignerAgent(BaseExpertAgent):
             "agents": agents,
             "tasks": tasks,
             "workflow_type": "sequential",
-            "agent_collaboration_pattern": "계층적 협업 패턴"
+            "agent_collaboration_pattern": "계층적 협업 패턴",
         }
 
     def _generate_design_from_features(self) -> Dict[str, Any]:
@@ -380,118 +388,137 @@ class AgentDesignerAgent(BaseExpertAgent):
 
         # Determine agent types based on project type
         has_ui = bool(self.golden_data.ui_components if self.golden_data.ui_components else [])
-        has_api = 'api' in self.golden_data.project_name.lower() or 'rest' in self.golden_data.project_name.lower()
+        has_api = (
+            "api" in self.golden_data.project_name.lower()
+            or "rest" in self.golden_data.project_name.lower()
+        )
 
         agents = []
         tasks = []
 
         # Create manager agent (Korean)
-        agents.append({
-            "id": "project_manager",
-            "role": "프로젝트 매니저",
-            "goal": f"{self.golden_data.project_name}의 개발을 조율합니다",
-            "backstory": "애자일 개발과 팀 조율에 전문성을 갖춘 경험 많은 프로젝트 관리자입니다",
-            "tools": ["file_read", "directory_read"],
-            "allow_delegation": True,
-            "verbose": True
-        })
+        agents.append(
+            {
+                "id": "project_manager",
+                "role": "프로젝트 매니저",
+                "goal": f"{self.golden_data.project_name}의 개발을 조율합니다",
+                "backstory": "애자일 개발과 팀 조율에 전문성을 갖춘 경험 많은 프로젝트 관리자입니다",
+                "tools": ["file_read", "directory_read"],
+                "allow_delegation": True,
+                "verbose": True,
+            }
+        )
 
         # Create developer agent (Korean)
-        agents.append({
-            "id": "senior_developer",
-            "role": "시니어 개발자",
-            "goal": f"{self.golden_data.project_name}의 핵심 기능을 구현합니다",
-            "backstory": "풀스택 개발 분야에서 10년 이상의 경험을 가진 시니어 개발자입니다",
-            "tools": ["code_interpreter", "file_read", "file_write", "web_search"],
-            "allow_delegation": False,
-            "verbose": True
-        })
+        agents.append(
+            {
+                "id": "senior_developer",
+                "role": "시니어 개발자",
+                "goal": f"{self.golden_data.project_name}의 핵심 기능을 구현합니다",
+                "backstory": "풀스택 개발 분야에서 10년 이상의 경험을 가진 시니어 개발자입니다",
+                "tools": ["code_interpreter", "file_read", "file_write", "web_search"],
+                "allow_delegation": False,
+                "verbose": True,
+            }
+        )
 
         # Create UI developer if UI components exist (Korean)
         if has_ui:
-            agents.append({
-                "id": "ui_developer",
-                "role": "UI 개발자",
-                "goal": "직관적이고 반응형인 사용자 인터페이스를 만듭니다",
-                "backstory": "최신 UI 프레임워크에 전문성을 갖춘 프론트엔드 전문가입니다",
-                "tools": ["file_read", "file_write", "web_search"],
-                "allow_delegation": False,
-                "verbose": True
-            })
+            agents.append(
+                {
+                    "id": "ui_developer",
+                    "role": "UI 개발자",
+                    "goal": "직관적이고 반응형인 사용자 인터페이스를 만듭니다",
+                    "backstory": "최신 UI 프레임워크에 전문성을 갖춘 프론트엔드 전문가입니다",
+                    "tools": ["file_read", "file_write", "web_search"],
+                    "allow_delegation": False,
+                    "verbose": True,
+                }
+            )
 
         # Create API developer if it's an API project (Korean)
         if has_api:
-            agents.append({
-                "id": "api_developer",
-                "role": "API 개발자",
-                "goal": "RESTful API 엔드포인트를 설계하고 구현합니다",
-                "backstory": "API 설계 및 개발에 전문성을 갖춘 백엔드 전문가입니다",
-                "tools": ["code_interpreter", "web_search", "file_read"],
-                "allow_delegation": False,
-                "verbose": True
-            })
+            agents.append(
+                {
+                    "id": "api_developer",
+                    "role": "API 개발자",
+                    "goal": "RESTful API 엔드포인트를 설계하고 구현합니다",
+                    "backstory": "API 설계 및 개발에 전문성을 갖춘 백엔드 전문가입니다",
+                    "tools": ["code_interpreter", "web_search", "file_read"],
+                    "allow_delegation": False,
+                    "verbose": True,
+                }
+            )
 
         # Create QA agent (Korean)
-        agents.append({
-            "id": "qa_engineer",
-            "role": "QA 엔지니어",
-            "goal": "코드 품질과 테스트 커버리지를 보장합니다",
-            "backstory": "테스팅과 검증에 전문성을 갖춘 품질 보증 전문가입니다",
-            "tools": ["code_interpreter", "file_read"],
-            "allow_delegation": False,
-            "verbose": True
-        })
+        agents.append(
+            {
+                "id": "qa_engineer",
+                "role": "QA 엔지니어",
+                "goal": "코드 품질과 테스트 커버리지를 보장합니다",
+                "backstory": "테스팅과 검증에 전문성을 갖춘 품질 보증 전문가입니다",
+                "tools": ["code_interpreter", "file_read"],
+                "allow_delegation": False,
+                "verbose": True,
+            }
+        )
 
         # Create tasks from features
         for i, feature in enumerate(features):
             task_id = f"task_{feature.id.lower()}"
 
             # Determine which agent should handle this task
-            if has_ui and 'ui' in feature.name.lower():
+            if has_ui and "ui" in feature.name.lower():
                 agent_id = "ui_developer"
-            elif has_api and ('api' in feature.name.lower() or 'endpoint' in feature.name.lower()):
+            elif has_api and ("api" in feature.name.lower() or "endpoint" in feature.name.lower()):
                 agent_id = "api_developer"
             else:
                 agent_id = "senior_developer"
 
             # Create implementation task (Korean)
-            tasks.append({
-                "id": task_id,
-                "description": f"{feature.name} 구현: {feature.description}",
-                "expected_output": f"테스트를 포함한 완전히 기능하는 {feature.name}",
-                "agent": agent_id,
-                "context": [],
-                "async_execution": False,
-                "human_input": False
-            })
+            tasks.append(
+                {
+                    "id": task_id,
+                    "description": f"{feature.name} 구현: {feature.description}",
+                    "expected_output": f"테스트를 포함한 완전히 기능하는 {feature.name}",
+                    "agent": agent_id,
+                    "context": [],
+                    "async_execution": False,
+                    "human_input": False,
+                }
+            )
 
         # Add testing task (Korean)
-        tasks.append({
-            "id": "task_testing",
-            "description": f"모든 기능에 대한 포괄적인 테스트 작성: {', '.join(f.name for f in features[:3])}",
-            "expected_output": "높은 커버리지를 갖춘 완전한 테스트 스위트",
-            "agent": "qa_engineer",
-            "context": [f"task_{f.id.lower()}" for f in features],
-            "async_execution": False,
-            "human_input": False
-        })
+        tasks.append(
+            {
+                "id": "task_testing",
+                "description": f"모든 기능에 대한 포괄적인 테스트 작성: {', '.join(f.name for f in features[:3])}",
+                "expected_output": "높은 커버리지를 갖춘 완전한 테스트 스위트",
+                "agent": "qa_engineer",
+                "context": [f"task_{f.id.lower()}" for f in features],
+                "async_execution": False,
+                "human_input": False,
+            }
+        )
 
         # Add documentation task (Korean)
-        tasks.append({
-            "id": "task_documentation",
-            "description": f"{self.golden_data.project_name}에 대한 문서 작성",
-            "expected_output": "완전한 README 및 API 문서",
-            "agent": "senior_developer",
-            "context": ["task_testing"],
-            "async_execution": False,
-            "human_input": False
-        })
+        tasks.append(
+            {
+                "id": "task_documentation",
+                "description": f"{self.golden_data.project_name}에 대한 문서 작성",
+                "expected_output": "완전한 README 및 API 문서",
+                "agent": "senior_developer",
+                "context": ["task_testing"],
+                "async_execution": False,
+                "human_input": False,
+            }
+        )
 
         return {
             "agents": agents,
             "tasks": tasks,
             "workflow_type": "sequential",
-            "agent_collaboration_pattern": "계층적 협업 패턴"
+            "agent_collaboration_pattern": "계층적 협업 패턴",
         }
 
     def _enhance_with_golden_data(self, result: Dict[str, Any]) -> Dict[str, Any]:
@@ -501,7 +528,7 @@ class AgentDesignerAgent(BaseExpertAgent):
             output=result,
             agents_key="agents",
             tasks_key="tasks",
-            alignment_key="golden_data_coverage"
+            alignment_key="golden_data_coverage",
         )
 
     async def _refine_implementation(
@@ -509,7 +536,7 @@ class AgentDesignerAgent(BaseExpertAgent):
         output: Dict[str, Any],
         issues: List[ValidationIssue],
         context: Optional[Dict[str, Any]],
-        iteration: int
+        iteration: int,
     ) -> Dict[str, Any]:
         """Refine agent/task design based on validation feedback."""
 
@@ -520,18 +547,13 @@ class AgentDesignerAgent(BaseExpertAgent):
         tasks_dict = ObjectAccessor.to_dict_list(output.get("tasks", []))
 
         # Prepare current output with serialized agents/tasks
-        current_output = {
-            "agents": agents_dict,
-            "tasks": tasks_dict
-        }
+        current_output = {"agents": agents_dict, "tasks": tasks_dict}
 
         # Prepare Golden Data context if available
         golden_data_info = None
         if self.golden_data:
             features = self.golden_data.features if self.golden_data.features else []
-            golden_data_info = {
-                "features": [f"{f.id}: {f.name}" for f in features]
-            }
+            golden_data_info = {"features": [f"{f.id}: {f.name}" for f in features]}
 
         # Build refinement prompt using PromptBuilder
         prompt = PromptBuilder.build_refinement_prompt(
@@ -546,26 +568,27 @@ class AgentDesignerAgent(BaseExpertAgent):
                 "Ensure all tasks have assigned agents",
                 "Fix dependency cycles in task context",
                 "Verify tool selections are valid",
-                "Ensure Golden Data feature coverage"
+                "Ensure Golden Data feature coverage",
             ],
-            iteration=iteration
+            iteration=iteration,
         )
 
         response = await self.llm.ainvoke(
             messages=[{"role": "user", "content": prompt}],
             response_format=LLMConstants.RESPONSE_FORMAT_JSON,
-            temperature=LLMConstants.TEMPERATURE_BALANCED
+            temperature=LLMConstants.TEMPERATURE_BALANCED,
         )
 
         try:
             refined = ResponseParser.parse_structured_response(
                 response,
-                expected_fields=['agents', 'tasks', 'workflow_type', 'agent_collaboration_pattern'],
-                fallback_factory=lambda: output
+                expected_fields=["agents", "tasks", "workflow_type", "agent_collaboration_pattern"],
+                fallback_factory=lambda: output,
             )
 
             # Normalize IDs before converting to models
             from caas_framework.utils import TextNormalizer
+
             refined_agents = refined.get("agents", agents_dict)
             refined_tasks = refined.get("tasks", tasks_dict)
 
@@ -578,11 +601,13 @@ class AgentDesignerAgent(BaseExpertAgent):
             result = {
                 "agents": agents,
                 "tasks": tasks,
-                "workflow_type": refined.get("workflow_type", output.get("workflow_type", "sequential")),
+                "workflow_type": refined.get(
+                    "workflow_type", output.get("workflow_type", "sequential")
+                ),
                 "agent_collaboration_pattern": refined.get(
                     "agent_collaboration_pattern",
-                    output.get("agent_collaboration_pattern", "hierarchical")
-                )
+                    output.get("agent_collaboration_pattern", "hierarchical"),
+                ),
             }
 
             # Preserve metadata

@@ -5,14 +5,15 @@ Data Transformer
 """
 
 from typing import Any, Dict, List, Optional, Type, TypeVar
+
 from pydantic import BaseModel, ValidationError
 
-from caas_framework.utils.logger import get_logger
 from caas_framework.utils.json_helper import sanitize_id
+from caas_framework.utils.logger import get_logger
 
 logger = get_logger("utils.data_transformer")
 
-T = TypeVar('T', bound=BaseModel)
+T = TypeVar("T", bound=BaseModel)
 
 
 class DataTransformer:
@@ -20,9 +21,7 @@ class DataTransformer:
 
     @staticmethod
     def dict_to_model(
-        data: Dict[str, Any],
-        model_class: Type[T],
-        strict: bool = True
+        data: Dict[str, Any], model_class: Type[T], strict: bool = True
     ) -> Optional[T]:
         """
         Dict를 Pydantic 모델로 변환
@@ -54,7 +53,7 @@ class DataTransformer:
         model: BaseModel,
         exclude_none: bool = False,
         exclude_unset: bool = False,
-        by_alias: bool = False
+        by_alias: bool = False,
     ) -> Dict[str, Any]:
         """
         Pydantic 모델을 Dict로 변환
@@ -82,10 +81,7 @@ class DataTransformer:
             raise
 
     @staticmethod
-    def models_to_dicts(
-        models: List[BaseModel],
-        **kwargs
-    ) -> List[Dict[str, Any]]:
+    def models_to_dicts(models: List[BaseModel], **kwargs) -> List[Dict[str, Any]]:
         """
         Pydantic 모델 리스트를 Dict 리스트로 변환
 
@@ -100,9 +96,7 @@ class DataTransformer:
 
     @staticmethod
     def normalize_id(
-        raw_id: str,
-        prefix: Optional[str] = None,
-        suffix: Optional[str] = None
+        raw_id: str, prefix: Optional[str] = None, suffix: Optional[str] = None
     ) -> str:
         """
         ID 정규화 (snake_case + 접두사/접미사)
@@ -133,7 +127,7 @@ class DataTransformer:
         base: Dict[str, Any],
         override: Dict[str, Any],
         deep: bool = True,
-        list_strategy: str = "override"
+        list_strategy: str = "override",
     ) -> Dict[str, Any]:
         """
         딕셔너리 병합
@@ -185,9 +179,7 @@ class DataTransformer:
 
     @staticmethod
     def extract_fields(
-        data: Dict[str, Any],
-        fields: List[str],
-        strict: bool = False
+        data: Dict[str, Any], fields: List[str], strict: bool = False
     ) -> Dict[str, Any]:
         """
         딕셔너리에서 특정 필드만 추출
@@ -214,10 +206,7 @@ class DataTransformer:
         return result
 
     @staticmethod
-    def rename_fields(
-        data: Dict[str, Any],
-        mapping: Dict[str, str]
-    ) -> Dict[str, Any]:
+    def rename_fields(data: Dict[str, Any], mapping: Dict[str, str]) -> Dict[str, Any]:
         """
         딕셔너리 필드 이름 변경
 
@@ -237,10 +226,7 @@ class DataTransformer:
         return result
 
     @staticmethod
-    def transform_values(
-        data: Dict[str, Any],
-        transformers: Dict[str, callable]
-    ) -> Dict[str, Any]:
+    def transform_values(data: Dict[str, Any], transformers: Dict[str, callable]) -> Dict[str, Any]:
         """
         딕셔너리 값 변환
 
@@ -264,9 +250,7 @@ class DataTransformer:
 
     @staticmethod
     def flatten_dict(
-        data: Dict[str, Any],
-        separator: str = ".",
-        prefix: str = ""
+        data: Dict[str, Any], separator: str = ".", prefix: str = ""
     ) -> Dict[str, Any]:
         """
         중첩된 딕셔너리를 평탄화
@@ -289,19 +273,14 @@ class DataTransformer:
 
             if isinstance(value, dict):
                 # 재귀적 평탄화
-                result.update(
-                    DataTransformer.flatten_dict(value, separator, new_key)
-                )
+                result.update(DataTransformer.flatten_dict(value, separator, new_key))
             else:
                 result[new_key] = value
 
         return result
 
     @staticmethod
-    def unflatten_dict(
-        data: Dict[str, Any],
-        separator: str = "."
-    ) -> Dict[str, Any]:
+    def unflatten_dict(data: Dict[str, Any], separator: str = ".") -> Dict[str, Any]:
         """
         평탄화된 딕셔너리를 중첩 구조로 복원
 
@@ -331,10 +310,7 @@ class DataTransformer:
         return result
 
     @staticmethod
-    def filter_dict(
-        data: Dict[str, Any],
-        predicate: callable
-    ) -> Dict[str, Any]:
+    def filter_dict(data: Dict[str, Any], predicate: callable) -> Dict[str, Any]:
         """
         조건에 맞는 항목만 필터링
 
@@ -345,18 +321,14 @@ class DataTransformer:
         Returns:
             필터링된 딕셔너리
         """
-        return {
-            key: value
-            for key, value in data.items()
-            if predicate(key, value)
-        }
+        return {key: value for key, value in data.items() if predicate(key, value)}
 
     @staticmethod
     def clean_dict(
         data: Dict[str, Any],
         remove_none: bool = True,
         remove_empty: bool = True,
-        remove_whitespace: bool = False
+        remove_whitespace: bool = False,
     ) -> Dict[str, Any]:
         """
         딕셔너리 정제 (None, 빈 값 제거)

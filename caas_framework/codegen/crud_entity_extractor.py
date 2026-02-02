@@ -5,17 +5,20 @@ Task description과 domain classification에서 엔티티 정보를 추출합니
 """
 
 import re
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional
+
 from pydantic import BaseModel
-from caas_framework.utils.logger import get_logger, LoggerMixin
-from caas_app.core.bmad.analyzer import AnalysisResult
-from caas_app.core.bmad.models import TaskMapping
+
+from caas_framework.bmad.code_analyzer import AnalysisResult
+from caas_framework.bmad.models import TaskMapping
+from caas_framework.utils.logger import LoggerMixin, get_logger
 
 logger = get_logger("codegen.crud_extractor")
 
 
 class FieldDefinition(BaseModel):
     """필드 정의"""
+
     name: str
     type: str  # Integer, String, Text, Boolean, DateTime, Float, Enum, ForeignKey
     primary_key: bool = False
@@ -33,6 +36,7 @@ class FieldDefinition(BaseModel):
 
 class EntityDefinition(BaseModel):
     """엔티티 정의"""
+
     name: str
     table_name: str
     description: Optional[str] = None
@@ -60,14 +64,12 @@ class CRUDEntityExtractor(LoggerMixin):
         "url": ("String", False),
         "address": ("String", True),  # Nullable
         "phone": ("String", True),
-
         # Text 타입 (긴 텍스트)
         "description": ("Text", True),
         "content": ("Text", True),
         "body": ("Text", True),
         "note": ("Text", True),
         "comment": ("Text", True),
-
         # Integer 타입
         "priority": ("Integer", True),
         "age": ("Integer", True),
@@ -75,7 +77,6 @@ class CRUDEntityExtractor(LoggerMixin):
         "quantity": ("Integer", False),
         "amount": ("Integer", False),
         "id": ("Integer", False),
-
         # DateTime 타입
         "date": ("DateTime", True),
         "due_date": ("DateTime", True),
@@ -84,20 +85,17 @@ class CRUDEntityExtractor(LoggerMixin):
         "updated_at": ("DateTime", False),
         "deleted_at": ("DateTime", True),
         "timestamp": ("DateTime", False),
-
         # Boolean 타입
         "is_active": ("Boolean", False),
         "is_completed": ("Boolean", False),
         "is_deleted": ("Boolean", False),
         "enabled": ("Boolean", False),
         "completed": ("Boolean", False),
-
         # Float 타입
         "price": ("Float", False),
         "rating": ("Float", True),
         "score": ("Float", True),
         "percentage": ("Float", True),
-
         # Enum 타입 (상태)
         "status": ("Enum", False),
         "state": ("Enum", False),
@@ -115,9 +113,7 @@ class CRUDEntityExtractor(LoggerMixin):
     }
 
     def extract_entities(
-        self,
-        analysis_result: AnalysisResult,
-        tasks: List[TaskMapping]
+        self, analysis_result: AnalysisResult, tasks: List[TaskMapping]
     ) -> List[EntityDefinition]:
         """
         분석 결과에서 엔티티 추출
@@ -149,7 +145,7 @@ class CRUDEntityExtractor(LoggerMixin):
                 name=entity_name,
                 table_name=self._to_table_name(entity_name),
                 description=f"{entity_name} model",
-                fields=[]
+                fields=[],
             )
 
             # 3. 필드 추출
@@ -163,7 +159,8 @@ class CRUDEntityExtractor(LoggerMixin):
 
             # 6. Filterable 필드 결정 (status, priority, type 등)
             entity.filterable_fields = [
-                f for f in entity.fields
+                f
+                for f in entity.fields
                 if f.name in ["status", "priority", "type", "category", "role"]
             ]
 
@@ -175,11 +172,7 @@ class CRUDEntityExtractor(LoggerMixin):
 
         return entities
 
-    def _extract_fields(
-        self,
-        entity_name: str,
-        tasks: List[TaskMapping]
-    ) -> List[FieldDefinition]:
+    def _extract_fields(self, entity_name: str, tasks: List[TaskMapping]) -> List[FieldDefinition]:
         """
         Task description에서 필드 추출
 
@@ -265,7 +258,7 @@ class CRUDEntityExtractor(LoggerMixin):
             optional=nullable,  # Create schema에서 optional
             python_type=python_type,
             enum_values=enum_values,
-            description=f"{field_name} field"
+            description=f"{field_name} field",
         )
 
         # 인덱스 필드 (자주 조회되는 필드)
@@ -303,7 +296,7 @@ class CRUDEntityExtractor(LoggerMixin):
                 auto_generated=True,
                 index=True,
                 python_type="int",
-                description="Primary key"
+                description="Primary key",
             )
             fields.insert(0, id_field)
 
@@ -315,7 +308,7 @@ class CRUDEntityExtractor(LoggerMixin):
                 auto_generated=True,
                 default="now",
                 python_type="datetime",
-                description="Creation timestamp"
+                description="Creation timestamp",
             )
             fields.append(created_at_field)
 
@@ -328,7 +321,7 @@ class CRUDEntityExtractor(LoggerMixin):
                 default="now",
                 nullable=True,
                 python_type="datetime",
-                description="Last update timestamp"
+                description="Last update timestamp",
             )
             fields.append(updated_at_field)
 
@@ -345,10 +338,10 @@ class CRUDEntityExtractor(LoggerMixin):
             테이블 이름 (예: "tasks", "user_profiles")
         """
         # CamelCase → snake_case
-        table_name = re.sub(r'(?<!^)(?=[A-Z])', '_', entity_name).lower()
+        table_name = re.sub(r"(?<!^)(?=[A-Z])", "_", entity_name).lower()
 
         # 복수형 (간단한 규칙)
-        if not table_name.endswith('s'):
-            table_name += 's'
+        if not table_name.endswith("s"):
+            table_name += "s"
 
         return table_name

@@ -4,13 +4,14 @@ Knowledge Graph Cypher Queries
 Neo4j용 Cypher 쿼리 모음입니다.
 """
 
-from typing import List, Optional
 from dataclasses import dataclass
+from typing import List, Optional
 
 
 @dataclass
 class QueryTemplate:
     """쿼리 템플릿"""
+
     name: str
     description: str
     query: str
@@ -360,8 +361,17 @@ CREATE_PATTERN_WITH_TEMPLATE = QueryTemplate(
     CREATE (p)-[:HAS_TEMPLATE]->(ct)
     RETURN p, ct
     """,
-    parameters=["pattern_id", "name", "description", "use_case", "version",
-                "template_id", "language", "code", "variables"],
+    parameters=[
+        "pattern_id",
+        "name",
+        "description",
+        "use_case",
+        "version",
+        "template_id",
+        "language",
+        "code",
+        "variables",
+    ],
 )
 
 UPDATE_PATTERN_VERSION = QueryTemplate(

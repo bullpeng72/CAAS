@@ -5,16 +5,17 @@ Track quality metrics and trends over time.
 """
 
 import logging
-from typing import Dict, List, Optional, Any
+import statistics
+from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from collections import defaultdict
-import statistics
+from typing import Any, Dict, List, Optional
 
 
 @dataclass
 class QualityMetric:
     """Quality metric measurement"""
+
     timestamp: datetime
     phase: str
     metric_name: str  # e.g., "overall", "clarity", "completeness"
@@ -27,6 +28,7 @@ class QualityMetric:
 @dataclass
 class QualityTrend:
     """Quality trend analysis"""
+
     metric_name: str
     current_avg: float
     previous_avg: float
@@ -58,7 +60,7 @@ class QualityTracker:
         score: float,
         approved: bool,
         issues_count: int = 0,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
     ):
         """
         Record quality measurement.
@@ -78,7 +80,7 @@ class QualityTracker:
             score=score,
             approved=approved,
             issues_count=issues_count,
-            metadata=metadata or {}
+            metadata=metadata or {},
         )
 
         self.metrics.append(metric)
@@ -89,10 +91,7 @@ class QualityTracker:
         )
 
     def get_current_avg(
-        self,
-        phase: Optional[str] = None,
-        metric_name: Optional[str] = None,
-        days: int = 7
+        self, phase: Optional[str] = None, metric_name: Optional[str] = None, days: int = 7
     ) -> float:
         """
         Get current average score.
@@ -106,11 +105,7 @@ class QualityTracker:
             Average score
         """
         since = datetime.now() - timedelta(days=days)
-        metrics = self._filter_metrics(
-            phase=phase,
-            metric_name=metric_name,
-            since=since
-        )
+        metrics = self._filter_metrics(phase=phase, metric_name=metric_name, since=since)
 
         if not metrics:
             return 0.0
@@ -118,10 +113,7 @@ class QualityTracker:
         return statistics.mean(m.score for m in metrics)
 
     def get_trend(
-        self,
-        metric_name: str = "overall",
-        current_days: int = 7,
-        previous_days: int = 7
+        self, metric_name: str = "overall", current_days: int = 7, previous_days: int = 7
     ) -> QualityTrend:
         """
         Get quality trend.
@@ -136,22 +128,19 @@ class QualityTracker:
         """
         # Current period
         current_since = datetime.now() - timedelta(days=current_days)
-        current_metrics = self._filter_metrics(
-            metric_name=metric_name,
-            since=current_since
-        )
+        current_metrics = self._filter_metrics(metric_name=metric_name, since=current_since)
 
         # Previous period
         previous_until = current_since
         previous_since = previous_until - timedelta(days=previous_days)
         previous_metrics = self._filter_metrics(
-            metric_name=metric_name,
-            since=previous_since,
-            until=previous_until
+            metric_name=metric_name, since=previous_since, until=previous_until
         )
 
         current_avg = statistics.mean(m.score for m in current_metrics) if current_metrics else 0.0
-        previous_avg = statistics.mean(m.score for m in previous_metrics) if previous_metrics else 0.0
+        previous_avg = (
+            statistics.mean(m.score for m in previous_metrics) if previous_metrics else 0.0
+        )
 
         # Calculate change
         if previous_avg > 0:
@@ -173,14 +162,10 @@ class QualityTracker:
             previous_avg=previous_avg,
             change_percent=change_percent,
             trend=trend,
-            measurements_count=len(current_metrics)
+            measurements_count=len(current_metrics),
         )
 
-    def get_approval_rate(
-        self,
-        phase: Optional[str] = None,
-        days: int = 7
-    ) -> float:
+    def get_approval_rate(self, phase: Optional[str] = None, days: int = 7) -> float:
         """
         Get approval rate.
 
@@ -214,12 +199,7 @@ class QualityTracker:
         metrics = self._filter_metrics(since=since)
 
         if not metrics:
-            return {
-                "measurements": 0,
-                "avg_score": 0.0,
-                "approval_rate": 0.0,
-                "by_phase": {}
-            }
+            return {"measurements": 0, "avg_score": 0.0, "approval_rate": 0.0, "by_phase": {}}
 
         # Overall stats
         avg_score = statistics.mean(m.score for m in metrics)
@@ -227,7 +207,7 @@ class QualityTracker:
 
         # By phase
         by_phase = defaultdict(lambda: {"count": 0, "avg_score": 0.0, "approved": 0})
-        
+
         for metric in metrics:
             by_phase[metric.phase]["count"] += 1
             by_phase[metric.phase]["avg_score"] += metric.score
@@ -238,13 +218,15 @@ class QualityTracker:
         for phase_stats in by_phase.values():
             if phase_stats["count"] > 0:
                 phase_stats["avg_score"] /= phase_stats["count"]
-                phase_stats["approval_rate"] = (phase_stats["approved"] / phase_stats["count"]) * 100
+                phase_stats["approval_rate"] = (
+                    phase_stats["approved"] / phase_stats["count"]
+                ) * 100
 
         return {
             "measurements": len(metrics),
             "avg_score": avg_score,
             "approval_rate": approval_rate,
-            "by_phase": dict(by_phase)
+            "by_phase": dict(by_phase),
         }
 
     def _filter_metrics(
@@ -252,7 +234,7 @@ class QualityTracker:
         phase: Optional[str] = None,
         metric_name: Optional[str] = None,
         since: Optional[datetime] = None,
-        until: Optional[datetime] = None
+        until: Optional[datetime] = None,
     ) -> List[QualityMetric]:
         """Filter metrics by criteria"""
         metrics = self.metrics

@@ -4,19 +4,20 @@ CAAS Crew Assembler
 CrewAI Crew를 조립하고 실행 코드를 생성합니다.
 """
 
-from typing import Any, Dict, List, Optional
-from datetime import datetime
-
-from pydantic import BaseModel
-from jinja2 import Environment, FileSystemLoader
-
 import logging
+from datetime import datetime
 from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+from jinja2 import Environment, FileSystemLoader
+from pydantic import BaseModel
+
 PROJECT_ROOT = Path.cwd()
-from caas_framework.sdd import CrewAISpec
 from caas_framework.factory.agent_factory import AgentFactory
-from caas_framework.factory.task_factory import TaskFactory, TaskDefinition
+from caas_framework.factory.task_factory import TaskDefinition, TaskFactory
 from caas_framework.models import DomainType
+from caas_framework.sdd import CrewAISpec
+
 # Lazy imports to avoid circular dependency
 # from caas_app.codegen.domain_strategy import DomainCodeStrategy
 # from caas_app.codegen.crud_entity_extractor import CRUDEntityExtractor
@@ -26,6 +27,7 @@ logger = logging.getLogger("caas_framework.factory.crew")
 
 class CrewDefinition(BaseModel):
     """Crew 정의 (코드 생성용)"""
+
     name: str
     description: str
     process: str = "sequential"
@@ -39,17 +41,18 @@ class CrewDefinition(BaseModel):
 class CrewAssembler:
     """
     Crew 어셈블러
-    
+
     에이전트와 태스크를 조합하여 CrewAI Crew를 생성합니다.
     """
-    
+
     def __init__(self):
         self.logger = logger
         self.agent_factory = AgentFactory()
         self.task_factory = TaskFactory()
 
         # Lazy import to avoid circular dependency
-        from caas_app.codegen.crud_entity_extractor import CRUDEntityExtractor
+        from caas_framework.codegen.crud_entity_extractor import CRUDEntityExtractor
+
         self.crud_extractor = CRUDEntityExtractor()
 
         # Initialize Jinja2 template environment
@@ -83,7 +86,7 @@ class CrewAssembler:
             # Enum 값이 아니면 None 반환
             self.logger.debug(f"도메인 타입 매핑 실패: '{domain_str}' -> '{normalized}'")
             return None
-    
+
     def _infer_inputs_from_spec(self, spec: CrewAISpec) -> List[Dict[str, Any]]:
         """
         P0 FIX: Spec에서 입력 필드를 추론합니다.
@@ -105,7 +108,12 @@ class CrewAssembler:
             "topic": ["topic", "subject", "주제"],
             "text": ["text", "content", "내용", "텍스트"],
             "query": ["query", "search", "검색"],
-            "keyword": ["keyword", "키워드", "키워드를", "키워드를 입력"],  # P0 FIX: Add keyword pattern
+            "keyword": [
+                "keyword",
+                "키워드",
+                "키워드를",
+                "키워드를 입력",
+            ],  # P0 FIX: Add keyword pattern
             "data": ["data", "데이터"],
             "file": ["file", "파일"],
         }
@@ -144,21 +152,18 @@ class CrewAssembler:
             else:
                 prompt = f"Enter {input_name}"
 
-            inputs.append({
-                "name": input_name,
-                "prompt": prompt,
-                "required": True,
-                "min_length": 1
-            })
+            inputs.append({"name": input_name, "prompt": prompt, "required": True, "min_length": 1})
 
         # If no inputs detected, add a generic user_input
         if not inputs:
-            inputs.append({
-                "name": "user_input",
-                "prompt": "Enter your input",
-                "required": False,
-                "min_length": 0
-            })
+            inputs.append(
+                {
+                    "name": "user_input",
+                    "prompt": "Enter your input",
+                    "required": False,
+                    "min_length": 0,
+                }
+            )
 
         self.logger.info(f"Inferred {len(inputs)} input field(s): {[i['name'] for i in inputs]}")
 
@@ -187,25 +192,25 @@ class CrewAssembler:
             agent_ids=[a.id for a in spec.agents],
             task_ids=[t.id for t in spec.tasks],
         )
-    
+
     def create_crew_code(self, definition: CrewDefinition) -> str:
         """
         Crew 정의를 Python 코드로 변환합니다.
-        
+
         Args:
             definition: Crew 정의
-        
+
         Returns:
             str: Python 코드 문자열
         """
         agents_str = ", ".join(definition.agent_ids)
         tasks_str = ", ".join(definition.task_ids)
-        
+
         max_rpm_str = ""
         if definition.max_rpm:
             max_rpm_str = f"\n    max_rpm={definition.max_rpm},"
-        
-        code = f'''
+
+        code = f"""
 crew = Crew(
     agents=[{agents_str}],
     tasks=[{tasks_str}],
@@ -213,9 +218,9 @@ crew = Crew(
     verbose={definition.verbose},
     memory={definition.memory},{max_rpm_str}
 )
-'''
+"""
         return code.strip()
-    
+
     def create_crew_module_code(self, spec: CrewAISpec) -> str:
         """
         재사용 가능한 crew 모듈 코드를 생성합니다.
@@ -371,16 +376,20 @@ if __name__ == "__main__":
             "project": {
                 "name": spec.project.name,
                 "description": spec.project.description,
-                "domain": spec.project.domain
+                "domain": spec.project.domain,
             },
             "crew": {
-                "process": spec.crew.process.upper() if hasattr(spec.crew.process, 'upper') else spec.crew.process,
+                "process": (
+                    spec.crew.process.upper()
+                    if hasattr(spec.crew.process, "upper")
+                    else spec.crew.process
+                ),
                 "verbose": spec.crew.verbose,
                 "memory": spec.crew.memory,
-                "max_rpm": spec.crew.max_rpm
+                "max_rpm": spec.crew.max_rpm,
             },
             "inputs": inputs,  # P0 FIX: Add inferred inputs
-            "generated_at": datetime.now().isoformat()
+            "generated_at": datetime.now().isoformat(),
         }
 
         return template.render(**context)
@@ -416,35 +425,31 @@ if __name__ == "__main__":
                 "text": "Enter the text to analyze",
                 "query": "Enter your search query",
                 "data": "Enter the data to process",
-                "file": "Enter the file path"
+                "file": "Enter the file path",
             }
             help_text = help_text_map.get(input_name, f"Enter {label.lower()}")
 
-            ui_inputs.append({
-                "name": input_name,
-                "label": label,
-                "help": help_text,
-                "required": inp.get("required", True),
-                "default": ""
-            })
+            ui_inputs.append(
+                {
+                    "name": input_name,
+                    "label": label,
+                    "help": help_text,
+                    "required": inp.get("required", True),
+                    "default": "",
+                }
+            )
 
         # Prepare context
         context = {
             "project": {
                 "name": spec.project.name,
                 "description": spec.project.description,
-                "domain": spec.project.domain
+                "domain": spec.project.domain,
             },
-            "agents": [
-                {"role": agent.role, "id": agent.id}
-                for agent in spec.agents
-            ],
-            "tasks": [
-                {"id": task.id, "description": task.description}
-                for task in spec.tasks
-            ],
+            "agents": [{"role": agent.role, "id": agent.id} for agent in spec.agents],
+            "tasks": [{"id": task.id, "description": task.description} for task in spec.tasks],
             "inputs": ui_inputs,  # P1 FIX: Use inferred inputs
-            "generated_at": datetime.now().isoformat()
+            "generated_at": datetime.now().isoformat(),
         }
 
         return template.render(**context)
@@ -454,7 +459,7 @@ if __name__ == "__main__":
         spec: CrewAISpec,
         include_tests: bool = False,
         use_error_handling: bool = True,
-        project_template: str = "agent_only"
+        project_template: str = "agent_only",
     ) -> Dict[str, str]:
         """
         전체 프로젝트 코드를 생성합니다.
@@ -471,7 +476,7 @@ if __name__ == "__main__":
         self.logger.info(f"프로젝트 코드 생성: {spec.project.name} (템플릿: {project_template})")
 
         # Lazy import to avoid circular dependency
-        from caas_app.codegen.domain_strategy import DomainCodeStrategy
+        from caas_framework.codegen.domain_strategy import DomainCodeStrategy
 
         # 도메인 타입 파싱 및 전략 결정
         domain_type = self._parse_domain_type(spec.project.domain)
@@ -486,27 +491,20 @@ if __name__ == "__main__":
             )
         else:
             self.logger.warning(
-                f"도메인 타입 인식 실패: '{spec.project.domain}'. "
-                f"기본 agent_only 전략 사용."
+                f"도메인 타입 인식 실패: '{spec.project.domain}'. " f"기본 agent_only 전략 사용."
             )
 
         # 프로젝트 정보 준비
         project_info = {
             "name": spec.project.name,
             "description": spec.project.description,
-            "domain": spec.project.domain
+            "domain": spec.project.domain,
         }
 
         # 에이전트/태스크 정의 생성
-        agent_definitions = [
-            self.agent_factory.create_definition(agent)
-            for agent in spec.agents
-        ]
+        agent_definitions = [self.agent_factory.create_definition(agent) for agent in spec.agents]
 
-        task_definitions = [
-            self.task_factory.create_definition(task)
-            for task in spec.tasks
-        ]
+        task_definitions = [self.task_factory.create_definition(task) for task in spec.tasks]
 
         # Agent context for tasks (for import statements)
         agent_contexts = [{"id": agent.id} for agent in spec.agents]
@@ -516,10 +514,12 @@ if __name__ == "__main__":
             "requirements.txt": self._create_requirements(
                 include_tests=include_tests,
                 template=project_template,
-                strategy_config=strategy_config
+                strategy_config=strategy_config,
             ),
             ".env.example": self._create_env_example(),
-            "README.md": self._create_readme(spec, template=project_template, strategy_config=strategy_config),
+            "README.md": self._create_readme(
+                spec, template=project_template, strategy_config=strategy_config
+            ),
         }
 
         # 전략에 따라 Agent/Task 파일 생성
@@ -527,15 +527,13 @@ if __name__ == "__main__":
             # Agent 필요: agents.py, tasks.py, crew.py 생성
             self.logger.info("Agent 기반 코드 생성")
             files["agents.py"] = self.agent_factory.create_all_agents_code(
-                agent_definitions,
-                project_info=project_info,
-                use_error_handling=use_error_handling
+                agent_definitions, project_info=project_info, use_error_handling=use_error_handling
             )
             files["tasks.py"] = self.task_factory.create_all_tasks_code(
                 task_definitions,
                 project_info=project_info,
                 agent_definitions=agent_contexts,
-                use_error_handling=use_error_handling
+                use_error_handling=use_error_handling,
             )
             files["crew.py"] = self.create_crew_module_code(spec)
         else:
@@ -568,7 +566,11 @@ if __name__ == "__main__":
         # 템플릿 타입별 추가 파일
         if project_template == "agent_only":
             # CLI 전용 프로젝트
-            files["main.py"] = self._create_main_with_error_handling(spec) if use_error_handling else self.create_main_code(spec)
+            files["main.py"] = (
+                self._create_main_with_error_handling(spec)
+                if use_error_handling
+                else self.create_main_code(spec)
+            )
 
         elif project_template == "agent_with_streamlit":
             # Streamlit UI + Agents
@@ -577,12 +579,22 @@ if __name__ == "__main__":
 
         elif project_template in ["full_stack", "chatbot"]:
             # 향후 확장을 위한 플레이스홀더
-            files["main.py"] = self._create_main_with_error_handling(spec) if use_error_handling else self.create_main_code(spec)
-            self.logger.warning(f"{project_template} 템플릿은 아직 완전히 구현되지 않았습니다. 기본 구조만 생성됩니다.")
+            files["main.py"] = (
+                self._create_main_with_error_handling(spec)
+                if use_error_handling
+                else self.create_main_code(spec)
+            )
+            self.logger.warning(
+                f"{project_template} 템플릿은 아직 완전히 구현되지 않았습니다. 기본 구조만 생성됩니다."
+            )
 
         else:
             # 기본값: agent_only
-            files["main.py"] = self._create_main_with_error_handling(spec) if use_error_handling else self.create_main_code(spec)
+            files["main.py"] = (
+                self._create_main_with_error_handling(spec)
+                if use_error_handling
+                else self.create_main_code(spec)
+            )
 
         # 테스트 파일 추가
         if include_tests:
@@ -591,12 +603,9 @@ if __name__ == "__main__":
 
         self.logger.info(f"생성 완료: {len(files)}개 파일")
         return files
-    
+
     def _create_requirements(
-        self,
-        include_tests: bool = False,
-        template: str = "agent_only",
-        strategy_config=None
+        self, include_tests: bool = False, template: str = "agent_only", strategy_config=None
     ) -> str:
         """requirements.txt 생성"""
         # 기본 의존성
@@ -648,7 +657,7 @@ pytest-asyncio>=0.21.0
 pytest-mock>=3.11.0
 """
         return base_requirements
-    
+
     def _create_env_example(self) -> str:
         """
         .env.example 파일 생성 (명확한 설명 포함)
@@ -694,12 +703,9 @@ YOUTUBE_API_KEY=your-youtube-api-key-here
 OTEL_SDK_DISABLED=true
 CREWAI_TELEMETRY_OPT_OUT=true
 """
-    
+
     def _create_readme(
-        self,
-        spec: CrewAISpec,
-        template: str = "agent_only",
-        strategy_config=None
+        self, spec: CrewAISpec, template: str = "agent_only", strategy_config=None
     ) -> str:
         """
         README.md 생성 (템플릿 기반)
@@ -715,22 +721,30 @@ CREWAI_TELEMETRY_OPT_OUT=true
         has_github_search = "github_search" in all_tools or "github" in all_tools
 
         # Agent 정보 준비
-        agents = [
-            {
-                "role": agent.role,
-                "goal": agent.goal,
-            }
-            for agent in spec.agents
-        ] if (strategy_config is None or strategy_config.requires_agents) else []
+        agents = (
+            [
+                {
+                    "role": agent.role,
+                    "goal": agent.goal,
+                }
+                for agent in spec.agents
+            ]
+            if (strategy_config is None or strategy_config.requires_agents)
+            else []
+        )
 
         # Task 정보 준비
-        tasks = [
-            {
-                "name": task.id,
-                "description": task.description,
-            }
-            for task in spec.tasks
-        ] if (strategy_config is None or strategy_config.requires_agents) else []
+        tasks = (
+            [
+                {
+                    "name": task.id,
+                    "description": task.description,
+                }
+                for task in spec.tasks
+            ]
+            if (strategy_config is None or strategy_config.requires_agents)
+            else []
+        )
 
         # 템플릿 렌더링
         try:
@@ -757,10 +771,7 @@ CREWAI_TELEMETRY_OPT_OUT=true
             return self._create_readme_fallback(spec, template, strategy_config)
 
     def _create_readme_fallback(
-        self,
-        spec: CrewAISpec,
-        template: str = "agent_only",
-        strategy_config=None
+        self, spec: CrewAISpec, template: str = "agent_only", strategy_config=None
     ) -> str:
         """
         README.md 폴백 생성 (템플릿 실패 시)
@@ -770,10 +781,7 @@ CREWAI_TELEMETRY_OPT_OUT=true
         # Agent 정보 (Agent 기반인 경우만)
         agents_section = ""
         if strategy_config is None or strategy_config.requires_agents:
-            agents_list = "\n".join([
-                f"- **{a.role}**: {a.goal}"
-                for a in spec.agents
-            ])
+            agents_list = "\n".join([f"- **{a.role}**: {a.goal}" for a in spec.agents])
             agents_section = f"""## Agents
 
 {agents_list}
@@ -782,10 +790,7 @@ CREWAI_TELEMETRY_OPT_OUT=true
         # Task 정보 (Agent 기반인 경우만)
         tasks_section = ""
         if strategy_config is None or strategy_config.requires_agents:
-            tasks_list = "\n".join([
-                f"- **{t.id}**: {t.description[:80]}..."
-                for t in spec.tasks
-            ])
+            tasks_list = "\n".join([f"- **{t.id}**: {t.description[:80]}..." for t in spec.tasks])
             tasks_section = f"""## Tasks
 
 {tasks_list}
@@ -870,9 +875,7 @@ Process Type: **{spec.crew.process}**
     # ========================================================================
 
     def _extract_entities_from_spec(
-        self,
-        spec: CrewAISpec,
-        task_definitions: List[TaskDefinition]
+        self, spec: CrewAISpec, task_definitions: List[TaskDefinition]
     ) -> List:
         """
         Spec에서 엔티티 추출
@@ -884,13 +887,15 @@ Process Type: **{spec.crew.process}**
         Returns:
             엔티티 정의 목록
         """
-        from caas_app.codegen.crud_entity_extractor import EntityDefinition
+        from caas_framework.codegen.crud_entity_extractor import EntityDefinition
 
         # 1. Core entities from spec
         core_entities = spec.project.core_entities or []
 
         if not core_entities:
-            self.logger.warning("spec.project.core_entities가 없습니다. Task description에서 추론 시도")
+            self.logger.warning(
+                "spec.project.core_entities가 없습니다. Task description에서 추론 시도"
+            )
             # Fallback: task description에서 추론
             # 간단한 추론: "Task" 같은 단어 찾기
             for task in task_definitions:
@@ -911,7 +916,7 @@ Process Type: **{spec.crew.process}**
                 name=entity_name,
                 table_name=self._to_table_name(entity_name),
                 description=f"{entity_name} model",
-                fields=[]
+                fields=[],
             )
 
             # 필드 추출 (task description에서)
@@ -925,7 +930,8 @@ Process Type: **{spec.crew.process}**
 
             # Filterable 필드
             entity.filterable_fields = [
-                f for f in entity.fields
+                f
+                for f in entity.fields
                 if f.name in ["status", "priority", "type", "category", "role"]
             ]
 
@@ -934,13 +940,12 @@ Process Type: **{spec.crew.process}**
         return entities
 
     def _extract_fields_from_tasks(
-        self,
-        entity_name: str,
-        task_definitions: List[TaskDefinition]
+        self, entity_name: str, task_definitions: List[TaskDefinition]
     ) -> List:
         """Task description에서 필드 추출"""
-        from caas_app.codegen.crud_entity_extractor import FieldDefinition
         import re
+
+        from caas_framework.codegen.crud_entity_extractor import FieldDefinition
 
         fields = {}  # field_name -> FieldDefinition
 
@@ -970,7 +975,7 @@ Process Type: **{spec.crew.process}**
                 field_names = [f.strip() for f in match.split(",")]
                 for field_name in field_names:
                     # Remove leading conjunctions (and, or)
-                    field_name = re.sub(r'^(and|or)\s+', '', field_name).strip()
+                    field_name = re.sub(r"^(and|or)\s+", "", field_name).strip()
                     if field_name and field_name not in fields:
                         field_type, nullable = TYPE_KEYWORDS.get(field_name, ("String", True))
                         fields[field_name] = FieldDefinition(
@@ -979,8 +984,10 @@ Process Type: **{spec.crew.process}**
                             nullable=nullable,
                             optional=nullable,
                             python_type=self._get_python_type(field_type),
-                            enum_values=self._get_enum_values(field_name) if field_type == "Enum" else None,
-                            description=f"{field_name} field"
+                            enum_values=(
+                                self._get_enum_values(field_name) if field_type == "Enum" else None
+                            ),
+                            description=f"{field_name} field",
                         )
 
             # 패턴 2: "filtering by status, priority, ..."
@@ -990,7 +997,7 @@ Process Type: **{spec.crew.process}**
                 field_names = [f.strip() for f in match.split(",")]
                 for field_name in field_names:
                     # Remove leading conjunctions (and, or)
-                    field_name = re.sub(r'^(and|or)\s+', '', field_name).strip()
+                    field_name = re.sub(r"^(and|or)\s+", "", field_name).strip()
                     if field_name and field_name not in fields:
                         field_type, nullable = TYPE_KEYWORDS.get(field_name, ("String", True))
                         fields[field_name] = FieldDefinition(
@@ -999,8 +1006,10 @@ Process Type: **{spec.crew.process}**
                             nullable=nullable,
                             optional=nullable,
                             python_type=self._get_python_type(field_type),
-                            enum_values=self._get_enum_values(field_name) if field_type == "Enum" else None,
-                            description=f"{field_name} field"
+                            enum_values=(
+                                self._get_enum_values(field_name) if field_type == "Enum" else None
+                            ),
+                            description=f"{field_name} field",
                         )
 
             # 패턴 3: 키워드 직접 언급
@@ -1012,60 +1021,70 @@ Process Type: **{spec.crew.process}**
                         nullable=nullable,
                         optional=nullable,
                         python_type=self._get_python_type(field_type),
-                        enum_values=self._get_enum_values(keyword) if field_type == "Enum" else None,
-                        description=f"{keyword} field"
+                        enum_values=(
+                            self._get_enum_values(keyword) if field_type == "Enum" else None
+                        ),
+                        description=f"{keyword} field",
                     )
 
         return list(fields.values())
 
     def _add_default_fields(self, fields: List) -> List:
         """기본 필드 추가 (id, created_at, updated_at)"""
-        from caas_app.codegen.crud_entity_extractor import FieldDefinition
+        from caas_framework.codegen.crud_entity_extractor import FieldDefinition
 
         field_names = {f.name for f in fields}
 
         # id 필드
         if "id" not in field_names:
-            fields.insert(0, FieldDefinition(
-                name="id",
-                type="Integer",
-                primary_key=True,
-                auto_generated=True,
-                index=True,
-                python_type="int"
-            ))
+            fields.insert(
+                0,
+                FieldDefinition(
+                    name="id",
+                    type="Integer",
+                    primary_key=True,
+                    auto_generated=True,
+                    index=True,
+                    python_type="int",
+                ),
+            )
 
         # created_at 필드
         if "created_at" not in field_names:
-            fields.append(FieldDefinition(
-                name="created_at",
-                type="DateTime",
-                auto_generated=True,
-                default="now",
-                python_type="datetime"
-            ))
+            fields.append(
+                FieldDefinition(
+                    name="created_at",
+                    type="DateTime",
+                    auto_generated=True,
+                    default="now",
+                    python_type="datetime",
+                )
+            )
 
         # updated_at 필드
         if "updated_at" not in field_names:
-            fields.append(FieldDefinition(
-                name="updated_at",
-                type="DateTime",
-                auto_generated=True,
-                default="now",
-                nullable=True,
-                python_type="datetime"
-            ))
+            fields.append(
+                FieldDefinition(
+                    name="updated_at",
+                    type="DateTime",
+                    auto_generated=True,
+                    default="now",
+                    nullable=True,
+                    python_type="datetime",
+                )
+            )
 
         return fields
 
     def _to_table_name(self, entity_name: str) -> str:
         """엔티티 이름을 테이블 이름으로 변환"""
         import re
+
         # CamelCase → snake_case
-        table_name = re.sub(r'(?<!^)(?=[A-Z])', '_', entity_name).lower()
+        table_name = re.sub(r"(?<!^)(?=[A-Z])", "_", entity_name).lower()
         # 복수형
-        if not table_name.endswith('s'):
-            table_name += 's'
+        if not table_name.endswith("s"):
+            table_name += "s"
         return table_name
 
     def _get_python_type(self, field_type: str) -> str:
@@ -1099,13 +1118,11 @@ Process Type: **{spec.crew.process}**
         project_info = {
             "name": spec.project.name,
             "description": spec.project.description,
-            "domain": spec.project.domain
+            "domain": spec.project.domain,
         }
 
         return template.render(
-            project=project_info,
-            entities=entities,
-            generated_at=datetime.now().isoformat()
+            project=project_info, entities=entities, generated_at=datetime.now().isoformat()
         )
 
     def _create_database_models(self, spec: CrewAISpec, entities: List) -> str:
@@ -1115,13 +1132,11 @@ Process Type: **{spec.crew.process}**
         project_info = {
             "name": spec.project.name,
             "description": spec.project.description,
-            "domain": spec.project.domain
+            "domain": spec.project.domain,
         }
 
         return template.render(
-            project=project_info,
-            entities=entities,
-            generated_at=datetime.now().isoformat()
+            project=project_info, entities=entities, generated_at=datetime.now().isoformat()
         )
 
     def _create_crud_operations(self, spec: CrewAISpec, entities: List) -> str:
@@ -1131,13 +1146,11 @@ Process Type: **{spec.crew.process}**
         project_info = {
             "name": spec.project.name,
             "description": spec.project.description,
-            "domain": spec.project.domain
+            "domain": spec.project.domain,
         }
 
         return template.render(
-            project=project_info,
-            entities=entities,
-            generated_at=datetime.now().isoformat()
+            project=project_info, entities=entities, generated_at=datetime.now().isoformat()
         )
 
     def _create_pydantic_schemas(self, spec: CrewAISpec, entities: List) -> str:
@@ -1147,7 +1160,7 @@ Process Type: **{spec.crew.process}**
         project_info = {
             "name": spec.project.name,
             "description": spec.project.description,
-            "domain": spec.project.domain
+            "domain": spec.project.domain,
         }
 
         # Check if any entity has enum fields
@@ -1157,7 +1170,7 @@ Process Type: **{spec.crew.process}**
             project=project_info,
             entities=entities,
             has_enum_fields=has_enum_fields,
-            generated_at=datetime.now().isoformat()
+            generated_at=datetime.now().isoformat(),
         )
 
     def _create_database_connection(self, spec: CrewAISpec) -> str:
@@ -1167,14 +1180,14 @@ Process Type: **{spec.crew.process}**
         project_info = {
             "name": spec.project.name,
             "description": spec.project.description,
-            "domain": spec.project.domain
+            "domain": spec.project.domain,
         }
 
         return template.render(
             project=project_info,
             database_url="sqlite:///./app.db",
             database_echo=False,
-            generated_at=datetime.now().isoformat()
+            generated_at=datetime.now().isoformat(),
         )
 
     def _create_backend_init(self, spec: CrewAISpec) -> str:
@@ -1184,13 +1197,10 @@ Process Type: **{spec.crew.process}**
         project_info = {
             "name": spec.project.name,
             "description": spec.project.description,
-            "domain": spec.project.domain
+            "domain": spec.project.domain,
         }
 
-        return template.render(
-            project=project_info,
-            generated_at=datetime.now().isoformat()
-        )
+        return template.render(project=project_info, generated_at=datetime.now().isoformat())
 
     def _create_test_file(self, spec: CrewAISpec) -> str:
         """기본 테스트 파일 생성"""

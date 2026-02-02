@@ -5,18 +5,19 @@ Phase 3: Analyze generated code to extract implemented features
 """
 
 import ast
-from typing import Any, Dict, List, Optional
-from dataclasses import dataclass, field
-from pydantic import BaseModel, Field
-from enum import Enum
 import logging
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Any, Dict, List, Optional
 
+from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
 
 
 class RequirementType(str, Enum):
     """요구사항 유형"""
+
     FUNCTIONAL = "functional"
     NON_FUNCTIONAL = "non_functional"
     CONSTRAINT = "constraint"
@@ -25,6 +26,7 @@ class RequirementType(str, Enum):
 
 class ExtractedFeature(BaseModel):
     """추출된 기능"""
+
     id: str
     name: str
     description: str
@@ -35,6 +37,7 @@ class ExtractedFeature(BaseModel):
 
 class DomainContext(BaseModel):
     """도메인 컨텍스트"""
+
     domain: str
     subdomain: Optional[str] = None
     keywords: List[str] = Field(default_factory=list)
@@ -44,11 +47,11 @@ class DomainContext(BaseModel):
 
 class AnalysisResult(BaseModel):
     """분석 결과"""
+
     raw_requirement: str
     domain_context: DomainContext
     domain_classification: Optional[Any] = Field(
-        default=None,
-        description="도메인 타입 분류 결과 (DomainType, ExecutionPattern 포함)"
+        default=None, description="도메인 타입 분류 결과 (DomainType, ExecutionPattern 포함)"
     )
     features: List[ExtractedFeature]
     constraints: List[str] = Field(default_factory=list)
@@ -61,6 +64,7 @@ class AnalysisResult(BaseModel):
 @dataclass
 class FunctionInfo:
     """Information about a function/method"""
+
     name: str
     docstring: Optional[str] = None
     parameters: List[str] = field(default_factory=list)
@@ -74,6 +78,7 @@ class FunctionInfo:
 @dataclass
 class ClassInfo:
     """Information about a class"""
+
     name: str
     docstring: Optional[str] = None
     base_classes: List[str] = field(default_factory=list)
@@ -85,6 +90,7 @@ class ClassInfo:
 @dataclass
 class AgentDefinition:
     """CrewAI Agent definition"""
+
     name: str
     role: Optional[str] = None
     goal: Optional[str] = None
@@ -95,6 +101,7 @@ class AgentDefinition:
 @dataclass
 class TaskDefinition:
     """CrewAI Task definition"""
+
     description: str
     agent_name: Optional[str] = None
     expected_output: Optional[str] = None
@@ -104,6 +111,7 @@ class TaskDefinition:
 @dataclass
 class FileAnalysis:
     """Analysis result for a single file"""
+
     file_path: str
     functions: List[FunctionInfo] = field(default_factory=list)
     classes: List[ClassInfo] = field(default_factory=list)
@@ -193,7 +201,7 @@ class CodeAnalyzer:
 
         for file_path, content in files.items():
             # Only analyze Python files
-            if file_path.endswith('.py'):
+            if file_path.endswith(".py"):
                 analysis = self.analyze_file(file_path, content)
                 analyses[file_path] = analysis
 
@@ -206,7 +214,7 @@ class CodeAnalyzer:
                 for alias in node.names:
                     analysis.imports.append(alias.name)
             elif isinstance(node, ast.ImportFrom):
-                module = node.module or ''
+                module = node.module or ""
                 for alias in node.names:
                     analysis.imports.append(f"{module}.{alias.name}")
 
@@ -242,7 +250,7 @@ class CodeAnalyzer:
             name=node.name,
             docstring=ast.get_docstring(node),
             line_number=node.lineno,
-            is_async=isinstance(node, ast.AsyncFunctionDef)
+            is_async=isinstance(node, ast.AsyncFunctionDef),
         )
 
         # Extract parameters
@@ -258,7 +266,7 @@ class CodeAnalyzer:
 
         # Extract return type annotation
         if node.returns:
-            func_info.return_type = ast.unparse(node.returns) if hasattr(ast, 'unparse') else None
+            func_info.return_type = ast.unparse(node.returns) if hasattr(ast, "unparse") else None
 
         # Extract function calls
         for child in ast.walk(node):
@@ -273,9 +281,7 @@ class CodeAnalyzer:
     def _parse_class(self, node: ast.ClassDef) -> ClassInfo:
         """Parse class node"""
         class_info = ClassInfo(
-            name=node.name,
-            docstring=ast.get_docstring(node),
-            line_number=node.lineno
+            name=node.name, docstring=ast.get_docstring(node), line_number=node.lineno
         )
 
         # Extract base classes
@@ -310,8 +316,13 @@ class CodeAnalyzer:
         """Categorize file based on its content"""
         # Check for CrewAI imports
         crewai_imports = [
-            'crewai', 'crewai.agent', 'crewai.task', 'crewai.crew',
-            'crewai.Agent', 'crewai.Task', 'crewai.Crew'
+            "crewai",
+            "crewai.agent",
+            "crewai.task",
+            "crewai.crew",
+            "crewai.Agent",
+            "crewai.Task",
+            "crewai.Crew",
         ]
 
         for imp in analysis.imports:
@@ -321,18 +332,18 @@ class CodeAnalyzer:
 
         # Check for Agent/Task/Crew usage
         all_names = (
-            [f.name for f in analysis.functions] +
-            [c.name for c in analysis.classes] +
-            analysis.global_variables
+            [f.name for f in analysis.functions]
+            + [c.name for c in analysis.classes]
+            + analysis.global_variables
         )
 
         for name in all_names:
             name_lower = name.lower()
-            if 'agent' in name_lower:
+            if "agent" in name_lower:
                 analysis.has_agents = True
-            if 'task' in name_lower:
+            if "task" in name_lower:
                 analysis.has_tasks = True
-            if 'crew' in name_lower:
+            if "crew" in name_lower:
                 analysis.has_crew = True
 
     def get_summary(self, analyses: Dict[str, FileAnalysis]) -> Dict[str, Any]:
@@ -347,9 +358,7 @@ class CodeAnalyzer:
         """
         total_functions = sum(len(a.functions) for a in analyses.values())
         total_classes = sum(len(a.classes) for a in analyses.values())
-        total_methods = sum(
-            len(c.methods) for a in analyses.values() for c in a.classes
-        )
+        total_methods = sum(len(c.methods) for a in analyses.values() for c in a.classes)
         total_lines = sum(a.line_count for a in analyses.values())
 
         crewai_files = sum(1 for a in analyses.values() if a.is_crewai_code)
@@ -357,17 +366,17 @@ class CodeAnalyzer:
         total_tasks = sum(len(a.task_definitions) for a in analyses.values())
 
         return {
-            'total_files': len(analyses),
-            'total_lines': total_lines,
-            'total_functions': total_functions,
-            'total_classes': total_classes,
-            'total_methods': total_methods,
-            'crewai_files': crewai_files,
-            'files_with_agents': sum(1 for a in analyses.values() if a.has_agents),
-            'files_with_tasks': sum(1 for a in analyses.values() if a.has_tasks),
-            'files_with_crew': sum(1 for a in analyses.values() if a.has_crew),
-            'total_agent_definitions': total_agents,
-            'total_task_definitions': total_tasks,
+            "total_files": len(analyses),
+            "total_lines": total_lines,
+            "total_functions": total_functions,
+            "total_classes": total_classes,
+            "total_methods": total_methods,
+            "crewai_files": crewai_files,
+            "files_with_agents": sum(1 for a in analyses.values() if a.has_agents),
+            "files_with_tasks": sum(1 for a in analyses.values() if a.has_tasks),
+            "files_with_crew": sum(1 for a in analyses.values() if a.has_crew),
+            "total_agent_definitions": total_agents,
+            "total_task_definitions": total_tasks,
         }
 
     def _extract_crewai_structures(
@@ -392,23 +401,20 @@ class CodeAnalyzer:
                     func_name = node.func.attr
 
                 # Extract Agent definitions
-                if func_name == 'Agent':
+                if func_name == "Agent":
                     agent_def = self._parse_agent_call(node)
                     if agent_def:
                         analysis.agent_definitions.append(agent_def)
 
                 # Extract Task definitions
-                elif func_name == 'Task':
+                elif func_name == "Task":
                     task_def = self._parse_task_call(node)
                     if task_def:
                         analysis.task_definitions.append(task_def)
 
     def _parse_agent_call(self, node: ast.Call) -> Optional[AgentDefinition]:
         """Parse Agent() call to extract definition"""
-        agent_def = AgentDefinition(
-            name="",
-            line_number=node.lineno
-        )
+        agent_def = AgentDefinition(name="", line_number=node.lineno)
 
         # Extract from positional arguments (generated code format)
         # Agent(name, role, goal, tools, ...)
@@ -425,23 +431,20 @@ class CodeAnalyzer:
 
         # Extract keyword arguments (alternative format)
         for keyword in node.keywords:
-            if keyword.arg == 'role' and isinstance(keyword.value, ast.Constant):
+            if keyword.arg == "role" and isinstance(keyword.value, ast.Constant):
                 agent_def.role = keyword.value.value
                 if not agent_def.name:
                     agent_def.name = keyword.value.value
-            elif keyword.arg == 'goal' and isinstance(keyword.value, ast.Constant):
+            elif keyword.arg == "goal" and isinstance(keyword.value, ast.Constant):
                 agent_def.goal = keyword.value.value
-            elif keyword.arg == 'backstory' and isinstance(keyword.value, ast.Constant):
+            elif keyword.arg == "backstory" and isinstance(keyword.value, ast.Constant):
                 agent_def.backstory = keyword.value.value
 
         return agent_def if agent_def.role else None
 
     def _parse_task_call(self, node: ast.Call) -> Optional[TaskDefinition]:
         """Parse Task() call to extract definition"""
-        task_def = TaskDefinition(
-            description="",
-            line_number=node.lineno
-        )
+        task_def = TaskDefinition(description="", line_number=node.lineno)
 
         # Extract from positional arguments (generated code format)
         # Task(name, description, expected_output, agent, context, ...)
@@ -464,11 +467,11 @@ class CodeAnalyzer:
 
         # Extract keyword arguments (alternative format)
         for keyword in node.keywords:
-            if keyword.arg == 'description' and isinstance(keyword.value, ast.Constant):
+            if keyword.arg == "description" and isinstance(keyword.value, ast.Constant):
                 task_def.description = keyword.value.value
-            elif keyword.arg == 'expected_output' and isinstance(keyword.value, ast.Constant):
+            elif keyword.arg == "expected_output" and isinstance(keyword.value, ast.Constant):
                 task_def.expected_output = keyword.value.value
-            elif keyword.arg == 'agent':
+            elif keyword.arg == "agent":
                 # Try to extract agent name
                 if isinstance(keyword.value, ast.Subscript):
                     # agents["name"]
@@ -501,20 +504,20 @@ class CodeAnalyzer:
             hints.append(func.name)
             if func.docstring:
                 # Extract first line of docstring
-                first_line = func.docstring.split('\n')[0].strip()
+                first_line = func.docstring.split("\n")[0].strip()
                 hints.append(first_line)
 
         # Extract from class names and methods
         for cls in analysis.classes:
             hints.append(cls.name)
             if cls.docstring:
-                first_line = cls.docstring.split('\n')[0].strip()
+                first_line = cls.docstring.split("\n")[0].strip()
                 hints.append(first_line)
 
             for method in cls.methods:
                 hints.append(f"{cls.name}.{method.name}")
                 if method.docstring:
-                    first_line = method.docstring.split('\n')[0].strip()
+                    first_line = method.docstring.split("\n")[0].strip()
                     hints.append(first_line)
 
         # Extract from CrewAI structures

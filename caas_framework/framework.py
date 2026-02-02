@@ -5,28 +5,28 @@ Single entry point for all framework functionality.
 """
 
 import logging
-from typing import Any, Dict, List, Optional
-from pathlib import Path
 from dataclasses import dataclass
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
-from caas_framework.config.settings import FrameworkConfig
-from caas_framework.config.loader import ConfigLoader
-from caas_framework.plugins.base import PluginRegistry, get_plugin_registry
-from caas_framework.plugins.llm.base import LLMPlugin
 # Import plugins module to trigger plugin registration
 import caas_framework.plugins  # noqa: F401
-from caas_framework.validation.orchestrator import (
-    ValidationOrchestrator,
-    ComprehensiveValidationResult
-)
-from caas_framework.fixing.auto_fixer import AutoFixer, FixResult
-from caas_framework.models.specifications import (
-    ConcretizedRequirement,
-    AgentSpecModel,
-    TaskSpecModel
-)
 from caas_framework.bmad.engine import BMADEngine, BMADResult
 from caas_framework.bmad.golden_data import GoldenDataPipeline
+from caas_framework.config.loader import ConfigLoader
+from caas_framework.config.settings import FrameworkConfig
+from caas_framework.fixing.auto_fixer import AutoFixer, FixResult
+from caas_framework.models.specifications import (
+    AgentSpecModel,
+    ConcretizedRequirement,
+    TaskSpecModel,
+)
+from caas_framework.plugins.base import PluginRegistry, get_plugin_registry
+from caas_framework.plugins.llm.base import LLMPlugin
+from caas_framework.validation.orchestrator import (
+    ComprehensiveValidationResult,
+    ValidationOrchestrator,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +34,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class RequirementAnalysisResult:
     """Result from requirement analysis"""
+
     domain: str
     subdomain: Optional[str]
     summary: str
@@ -80,7 +81,7 @@ class CrewAIFramework:
         vectordb_backend: Optional[str] = None,
         config: Optional[FrameworkConfig] = None,
         config_file: Optional[str] = None,
-        config_dict: Optional[Dict[str, Any]] = None
+        config_dict: Optional[Dict[str, Any]] = None,
     ):
         """
         Initialize framework
@@ -183,22 +184,23 @@ class CrewAIFramework:
             "temperature": self.config.llm.temperature,
             "max_tokens": self.config.llm.max_tokens,
             "api_key": self.config.llm.api_key,
-            "api_base": self.config.llm.api_base
+            "api_base": self.config.llm.api_base,
         }
 
         self._llm_plugin = await self.registry.initialize_plugin(
-            name=self.config.llm.provider,
-            plugin_type="llm",
-            config=llm_config
+            name=self.config.llm.provider, plugin_type="llm", config=llm_config
         )
 
         # 2. Initialize graph backend
         try:
-            from caas_framework.knowledge.graph_client import GraphClient
-            self._graph_client = GraphClient(backend=self.config.graph.backend)
+            from caas_framework.knowledge.graph.factory import get_graph_client
+
+            self._graph_client = get_graph_client()
             logger.info("Graph backend initialized successfully")
         except Exception as e:
-            logger.warning(f"Failed to initialize graph backend: {e}. Continuing without graph support.")
+            logger.warning(
+                f"Failed to initialize graph backend: {e}. Continuing without graph support."
+            )
             self._graph_client = None
 
         # 3. Initialize vector DB (if configured)
@@ -211,7 +213,7 @@ class CrewAIFramework:
             llm_plugin=self._llm_plugin,
             enable_validation=self.config.validation.auto_fix,
             enable_auto_fix=self.config.validation.auto_fix,
-            artifact_config=self.config.artifacts
+            artifact_config=self.config.artifacts,
         )
 
         # 5. Initialize Golden Data pipeline
@@ -233,7 +235,7 @@ class CrewAIFramework:
         verbosity: str = "normal",
         distributed: bool = False,
         max_workers: Optional[int] = None,
-        progress_reporter: Optional[Any] = None
+        progress_reporter: Optional[Any] = None,
     ) -> BMADResult:
         """
         Generate complete project from natural language requirement
@@ -284,19 +286,21 @@ class CrewAIFramework:
             "minimal": VerbosityLevel.MINIMAL,
             "normal": VerbosityLevel.NORMAL,
             "verbose": VerbosityLevel.VERBOSE,
-            "debug": VerbosityLevel.DEBUG
+            "debug": VerbosityLevel.DEBUG,
         }
         verbosity_level = verbosity_map.get(verbosity, VerbosityLevel.NORMAL)
 
         # Create or use provided progress reporter
         if progress_reporter is None:
             from caas_framework.reporting import ProgressReporter
+
             progress_reporter = ProgressReporter(verbosity=verbosity_level)
 
         # Create plan mode instance if requested
         plan_mode_instance = None
         if plan_mode:
             from caas_framework.modes.plan_mode import PlanMode
+
             plan_mode_instance = PlanMode(auto_approve=False)
 
         # Create customized BMAD engine for this specific request
@@ -310,7 +314,7 @@ class CrewAIFramework:
             artifact_config=self.config.artifacts,
             plan_mode=plan_mode_instance,
             distributed=distributed,
-            max_workers=max_workers
+            max_workers=max_workers,
         )
 
         # Run BMAD Pipeline with Phase 1-3 enhancements
@@ -322,15 +326,13 @@ class CrewAIFramework:
             workflow_type=workflow_type,
             enable_traceability=enable_traceability,
             enable_completeness_validation=enable_completeness_validation,
-            enable_gap_filling=enable_gap_filling
+            enable_gap_filling=enable_gap_filling,
         )
 
         return result
 
     async def _generate_golden_data(
-        self,
-        requirement: str,
-        domain: Optional[str] = None
+        self, requirement: str, domain: Optional[str] = None
     ) -> ConcretizedRequirement:
         """
         Generate Golden Data from requirement
@@ -348,9 +350,7 @@ class CrewAIFramework:
         return await self._golden_pipeline.generate(requirement, domain)
 
     async def generate_golden_data(
-        self,
-        requirement: str,
-        domain: Optional[str] = None
+        self, requirement: str, domain: Optional[str] = None
     ) -> ConcretizedRequirement:
         """
         Public method to generate Golden Data from requirement
@@ -365,10 +365,7 @@ class CrewAIFramework:
         return await self._generate_golden_data(requirement, domain)
 
     async def analyze_requirement(
-        self,
-        requirement: str,
-        use_golden_data: bool = False,
-        domain: Optional[str] = None
+        self, requirement: str, use_golden_data: bool = False, domain: Optional[str] = None
     ) -> RequirementAnalysisResult:
         """
         Analyze requirement and generate initial agent/task design
@@ -394,7 +391,7 @@ class CrewAIFramework:
             requirement=requirement,
             domain=domain,
             golden_data=golden_req,
-            deployment_target="docker"
+            deployment_target="docker",
         )
 
         # Extract features from golden data or requirement analysis
@@ -422,13 +419,11 @@ class CrewAIFramework:
             suggested_tools=[],
             complexity="medium",
             golden_data_available=result.golden_data is not None,
-            validation_result=None
+            validation_result=None,
         )
 
     async def generate_agents_and_tasks(
-        self,
-        analysis_result: Dict[str, Any],
-        customize: bool = False
+        self, analysis_result: Dict[str, Any], customize: bool = False
     ) -> tuple[List[AgentSpecModel], List[TaskSpecModel]]:
         """
         Generate agents and tasks from analysis result
@@ -461,9 +456,7 @@ class CrewAIFramework:
         summary = analysis_result.get("summary", "")
 
         result = await self._bmad_engine.run(
-            requirement=summary,
-            domain=domain,
-            deployment_target="docker"
+            requirement=summary, domain=domain, deployment_target="docker"
         )
 
         return result.agent_specs, result.task_specs
@@ -472,7 +465,7 @@ class CrewAIFramework:
         self,
         agents: List[Dict[str, Any]],
         tasks: List[Dict[str, Any]],
-        golden_data: Optional[Dict[str, Any]] = None
+        golden_data: Optional[Dict[str, Any]] = None,
     ) -> ComprehensiveValidationResult:
         """
         Validate agent/task design
@@ -499,19 +492,12 @@ class CrewAIFramework:
                     golden_req = golden_data
 
             self._validator = ValidationOrchestrator(
-                golden_data=golden_req,
-                enabled_tools=list(self.registry.list_available_plugins())
+                golden_data=golden_req, enabled_tools=list(self.registry.list_available_plugins())
             )
 
         # Convert to AgentSpecModel/TaskSpecModel if needed
-        agent_models = [
-            AgentSpecModel(**a) if isinstance(a, dict) else a
-            for a in agents
-        ]
-        task_models = [
-            TaskSpecModel(**t) if isinstance(t, dict) else t
-            for t in tasks
-        ]
+        agent_models = [AgentSpecModel(**a) if isinstance(a, dict) else a for a in agents]
+        task_models = [TaskSpecModel(**t) if isinstance(t, dict) else t for t in tasks]
 
         # Run validation
         result = self._validator.validate_design(
@@ -519,7 +505,7 @@ class CrewAIFramework:
             tasks=task_models,
             validate_golden=golden_data is not None,
             validate_ontology=True,
-            validate_dependencies=True
+            validate_dependencies=True,
         )
 
         return result
@@ -530,7 +516,7 @@ class CrewAIFramework:
         tasks: List[Dict[str, Any]],
         validation_result: ComprehensiveValidationResult,
         golden_data: Optional[Dict[str, Any]] = None,
-        max_iterations: int = 3
+        max_iterations: int = 3,
     ) -> FixResult:
         """
         Auto-fix validation issues
@@ -556,37 +542,28 @@ class CrewAIFramework:
             else:
                 golden_req = golden_data
 
-            self._auto_fixer = AutoFixer(
-                golden_data=golden_req,
-                llm_plugin=self._llm_plugin
-            )
+            self._auto_fixer = AutoFixer(golden_data=golden_req, llm_plugin=self._llm_plugin)
 
         if not self._auto_fixer:
             return FixResult(
                 success=False,
                 fixed_output={"agents": agents, "tasks": tasks},
                 fixes_applied=[],
-                errors=["No golden data provided for fixing"]
+                errors=["No golden data provided for fixing"],
             )
 
         # Apply fixes if Golden Data validation found issues
         if validation_result.golden_result and validation_result.golden_result.needs_fixing:
             # Convert to models
-            agent_models = [
-                AgentSpecModel(**a) if isinstance(a, dict) else a
-                for a in agents
-            ]
-            task_models = [
-                TaskSpecModel(**t) if isinstance(t, dict) else t
-                for t in tasks
-            ]
+            agent_models = [AgentSpecModel(**a) if isinstance(a, dict) else a for a in agents]
+            task_models = [TaskSpecModel(**t) if isinstance(t, dict) else t for t in tasks]
 
             # Apply fixes
             fix_result = self._auto_fixer.fix_design(
                 agent_specs=agent_models,
                 task_specs=task_models,
                 validation_report=validation_result.golden_result,
-                max_iterations=max_iterations
+                max_iterations=max_iterations,
             )
 
             return fix_result
@@ -596,7 +573,7 @@ class CrewAIFramework:
             success=True,
             fixed_output={"agents": agents, "tasks": tasks},
             fixes_applied=[],
-            errors=[]
+            errors=[],
         )
 
     async def generate_code(
@@ -604,7 +581,7 @@ class CrewAIFramework:
         spec: Dict[str, Any],
         output_dir: Optional[str] = None,
         deployment_target: str = "docker",
-        tdd_mode: bool = False
+        tdd_mode: bool = False,
     ) -> "CodeGenerationResult":
         """
         Generate production-ready code from spec
@@ -624,8 +601,8 @@ class CrewAIFramework:
         from caas_framework.codegen.engine import CodeGenerationEngine
         from caas_framework.models.specifications import (
             AgentSpecModel,
+            ConcretizedRequirement,
             TaskSpecModel,
-            ConcretizedRequirement
         )
 
         # Parse spec
@@ -643,7 +620,7 @@ class CrewAIFramework:
                 domain=spec.get("domain", "GENERAL"),
                 description=spec.get("description", "Auto-generated CrewAI project"),
                 features=[],
-                data_models=[]
+                data_models=[],
             )
 
         # Initialize code generation engine with LLM plugin
@@ -654,7 +631,7 @@ class CrewAIFramework:
             enable_tests=True,
             enable_deployment=True,
             enable_llm_generation=True,
-            tdd_mode=tdd_mode  # Enable TDD if requested
+            tdd_mode=tdd_mode,  # Enable TDD if requested
         )
 
         # Generate production-ready code
@@ -663,12 +640,13 @@ class CrewAIFramework:
             agents=agents,
             tasks=tasks,
             deployment_target=deployment_target,
-            tdd_mode=tdd_mode  # Pass TDD mode to generation
+            tdd_mode=tdd_mode,  # Pass TDD mode to generation
         )
 
         # Write files if output_dir specified
         if output_dir and gen_result.success:
             from pathlib import Path
+
             output_path = Path(output_dir)
             output_path.mkdir(parents=True, exist_ok=True)
 
@@ -716,7 +694,7 @@ class GenerationResult:
         spec: Any,
         generated_code: Any,
         qa_report: Any,
-        validation_reports: List[Any]
+        validation_reports: List[Any],
     ):
         self.golden_data = golden_data
         self.requirement_analysis = requirement_analysis
@@ -738,36 +716,37 @@ class GenerationResult:
         # Save golden data
         if self.golden_data:
             golden_file = output_path / "golden_data.json"
-            with open(golden_file, 'w', encoding='utf-8') as f:
+            with open(golden_file, "w", encoding="utf-8") as f:
                 json.dump(self.golden_data, f, indent=2, ensure_ascii=False)
 
         # Save requirement analysis
         if self.requirement_analysis:
             req_file = output_path / "requirement_analysis.json"
-            with open(req_file, 'w', encoding='utf-8') as f:
+            with open(req_file, "w", encoding="utf-8") as f:
                 json.dump(self.requirement_analysis, f, indent=2, ensure_ascii=False)
 
         # Save architecture design
         if self.architecture_design:
             arch_file = output_path / "architecture_design.json"
-            with open(arch_file, 'w', encoding='utf-8') as f:
+            with open(arch_file, "w", encoding="utf-8") as f:
                 json.dump(self.architecture_design, f, indent=2, ensure_ascii=False)
 
         # Save agent design
         if self.agent_design:
             agent_file = output_path / "agent_design.json"
-            with open(agent_file, 'w', encoding='utf-8') as f:
+            with open(agent_file, "w", encoding="utf-8") as f:
                 json.dump(self.agent_design, f, indent=2, ensure_ascii=False)
 
         # Save spec (YAML format)
         if self.spec:
             spec_file = output_path / "spec.yaml"
             import yaml
-            with open(spec_file, 'w', encoding='utf-8') as f:
+
+            with open(spec_file, "w", encoding="utf-8") as f:
                 yaml.dump(self.spec, f, default_flow_style=False, allow_unicode=True)
 
         # Save generated code files
-        if self.generated_code and hasattr(self.generated_code, 'files'):
+        if self.generated_code and hasattr(self.generated_code, "files"):
             code_dir = output_path / "generated_code"
             code_dir.mkdir(exist_ok=True)
 
@@ -775,13 +754,13 @@ class GenerationResult:
                 file_full_path = code_dir / file_path
                 file_full_path.parent.mkdir(parents=True, exist_ok=True)
 
-                with open(file_full_path, 'w', encoding='utf-8') as f:
+                with open(file_full_path, "w", encoding="utf-8") as f:
                     f.write(content)
 
         # Save QA report
         if self.qa_report:
             qa_file = output_path / "qa_report.json"
-            with open(qa_file, 'w', encoding='utf-8') as f:
+            with open(qa_file, "w", encoding="utf-8") as f:
                 json.dump(self.qa_report, f, indent=2, ensure_ascii=False)
 
         # Save validation reports
@@ -791,7 +770,7 @@ class GenerationResult:
 
             for i, report in enumerate(self.validation_reports):
                 report_file = validation_dir / f"validation_{i+1}.json"
-                with open(report_file, 'w', encoding='utf-8') as f:
+                with open(report_file, "w", encoding="utf-8") as f:
                     json.dump(report, f, indent=2, ensure_ascii=False)
 
         # Create manifest
@@ -805,12 +784,14 @@ class GenerationResult:
                 "spec": bool(self.spec),
                 "generated_code": bool(self.generated_code),
                 "qa_report": bool(self.qa_report),
-                "validation_reports": len(self.validation_reports) if self.validation_reports else 0
-            }
+                "validation_reports": (
+                    len(self.validation_reports) if self.validation_reports else 0
+                ),
+            },
         }
 
         manifest_file = output_path / "manifest.json"
-        with open(manifest_file, 'w', encoding='utf-8') as f:
+        with open(manifest_file, "w", encoding="utf-8") as f:
             json.dump(manifest, f, indent=2, ensure_ascii=False)
 
         print(f"✅ Artifacts saved to {output_path}")
@@ -818,4 +799,5 @@ class GenerationResult:
 
 class CodeGenerationResult:
     """Code generation result"""
+
     # TODO: Implement

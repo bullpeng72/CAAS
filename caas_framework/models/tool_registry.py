@@ -5,12 +5,12 @@ Tool Registry
 """
 
 import json
-from pathlib import Path
-from typing import Dict, List, Optional, Any
-from pydantic import BaseModel, Field
-from datetime import datetime
-
 import logging
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+from pydantic import BaseModel, Field
 
 logger = logging.getLogger("caas_framework.models.tool_registry")
 
@@ -25,8 +25,12 @@ class ToolMetadata(BaseModel):
     enabled: bool = Field(default=True, description="활성화 여부")
     parameters: Dict[str, Any] = Field(default_factory=dict, description="도구 파라미터")
     requires_api_key: bool = Field(default=False, description="API 키 필요 여부")
-    api_key_name: Optional[str] = Field(default=None, description="필요한 API 키 이름 (예: SERPER_API_KEY)")
-    class_path: Optional[str] = Field(default=None, description="도구 클래스 경로 (예: SerperDevTool)")
+    api_key_name: Optional[str] = Field(
+        default=None, description="필요한 API 키 이름 (예: SERPER_API_KEY)"
+    )
+    class_path: Optional[str] = Field(
+        default=None, description="도구 클래스 경로 (예: SerperDevTool)"
+    )
     keywords: List[str] = Field(default_factory=list, description="도구 관련 키워드 (매칭용)")
     use_cases: List[str] = Field(default_factory=list, description="주요 사용 사례")
     created_at: str = Field(default_factory=lambda: datetime.now().isoformat())
@@ -50,7 +54,9 @@ class ToolRegistry(BaseModel):
     """도구 저장소"""
 
     tools: Dict[str, ToolMetadata] = Field(default_factory=dict, description="등록된 도구들")
-    mcp_servers: Dict[str, MCPServerConfig] = Field(default_factory=dict, description="MCP 서버 설정들")
+    mcp_servers: Dict[str, MCPServerConfig] = Field(
+        default_factory=dict, description="MCP 서버 설정들"
+    )
 
     @classmethod
     def load(cls, file_path: Path) -> "ToolRegistry":
@@ -207,7 +213,9 @@ class ToolRegistry(BaseModel):
         """
         return [tool for tool in self.tools.values() if tool.category == category]
 
-    def search_tools(self, query: str, search_fields: Optional[List[str]] = None) -> List[ToolMetadata]:
+    def search_tools(
+        self, query: str, search_fields: Optional[List[str]] = None
+    ) -> List[ToolMetadata]:
         """
         도구 검색
 
@@ -219,7 +227,7 @@ class ToolRegistry(BaseModel):
             List[ToolMetadata]: 검색 결과
         """
         if search_fields is None:
-            search_fields = ['name', 'description', 'category']
+            search_fields = ["name", "description", "category"]
 
         query_lower = query.lower()
         results = []
@@ -238,7 +246,7 @@ class ToolRegistry(BaseModel):
         source: Optional[str] = None,
         category: Optional[str] = None,
         enabled: Optional[bool] = None,
-        requires_api_key: Optional[bool] = None
+        requires_api_key: Optional[bool] = None,
     ) -> List[ToolMetadata]:
         """
         도구 필터링
@@ -393,8 +401,26 @@ DEFAULT_CREWAI_TOOLS = {
         requires_api_key=True,
         api_key_name="SERPER_API_KEY",
         class_path="SerperDevTool",
-        keywords=["검색", "search", "google", "웹", "web", "정보", "뉴스", "news", "조사", "research", "찾기"],
-        use_cases=["실시간 정보 검색", "뉴스 수집", "웹 리서치", "최신 데이터 조회", "시장 동향 파악"],
+        keywords=[
+            "검색",
+            "search",
+            "google",
+            "웹",
+            "web",
+            "정보",
+            "뉴스",
+            "news",
+            "조사",
+            "research",
+            "찾기",
+        ],
+        use_cases=[
+            "실시간 정보 검색",
+            "뉴스 수집",
+            "웹 리서치",
+            "최신 데이터 조회",
+            "시장 동향 파악",
+        ],
     ),
     "scrape_website": ToolMetadata(
         name="scrape_website",
@@ -402,7 +428,18 @@ DEFAULT_CREWAI_TOOLS = {
         source="crewai",
         category="web",
         class_path="ScrapeWebsiteTool",
-        keywords=["크롤링", "scrape", "crawl", "웹사이트", "website", "수집", "추출", "extract", "html", "페이지"],
+        keywords=[
+            "크롤링",
+            "scrape",
+            "crawl",
+            "웹사이트",
+            "website",
+            "수집",
+            "추출",
+            "extract",
+            "html",
+            "페이지",
+        ],
         use_cases=["웹페이지 데이터 수집", "HTML 파싱", "콘텐츠 추출", "자동 데이터 수집"],
     ),
     "file_read": ToolMetadata(
@@ -411,7 +448,18 @@ DEFAULT_CREWAI_TOOLS = {
         source="crewai",
         category="file",
         class_path="FileReadTool",
-        keywords=["파일", "file", "읽기", "read", "텍스트", "text", "문서", "document", "불러오기", "load"],
+        keywords=[
+            "파일",
+            "file",
+            "읽기",
+            "read",
+            "텍스트",
+            "text",
+            "문서",
+            "document",
+            "불러오기",
+            "load",
+        ],
         use_cases=["텍스트 파일 읽기", "로그 파일 분석", "설정 파일 로드", "문서 내용 확인"],
     ),
     "file_write": ToolMetadata(
@@ -420,7 +468,18 @@ DEFAULT_CREWAI_TOOLS = {
         source="crewai",
         category="file",
         class_path="CodeInterpreterTool",
-        keywords=["파일", "file", "쓰기", "write", "저장", "save", "생성", "create", "작성", "export"],
+        keywords=[
+            "파일",
+            "file",
+            "쓰기",
+            "write",
+            "저장",
+            "save",
+            "생성",
+            "create",
+            "작성",
+            "export",
+        ],
         use_cases=["결과 파일 저장", "리포트 생성", "데이터 내보내기", "로그 기록"],
     ),
     "directory_read": ToolMetadata(
@@ -429,7 +488,16 @@ DEFAULT_CREWAI_TOOLS = {
         source="crewai",
         category="file",
         class_path="DirectoryReadTool",
-        keywords=["디렉토리", "directory", "폴더", "folder", "구조", "structure", "파일목록", "list"],
+        keywords=[
+            "디렉토리",
+            "directory",
+            "폴더",
+            "folder",
+            "구조",
+            "structure",
+            "파일목록",
+            "list",
+        ],
         use_cases=["프로젝트 구조 분석", "파일 목록 확인", "디렉토리 탐색"],
     ),
     "code_interpreter": ToolMetadata(
@@ -438,7 +506,19 @@ DEFAULT_CREWAI_TOOLS = {
         source="crewai",
         category="code",
         class_path="CodeInterpreterTool",
-        keywords=["코드", "code", "python", "실행", "execute", "계산", "calculate", "분석", "analyze", "처리", "process"],
+        keywords=[
+            "코드",
+            "code",
+            "python",
+            "실행",
+            "execute",
+            "계산",
+            "calculate",
+            "분석",
+            "analyze",
+            "처리",
+            "process",
+        ],
         use_cases=["데이터 분석", "수치 계산", "알고리즘 실행", "Python 스크립트 실행"],
     ),
     "pdf_search": ToolMetadata(
@@ -465,7 +545,17 @@ DEFAULT_CREWAI_TOOLS = {
         source="crewai",
         category="code",
         class_path="CodeDocsSearchTool",
-        keywords=["코드", "code", "문서", "documentation", "api", "레퍼런스", "reference", "가이드", "guide"],
+        keywords=[
+            "코드",
+            "code",
+            "문서",
+            "documentation",
+            "api",
+            "레퍼런스",
+            "reference",
+            "가이드",
+            "guide",
+        ],
         use_cases=["API 문서 검색", "코드 레퍼런스 조회", "개발 가이드 참조"],
     ),
     "github_search": ToolMetadata(
@@ -476,7 +566,16 @@ DEFAULT_CREWAI_TOOLS = {
         requires_api_key=True,
         api_key_name="GITHUB_API_KEY",
         class_path="GithubSearchTool",
-        keywords=["github", "git", "저장소", "repository", "코드", "code", "오픈소스", "opensource"],
+        keywords=[
+            "github",
+            "git",
+            "저장소",
+            "repository",
+            "코드",
+            "code",
+            "오픈소스",
+            "opensource",
+        ],
         use_cases=["오픈소스 프로젝트 찾기", "코드 예제 검색", "GitHub 레포 조회"],
     ),
     "youtube_search": ToolMetadata(
@@ -527,6 +626,7 @@ class DynamicToolRegistry:
         if cls._registry_cache is None:
             if cls._registry_path is None:
                 from pathlib import Path
+
                 cls._registry_path = Path.cwd() / "data" / "tools_registry.json"
             cls._registry_cache = get_tool_registry(cls._registry_path)
         return cls._registry_cache
@@ -664,6 +764,7 @@ def get_tool_registry(registry_path: Optional[Path] = None) -> ToolRegistry:
     """
     if registry_path is None:
         from pathlib import Path
+
         registry_path = Path.cwd() / "data" / "tools_registry.json"
 
     registry = ToolRegistry.load(registry_path)
@@ -692,10 +793,7 @@ def get_enabled_tools_dict() -> Dict[str, str]:
     registry = get_tool_registry()
     enabled_tools = registry.get_enabled_tools()
 
-    return {
-        tool.name: tool.description
-        for tool in enabled_tools
-    }
+    return {tool.name: tool.description for tool in enabled_tools}
 
 
 def get_all_tools_dict() -> Dict[str, str]:
@@ -707,10 +805,7 @@ def get_all_tools_dict() -> Dict[str, str]:
     """
     registry = get_tool_registry()
 
-    return {
-        tool.name: tool.description
-        for tool in registry.tools.values()
-    }
+    return {tool.name: tool.description for tool in registry.tools.values()}
 
 
 def get_tool_api_key_status() -> Dict[str, Dict[str, Any]]:
@@ -765,13 +860,15 @@ def get_required_api_keys() -> List[Dict[str, Any]]:
             api_key_value = get_api_key(tool.api_key_name)
             is_configured = bool(api_key_value and not api_key_value.startswith("your-"))
 
-            required_keys.append({
-                "tool_name": tool_name,
-                "api_key_name": tool.api_key_name,
-                "description": tool.description,
-                "is_configured": is_configured,
-                "category": tool.category,
-            })
+            required_keys.append(
+                {
+                    "tool_name": tool_name,
+                    "api_key_name": tool.api_key_name,
+                    "description": tool.description,
+                    "is_configured": is_configured,
+                    "category": tool.category,
+                }
+            )
 
     return required_keys
 
@@ -814,14 +911,16 @@ def recommend_tools_by_keywords(requirement_text: str, top_n: int = 5) -> List[D
             score += 0.5
 
         if score > 0:
-            tool_scores.append({
-                "tool_name": tool.name,
-                "score": score,
-                "matched_keywords": matched_keywords,
-                "use_cases": tool.use_cases,
-                "category": tool.category,
-                "description": tool.description,
-            })
+            tool_scores.append(
+                {
+                    "tool_name": tool.name,
+                    "score": score,
+                    "matched_keywords": matched_keywords,
+                    "use_cases": tool.use_cases,
+                    "category": tool.category,
+                    "description": tool.description,
+                }
+            )
 
     # 점수 순으로 정렬
     tool_scores.sort(key=lambda x: x["score"], reverse=True)

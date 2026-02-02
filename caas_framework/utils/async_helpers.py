@@ -6,13 +6,13 @@ Provides common utilities for async operations:
 - RetryStrategy: Standardized retry logic with exponential backoff
 """
 
-from typing import TypeVar, Callable, Tuple, Optional, Any, Awaitable, List
 import asyncio
 import logging
-from functools import wraps
 import time
+from functools import wraps
+from typing import Any, Awaitable, Callable, List, Optional, Tuple, TypeVar
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +30,7 @@ class TimeoutManager:
         timeout: float,
         operation_name: str,
         logger_instance: Optional[logging.Logger] = None,
-        fallback_value: Optional[T] = None
+        fallback_value: Optional[T] = None,
     ) -> Tuple[bool, Optional[T], Optional[str]]:
         """
         Execute coroutine with timeout protection.
@@ -85,18 +85,19 @@ class TimeoutManager:
             async def process_data():
                 ...
         """
+
         def decorator(func):
             @wraps(func)
             async def wrapper(*args, **kwargs):
                 success, result, error = await TimeoutManager.execute_with_timeout(
-                    func(*args, **kwargs),
-                    timeout=timeout,
-                    operation_name=operation_name
+                    func(*args, **kwargs), timeout=timeout, operation_name=operation_name
                 )
                 if not success:
                     raise TimeoutError(error)
                 return result
+
             return wrapper
+
         return decorator
 
 
@@ -116,7 +117,7 @@ class RetryStrategy:
         initial_delay: float = 0.5,
         operation_name: str = "Operation",
         logger_instance: Optional[logging.Logger] = None,
-        should_retry: Optional[Callable[[Exception], bool]] = None
+        should_retry: Optional[Callable[[Exception], bool]] = None,
     ) -> Tuple[bool, Optional[T], List[str]]:
         """
         Execute function with retry logic and exponential backoff.
@@ -153,7 +154,7 @@ class RetryStrategy:
                 # Calculate timeout with backoff
                 current_timeout = None
                 if timeout_per_retry:
-                    current_timeout = timeout_per_retry * (backoff_factor ** attempt)
+                    current_timeout = timeout_per_retry * (backoff_factor**attempt)
                     log.info(
                         f"🔄 {operation_name} attempt {attempt + 1}/{max_retries} "
                         f"(timeout: {current_timeout:.1f}s)"
@@ -167,7 +168,7 @@ class RetryStrategy:
                         func(),
                         timeout=current_timeout,
                         operation_name=f"{operation_name} (attempt {attempt + 1})",
-                        logger_instance=log
+                        logger_instance=log,
                     )
 
                     if success:
@@ -195,7 +196,7 @@ class RetryStrategy:
 
                 # Exponential backoff before next retry
                 if attempt < max_retries - 1:
-                    delay = initial_delay * (backoff_factor ** attempt)
+                    delay = initial_delay * (backoff_factor**attempt)
                     log.info(f"⏳ Waiting {delay:.1f}s before retry...")
                     await asyncio.sleep(delay)
 
@@ -208,7 +209,7 @@ class RetryStrategy:
         max_retries: int = 3,
         timeout_per_retry: Optional[float] = None,
         backoff_factor: float = 1.5,
-        operation_name: str = "Operation"
+        operation_name: str = "Operation",
     ):
         """
         Decorator for adding retry logic to async functions.
@@ -218,6 +219,7 @@ class RetryStrategy:
             async def unstable_operation():
                 ...
         """
+
         def decorator(func):
             @wraps(func)
             async def wrapper(*args, **kwargs):
@@ -226,7 +228,7 @@ class RetryStrategy:
                     max_retries=max_retries,
                     timeout_per_retry=timeout_per_retry,
                     backoff_factor=backoff_factor,
-                    operation_name=operation_name
+                    operation_name=operation_name,
                 )
                 if not success:
                     raise RuntimeError(
@@ -234,7 +236,9 @@ class RetryStrategy:
                         f"Errors: {'; '.join(errors)}"
                     )
                 return result
+
             return wrapper
+
         return decorator
 
 

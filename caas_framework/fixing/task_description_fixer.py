@@ -4,8 +4,8 @@ Task Description Fixer
 Automatically fixes task descriptions to remove input collection parts.
 """
 
-from typing import List, Dict, Any
 import re
+from typing import Any, Dict, List
 
 
 class TaskDescriptionFixer:
@@ -55,7 +55,7 @@ class TaskDescriptionFixer:
                 fixed_desc = fixed_desc.replace(phrase, "")
 
         # Clean up spacing
-        fixed_desc = re.sub(r'\s+', ' ', fixed_desc)
+        fixed_desc = re.sub(r"\s+", " ", fixed_desc)
         fixed_desc = fixed_desc.strip()
 
         # Capitalize first letter

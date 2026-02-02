@@ -7,18 +7,19 @@ Scans generated code for security vulnerabilities using:
 3. Secret Detection - Find hardcoded secrets
 """
 
-import re
-import tempfile
-import subprocess
 import json
-from pathlib import Path
-from typing import Dict, List, Optional
+import re
+import subprocess
+import tempfile
 from dataclasses import dataclass, field
 from enum import Enum
+from pathlib import Path
+from typing import Dict, List, Optional
 
 
 class Severity(str, Enum):
     """Security issue severity levels"""
+
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
@@ -27,6 +28,7 @@ class Severity(str, Enum):
 
 class IssueType(str, Enum):
     """Types of security issues"""
+
     VULNERABILITY = "vulnerability"  # Code vulnerability
     SECRET = "secret"  # Hardcoded secret
     DEPENDENCY = "dependency"  # Vulnerable dependency
@@ -36,6 +38,7 @@ class IssueType(str, Enum):
 @dataclass
 class SecurityIssue:
     """A single security issue"""
+
     type: IssueType
     severity: Severity
     file_path: str
@@ -53,13 +56,14 @@ class SecurityIssue:
             "line_number": self.line_number,
             "issue_text": self.issue_text,
             "confidence": self.confidence,
-            "cwe_id": self.cwe_id
+            "cwe_id": self.cwe_id,
         }
 
 
 @dataclass
 class SecurityReport:
     """Security scan report"""
+
     is_safe: bool
     total_issues: int
     critical_count: int = 0
@@ -79,7 +83,7 @@ class SecurityReport:
             "medium_count": self.medium_count,
             "low_count": self.low_count,
             "issues": [issue.to_dict() for issue in self.issues],
-            "scan_timestamp": self.scan_timestamp
+            "scan_timestamp": self.scan_timestamp,
         }
 
 
@@ -98,71 +102,57 @@ class CodeSecurityScanner:
     SECRET_PATTERNS = {
         "api_key": (
             r'(?i)(api[_-]?key|apikey|api[_-]?secret)\s*[=:]\s*["\']([a-zA-Z0-9_\-]{20,})["\']',
-            "Hardcoded API key detected"
+            "Hardcoded API key detected",
         ),
         "password": (
             r'(?i)(password|passwd|pwd)\s*[=:]\s*["\']([^"\']{4,})["\']',
-            "Hardcoded password detected"
+            "Hardcoded password detected",
         ),
-        "aws_key": (
-            r'AKIA[0-9A-Z]{16}',
-            "AWS Access Key ID detected"
-        ),
-        "private_key": (
-            r'-----BEGIN (RSA |EC )?PRIVATE KEY-----',
-            "Private key detected"
-        ),
-        "github_token": (
-            r'gh[pousr]_[A-Za-z0-9_]{36,255}',
-            "GitHub token detected"
-        ),
+        "aws_key": (r"AKIA[0-9A-Z]{16}", "AWS Access Key ID detected"),
+        "private_key": (r"-----BEGIN (RSA |EC )?PRIVATE KEY-----", "Private key detected"),
+        "github_token": (r"gh[pousr]_[A-Za-z0-9_]{36,255}", "GitHub token detected"),
         "generic_secret": (
             r'(?i)(secret|token|bearer)\s*[=:]\s*["\']([a-zA-Z0-9_\-]{20,})["\']',
-            "Hardcoded secret detected"
+            "Hardcoded secret detected",
         ),
         "database_url": (
             r'(?i)(database_url|db_url|connection_string)\s*=\s*["\'].*:\/\/.*:.*@',
-            "Database credentials in connection string"
+            "Database credentials in connection string",
         ),
     }
 
     # Dangerous function patterns
     DANGEROUS_PATTERNS = {
         "eval": (
-            r'\beval\s*\(',
+            r"\beval\s*\(",
             "Use of eval() is dangerous",
             Severity.HIGH,
-            "CWE-95"  # Improper Neutralization of Directives in Dynamically Evaluated Code
+            "CWE-95",  # Improper Neutralization of Directives in Dynamically Evaluated Code
         ),
-        "exec": (
-            r'\bexec\s*\(',
-            "Use of exec() is dangerous",
-            Severity.HIGH,
-            "CWE-95"
-        ),
+        "exec": (r"\bexec\s*\(", "Use of exec() is dangerous", Severity.HIGH, "CWE-95"),
         "pickle": (
-            r'import\s+pickle|from\s+pickle\s+import',
+            r"import\s+pickle|from\s+pickle\s+import",
             "Pickle usage can lead to arbitrary code execution",
             Severity.MEDIUM,
-            "CWE-502"  # Deserialization of Untrusted Data
+            "CWE-502",  # Deserialization of Untrusted Data
         ),
         "yaml_unsafe": (
-            r'yaml\.load\s*\([^,)]+\)',
+            r"yaml\.load\s*\([^,)]+\)",
             "Use yaml.safe_load() instead of yaml.load()",
             Severity.MEDIUM,
-            "CWE-502"
+            "CWE-502",
         ),
         "shell_injection": (
-            r'os\.(system|popen)\s*\(',
+            r"os\.(system|popen)\s*\(",
             "Shell injection risk - use subprocess with shell=False",
             Severity.HIGH,
-            "CWE-78"  # OS Command Injection
+            "CWE-78",  # OS Command Injection
         ),
         "sql_injection": (
             r'(execute|cursor\.execute)\s*\([\'"].*%s.*[\'"].*%',
             "SQL injection risk - use parameterized queries",
             Severity.CRITICAL,
-            "CWE-89"  # SQL Injection
+            "CWE-89",  # SQL Injection
         ),
     }
 
@@ -182,20 +172,13 @@ class CodeSecurityScanner:
         """Check if required tools are available"""
         if self.use_bandit:
             try:
-                subprocess.run(
-                    ["bandit", "--version"],
-                    capture_output=True,
-                    check=True,
-                    timeout=5
-                )
+                subprocess.run(["bandit", "--version"], capture_output=True, check=True, timeout=5)
             except (subprocess.CalledProcessError, FileNotFoundError):
                 self.use_bandit = False
                 # Bandit not available, will use pattern matching instead
 
     def scan(
-        self,
-        generated_files: Dict[str, str],
-        fail_on_critical: bool = False
+        self, generated_files: Dict[str, str], fail_on_critical: bool = False
     ) -> SecurityReport:
         """
         Scan generated code for security issues
@@ -246,7 +229,7 @@ class CodeSecurityScanner:
             medium_count=medium_count,
             low_count=low_count,
             issues=all_issues,
-            scan_timestamp=datetime.now().isoformat()
+            scan_timestamp=datetime.now().isoformat(),
         )
 
     def _scan_with_patterns(self, files: Dict[str, str]) -> List[SecurityIssue]:
@@ -255,28 +238,35 @@ class CodeSecurityScanner:
 
         for filename, content in files.items():
             # Skip non-Python files
-            if not filename.endswith('.py'):
+            if not filename.endswith(".py"):
                 continue
 
             # Skip metadata fields
-            if filename.startswith('_'):
+            if filename.startswith("_"):
                 continue
 
-            lines = content.split('\n')
+            lines = content.split("\n")
 
             for line_num, line in enumerate(lines, 1):
                 # Check dangerous patterns
-                for pattern_name, (regex, description, severity, cwe) in self.DANGEROUS_PATTERNS.items():
+                for pattern_name, (
+                    regex,
+                    description,
+                    severity,
+                    cwe,
+                ) in self.DANGEROUS_PATTERNS.items():
                     if re.search(regex, line):
-                        issues.append(SecurityIssue(
-                            type=IssueType.VULNERABILITY,
-                            severity=severity,
-                            file_path=filename,
-                            line_number=line_num,
-                            issue_text=f"{description} (Line: {line.strip()[:60]}...)",
-                            confidence="MEDIUM",
-                            cwe_id=cwe
-                        ))
+                        issues.append(
+                            SecurityIssue(
+                                type=IssueType.VULNERABILITY,
+                                severity=severity,
+                                file_path=filename,
+                                line_number=line_num,
+                                issue_text=f"{description} (Line: {line.strip()[:60]}...)",
+                                confidence="MEDIUM",
+                                cwe_id=cwe,
+                            )
+                        )
 
         return issues
 
@@ -286,14 +276,14 @@ class CodeSecurityScanner:
 
         for filename, content in files.items():
             # Skip non-code files
-            if filename.startswith('_') or not self._is_code_file(filename):
+            if filename.startswith("_") or not self._is_code_file(filename):
                 continue
 
-            lines = content.split('\n')
+            lines = content.split("\n")
 
             for line_num, line in enumerate(lines, 1):
                 # Skip comments
-                if line.strip().startswith('#'):
+                if line.strip().startswith("#"):
                     continue
 
                 # Check secret patterns
@@ -305,15 +295,17 @@ class CodeSecurityScanner:
                         if self._is_placeholder(matched_value):
                             continue
 
-                        issues.append(SecurityIssue(
-                            type=IssueType.SECRET,
-                            severity=Severity.CRITICAL,
-                            file_path=filename,
-                            line_number=line_num,
-                            issue_text=f"{description} ({secret_type})",
-                            confidence="HIGH",
-                            cwe_id="CWE-798"  # Use of Hard-coded Credentials
-                        ))
+                        issues.append(
+                            SecurityIssue(
+                                type=IssueType.SECRET,
+                                severity=Severity.CRITICAL,
+                                file_path=filename,
+                                line_number=line_num,
+                                issue_text=f"{description} ({secret_type})",
+                                confidence="HIGH",
+                                cwe_id="CWE-798",  # Use of Hard-coded Credentials
+                            )
+                        )
 
         return issues
 
@@ -328,7 +320,7 @@ class CodeSecurityScanner:
             # Write files to temp directory
             for filename, content in files.items():
                 # Skip metadata and non-Python files
-                if filename.startswith('_') or not filename.endswith('.py'):
+                if filename.startswith("_") or not filename.endswith(".py"):
                     continue
 
                 file_path = tmppath / filename
@@ -340,13 +332,15 @@ class CodeSecurityScanner:
                 result = subprocess.run(
                     [
                         "bandit",
-                        "-r", str(tmppath),
-                        "-f", "json",
-                        "-ll"  # Only report medium and high severity
+                        "-r",
+                        str(tmppath),
+                        "-f",
+                        "json",
+                        "-ll",  # Only report medium and high severity
                     ],
                     capture_output=True,
                     text=True,
-                    timeout=30
+                    timeout=30,
                 )
 
                 # Parse Bandit output
@@ -359,7 +353,7 @@ class CodeSecurityScanner:
                         severity_map = {
                             "LOW": Severity.LOW,
                             "MEDIUM": Severity.MEDIUM,
-                            "HIGH": Severity.HIGH
+                            "HIGH": Severity.HIGH,
                         }
                         severity = severity_map.get(bandit_severity, Severity.MEDIUM)
 
@@ -367,17 +361,23 @@ class CodeSecurityScanner:
                         full_path = result_item.get("filename", "")
                         relative_path = full_path.replace(str(tmppath) + "/", "")
 
-                        issues.append(SecurityIssue(
-                            type=IssueType.VULNERABILITY,
-                            severity=severity,
-                            file_path=relative_path,
-                            line_number=result_item.get("line_number"),
-                            issue_text=result_item.get("issue_text", "Unknown issue"),
-                            confidence=result_item.get("issue_confidence", "MEDIUM"),
-                            cwe_id=result_item.get("cwe", {}).get("id")
-                        ))
+                        issues.append(
+                            SecurityIssue(
+                                type=IssueType.VULNERABILITY,
+                                severity=severity,
+                                file_path=relative_path,
+                                line_number=result_item.get("line_number"),
+                                issue_text=result_item.get("issue_text", "Unknown issue"),
+                                confidence=result_item.get("issue_confidence", "MEDIUM"),
+                                cwe_id=result_item.get("cwe", {}).get("id"),
+                            )
+                        )
 
-            except (subprocess.TimeoutExpired, subprocess.CalledProcessError, json.JSONDecodeError) as e:
+            except (
+                subprocess.TimeoutExpired,
+                subprocess.CalledProcessError,
+                json.JSONDecodeError,
+            ) as e:
                 # Bandit failed, skip
                 pass
 
@@ -385,17 +385,30 @@ class CodeSecurityScanner:
 
     def _is_code_file(self, filename: str) -> bool:
         """Check if file is a code file"""
-        code_extensions = {'.py', '.js', '.ts', '.java', '.go', '.rb', '.php', '.cs'}
+        code_extensions = {".py", ".js", ".ts", ".java", ".go", ".rb", ".php", ".cs"}
         return any(filename.endswith(ext) for ext in code_extensions)
 
     def _is_placeholder(self, value: str) -> bool:
         """Check if a value is a placeholder rather than a real secret"""
         placeholders = [
-            'your_api_key', 'your_password', 'your_secret',
-            'api_key_here', 'password_here', 'secret_here',
-            'xxxxxxxxx', 'placeholder', 'example', 'test',
-            'changeme', 'change_me', 'todo', 'fixme',
-            '12345', 'admin', 'root', 'demo'
+            "your_api_key",
+            "your_password",
+            "your_secret",
+            "api_key_here",
+            "password_here",
+            "secret_here",
+            "xxxxxxxxx",
+            "placeholder",
+            "example",
+            "test",
+            "changeme",
+            "change_me",
+            "todo",
+            "fixme",
+            "12345",
+            "admin",
+            "root",
+            "demo",
         ]
 
         value_lower = value.lower()
@@ -403,9 +416,7 @@ class CodeSecurityScanner:
 
 
 def scan_generated_code(
-    generated_files: Dict[str, str],
-    use_bandit: bool = True,
-    fail_on_critical: bool = False
+    generated_files: Dict[str, str], use_bandit: bool = True, fail_on_critical: bool = False
 ) -> SecurityReport:
     """
     Convenience function to scan generated code
@@ -432,12 +443,6 @@ def scan_generated_code(
             print(f"  - {issue.severity}: {issue.issue_text}")
         ```
     """
-    scanner = CodeSecurityScanner(
-        use_bandit=use_bandit,
-        use_secret_detection=True
-    )
+    scanner = CodeSecurityScanner(use_bandit=use_bandit, use_secret_detection=True)
 
-    return scanner.scan(
-        generated_files=generated_files,
-        fail_on_critical=fail_on_critical
-    )
+    return scanner.scan(generated_files=generated_files, fail_on_critical=fail_on_critical)

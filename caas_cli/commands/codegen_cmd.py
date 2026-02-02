@@ -4,76 +4,64 @@ Codegen Command
 Generate specific code components independently
 """
 
-import click
 from pathlib import Path
+
+import click
 from caas_cli.utils import (
-    echo_success,
     echo_error,
     echo_info,
     echo_progress,
+    echo_success,
     handle_keyboard_interrupt,
     load_json,
-    save_files
+    save_files,
 )
 
 
 @click.command()
 @click.option(
     "--component",
-    type=click.Choice([
-        "tests", "deployment", "frontend", "docs", "cicd", "all"
-    ]),
+    type=click.Choice(["tests", "deployment", "frontend", "docs", "cicd", "all"]),
     required=True,
-    help="Component to generate"
+    help="Component to generate",
 )
 @click.option(
-    "--agents",
-    type=click.Path(exists=True),
-    required=True,
-    help="Path to agents.json file"
+    "--agents", type=click.Path(exists=True), required=True, help="Path to agents.json file"
 )
 @click.option(
-    "--tasks",
-    type=click.Path(exists=True),
-    required=True,
-    help="Path to tasks.json file"
+    "--tasks", type=click.Path(exists=True), required=True, help="Path to tasks.json file"
 )
 @click.option(
     "--golden-data",
     type=click.Path(exists=True),
-    help="Path to golden_data.json (recommended for better generation)"
+    help="Path to golden_data.json (recommended for better generation)",
 )
 @click.option(
     "--deployment-target",
     type=click.Choice(["docker", "kubernetes", "terraform"]),
     default="docker",
-    help="Deployment target (for deployment component)"
+    help="Deployment target (for deployment component)",
 )
 @click.option(
     "--frontend-framework",
     type=click.Choice(["streamlit", "react"]),
     default="streamlit",
-    help="Frontend framework (for frontend component)"
+    help="Frontend framework (for frontend component)",
 )
 @click.option(
     "--cicd-platform",
     type=click.Choice(["github_actions", "gitlab_ci", "jenkins"]),
     default="github_actions",
-    help="CI/CD platform (for cicd component)"
+    help="CI/CD platform (for cicd component)",
 )
 @click.option(
     "--output",
     "-o",
     type=click.Path(),
     default="./codegen_output",
-    help="Output directory (default: ./codegen_output)"
+    help="Output directory (default: ./codegen_output)",
 )
-@click.option(
-    "--verbose",
-    "-v",
-    is_flag=True,
-    help="Show detailed generation output"
-)
+@click.option("--verbose", "-v", is_flag=True, help="Show detailed generation output")
 @handle_keyboard_interrupt
 async def codegen(
     component,
@@ -84,7 +72,7 @@ async def codegen(
     frontend_framework,
     cicd_platform,
     output,
-    verbose
+    verbose,
 ):
     """
     Generate specific code components independently
@@ -164,7 +152,9 @@ async def codegen(
         if golden_data:
             golden_data_dict = load_json(golden_data)
             if verbose:
-                echo_info(f"Loaded Golden Data with {len(golden_data_dict.get('features', []))} features")
+                echo_info(
+                    f"Loaded Golden Data with {len(golden_data_dict.get('features', []))} features"
+                )
 
         # Generate component
         files = {}
@@ -172,13 +162,9 @@ async def codegen(
         if component == "tests":
             files = await _generate_tests(agents_list, tasks_list, golden_data_dict, verbose)
         elif component == "deployment":
-            files = await _generate_deployment(
-                agents_list, tasks_list, deployment_target, verbose
-            )
+            files = await _generate_deployment(agents_list, tasks_list, deployment_target, verbose)
         elif component == "frontend":
-            files = await _generate_frontend(
-                agents_list, tasks_list, frontend_framework, verbose
-            )
+            files = await _generate_frontend(agents_list, tasks_list, frontend_framework, verbose)
         elif component == "docs":
             files = await _generate_docs(agents_list, tasks_list, golden_data_dict, verbose)
         elif component == "cicd":
@@ -191,7 +177,7 @@ async def codegen(
                 deployment_target,
                 frontend_framework,
                 cicd_platform,
-                verbose
+                verbose,
             )
 
         # Save generated files
@@ -224,6 +210,7 @@ async def codegen(
     except Exception as e:
         echo_error(f"Code generation error: {e}")
         import traceback
+
         if verbose:
             echo_error(traceback.format_exc())
         return 1
@@ -249,10 +236,7 @@ async def _generate_tests(agents_list, tasks_list, golden_data, verbose):
 
 async def _generate_deployment(agents_list, tasks_list, deployment_target, verbose):
     """Generate deployment configs"""
-    from caas_framework.codegen.deployment_generator import (
-        DeploymentGenerator,
-        DeploymentConfig
-    )
+    from caas_framework.codegen.deployment_generator import DeploymentConfig, DeploymentGenerator
 
     echo_progress(f"Generating {deployment_target} deployment configs...")
 
@@ -261,7 +245,7 @@ async def _generate_deployment(agents_list, tasks_list, deployment_target, verbo
         target=deployment_target,
         project_name="crewai_project",
         agents=agents_list,
-        tasks=tasks_list
+        tasks=tasks_list,
     )
 
     files = generator.generate_all(config)
@@ -282,11 +266,7 @@ async def _generate_frontend(agents_list, tasks_list, frontend_framework, verbos
     echo_progress(f"Generating {frontend_framework} frontend...")
 
     generator = FrontendGenerator()
-    files = generator.generate(
-        agents=agents_list,
-        tasks=tasks_list,
-        framework=frontend_framework
-    )
+    files = generator.generate(agents=agents_list, tasks=tasks_list, framework=frontend_framework)
 
     if verbose:
         click.echo()
@@ -305,9 +285,7 @@ async def _generate_docs(agents_list, tasks_list, golden_data, verbose):
 
     generator = DocsGenerator()
     docs = generator.generate_all_docs(
-        agents=agents_list,
-        tasks=tasks_list,
-        golden_data=golden_data
+        agents=agents_list, tasks=tasks_list, golden_data=golden_data
     )
 
     if verbose:
@@ -321,7 +299,7 @@ async def _generate_docs(agents_list, tasks_list, golden_data, verbose):
 
 async def _generate_cicd(cicd_platform, verbose):
     """Generate CI/CD pipeline"""
-    from caas_framework.codegen.cicd_generator import CICDGenerator, CICDConfig
+    from caas_framework.codegen.cicd_generator import CICDConfig, CICDGenerator
 
     echo_progress(f"Generating {cicd_platform} CI/CD pipeline...")
 
@@ -345,7 +323,7 @@ async def _generate_all(
     deployment_target,
     frontend_framework,
     cicd_platform,
-    verbose
+    verbose,
 ):
     """Generate all components"""
     echo_progress("Generating all components...")

@@ -5,24 +5,21 @@ Provides users with a catalog of example requirements to help them get started
 quickly with common project types.
 """
 
-import click
 from typing import Optional
+
+import click
+from caas_cli.utils import echo_error, echo_info, echo_success, echo_warning
+
 from caas_framework.examples.requirement_examples import (
     REQUIREMENT_EXAMPLES,
-    Domain,
     Complexity,
-    get_examples_by_domain,
+    Domain,
+    get_example_summary,
     get_examples_by_complexity,
+    get_examples_by_domain,
     get_examples_by_tag,
     search_examples,
-    get_example_summary,
-    suggest_examples
-)
-from caas_cli.utils import (
-    echo_success,
-    echo_error,
-    echo_info,
-    echo_warning
+    suggest_examples,
 )
 
 
@@ -67,19 +64,15 @@ def examples_group():
     "--domain",
     "-d",
     type=click.Choice([d.value for d in Domain], case_sensitive=False),
-    help="Filter by domain"
+    help="Filter by domain",
 )
 @click.option(
     "--complexity",
     "-c",
     type=click.Choice([c.value for c in Complexity], case_sensitive=False),
-    help="Filter by complexity level"
+    help="Filter by complexity level",
 )
-@click.option(
-    "--tag",
-    "-t",
-    help="Filter by tag"
-)
+@click.option("--tag", "-t", help="Filter by tag")
 def list_examples(domain: Optional[str], complexity: Optional[str], tag: Optional[str]):
     """
     List all available requirement examples
@@ -154,8 +147,7 @@ def show_example(title: str):
     """
     # Find example by title (case-insensitive partial match)
     title_lower = title.lower()
-    matches = [ex for ex in REQUIREMENT_EXAMPLES
-               if title_lower in ex.title.lower()]
+    matches = [ex for ex in REQUIREMENT_EXAMPLES if title_lower in ex.title.lower()]
 
     if not matches:
         echo_error(f"No example found matching: {title}")
@@ -184,9 +176,11 @@ def show_example(title: str):
     complexity_color = {
         Complexity.SIMPLE: "green",
         Complexity.MODERATE: "yellow",
-        Complexity.COMPLEX: "red"
+        Complexity.COMPLEX: "red",
     }
-    click.echo(f"   Complexity: {click.style(example.complexity.value, fg=complexity_color[example.complexity])}")
+    click.echo(
+        f"   Complexity: {click.style(example.complexity.value, fg=complexity_color[example.complexity])}"
+    )
     click.echo(f"   Tags: {', '.join(example.tags)}")
     click.echo()
 
@@ -198,7 +192,7 @@ def show_example(title: str):
     # Requirement text
     click.echo(click.style("🎯 EXAMPLE REQUIREMENT", bold=True))
     click.echo()
-    for line in example.requirement_text.split('\n'):
+    for line in example.requirement_text.split("\n"):
         click.echo(f"   {line}")
     click.echo()
 
@@ -214,22 +208,16 @@ def show_example(title: str):
     click.echo("=" * 70)
     click.echo()
     click.echo("Option 1: Copy and customize the requirement")
-    click.echo(f"   $ caas generate \"{example.requirement_text[:60]}...\"")
+    click.echo(f'   $ caas generate "{example.requirement_text[:60]}..."')
     click.echo()
     click.echo("Option 2: Use as a template (coming soon)")
-    click.echo(f"   $ caas generate --example \"{example.title}\"")
+    click.echo(f'   $ caas generate --example "{example.title}"')
     click.echo()
 
 
 @examples_group.command(name="search")
 @click.argument("query")
-@click.option(
-    "--limit",
-    "-n",
-    type=int,
-    default=10,
-    help="Maximum number of results (default: 10)"
-)
+@click.option("--limit", "-n", type=int, default=10, help="Maximum number of results (default: 10)")
 def search_examples_cmd(query: str, limit: int):
     """
     Search examples by keyword
@@ -257,7 +245,7 @@ def search_examples_cmd(query: str, limit: int):
         complexity_emoji = {
             Complexity.SIMPLE: "🟢",
             Complexity.MODERATE: "🟡",
-            Complexity.COMPLEX: "🔴"
+            Complexity.COMPLEX: "🔴",
         }
 
         click.echo(f"{i}. {complexity_emoji[ex.complexity]} {click.style(ex.title, bold=True)}")
@@ -269,10 +257,7 @@ def search_examples_cmd(query: str, limit: int):
 
 
 @examples_group.command(name="by-domain")
-@click.argument(
-    "domain",
-    type=click.Choice([d.value for d in Domain], case_sensitive=False)
-)
+@click.argument("domain", type=click.Choice([d.value for d in Domain], case_sensitive=False))
 def filter_by_domain(domain: str):
     """
     Filter examples by domain
@@ -309,7 +294,7 @@ def filter_by_domain(domain: str):
         complexity_emoji = {
             Complexity.SIMPLE: "🟢",
             Complexity.MODERATE: "🟡",
-            Complexity.COMPLEX: "🔴"
+            Complexity.COMPLEX: "🔴",
         }
 
         click.echo(f"  {complexity_emoji[ex.complexity]} {ex.title}")
@@ -321,8 +306,7 @@ def filter_by_domain(domain: str):
 
 @examples_group.command(name="by-complexity")
 @click.argument(
-    "complexity",
-    type=click.Choice([c.value for c in Complexity], case_sensitive=False)
+    "complexity", type=click.Choice([c.value for c in Complexity], case_sensitive=False)
 )
 def filter_by_complexity(complexity: str):
     """
@@ -349,10 +333,12 @@ def filter_by_complexity(complexity: str):
     complexity_emoji = {
         Complexity.SIMPLE: "🟢",
         Complexity.MODERATE: "🟡",
-        Complexity.COMPLEX: "🔴"
+        Complexity.COMPLEX: "🔴",
     }
 
-    echo_info(f"{complexity_emoji[complexity_enum]} {complexity.upper()} Examples ({len(examples)} found)")
+    echo_info(
+        f"{complexity_emoji[complexity_enum]} {complexity.upper()} Examples ({len(examples)} found)"
+    )
     click.echo()
 
     for ex in examples:
@@ -385,7 +371,7 @@ def show_stats():
 
     # By domain
     click.echo(click.style("📁 BY DOMAIN", bold=True))
-    for domain, count in summary['by_domain'].items():
+    for domain, count in summary["by_domain"].items():
         if count > 0:
             bar = "█" * count
             click.echo(f"   {domain:20} {bar} {count}")
@@ -393,12 +379,8 @@ def show_stats():
 
     # By complexity
     click.echo(click.style("📈 BY COMPLEXITY", bold=True))
-    complexity_emojis = {
-        "simple": "🟢",
-        "moderate": "🟡",
-        "complex": "🔴"
-    }
-    for complexity, count in summary['by_complexity'].items():
+    complexity_emojis = {"simple": "🟢", "moderate": "🟡", "complex": "🔴"}
+    for complexity, count in summary["by_complexity"].items():
         if count > 0:
             emoji = complexity_emojis.get(complexity, "⚪")
             bar = "█" * count
@@ -412,11 +394,7 @@ def show_stats():
 @examples_group.command(name="suggest")
 @click.argument("keywords", nargs=-1, required=True)
 @click.option(
-    "--limit",
-    "-n",
-    type=int,
-    default=3,
-    help="Maximum number of suggestions (default: 3)"
+    "--limit", "-n", type=int, default=3, help="Maximum number of suggestions (default: 3)"
 )
 def suggest_examples_cmd(keywords: tuple, limit: int):
     """
@@ -443,12 +421,14 @@ def suggest_examples_cmd(keywords: tuple, limit: int):
         complexity_color = {
             Complexity.SIMPLE: "green",
             Complexity.MODERATE: "yellow",
-            Complexity.COMPLEX: "red"
+            Complexity.COMPLEX: "red",
         }
 
         click.echo(f"{i}. {click.style(ex.title, bold=True, fg='cyan')}")
         click.echo(f"   {ex.description}")
-        click.echo(f"   {click.style(ex.complexity.value.upper(), fg=complexity_color[ex.complexity])} | {ex.domain.value}")
+        click.echo(
+            f"   {click.style(ex.complexity.value.upper(), fg=complexity_color[ex.complexity])} | {ex.domain.value}"
+        )
         click.echo()
 
     echo_info("Use 'caas examples show <title>' to see full details")

@@ -4,7 +4,7 @@ CLI Configuration Management
 
 import json
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 
 
 class CLIConfig:
@@ -28,7 +28,7 @@ class CLIConfig:
         """Load config from file"""
         if self.config_path.exists():
             try:
-                with open(self.config_path, 'r') as f:
+                with open(self.config_path, "r") as f:
                     self._config = json.load(f)
             except Exception as e:
                 click.echo(f"Warning: Failed to load config: {e}", err=True)
@@ -40,7 +40,7 @@ class CLIConfig:
         """Save config to file"""
         self.config_path.parent.mkdir(parents=True, exist_ok=True)
 
-        with open(self.config_path, 'w') as f:
+        with open(self.config_path, "w") as f:
             json.dump(self._config, f, indent=2)
 
     def _default_config(self) -> Dict[str, Any]:

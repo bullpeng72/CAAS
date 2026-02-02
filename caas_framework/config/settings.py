@@ -5,17 +5,19 @@ Centralized configuration for all framework components.
 """
 
 import os
-from pathlib import Path
-from typing import Any, Dict, List, Optional
 from enum import Enum
 from functools import lru_cache
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from dotenv import load_dotenv
 
 
 class LLMProvider(str, Enum):
     """Supported LLM providers"""
+
     OPENAI = "openai"
     ANTHROPIC = "anthropic"
     OLLAMA = "ollama"
@@ -24,6 +26,7 @@ class LLMProvider(str, Enum):
 
 class GraphBackend(str, Enum):
     """Supported graph database backends"""
+
     NEO4J = "neo4j"
     ARANGODB = "arangodb"
     EMBEDDED = "embedded"
@@ -31,6 +34,7 @@ class GraphBackend(str, Enum):
 
 class VectorDBBackend(str, Enum):
     """Supported vector database backends"""
+
     PINECONE = "pinecone"
     QDRANT = "qdrant"
     CHROMA = "chroma"
@@ -39,6 +43,7 @@ class VectorDBBackend(str, Enum):
 
 class ValidationStrictness(str, Enum):
     """Validation strictness level"""
+
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
@@ -46,6 +51,7 @@ class ValidationStrictness(str, Enum):
 
 class OutputFormat(str, Enum):
     """Code generation output format"""
+
     BASIC = "basic"
     PRODUCTION = "production"
     ENTERPRISE = "enterprise"
@@ -60,9 +66,9 @@ class LLMConstants:
     """
 
     # Temperature settings by task type
-    TEMPERATURE_CREATIVE = 0.7      # For architecture, design (system_architect, agent_designer)
-    TEMPERATURE_BALANCED = 0.5      # For analysis, refinement (requirement_analyst, gap_analyzer)
-    TEMPERATURE_PRECISE = 0.3       # For code generation, BMAD (code_generator, bmad/engine)
+    TEMPERATURE_CREATIVE = 0.7  # For architecture, design (system_architect, agent_designer)
+    TEMPERATURE_BALANCED = 0.5  # For analysis, refinement (requirement_analyst, gap_analyzer)
+    TEMPERATURE_PRECISE = 0.3  # For code generation, BMAD (code_generator, bmad/engine)
     TEMPERATURE_DEFAULT = 0.5
 
     # Response format
@@ -79,17 +85,21 @@ class LLMConstants:
 
 class MultiModelConfig(BaseModel):
     """Multi-model configuration for a single model"""
-    name: str                          # Model identifier (e.g., "gpt-4", "gpt-3.5-turbo")
-    provider: LLMProvider              # Provider (openai, anthropic, etc.)
-    model: str                         # Model name
-    cost_per_1k_tokens: float = 0.0    # Cost per 1000 tokens (USD)
-    max_tokens: int = 4096             # Maximum tokens
-    suitable_phases: List[str] = Field(default_factory=list)  # Best phases: ["DISCOVERY", "ARCHITECTURE"]
-    priority: int = 1                  # Higher = higher priority in fallback chain
+
+    name: str  # Model identifier (e.g., "gpt-4", "gpt-3.5-turbo")
+    provider: LLMProvider  # Provider (openai, anthropic, etc.)
+    model: str  # Model name
+    cost_per_1k_tokens: float = 0.0  # Cost per 1000 tokens (USD)
+    max_tokens: int = 4096  # Maximum tokens
+    suitable_phases: List[str] = Field(
+        default_factory=list
+    )  # Best phases: ["DISCOVERY", "ARCHITECTURE"]
+    priority: int = 1  # Higher = higher priority in fallback chain
 
 
 class LLMConfig(BaseModel):
     """LLM configuration"""
+
     provider: LLMProvider = LLMProvider.OPENAI
     model: str = "gpt-4"
     temperature: float = Field(default=0.3, ge=0.0, le=2.0)
@@ -99,13 +109,16 @@ class LLMConfig(BaseModel):
 
     # Multi-model support
     enable_multi_model: bool = False
-    model_selection_strategy: str = "phase_based"  # phase_based, cost_optimized, performance_first, adaptive
+    model_selection_strategy: str = (
+        "phase_based"  # phase_based, cost_optimized, performance_first, adaptive
+    )
     enable_model_fallback: bool = True
     multi_models: List[MultiModelConfig] = Field(default_factory=list)
 
 
 class GraphConfig(BaseModel):
     """Graph database configuration"""
+
     backend: GraphBackend = GraphBackend.EMBEDDED
     uri: Optional[str] = None
     username: Optional[str] = None
@@ -115,14 +128,18 @@ class GraphConfig(BaseModel):
 
 class VectorDBConfig(BaseModel):
     """Vector database configuration"""
+
     backend: Optional[VectorDBBackend] = None
     api_key: Optional[str] = None
     environment: Optional[str] = None
-    index_name: str = Field(default_factory=lambda: os.getenv("VECTORDB_INDEX_NAME", "caas-vectors"))
+    index_name: str = Field(
+        default_factory=lambda: os.getenv("VECTORDB_INDEX_NAME", "caas-vectors")
+    )
 
 
 class ValidationConfig(BaseModel):
     """Validation configuration"""
+
     enabled: bool = True  # Master switch for all validation
     strictness: ValidationStrictness = ValidationStrictness.MEDIUM
     auto_fix: bool = True
@@ -135,18 +152,21 @@ class ValidationConfig(BaseModel):
     # LLM Judge configuration
     enable_llm_judge: bool = True
     llm_judge_default_threshold: float = 7.0  # Default approval threshold (0-10)
-    llm_judge_phase_thresholds: Dict[str, float] = Field(default_factory=lambda: {
-        "DISCOVERY": 6.5,      # Lower threshold for discovery (exploratory phase)
-        "ARCHITECTURE": 7.0,   # Standard threshold for architecture
-        "DESIGN": 7.5,         # Higher threshold for design (critical for quality)
-        "DEVELOPMENT": 7.0,    # Standard threshold for specs
-        "DELIVERY": 8.0,       # Highest threshold for code (must be production-ready)
-        "QUALITY_ASSURANCE": 7.0  # Standard threshold for QA
-    })
+    llm_judge_phase_thresholds: Dict[str, float] = Field(
+        default_factory=lambda: {
+            "DISCOVERY": 6.5,  # Lower threshold for discovery (exploratory phase)
+            "ARCHITECTURE": 7.0,  # Standard threshold for architecture
+            "DESIGN": 7.5,  # Higher threshold for design (critical for quality)
+            "DEVELOPMENT": 7.0,  # Standard threshold for specs
+            "DELIVERY": 8.0,  # Highest threshold for code (must be production-ready)
+            "QUALITY_ASSURANCE": 7.0,  # Standard threshold for QA
+        }
+    )
 
 
 class CodeGenerationConfig(BaseModel):
     """Code generation configuration"""
+
     output_format: OutputFormat = OutputFormat.PRODUCTION
     include_tests: bool = True
     include_docs: bool = True
@@ -162,49 +182,51 @@ class TimeoutConfig(BaseModel):
 
     Realistic timeouts based on operation complexity and LLM response times.
     """
+
     # Phase-specific timeouts (seconds)
     phase_concretization: int = 180  # 3 minutes - Golden Data generation
-    phase_discovery: int = 240       # 4 minutes - Requirements analysis
-    phase_architecture: int = 300    # 5 minutes - Architecture design
-    phase_design: int = 360          # 6 minutes - Agent/task design (most complex)
-    phase_development: int = 180     # 3 minutes - Spec generation
-    phase_delivery: int = 600        # 10 minutes - Code generation (slowest)
-    phase_qa: int = 240              # 4 minutes - Quality assurance
+    phase_discovery: int = 240  # 4 minutes - Requirements analysis
+    phase_architecture: int = 300  # 5 minutes - Architecture design
+    phase_design: int = 360  # 6 minutes - Agent/task design (most complex)
+    phase_development: int = 180  # 3 minutes - Spec generation
+    phase_delivery: int = 600  # 10 minutes - Code generation (slowest)
+    phase_qa: int = 240  # 4 minutes - Quality assurance
 
     # LLM operation timeouts (seconds)
-    llm_simple: int = 60             # Simple LLM calls
-    llm_complex: int = 120           # Complex generation tasks
-    llm_code_generation: int = 180   # Code generation
+    llm_simple: int = 60  # Simple LLM calls
+    llm_complex: int = 120  # Complex generation tasks
+    llm_code_generation: int = 180  # Code generation
 
     # Validation timeouts (seconds)
-    validation_quick: int = 30       # Quick validation checks
+    validation_quick: int = 30  # Quick validation checks
     validation_comprehensive: int = 90  # Full validation with Golden Data
-    quality_gate: int = 45           # Quality gate evaluation
+    quality_gate: int = 45  # Quality gate evaluation
 
     # Feedback loop timeouts (seconds)
-    feedback_iteration: int = 120    # Single refinement iteration
-    feedback_total: int = 480        # Total feedback loop (4 iterations max)
+    feedback_iteration: int = 120  # Single refinement iteration
+    feedback_total: int = 480  # Total feedback loop (4 iterations max)
 
     # Workflow timeouts (seconds)
-    total_workflow: int = 1800       # 30 minutes - Total workflow execution
+    total_workflow: int = 1800  # 30 minutes - Total workflow execution
 
 
 class CachingConfig(BaseModel):
     """Caching configuration"""
+
     enabled: bool = True
     backend: str = "in_memory"  # in_memory, file, redis (future)
 
     # Backend-specific settings
     cache_dir: str = ".cache"  # For file backend
-    max_size_mb: int = 100     # For file backend
-    max_entries: int = 1000    # For in-memory backend
+    max_size_mb: int = 100  # For file backend
+    max_entries: int = 1000  # For in-memory backend
 
     # TTL settings (seconds)
-    default_ttl: int = 3600           # 1 hour
-    llm_response_ttl: int = 3600      # 1 hour
-    validation_ttl: int = 1800        # 30 minutes
-    golden_data_ttl: int = 7200       # 2 hours
-    phase_output_ttl: int = 3600      # 1 hour
+    default_ttl: int = 3600  # 1 hour
+    llm_response_ttl: int = 3600  # 1 hour
+    validation_ttl: int = 1800  # 30 minutes
+    golden_data_ttl: int = 7200  # 2 hours
+    phase_output_ttl: int = 3600  # 1 hour
 
     # Features
     enable_llm_cache: bool = True
@@ -214,6 +236,7 @@ class CachingConfig(BaseModel):
 
 class WorkflowConfig(BaseModel):
     """Workflow configuration"""
+
     enable_checkpoints: bool = True
     enable_versioning: bool = True
     enable_caching: bool = True
@@ -229,6 +252,7 @@ class WorkflowConfig(BaseModel):
 
 class LoggingConfig(BaseModel):
     """Logging configuration"""
+
     level: str = "INFO"
     format: str = "json"  # json or text
     output: str = "console"  # console, file, both
@@ -236,6 +260,7 @@ class LoggingConfig(BaseModel):
 
 class ArtifactConfig(BaseModel):
     """Artifact generation configuration"""
+
     enabled: bool = False
     output_format: str = "markdown"  # markdown, html, pdf, json
     output_dir: str = "./artifacts"
@@ -302,6 +327,7 @@ class FrameworkConfig(BaseModel):
 # Legacy Settings (from caas_app/utils/config.py)
 # Provides pydantic-settings based configuration with .env file support
 # =============================================================================
+
 
 # Find project root
 def find_project_root() -> Path:
@@ -420,8 +446,7 @@ class Neo4jSettings(BaseSettings):
     neo4j_user: str = Field(default="neo4j", alias="NEO4J_USER")
     neo4j_password: str = Field(default="password", alias="NEO4J_PASSWORD")
     embedded_graph_storage: str = Field(
-        default="./data/embedded_graph.json",
-        alias="EMBEDDED_GRAPH_STORAGE"
+        default="./data/embedded_graph.json", alias="EMBEDDED_GRAPH_STORAGE"
     )
 
 
@@ -466,7 +491,7 @@ class ArtifactSettings(BaseSettings):
     enabled: bool = Field(
         default=True,
         validation_alias="ARTIFACT_GENERATION_ENABLED",
-        description="Enable artifact auto-generation"
+        description="Enable artifact auto-generation",
     )
 
     # Artifact types to generate
@@ -482,14 +507,8 @@ class ArtifactSettings(BaseSettings):
     generate_deployment_guide: bool = Field(default=False)
 
     # Output settings
-    output_format: str = Field(
-        default="markdown",
-        validation_alias="ARTIFACT_OUTPUT_FORMAT"
-    )
-    output_directory: str = Field(
-        default="./artifacts",
-        validation_alias="ARTIFACT_OUTPUT_DIR"
-    )
+    output_format: str = Field(default="markdown", validation_alias="ARTIFACT_OUTPUT_FORMAT")
+    output_directory: str = Field(default="./artifacts", validation_alias="ARTIFACT_OUTPUT_DIR")
 
     # Additional options
     include_diagrams: bool = Field(default=True)
@@ -500,10 +519,10 @@ class ArtifactSettings(BaseSettings):
 class Settings(BaseSettings):
     """
     Unified settings class (compatible with caas_app/utils/config.py).
-    
+
     Provides pydantic-settings based configuration with .env file support.
     This is the legacy settings system that loads from environment variables.
-    
+
     For new code, prefer using FrameworkConfig for programmatic configuration.
     """
 
@@ -529,6 +548,7 @@ class Settings(BaseSettings):
         # SECURITY: Store API keys in SecretManager
         try:
             from caas_framework.config.secrets import get_secret_manager
+
             secret_manager = get_secret_manager()
 
             if self.llm.openai_api_key:
@@ -547,7 +567,7 @@ class Settings(BaseSettings):
 def get_settings() -> Settings:
     """
     Return settings singleton instance.
-    
+
     Returns:
         Settings: Application settings object
     """
@@ -567,15 +587,16 @@ def reload_settings() -> Settings:
 def get_api_key(key_name: str) -> Optional[str]:
     """
     Safely retrieve API key.
-    
+
     Args:
         key_name: Key name (e.g., "OPENAI_API_KEY")
-    
+
     Returns:
         str: API key value or None
     """
     try:
         from caas_framework.config.secrets import get_secret_manager
+
         secret_manager = get_secret_manager()
 
         # Try SecretManager first
@@ -594,6 +615,7 @@ def get_api_key(key_name: str) -> Optional[str]:
     if ENV_FILE.exists():
         try:
             from dotenv import dotenv_values
+
             env_dict = dotenv_values(ENV_FILE)
             return env_dict.get(key_name)
         except Exception:
@@ -605,10 +627,10 @@ def get_api_key(key_name: str) -> Optional[str]:
 def set_subprocess_env(base_env: Optional[Dict[str, str]] = None) -> Dict[str, str]:
     """
     Create environment dict for subprocess with secrets.
-    
+
     Args:
         base_env: Base environment dict
-    
+
     Returns:
         dict: Environment dict with secrets
     """
@@ -616,6 +638,7 @@ def set_subprocess_env(base_env: Optional[Dict[str, str]] = None) -> Dict[str, s
 
     try:
         from caas_framework.config.secrets import get_secret_manager
+
         secret_manager = get_secret_manager()
 
         # Add secrets only if explicitly needed for subprocess

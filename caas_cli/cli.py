@@ -5,44 +5,39 @@ Command-line interface for generating CrewAI agents.
 """
 
 import sys
+
 import click
+from caas_cli.commands import (  # Phase 1: Core Features; Phase 2: Advanced Features; Phase 2 Enhancement: Monitoring & Performance; Phase 3: Management Features; Phase 4: Production Ready
+    analyze_gaps,
+    auto_deploy_cmd,
+    cache_cmd,
+    codegen_cmd,
+    config,
+    download,
+    env,
+    examples,
+    expand_requirement,
+    fix_cmd,
+    generate,
+    generate_code_cmd,
+    generate_phase,
+    init,
+    interactive_questions,
+    list_projects,
+    models_cmd,
+    monitor_cmd,
+    plugins_cmd,
+    profile_cmd,
+    session_cmd,
+    status,
+    test_cmd,
+    traceability,
+    validate_cmd,
+    workflow_cmd,
+)
 from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
-
-from caas_cli.commands import (
-    generate,
-    init,
-    config,
-    env,
-    status,
-    list_projects,
-    download,
-    analyze_gaps,
-    expand_requirement,
-    interactive_questions,
-    traceability,
-    examples,
-    # Phase 1: Core Features
-    validate_cmd,
-    codegen_cmd,
-    generate_code_cmd,
-    fix_cmd,
-    # Phase 2: Advanced Features
-    generate_phase,
-    test_cmd,
-    # Phase 2 Enhancement: Monitoring & Performance
-    cache_cmd,
-    monitor_cmd,
-    models_cmd,
-    profile_cmd,
-    # Phase 3: Management Features
-    session_cmd,
-    workflow_cmd,
-    plugins_cmd,
-    # Phase 4: Production Ready
-    auto_deploy_cmd
-)
 
 
 class CustomGroup(click.Group):
@@ -53,14 +48,15 @@ class CustomGroup(click.Group):
         # Bypass Click's default formatter and use our custom help
         show_comprehensive_help()
 
+
 console = Console()
 
 
 def show_comprehensive_help():
     """Display comprehensive help with methodology when --help is used"""
 
-    from rich.markdown import Markdown
     from rich.columns import Columns
+    from rich.markdown import Markdown
     from rich.table import Table
 
     console.print("\n")
@@ -108,21 +104,15 @@ def show_comprehensive_help():
     qa_table.add_column("Layer", style="cyan", width=20)
     qa_table.add_column("Description", style="white")
 
+    qa_table.add_row("1. Feedback Loop", "Golden Data validation • 60s timeout • Max 3 retries")
     qa_table.add_row(
-        "1. Feedback Loop",
-        "Golden Data validation • 60s timeout • Max 3 retries"
+        "2. Quality Gates", "Phase exit criteria • Metrics validation • Failure blocking"
     )
     qa_table.add_row(
-        "2. Quality Gates",
-        "Phase exit criteria • Metrics validation • Failure blocking"
+        "3. Producer-Critic", "LLM peer review • Max 3 iterations • Threshold 7.0/10.0"
     )
     qa_table.add_row(
-        "3. Producer-Critic",
-        "LLM peer review • Max 3 iterations • Threshold 7.0/10.0"
-    )
-    qa_table.add_row(
-        "4. LLM Judge",
-        "Semantic evaluation • Multi-dimensional scoring • Suggestions"
+        "4. LLM Judge", "Semantic evaluation • Multi-dimensional scoring • Suggestions"
     )
 
     console.print(qa_table)
@@ -161,18 +151,26 @@ def show_comprehensive_help():
 
     # Code Generation
     console.print("[bold cyan]🎨 CODE GENERATION[/bold cyan]")
-    console.print("  [green]generate[/green]         Complete CrewAI system (full BMAD methodology)")
-    console.print("  [green]generate-code[/green]    Fast generation from existing specs (AST-based)")
+    console.print(
+        "  [green]generate[/green]         Complete CrewAI system (full BMAD methodology)"
+    )
+    console.print(
+        "  [green]generate-code[/green]    Fast generation from existing specs (AST-based)"
+    )
     console.print("  [green]codegen[/green]          Specific components (agents, tasks, tools)\n")
 
     # Validation & Quality
     console.print("[bold cyan]✅ VALIDATION & QUALITY[/bold cyan]")
-    console.print("  [green]validate[/green]         Multi-layer validation (Golden Data, ontology, semantics)")
+    console.print(
+        "  [green]validate[/green]         Multi-layer validation (Golden Data, ontology, semantics)"
+    )
     console.print("  [green]fix[/green]              Auto-fix with LLM-powered issue resolution\n")
 
     # Setup & Configuration
     console.print("[bold cyan]⚙️  SETUP & CONFIGURATION[/bold cyan]")
-    console.print("  [green]init[/green]             Initialize configuration (API keys, LLM selection)")
+    console.print(
+        "  [green]init[/green]             Initialize configuration (API keys, LLM selection)"
+    )
     console.print("  [green]config[/green]           Manage settings and preferences")
     console.print("  [green]env[/green]              Manage environment variables\n")
 
@@ -181,7 +179,9 @@ def show_comprehensive_help():
     console.print("  [green]analyze-gaps[/green]     Identify missing features and ambiguities")
     console.print("  [green]expand[/green]           Add acceptance criteria and data models")
     console.print("  [green]questions[/green]        Interactive LLM-guided clarification")
-    console.print("  [green]examples[/green]         Browse 11 curated examples (web, API, data, ML)\n")
+    console.print(
+        "  [green]examples[/green]         Browse 11 curated examples (web, API, data, ML)\n"
+    )
 
     # Advanced Features
     console.print("[bold cyan]🧪 ADVANCED FEATURES[/bold cyan]")
@@ -192,15 +192,25 @@ def show_comprehensive_help():
     # Monitoring & Performance
     console.print("[bold cyan]📊 MONITORING & PERFORMANCE[/bold cyan]")
     console.print("  [green]cache[/green]            Cache management (stats, clear, config)")
-    console.print("  [green]monitor[/green]          Real-time monitoring (metrics, cost, quality, alerts)")
-    console.print("  [green]models[/green]           Multi-model router (list, metrics, switch, strategy)")
-    console.print("  [green]profile[/green]          Performance profiling (run, report, bottlenecks)\n")
+    console.print(
+        "  [green]monitor[/green]          Real-time monitoring (metrics, cost, quality, alerts)"
+    )
+    console.print(
+        "  [green]models[/green]           Multi-model router (list, metrics, switch, strategy)"
+    )
+    console.print(
+        "  [green]profile[/green]          Performance profiling (run, report, bottlenecks)\n"
+    )
 
     # Management & Workflow
     console.print("[bold cyan]🔧 MANAGEMENT & WORKFLOW[/bold cyan]")
     console.print("  [green]session[/green]          Manage sessions (save/resume)")
-    console.print("  [green]workflow[/green]         Control workflows (event-driven orchestration)")
-    console.print("  [green]plugins[/green]          Manage LLM plugins (OpenAI, Anthropic, Google)\n")
+    console.print(
+        "  [green]workflow[/green]         Control workflows (event-driven orchestration)"
+    )
+    console.print(
+        "  [green]plugins[/green]          Manage LLM plugins (OpenAI, Anthropic, Google)\n"
+    )
 
     # Utilities
     console.print("[bold cyan]ℹ️  UTILITIES[/bold cyan]")
@@ -217,26 +227,11 @@ def show_comprehensive_help():
     patterns.add_column("Pattern", style="cyan", width=25)
     patterns.add_column("Command", style="green")
 
-    patterns.add_row(
-        "Full Automation",
-        'caas auto-deploy "Build an API"'
-    )
-    patterns.add_row(
-        "Guided (Learning)",
-        'caas generate "Build blog" --plan-mode'
-    )
-    patterns.add_row(
-        "Iterative Refinement",
-        'caas generate → validate → fix → generate-code'
-    )
-    patterns.add_row(
-        "From Examples",
-        'caas examples list → generate --from-example'
-    )
-    patterns.add_row(
-        "Phase-by-Phase",
-        'caas generate-phase [concretize|discover|design|deliver]'
-    )
+    patterns.add_row("Full Automation", 'caas auto-deploy "Build an API"')
+    patterns.add_row("Guided (Learning)", 'caas generate "Build blog" --plan-mode')
+    patterns.add_row("Iterative Refinement", "caas generate → validate → fix → generate-code")
+    patterns.add_row("From Examples", "caas examples list → generate --from-example")
+    patterns.add_row("Phase-by-Phase", "caas generate-phase [concretize|discover|design|deliver]")
 
     console.print(patterns)
     console.print("\n")
@@ -274,7 +269,9 @@ def show_comprehensive_help():
 
     deep_dive = Text()
     deep_dive.append("Golden Data (Spec-Driven)\n", style="bold green")
-    deep_dive.append("  Complete specifications: System scope, features, data models,\n", style="dim")
+    deep_dive.append(
+        "  Complete specifications: System scope, features, data models,\n", style="dim"
+    )
     deep_dive.append("  UI components, NFRs, testing strategy, Git workflow\n\n", style="dim")
 
     deep_dive.append("Quality Gates (BMAD)\n", style="bold green")

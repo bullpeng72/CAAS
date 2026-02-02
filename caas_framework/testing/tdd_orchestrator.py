@@ -9,21 +9,15 @@ Manages the TDD workflow:
 """
 
 import logging
-from typing import List, Optional
 from dataclasses import dataclass, field
 from datetime import datetime
+from typing import List, Optional
 
-from caas_framework.models.specifications import FeatureSpec, ConcretizedRequirement
-from caas_framework.testing.test_scenario import (
-    TestScenario,
-    TestScenarioGenerator
-)
-from caas_framework.testing.test_generator import (
-    TestFirstGenerator,
-    TestCodeResult
-)
-from caas_framework.testing.test_executor import TestExecutor, TestResult
+from caas_framework.models.specifications import ConcretizedRequirement, FeatureSpec
 from caas_framework.plugins.llm.base import LLMPlugin
+from caas_framework.testing.test_executor import TestExecutor, TestResult
+from caas_framework.testing.test_generator import TestCodeResult, TestFirstGenerator
+from caas_framework.testing.test_scenario import TestScenario, TestScenarioGenerator
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +25,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class TDDCycle:
     """Single TDD Red-Green-Refactor cycle"""
+
     feature_name: str
     scenarios: List[TestScenario]
     test_code: Optional[TestCodeResult] = None
@@ -44,6 +39,7 @@ class TDDCycle:
 @dataclass
 class TDDWorkflowResult:
     """Result of complete TDD workflow"""
+
     success: bool
     cycles: List[TDDCycle]
     total_scenarios: int
@@ -74,7 +70,7 @@ class TDDOrchestrator:
         llm: LLMPlugin,
         golden_data: ConcretizedRequirement,
         max_refactor_cycles: int = 2,
-        enable_edge_cases: bool = True
+        enable_edge_cases: bool = True,
     ):
         """
         Initialize TDD orchestrator.
@@ -96,9 +92,7 @@ class TDDOrchestrator:
         self.test_executor = TestExecutor()
 
     async def run_tdd_workflow(
-        self,
-        features: List[FeatureSpec],
-        entity_name: str
+        self, features: List[FeatureSpec], entity_name: str
     ) -> TDDWorkflowResult:
         """
         Run complete TDD workflow for given features.
@@ -136,7 +130,7 @@ class TDDOrchestrator:
                     total_tests_failed=0,
                     test_coverage=0.0,
                     duration=0.0,
-                    errors=errors
+                    errors=errors,
                 )
 
             logger.info(f"Generated {len(scenarios)} test scenarios")
@@ -154,9 +148,7 @@ class TDDOrchestrator:
             # Step 3: Generate implementation (GREEN)
             logger.info(f"🟢 GREEN: Generating implementation for {entity_name}")
             implementation_code = await self._generate_implementation(
-                scenarios=scenarios,
-                entity_name=entity_name,
-                test_code=test_code_result.test_code
+                scenarios=scenarios, entity_name=entity_name, test_code=test_code_result.test_code
             )
 
             if not implementation_code:
@@ -177,7 +169,7 @@ class TDDOrchestrator:
                 implementation_code=implementation_code,
                 test_results=test_results,
                 cycle_number=1,
-                passed=test_results.success if test_results else False
+                passed=test_results.success if test_results else False,
             )
             cycles.append(cycle)
 
@@ -185,8 +177,7 @@ class TDDOrchestrator:
             if cycle.passed and self.max_refactor_cycles > 0:
                 logger.info(f"🔧 REFACTOR: Improving code quality")
                 refactored_cycles = await self._refactor_cycles(
-                    cycle=cycle,
-                    entity_name=entity_name
+                    cycle=cycle, entity_name=entity_name
                 )
                 cycles.extend(refactored_cycles)
 
@@ -204,7 +195,7 @@ class TDDOrchestrator:
                 total_tests_failed=total_failed,
                 test_coverage=test_coverage,
                 duration=duration,
-                errors=errors
+                errors=errors,
             )
 
             if result.success:
@@ -223,15 +214,11 @@ class TDDOrchestrator:
             errors.append(str(e))
             return self._create_error_result(cycles, errors, start_time)
 
-    async def _generate_scenarios(
-        self,
-        features: List[FeatureSpec]
-    ) -> List[TestScenario]:
+    async def _generate_scenarios(self, features: List[FeatureSpec]) -> List[TestScenario]:
         """Generate test scenarios from features"""
         try:
             scenarios = self.scenario_generator.generate_scenarios(
-                features=features,
-                golden_data=self.golden_data
+                features=features, golden_data=self.golden_data
             )
             return scenarios
         except Exception as e:
@@ -239,16 +226,12 @@ class TDDOrchestrator:
             return []
 
     async def _generate_test_code(
-        self,
-        scenarios: List[TestScenario],
-        entity_name: str
+        self, scenarios: List[TestScenario], entity_name: str
     ) -> Optional[TestCodeResult]:
         """Generate test code from scenarios"""
         try:
             test_code_result = self.test_generator.generate_test_code(
-                scenarios=scenarios,
-                entity_name=entity_name,
-                framework="pytest"
+                scenarios=scenarios, entity_name=entity_name, framework="pytest"
             )
             return test_code_result
         except Exception as e:
@@ -256,10 +239,7 @@ class TDDOrchestrator:
             return None
 
     async def _generate_implementation(
-        self,
-        scenarios: List[TestScenario],
-        entity_name: str,
-        test_code: str
+        self, scenarios: List[TestScenario], entity_name: str, test_code: str
     ) -> Optional[str]:
         """
         Generate implementation code to pass tests.
@@ -295,10 +275,7 @@ Generate the implementation code:
             logger.error(f"Error generating implementation: {e}")
             return None
 
-    async def _run_tests(
-        self,
-        test_file_path: str
-    ) -> Optional[TestResult]:
+    async def _run_tests(self, test_file_path: str) -> Optional[TestResult]:
         """Run tests and collect results"""
         try:
             # Note: TestExecutor would need to be implemented to actually run pytest
@@ -316,7 +293,7 @@ Generate the implementation code:
                 skipped=0,
                 errors=0,
                 duration=0.0,
-                success=True
+                success=True,
             )
 
             return result
@@ -324,11 +301,7 @@ Generate the implementation code:
             logger.error(f"Error running tests: {e}")
             return None
 
-    async def _refactor_cycles(
-        self,
-        cycle: TDDCycle,
-        entity_name: str
-    ) -> List[TDDCycle]:
+    async def _refactor_cycles(self, cycle: TDDCycle, entity_name: str) -> List[TDDCycle]:
         """
         Refactor implementation while keeping tests green.
 
@@ -348,7 +321,7 @@ Generate the implementation code:
             refactored_code = await self._refactor_implementation(
                 current_code=cycle.implementation_code,
                 test_code=cycle.test_code.test_code,
-                entity_name=entity_name
+                entity_name=entity_name,
             )
 
             if not refactored_code:
@@ -365,7 +338,7 @@ Generate the implementation code:
                 implementation_code=refactored_code,
                 test_results=test_results,
                 cycle_number=cycle.cycle_number + i + 1,
-                passed=test_results.success if test_results else False
+                passed=test_results.success if test_results else False,
             )
 
             refactored_cycles.append(refactored_cycle)
@@ -378,10 +351,7 @@ Generate the implementation code:
         return refactored_cycles
 
     async def _refactor_implementation(
-        self,
-        current_code: str,
-        test_code: str,
-        entity_name: str
+        self, current_code: str, test_code: str, entity_name: str
     ) -> Optional[str]:
         """Refactor implementation while keeping tests green"""
         prompt = f"""Refactor the following {entity_name} implementation to improve:
@@ -419,12 +389,14 @@ Provide refactored implementation that:
         """Format scenarios for LLM prompt"""
         formatted = []
         for scenario in scenarios:
-            formatted.append(f"""
+            formatted.append(
+                f"""
 Scenario: {scenario.description}
   Given: {', '.join(scenario.bdd.given)}
   When: {', '.join(scenario.bdd.when)}
   Then: {', '.join(scenario.bdd.then)}
-""")
+"""
+            )
         return "\n".join(formatted)
 
     def _extract_code_from_response(self, response: str) -> str:
@@ -439,11 +411,7 @@ Scenario: {scenario.description}
         # Fallback: return full response
         return response.strip()
 
-    def _calculate_coverage(
-        self,
-        scenarios: List[TestScenario],
-        cycles: List[TDDCycle]
-    ) -> float:
+    def _calculate_coverage(self, scenarios: List[TestScenario], cycles: List[TDDCycle]) -> float:
         """Calculate test coverage based on scenarios and results"""
         if not scenarios:
             return 0.0
@@ -455,10 +423,7 @@ Scenario: {scenario.description}
         return passed_scenarios / total_scenarios
 
     def _create_error_result(
-        self,
-        cycles: List[TDDCycle],
-        errors: List[str],
-        start_time: datetime
+        self, cycles: List[TDDCycle], errors: List[str], start_time: datetime
     ) -> TDDWorkflowResult:
         """Create error result"""
         duration = (datetime.now() - start_time).total_seconds()
@@ -470,5 +435,5 @@ Scenario: {scenario.description}
             total_tests_failed=0,
             test_coverage=0.0,
             duration=duration,
-            errors=errors
+            errors=errors,
         )

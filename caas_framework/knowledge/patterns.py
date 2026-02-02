@@ -6,6 +6,7 @@ Domain Type별 실행 Agent 패턴 정의
 
 import json
 from typing import Dict, List, Optional
+
 from caas_framework.models.domain_types import DomainType, ExecutionPattern
 
 
@@ -17,7 +18,7 @@ class AgentPattern:
         execution_agents: List[Dict[str, str]],
         avoid_agents: List[str],
         execution_pattern: ExecutionPattern,
-        description: str
+        description: str,
     ):
         self.execution_agents = execution_agents
         self.avoid_agents = avoid_agents
@@ -44,7 +45,10 @@ def load_agent_patterns() -> Dict[DomainType, AgentPattern]:
     try:
         # Try to load from data/ontology/agent_patterns.json
         from pathlib import Path
-        patterns_path = Path(__file__).parent.parent.parent / "data" / "ontology" / "agent_patterns.json"
+
+        patterns_path = (
+            Path(__file__).parent.parent.parent / "data" / "ontology" / "agent_patterns.json"
+        )
 
         if patterns_path.exists():
             with open(patterns_path, "r", encoding="utf-8") as f:
@@ -61,7 +65,7 @@ def load_agent_patterns() -> Dict[DomainType, AgentPattern]:
                         execution_agents=pattern_dict["execution_agents"],
                         avoid_agents=pattern_dict["avoid_agents"],
                         execution_pattern=execution_pattern,
-                        description=pattern_dict["description"]
+                        description=pattern_dict["description"],
                     )
                     patterns_map[domain_type] = pattern
                 except (ValueError, KeyError) as e:
@@ -114,8 +118,8 @@ def get_agent_pattern(domain_type: DomainType) -> AgentPattern:
             execution_agents=[],
             avoid_agents=BUILD_AGENTS,
             execution_pattern=ExecutionPattern.CRUD_APPLICATION,
-            description="Custom domain pattern"
-        )
+            description="Custom domain pattern",
+        ),
     )
 
 

@@ -4,76 +4,51 @@ Generate Code Command
 Generate production-ready code from spec (agents.json + tasks.json)
 """
 
-import click
 from pathlib import Path
+
+import click
 from caas_cli.utils import (
-    echo_success,
     echo_error,
     echo_info,
     echo_progress,
+    echo_success,
     handle_keyboard_interrupt,
+    initialize_framework,
     load_json,
-    initialize_framework
 )
 
 
 @click.command(name="generate-code")
 @click.option(
-    "--agents",
-    type=click.Path(exists=True),
-    required=True,
-    help="Path to agents.json file"
+    "--agents", type=click.Path(exists=True), required=True, help="Path to agents.json file"
 )
 @click.option(
-    "--tasks",
-    type=click.Path(exists=True),
-    required=True,
-    help="Path to tasks.json file"
+    "--tasks", type=click.Path(exists=True), required=True, help="Path to tasks.json file"
 )
 @click.option(
     "--golden-data",
     type=click.Path(exists=True),
-    help="Path to golden_data.json (optional, recommended for better code)"
+    help="Path to golden_data.json (optional, recommended for better code)",
 )
 @click.option(
     "--deployment-target",
     type=click.Choice(["docker", "kubernetes", "terraform"]),
     default="docker",
-    help="Deployment target (default: docker)"
+    help="Deployment target (default: docker)",
 )
 @click.option(
     "--output",
     "-o",
     type=click.Path(),
     default="./generated_code",
-    help="Output directory (default: ./generated_code)"
+    help="Output directory (default: ./generated_code)",
 )
-@click.option(
-    "--project-name",
-    type=str,
-    help="Project name (default: derived from spec)"
-)
-@click.option(
-    "--verbose",
-    "-v",
-    is_flag=True,
-    help="Show detailed generation output"
-)
-@click.option(
-    "--tdd",
-    is_flag=True,
-    help="Enable Test-First Code Generation (TDD approach)"
-)
+@click.option("--project-name", type=str, help="Project name (default: derived from spec)")
+@click.option("--verbose", "-v", is_flag=True, help="Show detailed generation output")
+@click.option("--tdd", is_flag=True, help="Enable Test-First Code Generation (TDD approach)")
 @handle_keyboard_interrupt
 async def generate_code(
-    agents,
-    tasks,
-    golden_data,
-    deployment_target,
-    output,
-    project_name,
-    verbose,
-    tdd
+    agents, tasks, golden_data, deployment_target, output, project_name, verbose, tdd
 ):
     """
     Generate production-ready code from spec
@@ -216,14 +191,12 @@ async def generate_code(
         if golden_data:
             golden_data_dict = load_json(golden_data)
             if verbose:
-                echo_info(f"Golden Data loaded: {len(golden_data_dict.get('features', []))} features")
+                echo_info(
+                    f"Golden Data loaded: {len(golden_data_dict.get('features', []))} features"
+                )
 
         # Build spec
-        spec = {
-            "agents": agents_list,
-            "tasks": tasks_list,
-            "deployment_target": deployment_target
-        }
+        spec = {"agents": agents_list, "tasks": tasks_list, "deployment_target": deployment_target}
 
         if golden_data_dict:
             spec["golden_data"] = golden_data_dict
@@ -253,7 +226,7 @@ async def generate_code(
             spec=spec,
             output_dir=output,
             deployment_target=deployment_target,
-            tdd_mode=tdd  # Pass TDD flag to framework
+            tdd_mode=tdd,  # Pass TDD flag to framework
         )
 
         await framework.close()
@@ -290,7 +263,7 @@ async def generate_code(
 
         else:
             echo_error("Code generation failed!")
-            if hasattr(result, 'errors') and result.errors:
+            if hasattr(result, "errors") and result.errors:
                 click.echo()
                 click.echo(click.style("Errors:", bold=True))
                 for error in result.errors:
@@ -304,6 +277,7 @@ async def generate_code(
     except Exception as e:
         echo_error(f"Code generation error: {e}")
         import traceback
+
         if verbose:
             echo_error(traceback.format_exc())
         return 1

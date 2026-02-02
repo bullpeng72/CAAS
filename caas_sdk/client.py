@@ -5,25 +5,25 @@ Main client for interacting with CAAS API.
 """
 
 import asyncio
-import httpx
 import time
-from typing import Dict, Optional, AsyncIterator, Iterator
 from pathlib import Path
+from typing import AsyncIterator, Dict, Iterator, Optional
 
+import httpx
+from caas_sdk.exceptions import (
+    APIError,
+    AuthenticationError,
+    CAASError,
+    NetworkError,
+    RateLimitError,
+    TimeoutError,
+)
 from caas_sdk.models import (
-    Project,
-    ProjectStatus,
     GenerationConfig,
     GenerationResult,
     ProgressUpdate,
-)
-from caas_sdk.exceptions import (
-    CAASError,
-    AuthenticationError,
-    RateLimitError,
-    APIError,
-    TimeoutError,
-    NetworkError,
+    Project,
+    ProjectStatus,
 )
 
 
@@ -34,7 +34,7 @@ class BaseClient:
         self,
         api_key: Optional[str] = None,
         base_url: str = "http://localhost:8000",
-        timeout: int = 300
+        timeout: int = 300,
     ):
         """
         Initialize CAAS client.
@@ -66,8 +66,7 @@ class BaseClient:
         elif response.status_code == 429:
             retry_after = int(response.headers.get("Retry-After", 60))
             raise RateLimitError(
-                f"Rate limit exceeded. Retry after {retry_after} seconds.",
-                retry_after=retry_after
+                f"Rate limit exceeded. Retry after {retry_after} seconds.", retry_after=retry_after
             )
         elif response.status_code >= 400:
             try:
@@ -76,10 +75,7 @@ class BaseClient:
             except:
                 message = response.text
 
-            raise APIError(
-                f"API error: {message}",
-                status_code=response.status_code
-            )
+            raise APIError(f"API error: {message}", status_code=response.status_code)
 
 
 class CAAS(BaseClient):
@@ -94,7 +90,12 @@ class CAAS(BaseClient):
         result = client.get_result(project.project_id)
     """
 
-    def __init__(self, api_key: Optional[str] = None, base_url: str = "http://localhost:8000", timeout: int = 300):
+    def __init__(
+        self,
+        api_key: Optional[str] = None,
+        base_url: str = "http://localhost:8000",
+        timeout: int = 300,
+    ):
         """Initialize sync CAAS client"""
         super().__init__(api_key, base_url, timeout)
         self.client = httpx.Client(timeout=timeout)
@@ -109,7 +110,7 @@ class CAAS(BaseClient):
         self,
         requirement: str,
         domain: Optional[str] = None,
-        config: Optional[GenerationConfig] = None
+        config: Optional[GenerationConfig] = None,
     ) -> Project:
         """
         Create new project.
@@ -142,7 +143,7 @@ class CAAS(BaseClient):
                     "enable_tests": config.enable_tests,
                     "metadata": config.metadata,
                 },
-                headers=self._get_headers()
+                headers=self._get_headers(),
             )
 
             if response.status_code != 200:
@@ -169,8 +170,7 @@ class CAAS(BaseClient):
         """
         try:
             response = self.client.get(
-                f"{self.base_url}/api/v1/projects/{project_id}",
-                headers=self._get_headers()
+                f"{self.base_url}/api/v1/projects/{project_id}", headers=self._get_headers()
             )
 
             if response.status_code != 200:
@@ -199,8 +199,7 @@ class CAAS(BaseClient):
         """
         try:
             response = self.client.get(
-                f"{self.base_url}/api/v1/projects/{project_id}/result",
-                headers=self._get_headers()
+                f"{self.base_url}/api/v1/projects/{project_id}/result", headers=self._get_headers()
             )
 
             if response.status_code != 200:
@@ -216,10 +215,7 @@ class CAAS(BaseClient):
             raise NetworkError(f"Network error: {e}")
 
     def wait_for_completion(
-        self,
-        project_id: str,
-        poll_interval: int = 2,
-        max_wait: int = 300
+        self, project_id: str, poll_interval: int = 2, max_wait: int = 300
     ) -> GenerationResult:
         """
         Wait for project completion.
@@ -246,11 +242,7 @@ class CAAS(BaseClient):
 
         raise TimeoutError(f"Project did not complete within {max_wait} seconds")
 
-    def download_code(
-        self,
-        project_id: str,
-        output_dir: str
-    ):
+    def download_code(self, project_id: str, output_dir: str):
         """
         Download generated code.
 
@@ -268,11 +260,7 @@ class CAAS(BaseClient):
             file_full_path.parent.mkdir(parents=True, exist_ok=True)
             file_full_path.write_text(content)
 
-    def list_projects(
-        self,
-        status: Optional[str] = None,
-        limit: int = 100
-    ) -> list:
+    def list_projects(self, status: Optional[str] = None, limit: int = 100) -> list:
         """
         List all projects.
 
@@ -289,9 +277,7 @@ class CAAS(BaseClient):
                 params["status"] = status
 
             response = self.client.get(
-                f"{self.base_url}/api/v1/projects",
-                params=params,
-                headers=self._get_headers()
+                f"{self.base_url}/api/v1/projects", params=params, headers=self._get_headers()
             )
 
             if response.status_code != 200:
@@ -310,7 +296,7 @@ class CAAS(BaseClient):
         requirement: str,
         domain: Optional[str] = None,
         config: Optional[GenerationConfig] = None,
-        wait: bool = True
+        wait: bool = True,
     ) -> GenerationResult:
         """
         High-level generate method.
@@ -329,10 +315,7 @@ class CAAS(BaseClient):
         if wait:
             return self.wait_for_completion(project.project_id)
         else:
-            return GenerationResult(
-                project_id=project.project_id,
-                success=False
-            )
+            return GenerationResult(project_id=project.project_id, success=False)
 
 
 class AsyncCAAS(BaseClient):
@@ -347,7 +330,12 @@ class AsyncCAAS(BaseClient):
             result = await client.get_result(project.project_id)
     """
 
-    def __init__(self, api_key: Optional[str] = None, base_url: str = "http://localhost:8000", timeout: int = 300):
+    def __init__(
+        self,
+        api_key: Optional[str] = None,
+        base_url: str = "http://localhost:8000",
+        timeout: int = 300,
+    ):
         """Initialize async CAAS client"""
         super().__init__(api_key, base_url, timeout)
         self.client = httpx.AsyncClient(timeout=timeout)
@@ -362,7 +350,7 @@ class AsyncCAAS(BaseClient):
         self,
         requirement: str,
         domain: Optional[str] = None,
-        config: Optional[GenerationConfig] = None
+        config: Optional[GenerationConfig] = None,
     ) -> Project:
         """Create new project (async)"""
         if config is None:
@@ -377,7 +365,7 @@ class AsyncCAAS(BaseClient):
                     "deployment_target": config.deployment_target,
                     "metadata": config.metadata,
                 },
-                headers=self._get_headers()
+                headers=self._get_headers(),
             )
 
             if response.status_code != 200:
@@ -396,8 +384,7 @@ class AsyncCAAS(BaseClient):
         """Get project by ID (async)"""
         try:
             response = await self.client.get(
-                f"{self.base_url}/api/v1/projects/{project_id}",
-                headers=self._get_headers()
+                f"{self.base_url}/api/v1/projects/{project_id}", headers=self._get_headers()
             )
 
             if response.status_code != 200:
@@ -416,8 +403,7 @@ class AsyncCAAS(BaseClient):
         """Get generation result (async)"""
         try:
             response = await self.client.get(
-                f"{self.base_url}/api/v1/projects/{project_id}/result",
-                headers=self._get_headers()
+                f"{self.base_url}/api/v1/projects/{project_id}/result", headers=self._get_headers()
             )
 
             if response.status_code != 200:
@@ -433,10 +419,7 @@ class AsyncCAAS(BaseClient):
             raise NetworkError(f"Network error: {e}")
 
     async def wait_for_completion(
-        self,
-        project_id: str,
-        poll_interval: int = 2,
-        max_wait: int = 300
+        self, project_id: str, poll_interval: int = 2, max_wait: int = 300
     ) -> GenerationResult:
         """Wait for project completion (async)"""
         start_time = time.time()
@@ -458,7 +441,7 @@ class AsyncCAAS(BaseClient):
         requirement: str,
         domain: Optional[str] = None,
         config: Optional[GenerationConfig] = None,
-        wait: bool = True
+        wait: bool = True,
     ) -> GenerationResult:
         """High-level generate method (async)"""
         project = await self.create_project(requirement, domain, config)
@@ -466,7 +449,4 @@ class AsyncCAAS(BaseClient):
         if wait:
             return await self.wait_for_completion(project.project_id)
         else:
-            return GenerationResult(
-                project_id=project.project_id,
-                success=False
-            )
+            return GenerationResult(project_id=project.project_id, success=False)

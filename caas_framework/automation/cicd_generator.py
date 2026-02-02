@@ -17,7 +17,7 @@ class CICDGenerator:
         python_version: str = "3.11",
         include_docker: bool = False,
         include_coverage: bool = True,
-        verbose: bool = True
+        verbose: bool = True,
     ) -> Path:
         """
         Generate GitHub Actions CI workflow
@@ -32,16 +32,16 @@ class CICDGenerator:
         Returns:
             Path to the generated workflow file
         """
-        workflows_dir = project_dir / '.github' / 'workflows'
+        workflows_dir = project_dir / ".github" / "workflows"
         workflows_dir.mkdir(parents=True, exist_ok=True)
 
-        ci_workflow_path = workflows_dir / 'ci.yml'
+        ci_workflow_path = workflows_dir / "ci.yml"
 
         # Build workflow content
         workflow_content = self._build_ci_workflow(
             python_version=python_version,
             include_docker=include_docker,
-            include_coverage=include_coverage
+            include_coverage=include_coverage,
         )
 
         ci_workflow_path.write_text(workflow_content)
@@ -52,10 +52,7 @@ class CICDGenerator:
         return ci_workflow_path
 
     def _build_ci_workflow(
-        self,
-        python_version: str,
-        include_docker: bool,
-        include_coverage: bool
+        self, python_version: str, include_docker: bool, include_coverage: bool
     ) -> str:
         """Build GitHub Actions CI workflow YAML content"""
 
@@ -125,7 +122,7 @@ jobs:
         project_dir: Path,
         base_image: str = "python:3.11-slim",
         port: int = 8000,
-        verbose: bool = True
+        verbose: bool = True,
     ) -> tuple[Path, Path]:
         """
         Generate Dockerfile and docker-compose.yml
@@ -140,7 +137,7 @@ jobs:
             Tuple of (Dockerfile path, docker-compose.yml path)
         """
         # Generate Dockerfile
-        dockerfile_path = project_dir / 'Dockerfile'
+        dockerfile_path = project_dir / "Dockerfile"
         dockerfile_content = f"""FROM {base_image}
 
 WORKDIR /app
@@ -161,7 +158,7 @@ CMD ["python", "main.py"]
         dockerfile_path.write_text(dockerfile_content)
 
         # Generate docker-compose.yml
-        docker_compose_path = project_dir / 'docker-compose.yml'
+        docker_compose_path = project_dir / "docker-compose.yml"
         docker_compose_content = f"""version: '3.8'
 
 services:
@@ -190,7 +187,7 @@ services:
         include_docker: bool = True,
         include_coverage: bool = True,
         docker_port: int = 8000,
-        verbose: bool = True
+        verbose: bool = True,
     ) -> dict[str, Path]:
         """
         Generate complete CI/CD configuration
@@ -214,18 +211,16 @@ services:
             python_version=python_version,
             include_docker=include_docker,
             include_coverage=include_coverage,
-            verbose=verbose
+            verbose=verbose,
         )
-        generated_files['ci_workflow'] = ci_workflow
+        generated_files["ci_workflow"] = ci_workflow
 
         # Docker files
         if include_docker:
             dockerfile, docker_compose = self.generate_docker_files(
-                project_dir=project_dir,
-                port=docker_port,
-                verbose=verbose
+                project_dir=project_dir, port=docker_port, verbose=verbose
             )
-            generated_files['dockerfile'] = dockerfile
-            generated_files['docker_compose'] = docker_compose
+            generated_files["dockerfile"] = dockerfile
+            generated_files["docker_compose"] = docker_compose
 
         return generated_files

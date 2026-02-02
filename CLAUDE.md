@@ -28,15 +28,20 @@ caas/
 │   │   └── golden_data.py   # Phase 0: Concretization
 │   ├── codegen/             # Code Generation
 │   │   ├── generators/      # 도메인별 코드 생성기
-│   │   └── templates/       # Jinja2 템플릿
+│   │   ├── tool_generator.py    # CrewAI 도구 import/초기화 생성
+│   │   ├── crud_entity_extractor.py  # CRUD 엔티티 추출
+│   │   ├── domain_strategy.py   # 도메인별 코드 생성 전략
+│   │   └── engine.py        # 코드 생성 엔진
 │   ├── validation/          # 6개 Validator (Ontology, Golden, Dependency, Python311, CrewAI, All)
-│   │   └── orchestrator.py  # 검증 오케스트레이터
+│   │   ├── orchestrator.py  # 검증 오케스트레이터
+│   │   └── matcher.py       # Feature matching 유틸리티
 │   ├── fixing/              # 3-Level Auto-Fixing (Template/Rule/LLM)
 │   │   └── auto_fixer.py
 │   ├── plugins/             # Plugin System
 │   │   ├── llm/             # LLM Provider Plugins (OpenAI, Anthropic, Multi-Model Router)
 │   │   ├── graphdb/         # Graph DB Plugins (Neo4j, Embedded)
-│   │   └── vectordb/        # Vector DB Plugins (선택적)
+│   │   ├── vectordb/        # Vector DB Plugins (선택적)
+│   │   └── mcp/             # MCP (Model Context Protocol) 통합
 │   ├── knowledge/           # Ontology & Knowledge Graph
 │   ├── config/              # Configuration Management
 │   ├── session/             # Session Management
@@ -52,8 +57,6 @@ caas/
 ├── caas_sdk/                # Python SDK (선택적)
 │   └── client.py            # Sync/Async clients
 │
-├── caas_app/                # Shared utilities (legacy, 점진적 제거 중)
-│
 ├── data/
 │   ├── templates/           # Jinja2 코드 템플릿
 │   └── golden_examples/     # Golden Data 예시
@@ -66,9 +69,8 @@ caas/
 │
 └── tests/                   # 100+ 테스트
     ├── test_e2e_*.py        # E2E 통합 테스트
-    ├── test_bmad/           # BMAD 엔진 테스트
-    ├── test_codegen/        # 코드 생성 테스트
-    └── test_validation/     # 검증 시스템 테스트
+    ├── integration/         # 통합 테스트
+    └── unit tests           # 유닛 테스트
 ```
 
 ### 주요 디렉토리 설명
@@ -76,7 +78,6 @@ caas/
 - **`caas_framework/`**: UI-독립적 코어. 모든 비즈니스 로직 포함.
 - **`caas_cli/`**: CLI 전용. Framework를 얇게 감싸는 인터페이스 레이어.
 - **`caas_sdk/`**: Python SDK. 프로그래밍 방식 사용 지원.
-- **`caas_app/`**: Legacy shared utilities. **점진적 제거 중** (refactor/fundamental-redesign 브랜치).
 
 ## 핵심 아키텍처
 
@@ -167,6 +168,9 @@ class ExpertAgentCollaboration:
 - Embedded (in-memory)
 
 # Vector DB Plugins (선택적)
+
+# MCP Plugin
+- MCP Client (Model Context Protocol 통합)
 ```
 
 ### 5. 3-Level Auto-Fixing System
@@ -419,17 +423,25 @@ def test_requirement_analysis(mock_generate):
 
 ## 중요한 주의사항
 
-### 1. app/ 디렉토리 제거 진행 중 ⚠️
+### 1. caas_app/ 마이그레이션 완료 ✅
 
-- **현재 상태**: `app/` 디렉토리가 완전히 제거됨 (최근 커밋)
-- **마이그레이션**: 모든 기능이 `caas_framework/`로 이동 완료
-- **주의**: `app/`에서 import하는 코드는 더 이상 작동하지 않음
+- **완료 날짜**: 2026-02-02
+- **현재 상태**: `caas_app/` 디렉토리가 완전히 제거되고 `caas_framework/`로 통합 완료
+- **마이그레이션된 파일**:
+  - `tool_generator.py` → `caas_framework/codegen/tool_generator.py`
+  - `crud_entity_extractor.py` → `caas_framework/codegen/crud_entity_extractor.py`
+  - `domain_strategy.py` → `caas_framework/codegen/domain_strategy.py` (개선된 버전)
+  - `matcher.py` → `caas_framework/validation/matcher.py`
+  - `mcp_client.py` → `caas_framework/plugins/mcp/client.py`
+- **하위 호환성**: `DomainStrategy` alias 추가 (→ `DomainCodeStrategy`)
 
 ```python
 # ❌ 구식 (작동 안 함)
+from caas_app.codegen.tool_generator import get_tool_name_to_crewai
 from app.knowledge.graph_client import GraphClient
 
 # ✅ 신식
+from caas_framework.codegen.tool_generator import get_tool_name_to_crewai
 from caas_framework.knowledge.graph_client import GraphClient
 ```
 
@@ -576,8 +588,8 @@ caas download <id> ./output
 
 ## FAQ
 
-### Q: app/ 디렉토리는 왜 제거되었나요?
-**A**: Framework-First 아키텍처로 리팩토링. 모든 기능이 `caas_framework/`로 통합되어 UI-독립성 확보.
+### Q: caas_app/ 디렉토리는 왜 제거되었나요?
+**A**: Framework-First 아키텍처로 리팩토링 완료 (2026-02-02). 모든 기능이 `caas_framework/`로 통합되어 UI-독립성 확보. 5개 핵심 파일(tool_generator, crud_entity_extractor, domain_strategy, matcher, mcp_client)이 마이그레이션되었습니다.
 
 ### Q: Quality Gate가 왜 우회되었나요?
 **A**: v1.0.0에서 무한 대기 버그 발견. 임시 우회로 워크플로우 정상화. v1.1.0에서 근본 수정 예정.
@@ -593,9 +605,21 @@ caas download <id> ./output
 
 ---
 
-**Last Updated**: 2026-02-02
+## 변경 이력
+
+### 2026-02-02: caas_app/ 마이그레이션 완료 ✅
+- `caas_app/` 디렉토리 전체 제거 (11개 파일)
+- 5개 핵심 파일을 `caas_framework/`로 통합
+- Framework-First 아키텍처 리팩토링 완료
+- MCP Plugin 공식 통합 (`caas_framework/plugins/mcp/`)
+- `DomainCodeStrategy` 개선 버전 채택 (타입 안전성 향상)
+
+---
+
+**Last Updated**: 2026-02-02 (21:00 KST)
 **Version**: 1.0.0
 **Branch**: refactor/fundamental-redesign
 **Status**: Production-Ready ✅
+**Migration**: caas_app/ → caas_framework/ Complete ✅
 
 **Made with ❤️ by AIDX Team**

@@ -6,13 +6,13 @@ Manage workflow sessions
 
 import click
 from caas_cli.utils import (
-    echo_success,
     echo_error,
     echo_info,
+    echo_success,
     echo_warning,
+    get_or_create_session_manager,
     handle_keyboard_interrupt,
     print_table,
-    get_or_create_session_manager
 )
 
 
@@ -23,18 +23,8 @@ def session():
 
 
 @session.command()
-@click.option(
-    "--name",
-    "-n",
-    required=True,
-    help="Session name"
-)
-@click.option(
-    "--description",
-    "-d",
-    type=str,
-    help="Session description"
-)
+@click.option("--name", "-n", required=True, help="Session name")
+@click.option("--description", "-d", type=str, help="Session description")
 @handle_keyboard_interrupt
 def create(name, description):
     """
@@ -57,8 +47,7 @@ def create(name, description):
         manager = get_or_create_session_manager()
 
         new_session = manager.create_session(
-            name=name,
-            metadata={"description": description} if description else None
+            name=name, metadata={"description": description} if description else None
         )
 
         echo_success(f"Session created: {new_session.session_id}")
@@ -72,11 +61,7 @@ def create(name, description):
 
 
 @session.command(name="list")
-@click.option(
-    "--active-only",
-    is_flag=True,
-    help="Show only active sessions"
-)
+@click.option("--active-only", is_flag=True, help="Show only active sessions")
 @handle_keyboard_interrupt
 def list_sessions(active_only):
     """
@@ -144,12 +129,7 @@ def switch(session_id):
 
 @session.command()
 @click.argument("session_id")
-@click.option(
-    "--verbose",
-    "-v",
-    is_flag=True,
-    help="Show detailed session info"
-)
+@click.option("--verbose", "-v", is_flag=True, help="Show detailed session info")
 @handle_keyboard_interrupt
 def show(session_id, verbose):
     """
@@ -194,12 +174,7 @@ def show(session_id, verbose):
 
 @session.command()
 @click.argument("session_id")
-@click.option(
-    "--force",
-    "-f",
-    is_flag=True,
-    help="Force delete without confirmation"
-)
+@click.option("--force", "-f", is_flag=True, help="Force delete without confirmation")
 @handle_keyboard_interrupt
 def delete(session_id, force):
     """

@@ -7,22 +7,13 @@ Requirement Refinement Module
 - Interactive Elicitation: 인터랙티브 수집
 """
 
-from .gap_analyzer import (
-    GapType,
-    RequirementGap,
-    RequirementGapAnalyzer,
-    GapAnalysisResult,
-)
-from .expander import (
-    RequirementExpander,
-    ExpandedRequirement,
-    AutoFixResult,
-)
+from .expander import AutoFixResult, ExpandedRequirement, RequirementExpander
+from .gap_analyzer import GapAnalysisResult, GapType, RequirementGap, RequirementGapAnalyzer
 from .question_generator import (
-    QuestionType,
+    InteractiveQuestionGenerator,
     Question,
     QuestionnaireResult,
-    InteractiveQuestionGenerator,
+    QuestionType,
 )
 
 __all__ = [

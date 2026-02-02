@@ -6,9 +6,10 @@ LangChain 기반의 복합 체인을 정의합니다.
 """
 
 import json
-from typing import Any, Dict, List, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from pydantic import BaseModel
+
 from caas_framework.utils.json_helper import JSONHelper
 
 # 타입 힌트용 import
@@ -24,26 +25,34 @@ RunnablePassthrough = None
 RunnableLambda = None
 
 try:
-    from langchain_core.prompts import ChatPromptTemplate
     from langchain_core.output_parsers import JsonOutputParser
+    from langchain_core.prompts import ChatPromptTemplate
+
     LANGCHAIN_AVAILABLE = True
 except ImportError as e:
     # SECURITY: 의존성 누락을 로깅하여 디버깅 용이하게 함
     import logging
+
     logging.getLogger("llm.chains").warning(
-        f"LangChain Core를 사용할 수 없습니다: {e}. "
-        "설치하려면: pip install langchain-core"
+        f"LangChain Core를 사용할 수 없습니다: {e}. " "설치하려면: pip install langchain-core"
     )
 
+import logging
+
+from caas_framework.llm.chain_factory import BaseChainFactory, SimpleChainFactory, check_langchain
 from caas_framework.llm.prompts.analysis import (
-    REQUIREMENT_ANALYSIS_SYSTEM,
-    REQUIREMENT_ANALYSIS_USER,
     AGENT_DESIGN_SYSTEM,
     AGENT_DESIGN_USER,
-    TASK_DESIGN_SYSTEM,
-    TASK_DESIGN_USER,
     ONTOLOGY_CONTEXT_TEMPLATE,
     PATTERN_CONTEXT_TEMPLATE,
+    REQUIREMENT_ANALYSIS_SYSTEM,
+    REQUIREMENT_ANALYSIS_USER,
+    TASK_DESIGN_SYSTEM,
+    TASK_DESIGN_USER,
+)
+from caas_framework.llm.prompts.concretization import (
+    CONCRETIZATION_SYSTEM,
+    CONCRETIZATION_USER_TEMPLATE,
 )
 from caas_framework.llm.prompts.domain_classification import (
     DOMAIN_CLASSIFICATION_SYSTEM,
@@ -56,24 +65,16 @@ from caas_framework.llm.prompts.spec_generation import (
     SPEC_VALIDATION_SYSTEM,
     SPEC_VALIDATION_USER,
 )
-from caas_framework.llm.prompts.concretization import (
-    CONCRETIZATION_SYSTEM,
-    CONCRETIZATION_USER_TEMPLATE,
-)
-import logging
+from caas_framework.models import AgentSpecModel as AgentSpec
 from caas_framework.models import (
-    RequirementAnalysis,
-    AgentSpecModel as AgentSpec,
-    TaskSpecModel as TaskSpec,
-    ProjectTemplate,
     ConcretizedRequirement,
+    DomainClassification,
+    DomainType,
+    ExecutionPattern,
+    ProjectTemplate,
+    RequirementAnalysis,
 )
-from caas_framework.models import DomainClassification, DomainType, ExecutionPattern
-from caas_framework.llm.chain_factory import (
-    BaseChainFactory,
-    SimpleChainFactory,
-    check_langchain,
-)
+from caas_framework.models import TaskSpecModel as TaskSpec
 
 logger = logging.getLogger("caas_framework.llm.chains")
 
@@ -86,6 +87,7 @@ logger = logging.getLogger("caas_framework.llm.chains")
 
 class ValidationResult(BaseModel):
     """검증 결과 모델"""
+
     valid: bool
     errors: List[Dict[str, str]] = []
     warnings: List[str] = []
@@ -95,6 +97,7 @@ class ValidationResult(BaseModel):
 # =============================================================================
 # Chain Implementations
 # =============================================================================
+
 
 class RequirementAnalysisChain(BaseChainFactory):
     """요구사항 분석 체인 (온톨로지 통합)"""
@@ -119,21 +122,17 @@ class RequirementAnalysisChain(BaseChainFactory):
             str: 온톨로지 컨텍스트 문자열
         """
         from caas_framework.knowledge.ontology import (
+            ROLE_TASK_MAPPINGS,
+            TASK_TOOL_MAPPINGS,
             AgentRole,
             TaskType,
-            ROLE_TASK_MAPPINGS,
-            TASK_TOOL_MAPPINGS
         )
 
         # 1. Agent Roles 목록
-        agent_roles_list = "\n".join([
-            f"  - {role.value}" for role in AgentRole
-        ])
+        agent_roles_list = "\n".join([f"  - {role.value}" for role in AgentRole])
 
         # 2. Task Types 목록
-        task_types_list = "\n".join([
-            f"  - {task.value}" for task in TaskType
-        ])
+        task_types_list = "\n".join([f"  - {task.value}" for task in TaskType])
 
         # 3. Role → Task Mappings
         role_task_mappings = ""
@@ -154,7 +153,7 @@ class RequirementAnalysisChain(BaseChainFactory):
             agent_roles_list=agent_roles_list,
             task_types_list=task_types_list,
             role_task_mappings=role_task_mappings,
-            task_capability_mappings=task_capability_mappings
+            task_capability_mappings=task_capability_mappings,
         )
 
         return ontology_context
@@ -174,14 +173,38 @@ class RequirementAnalysisChain(BaseChainFactory):
         import re
 
         # 특수문자 제거, 소문자 변환
-        cleaned = re.sub(r'[^\w\s가-힣]', ' ', requirement.lower())
+        cleaned = re.sub(r"[^\w\s가-힣]", " ", requirement.lower())
 
         # 단어 추출 (2글자 이상)
         words = [w.strip() for w in cleaned.split() if len(w.strip()) >= 2]
 
         # 불용어 제거 (간단한 버전)
-        stopwords = {'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
-                     '을', '를', '이', '가', '은', '는', '의', '와', '과', '에', '에서', '로', '으로'}
+        stopwords = {
+            "the",
+            "a",
+            "an",
+            "and",
+            "or",
+            "but",
+            "in",
+            "on",
+            "at",
+            "to",
+            "for",
+            "을",
+            "를",
+            "이",
+            "가",
+            "은",
+            "는",
+            "의",
+            "와",
+            "과",
+            "에",
+            "에서",
+            "로",
+            "으로",
+        }
         keywords = [w for w in words if w not in stopwords]
 
         # 중복 제거 및 빈도순 정렬 (간단히 unique만)
@@ -210,8 +233,7 @@ class RequirementAnalysisChain(BaseChainFactory):
 
             # 패턴 검색
             matched_patterns = pattern_matcher.match_pattern(
-                requirement_features=keywords,
-                domain=domain
+                requirement_features=keywords, domain=domain
             )
 
             if matched_patterns and len(matched_patterns) > 0:
@@ -221,15 +243,14 @@ class RequirementAnalysisChain(BaseChainFactory):
                 # 패턴 ID로 실제 패턴 객체 찾기
                 pattern = next(
                     (p for p in pattern_matcher.builtin_patterns if p.id == best_match.pattern_id),
-                    None
+                    None,
                 )
 
                 if pattern:
-                    logger.info(f"✅ 패턴 매칭 성공: {pattern.name} (유사도: {best_match.similarity_score})")
-                    return {
-                        "pattern": pattern,
-                        "match": best_match
-                    }
+                    logger.info(
+                        f"✅ 패턴 매칭 성공: {pattern.name} (유사도: {best_match.similarity_score})"
+                    )
+                    return {"pattern": pattern, "match": best_match}
 
             logger.info("패턴 매칭 실패: 유사한 패턴 없음")
             return None
@@ -249,14 +270,76 @@ class RequirementAnalysisChain(BaseChainFactory):
             str: 추론된 도메인
         """
         domain_keywords = {
-            "finance": ["금융", "투자", "주식", "finance", "investment", "stock", "trading", "portfolio", "risk"],
-            "healthcare": ["의료", "건강", "환자", "health", "medical", "patient", "clinical", "diagnosis"],
-            "education": ["교육", "학생", "커리큘럼", "education", "student", "curriculum", "learning", "course"],
-            "technology": ["개발", "코드", "소프트웨어", "development", "code", "software", "programming", "api"],
-            "marketing": ["마케팅", "캠페인", "광고", "marketing", "campaign", "advertisement", "content", "social"],
+            "finance": [
+                "금융",
+                "투자",
+                "주식",
+                "finance",
+                "investment",
+                "stock",
+                "trading",
+                "portfolio",
+                "risk",
+            ],
+            "healthcare": [
+                "의료",
+                "건강",
+                "환자",
+                "health",
+                "medical",
+                "patient",
+                "clinical",
+                "diagnosis",
+            ],
+            "education": [
+                "교육",
+                "학생",
+                "커리큘럼",
+                "education",
+                "student",
+                "curriculum",
+                "learning",
+                "course",
+            ],
+            "technology": [
+                "개발",
+                "코드",
+                "소프트웨어",
+                "development",
+                "code",
+                "software",
+                "programming",
+                "api",
+            ],
+            "marketing": [
+                "마케팅",
+                "캠페인",
+                "광고",
+                "marketing",
+                "campaign",
+                "advertisement",
+                "content",
+                "social",
+            ],
             "research": ["연구", "분석", "조사", "research", "analysis", "investigation", "study"],
-            "customer_service": ["고객", "지원", "서비스", "customer", "support", "service", "feedback"],
-            "ecommerce": ["쇼핑", "상품", "구매", "shopping", "product", "purchase", "recommendation"]
+            "customer_service": [
+                "고객",
+                "지원",
+                "서비스",
+                "customer",
+                "support",
+                "service",
+                "feedback",
+            ],
+            "ecommerce": [
+                "쇼핑",
+                "상품",
+                "구매",
+                "shopping",
+                "product",
+                "purchase",
+                "recommendation",
+            ],
         }
 
         scores = {domain: 0 for domain in domain_keywords}
@@ -308,7 +391,7 @@ class RequirementAnalysisChain(BaseChainFactory):
             task_types=task_types,
             recommended_tools=recommended_tools,
             workflow_type=pattern.workflow_type,
-            adaptations=adaptations if adaptations else "  - No specific adaptations needed"
+            adaptations=adaptations if adaptations else "  - No specific adaptations needed",
         )
 
         return pattern_context
@@ -408,22 +491,23 @@ class RequirementAnalysisChain(BaseChainFactory):
         validated_agents = []
         for agent in result.agents:
             # 역할 정규화
-            inferred_role = ontology.infer_role_from_description(
-                f"{agent.role} {agent.goal}"
-            )
+            inferred_role = ontology.infer_role_from_description(f"{agent.role} {agent.goal}")
 
             # 원래 역할이 표준 역할과 다르면 경고
             if agent.role.lower() != inferred_role.value:
                 logger.info(f"💡 역할 정규화: '{agent.role}' → '{inferred_role.value}'")
 
             # 에이전트 관련 태스크 찾기
-            agent_tasks = [t for t in result.tasks if t.assigned_agent.lower() in agent.role.lower()]
-            task_types = [ontology.infer_task_type_from_description(t.description) for t in agent_tasks]
+            agent_tasks = [
+                t for t in result.tasks if t.assigned_agent.lower() in agent.role.lower()
+            ]
+            task_types = [
+                ontology.infer_task_type_from_description(t.description) for t in agent_tasks
+            ]
 
             # 추천 도구 계산
             recommended_tools = ontology.recommend_agent_tools(
-                role=inferred_role,
-                assigned_tasks=task_types
+                role=inferred_role, assigned_tasks=task_types
             )
 
             # 기존 도구와 추천 도구 병합
@@ -436,9 +520,9 @@ class RequirementAnalysisChain(BaseChainFactory):
                 logger.info(f"✅ '{agent.role}'에 도구 추가: {', '.join(list(missing_tools)[:3])}")
 
             # 에이전트 업데이트
-            validated_agent = agent.model_copy(update={
-                "skills": all_tools[:10]  # 최대 10개로 제한
-            })
+            validated_agent = agent.model_copy(
+                update={"skills": all_tools[:10]}  # 최대 10개로 제한
+            )
             validated_agents.append(validated_agent)
 
         # 2. 태스크 검증
@@ -447,10 +531,14 @@ class RequirementAnalysisChain(BaseChainFactory):
             task_type = ontology.infer_task_type_from_description(task.description)
 
             # 할당된 에이전트 역할 확인
-            assigned_agent = next((a for a in validated_agents if a.role.lower() in task.assigned_agent.lower()), None)
+            assigned_agent = next(
+                (a for a in validated_agents if a.role.lower() in task.assigned_agent.lower()), None
+            )
 
             if assigned_agent:
-                inferred_role = ontology.infer_role_from_description(f"{assigned_agent.role} {assigned_agent.goal}")
+                inferred_role = ontology.infer_role_from_description(
+                    f"{assigned_agent.role} {assigned_agent.goal}"
+                )
 
                 # 역할-태스크 적합성 검증
                 is_valid = ontology.validate_assignment(inferred_role, task_type)
@@ -459,12 +547,16 @@ class RequirementAnalysisChain(BaseChainFactory):
                     # 더 적합한 역할 찾기
                     suitable_roles = ontology.get_suitable_roles(task_type)
                     if suitable_roles:
-                        logger.warning(f"⚠️ 태스크 '{task.name}' ({task_type.value})는 '{inferred_role.value}' 보다 '{suitable_roles[0].value}'가 더 적합")
+                        logger.warning(
+                            f"⚠️ 태스크 '{task.name}' ({task_type.value})는 '{inferred_role.value}' 보다 '{suitable_roles[0].value}'가 더 적합"
+                        )
 
             validated_tasks.append(task)
 
         # 3. 도구 검증 (suggested_tools)
-        all_task_types = [ontology.infer_task_type_from_description(t.description) for t in validated_tasks]
+        all_task_types = [
+            ontology.infer_task_type_from_description(t.description) for t in validated_tasks
+        ]
         required_tools = set()
 
         for task_type in all_task_types:
@@ -474,14 +566,18 @@ class RequirementAnalysisChain(BaseChainFactory):
         # LLM이 선택한 도구와 온톨로지 추천 도구 병합
         suggested_tools = list(set(result.suggested_tools) | required_tools)
 
-        logger.info(f"✅ 온톨로지 검증 완료: {len(validated_agents)}개 에이전트, {len(validated_tasks)}개 태스크")
+        logger.info(
+            f"✅ 온톨로지 검증 완료: {len(validated_agents)}개 에이전트, {len(validated_tasks)}개 태스크"
+        )
 
         # 결과 업데이트
-        return result.model_copy(update={
-            "agents": validated_agents,
-            "tasks": validated_tasks,
-            "suggested_tools": suggested_tools[:15]  # 최대 15개로 제한
-        })
+        return result.model_copy(
+            update={
+                "agents": validated_agents,
+                "tasks": validated_tasks,
+                "suggested_tools": suggested_tools[:15],  # 최대 15개로 제한
+            }
+        )
 
     def analyze(
         self,
@@ -493,7 +589,7 @@ class RequirementAnalysisChain(BaseChainFactory):
         enable_ontology: bool = True,
         enable_pattern_matching: bool = True,
         enable_validation: bool = True,
-        golden_data: Optional["ConcretizedRequirement"] = None
+        golden_data: Optional["ConcretizedRequirement"] = None,
     ) -> RequirementAnalysis:
         """
         자연어 요구사항을 분석합니다 (Hybrid: Golden Data 기반 또는 원본 기반).
@@ -550,7 +646,9 @@ class RequirementAnalysisChain(BaseChainFactory):
             # ═══════════════════════════════════════════════════════════
             tools_section = ""
             if tools_info:
-                tools_section = f"\n\n**Available Tools (categorized with use cases):**\n{tools_info}\n"
+                tools_section = (
+                    f"\n\n**Available Tools (categorized with use cases):**\n{tools_info}\n"
+                )
                 logger.info("카테고리별 도구 정보 포함")
             elif available_tools:
                 tools_section = "\n\n**Available Tools:**\n"
@@ -602,7 +700,7 @@ class RequirementAnalysisChain(BaseChainFactory):
 
             # 사용자가 workflow_type을 지정한 경우 덮어쓰기
             if workflow_type is not None:
-                result['workflow_type'] = workflow_type
+                result["workflow_type"] = workflow_type
                 logger.info(f"워크플로우 유형을 사용자 선택값으로 설정: {workflow_type}")
 
             # RequirementAnalysis 객체 생성
@@ -614,16 +712,17 @@ class RequirementAnalysisChain(BaseChainFactory):
             try:
                 domain_classifier = DomainClassificationChain()
                 # 한글 포함 여부 확인 (간단히)
-                use_korean = any('\uac00' <= c <= '\ud7a3' for c in requirement)
+                use_korean = any("\uac00" <= c <= "\ud7a3" for c in requirement)
 
                 domain_classification = domain_classifier.classify(
-                    requirement=requirement,
-                    use_korean=use_korean
+                    requirement=requirement, use_korean=use_korean
                 )
 
                 analysis_result.domain_classification = domain_classification.model_dump()
-                logger.info(f"🎯 Domain Type: {domain_classification.domain_type} "
-                           f"(confidence: {domain_classification.confidence:.2f})")
+                logger.info(
+                    f"🎯 Domain Type: {domain_classification.domain_type} "
+                    f"(confidence: {domain_classification.confidence:.2f})"
+                )
                 logger.info(f"   Core entities: {', '.join(domain_classification.core_entities)}")
                 logger.info(f"   Execution pattern: {domain_classification.execution_pattern}")
             except Exception as e:
@@ -658,7 +757,7 @@ class AgentDesignChain(BaseChainFactory):
     def get_output_model(self):
         """출력 모델 반환"""
         return AgentSpec
-    
+
     def design(
         self,
         domain: str,
@@ -687,9 +786,7 @@ class AgentDesignChain(BaseChainFactory):
             AgentSpec: 에이전트 스펙
         """
         logger.info(f"에이전트 설계: {role}")
-        tools_str = "\n".join([
-            f"- {t['id']}: {t['description']}" for t in available_tools
-        ])
+        tools_str = "\n".join([f"- {t['id']}: {t['description']}" for t in available_tools])
 
         # 기본 inputs
         inputs = {
@@ -708,7 +805,9 @@ class AgentDesignChain(BaseChainFactory):
 
         # Quality metrics 추가 (있는 경우)
         if quality_metrics:
-            metrics_summary = f"Completeness: {quality_metrics.get('completeness_score', 0.7):.2f}, "
+            metrics_summary = (
+                f"Completeness: {quality_metrics.get('completeness_score', 0.7):.2f}, "
+            )
             metrics_summary += f"Clarity: {quality_metrics.get('clarity_score', 0.7):.2f}, "
             metrics_summary += f"Complexity: {quality_metrics.get('complexity_score', 5)}"
             inputs["quality_context"] = metrics_summary
@@ -733,7 +832,7 @@ class TaskDesignChain(BaseChainFactory):
     def get_output_model(self):
         """출력 모델 반환"""
         return TaskSpec
-    
+
     def design(
         self,
         task_name: str,
@@ -794,11 +893,9 @@ class SpecGenerationChain:
     def __init__(self, llm_config: Optional["LLMConfig"] = None):
         # SimpleChainFactory를 사용하여 문자열 출력 체인 생성
         self.chain = SimpleChainFactory.create_string_chain(
-            SPEC_GENERATION_SYSTEM,
-            SPEC_GENERATION_USER,
-            llm_config
+            SPEC_GENERATION_SYSTEM, SPEC_GENERATION_USER, llm_config
         )
-    
+
     def generate(
         self,
         domain: str,
@@ -810,7 +907,7 @@ class SpecGenerationChain:
     ) -> str:
         """
         CrewAI YAML 스펙을 생성합니다.
-        
+
         Args:
             domain: 도메인
             summary: 시스템 요약
@@ -818,21 +915,23 @@ class SpecGenerationChain:
             tasks: 태스크 목록
             workflow_type: 워크플로우 유형
             tools: 도구 목록
-        
+
         Returns:
             str: YAML 스펙 문자열
         """
         logger.info("스펙 생성 시작")
-        
-        result = self.chain.invoke({
-            "domain": domain,
-            "summary": summary,
-            "agents_json": json.dumps(agents, indent=2, ensure_ascii=False),
-            "tasks_json": json.dumps(tasks, indent=2, ensure_ascii=False),
-            "workflow_type": workflow_type,
-            "tools": ", ".join(tools),
-        })
-        
+
+        result = self.chain.invoke(
+            {
+                "domain": domain,
+                "summary": summary,
+                "agents_json": json.dumps(agents, indent=2, ensure_ascii=False),
+                "tasks_json": json.dumps(tasks, indent=2, ensure_ascii=False),
+                "workflow_type": workflow_type,
+                "tools": ", ".join(tools),
+            }
+        )
+
         # YAML 코드 블록 추출
         if "```yaml" in result:
             result = result.split("```yaml")[1].split("```")[0]
@@ -860,7 +959,9 @@ class SpecGenerationChain:
                         original_id = agent["id"]
                         sanitized_id = JSONHelper.sanitize_id(original_id)
                         if original_id != sanitized_id:
-                            logger.warning(f"Agent ID 자동 수정: '{original_id}' → '{sanitized_id}'")
+                            logger.warning(
+                                f"Agent ID 자동 수정: '{original_id}' → '{sanitized_id}'"
+                            )
                             agent["id"] = sanitized_id
 
             # tasks ID 및 agent 참조 sanitization
@@ -872,7 +973,9 @@ class SpecGenerationChain:
                             original_id = task["id"]
                             sanitized_id = JSONHelper.sanitize_id(original_id)
                             if original_id != sanitized_id:
-                                logger.warning(f"Task ID 자동 수정: '{original_id}' → '{sanitized_id}'")
+                                logger.warning(
+                                    f"Task ID 자동 수정: '{original_id}' → '{sanitized_id}'"
+                                )
                                 task["id"] = sanitized_id
 
                         # agent 참조 sanitization
@@ -880,12 +983,16 @@ class SpecGenerationChain:
                             original_agent = task["agent"]
                             sanitized_agent = JSONHelper.sanitize_id(original_agent)
                             if original_agent != sanitized_agent:
-                                logger.warning(f"Task agent 참조 자동 수정: '{original_agent}' → '{sanitized_agent}'")
+                                logger.warning(
+                                    f"Task agent 참조 자동 수정: '{original_agent}' → '{sanitized_agent}'"
+                                )
                                 task["agent"] = sanitized_agent
 
                         # context 참조 sanitization
                         if "context" in task and isinstance(task["context"], list):
-                            task["context"] = [JSONHelper.sanitize_id(ctx) for ctx in task["context"]]
+                            task["context"] = [
+                                JSONHelper.sanitize_id(ctx) for ctx in task["context"]
+                            ]
 
             # 수정된 데이터를 다시 YAML로 변환
             result = yaml.dump(
@@ -915,26 +1022,29 @@ class SpecValidationChain:
     def __init__(self, llm_config: Optional["LLMConfig"] = None):
         check_langchain()
         from caas_framework.llm.client import get_langchain_llm
+
         self.llm = get_langchain_llm(**(llm_config.model_dump() if llm_config else {}))
-        self.prompt = ChatPromptTemplate.from_messages([
-            ("system", SPEC_VALIDATION_SYSTEM),
-            ("human", SPEC_VALIDATION_USER),
-        ])
+        self.prompt = ChatPromptTemplate.from_messages(
+            [
+                ("system", SPEC_VALIDATION_SYSTEM),
+                ("human", SPEC_VALIDATION_USER),
+            ]
+        )
         self.parser = JsonOutputParser(pydantic_object=ValidationResult)
         self.chain = self.prompt | self.llm | self.parser
-    
+
     def validate(self, spec_yaml: str) -> ValidationResult:
         """
         CrewAI 스펙을 검증합니다.
-        
+
         Args:
             spec_yaml: YAML 스펙 문자열
-        
+
         Returns:
             ValidationResult: 검증 결과
         """
         logger.info("스펙 검증 시작")
-        
+
         result = self.chain.invoke({"spec_yaml": spec_yaml})
         return ValidationResult(**result)
 
@@ -942,6 +1052,7 @@ class SpecValidationChain:
 # =============================================================================
 # Master Chain (Full Pipeline)
 # =============================================================================
+
 
 class AgentGenerationPipeline:
     """에이전트 생성 파이프라인 - 전체 워크플로우 통합"""
@@ -956,35 +1067,33 @@ class AgentGenerationPipeline:
 
         # 사용 가능한 도구 목록 (Tool Manager에서 동적으로 로드)
         from caas_framework.models.tool_registry import get_enabled_tools_dict
+
         enabled_tools = get_enabled_tools_dict()
         self.available_tools = [
             {"id": tool_id, "description": tool_desc}
             for tool_id, tool_desc in enabled_tools.items()
         ]
-    
+
     def run(self, requirement: str) -> Dict[str, Any]:
         """
         전체 파이프라인을 실행합니다.
-        
+
         Args:
             requirement: 자연어 요구사항
-        
+
         Returns:
             Dict: 생성 결과 (analysis, agents, tasks, spec, validation)
         """
         logger.info("=== 에이전트 생성 파이프라인 시작 ===")
-        
+
         # 1. 요구사항 분석
         analysis = self.analysis_chain.analyze(requirement)
         logger.info(f"분석 완료: {len(analysis.agents)}개 에이전트, {len(analysis.tasks)}개 태스크")
-        
+
         # 2. 에이전트 상세 설계
         designed_agents = []
         for agent_req in analysis.agents:
-            related_tasks = [
-                t.name for t in analysis.tasks 
-                if t.assigned_agent == agent_req.role
-            ]
+            related_tasks = [t.name for t in analysis.tasks if t.assigned_agent == agent_req.role]
             agent_spec = self.agent_design_chain.design(
                 domain=analysis.domain,
                 role=agent_req.role,
@@ -994,11 +1103,11 @@ class AgentGenerationPipeline:
                 available_tools=self.available_tools,
             )
             designed_agents.append(agent_spec)
-        
+
         # 3. 태스크 상세 설계
         designed_tasks = []
         system_context = f"Domain: {analysis.domain}\nSummary: {analysis.summary}"
-        
+
         for task_req in analysis.tasks:
             # 에이전트 ID 찾기
             agent_id = None
@@ -1006,10 +1115,10 @@ class AgentGenerationPipeline:
                 if task_req.assigned_agent.lower() in agent.role.lower():
                     agent_id = agent.id
                     break
-            
+
             if not agent_id:
                 agent_id = designed_agents[0].id if designed_agents else "default_agent"
-            
+
             task_spec = self.task_design_chain.design(
                 task_name=task_req.name,
                 description=task_req.description,
@@ -1019,7 +1128,7 @@ class AgentGenerationPipeline:
                 system_context=system_context,
             )
             designed_tasks.append(task_spec)
-        
+
         # 4. YAML 스펙 생성
         spec_yaml = self.spec_generation_chain.generate(
             domain=analysis.domain,
@@ -1029,12 +1138,12 @@ class AgentGenerationPipeline:
             workflow_type=analysis.workflow_type,
             tools=analysis.suggested_tools,
         )
-        
+
         # 5. 스펙 검증
         validation = self.validation_chain.validate(spec_yaml)
-        
+
         logger.info("=== 에이전트 생성 파이프라인 완료 ===")
-        
+
         return {
             "analysis": analysis.model_dump(),
             "agents": [a.model_dump() for a in designed_agents],
@@ -1047,6 +1156,7 @@ class AgentGenerationPipeline:
 # =============================================================================
 # Domain Classification Chain
 # =============================================================================
+
 
 class DomainClassificationChain(BaseChainFactory):
     """도메인 타입 분류 체인"""
@@ -1064,10 +1174,7 @@ class DomainClassificationChain(BaseChainFactory):
         return DomainClassification
 
     def classify(
-        self,
-        requirement: str,
-        use_korean: bool = False,
-        llm_config: Optional["LLMConfig"] = None
+        self, requirement: str, use_korean: bool = False, llm_config: Optional["LLMConfig"] = None
     ) -> DomainClassification:
         """
         요구사항의 도메인 타입을 분류합니다.
@@ -1135,31 +1242,34 @@ class DomainClassificationChain(BaseChainFactory):
 # System Architect Chain
 # =============================================================================
 
+
 class SystemArchitectChain(BaseChainFactory):
     """
     시스템 아키텍처 설계 체인
-    
+
     RequirementAnalysis를 입력받아 ArchitectureDesign을 생성합니다.
     """
 
     def get_system_prompt(self) -> str:
         """시스템 프롬프트 반환"""
         from caas_framework.llm.prompts.architecture import ARCHITECTURE_DESIGN_SYSTEM
+
         return ARCHITECTURE_DESIGN_SYSTEM
 
     def get_user_prompt(self) -> str:
         """사용자 프롬프트 반환"""
         from caas_framework.llm.prompts.architecture import ARCHITECTURE_DESIGN_USER
+
         return ARCHITECTURE_DESIGN_USER
 
     def get_output_model(self):
         """출력 모델 반환"""
         from caas_framework.models import ArchitectureDesign
+
         return ArchitectureDesign
 
     def design_architecture(
-        self,
-        requirement_analysis: RequirementAnalysis
+        self, requirement_analysis: RequirementAnalysis
     ) -> "ArchitectureDesign":
         """
         요구사항 분석 결과를 기반으로 시스템 아키텍처를 설계합니다.
@@ -1181,8 +1291,16 @@ class SystemArchitectChain(BaseChainFactory):
             "workflow_type": requirement_analysis.workflow_type.value,
             "num_agents": len(requirement_analysis.agents),
             "num_tasks": len(requirement_analysis.tasks),
-            "constraints": ", ".join(requirement_analysis.constraints) if requirement_analysis.constraints else "None",
-            "success_criteria": ", ".join(requirement_analysis.success_criteria) if requirement_analysis.success_criteria else "None",
+            "constraints": (
+                ", ".join(requirement_analysis.constraints)
+                if requirement_analysis.constraints
+                else "None"
+            ),
+            "success_criteria": (
+                ", ".join(requirement_analysis.success_criteria)
+                if requirement_analysis.success_criteria
+                else "None"
+            ),
         }
 
         try:
@@ -1233,13 +1351,17 @@ class SystemArchitectChain(BaseChainFactory):
         for task in analysis.tasks:
             text += f"- {task.name}: {task.description}\n"
             text += f"  Assigned to: {task.assigned_agent}\n"
-            text += f"  Dependencies: {', '.join(task.dependencies) if task.dependencies else 'None'}\n"
+            text += (
+                f"  Dependencies: {', '.join(task.dependencies) if task.dependencies else 'None'}\n"
+            )
             text += f"  Output Type: {task.output_type}\n"
 
         text += f"\n## Workflow Type\n{analysis.workflow_type.value}\n"
 
         text += f"\n## Suggested Tools\n"
-        text += ", ".join(analysis.suggested_tools) if analysis.suggested_tools else "None specified"
+        text += (
+            ", ".join(analysis.suggested_tools) if analysis.suggested_tools else "None specified"
+        )
 
         text += f"\n\n## Constraints\n"
         for constraint in analysis.constraints:
@@ -1274,6 +1396,7 @@ class SystemArchitectChain(BaseChainFactory):
 # Requirement Concretization Chain (Golden Data Generation)
 # =============================================================================
 
+
 class RequirementConcretizationChain(BaseChainFactory):
     """
     요구사항 구체화 체인 (Golden Data 생성)
@@ -1298,11 +1421,7 @@ class RequirementConcretizationChain(BaseChainFactory):
         """출력 모델 반환"""
         return ConcretizedRequirement
 
-    def concretize(
-        self,
-        requirement_text: str,
-        **kwargs
-    ) -> ConcretizedRequirement:
+    def concretize(self, requirement_text: str, **kwargs) -> ConcretizedRequirement:
         """
         요구사항을 구체화합니다.
 
@@ -1317,10 +1436,7 @@ class RequirementConcretizationChain(BaseChainFactory):
         logger.debug(f"Input requirement length: {len(requirement_text)} characters")
 
         # 입력 딕셔너리 생성
-        inputs = {
-            "requirement_text": requirement_text,
-            **kwargs
-        }
+        inputs = {"requirement_text": requirement_text, **kwargs}
 
         # 체인 실행 (부모 클래스의 invoke 호출)
         result = super().invoke(inputs)

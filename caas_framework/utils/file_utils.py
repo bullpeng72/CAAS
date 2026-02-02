@@ -5,9 +5,10 @@ File Utilities
 """
 
 import json
-import yaml
-from typing import Any, Dict, List, Optional
 from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+import yaml
 
 from caas_framework.utils.logger import get_logger
 
@@ -18,10 +19,7 @@ class FileUtils:
     """파일 처리 유틸리티 (JSON, YAML 공통)"""
 
     @staticmethod
-    def safe_load_file(
-        file_path: Path,
-        file_type: str = "auto"
-    ) -> Optional[Dict[str, Any]]:
+    def safe_load_file(file_path: Path, file_type: str = "auto") -> Optional[Dict[str, Any]]:
         """
         파일에서 안전하게 데이터 로드
 
@@ -48,7 +46,7 @@ class FileUtils:
                 return None
 
         try:
-            with open(file_path, 'r', encoding='utf-8') as f:
+            with open(file_path, "r", encoding="utf-8") as f:
                 if file_type == "json":
                     data = json.load(f)
                 elif file_type == "yaml":
@@ -65,12 +63,7 @@ class FileUtils:
             return None
 
     @staticmethod
-    def safe_dump_file(
-        data: Any,
-        file_path: Path,
-        file_type: str = "auto",
-        **kwargs
-    ) -> bool:
+    def safe_dump_file(data: Any, file_path: Path, file_type: str = "auto", **kwargs) -> bool:
         """
         파일에 안전하게 데이터 저장
 
@@ -108,7 +101,7 @@ class FileUtils:
                 return False
 
             # 파일 쓰기
-            with open(file_path, 'w', encoding='utf-8') as f:
+            with open(file_path, "w", encoding="utf-8") as f:
                 f.write(content)
 
             logger.info(f"{file_type.upper()} 파일 저장 성공: {file_path}")
@@ -120,10 +113,7 @@ class FileUtils:
 
     @staticmethod
     def format_json(
-        data: Any,
-        indent: int = 2,
-        ensure_ascii: bool = False,
-        sort_keys: bool = False
+        data: Any, indent: int = 2, ensure_ascii: bool = False, sort_keys: bool = False
     ) -> str:
         """
         JSON 포맷팅 (일관된 스타일)
@@ -158,7 +148,7 @@ class FileUtils:
         indent: int = 2,
         sort_keys: bool = False,
         default_flow_style: bool = False,
-        allow_unicode: bool = True
+        allow_unicode: bool = True,
     ) -> str:
         """
         YAML 포맷팅 (일관된 스타일)
@@ -193,7 +183,7 @@ class FileUtils:
     def validate_structure(
         data: Dict[str, Any],
         required_keys: Optional[List[str]] = None,
-        optional_keys: Optional[List[str]] = None
+        optional_keys: Optional[List[str]] = None,
     ) -> tuple[bool, List[str]]:
         """
         데이터 구조 검증
@@ -235,12 +225,7 @@ def load_file(file_path: Path, file_type: str = "auto") -> Optional[Dict[str, An
     return FileUtils.safe_load_file(file_path, file_type)
 
 
-def save_file(
-    data: Any,
-    file_path: Path,
-    file_type: str = "auto",
-    **kwargs
-) -> bool:
+def save_file(data: Any, file_path: Path, file_type: str = "auto", **kwargs) -> bool:
     """파일 저장 (단축 함수)"""
     return FileUtils.safe_dump_file(data, file_path, file_type, **kwargs)
 
@@ -258,7 +243,7 @@ def format_data(data: Any, format_type: str = "json", **kwargs) -> str:
 def validate_data_structure(
     data: Dict[str, Any],
     required_keys: Optional[List[str]] = None,
-    optional_keys: Optional[List[str]] = None
+    optional_keys: Optional[List[str]] = None,
 ) -> tuple[bool, List[str]]:
     """데이터 구조 검증 (단축 함수)"""
     return FileUtils.validate_structure(data, required_keys, optional_keys)

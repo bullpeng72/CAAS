@@ -4,81 +4,54 @@ Generate Phase Command
 Execute specific BMAD phase (0-5)
 """
 
-import click
 from pathlib import Path
+
+import click
 from caas_cli.utils import (
-    echo_success,
     echo_error,
     echo_info,
     echo_progress,
+    echo_success,
     echo_warning,
     handle_keyboard_interrupt,
+    initialize_framework,
     load_json,
-    save_json,
     print_phase_banner,
-    initialize_framework
+    save_json,
 )
 
 
 @click.command(name="generate-phase")
 @click.option(
-    "--phase",
-    type=click.IntRange(0, 5),
-    required=True,
-    help="BMAD phase to execute (0-5)"
+    "--phase", type=click.IntRange(0, 5), required=True, help="BMAD phase to execute (0-5)"
 )
 @click.option(
-    "--input",
-    "-i",
-    type=click.Path(exists=True),
-    help="Input directory from previous phase"
+    "--input", "-i", type=click.Path(exists=True), help="Input directory from previous phase"
 )
-@click.option(
-    "--requirement",
-    "-r",
-    type=str,
-    help="Initial requirement (Phase 0 only)"
-)
-@click.option(
-    "--domain",
-    "-d",
-    type=str,
-    help="Domain hint (Phase 0 only)"
-)
+@click.option("--requirement", "-r", type=str, help="Initial requirement (Phase 0 only)")
+@click.option("--domain", "-d", type=str, help="Domain hint (Phase 0 only)")
 @click.option(
     "--deployment-target",
     type=click.Choice(["docker", "kubernetes", "terraform"]),
     default="docker",
-    help="Deployment target (Phase 5 only)"
+    help="Deployment target (Phase 5 only)",
 )
 @click.option(
     "--workflow-type",
     type=click.Choice(["sequential", "hierarchical"]),
-    help="Workflow type (Phase 1-5)"
+    help="Workflow type (Phase 1-5)",
 )
 @click.option(
     "--output",
     "-o",
     type=click.Path(),
     default="./phase_output",
-    help="Output directory (default: ./phase_output)"
+    help="Output directory (default: ./phase_output)",
 )
-@click.option(
-    "--verbose",
-    "-v",
-    is_flag=True,
-    help="Show detailed phase output"
-)
+@click.option("--verbose", "-v", is_flag=True, help="Show detailed phase output")
 @handle_keyboard_interrupt
 async def generate_phase(
-    phase,
-    input,
-    requirement,
-    domain,
-    deployment_target,
-    workflow_type,
-    output,
-    verbose
+    phase, input, requirement, domain, deployment_target, workflow_type, output, verbose
 ):
     """
     Execute specific BMAD phase (0-5)
@@ -226,7 +199,9 @@ async def generate_phase(
         if phase < 5:
             click.echo()
             click.echo(click.style("Next step:", bold=True))
-            click.echo(f"  caas generate-phase --phase {phase + 1} --input {output} --output ./phase{phase + 1}")
+            click.echo(
+                f"  caas generate-phase --phase {phase + 1} --input {output} --output ./phase{phase + 1}"
+            )
 
         return 0
 
@@ -237,6 +212,7 @@ async def generate_phase(
     except Exception as e:
         echo_error(f"Phase {phase} error: {e}")
         import traceback
+
         if verbose:
             echo_error(traceback.format_exc())
         return 1
@@ -250,7 +226,7 @@ def _get_phase_name(phase: int) -> str:
         2: "Architecture (System Design)",
         3: "Design (Agent/Task Design)",
         4: "Development (Spec Generation)",
-        5: "Delivery (Code Generation)"
+        5: "Delivery (Code Generation)",
     }
     return names.get(phase, "Unknown")
 
@@ -265,7 +241,7 @@ async def _execute_phase_0(framework, requirement, domain, output_path, verbose)
         llm_plugin=framework.llm_plugin,
         enable_validation=True,
         enable_auto_fix=True,
-        use_expert_agents=True
+        use_expert_agents=True,
     )
 
     golden_data = await engine._phase_0_concretization(requirement, domain)
@@ -274,7 +250,9 @@ async def _execute_phase_0(framework, requirement, domain, output_path, verbose)
         click.echo()
         echo_info(f"Features extracted: {len(golden_data.features)}")
         echo_info(f"Data models: {len(golden_data.data_models)}")
-        echo_info(f"Non-functional requirements: {len(golden_data.non_functional_requirements)} categories")
+        echo_info(
+            f"Non-functional requirements: {len(golden_data.non_functional_requirements)} categories"
+        )
 
     # Save golden data
     save_json(output_path / "golden_data.json", golden_data)
@@ -298,13 +276,15 @@ async def _execute_phase_1(framework, input_dir, output_path, verbose):
         llm_plugin=framework.llm_plugin,
         enable_validation=True,
         enable_auto_fix=True,
-        use_expert_agents=True
+        use_expert_agents=True,
     )
 
     # Extract requirement from golden data
-    requirement = (golden_data.system_scope.scope_description or
-                   golden_data.system_scope.purpose or
-                   golden_data.system_scope.project_name)
+    requirement = (
+        golden_data.system_scope.scope_description
+        or golden_data.system_scope.purpose
+        or golden_data.system_scope.project_name
+    )
 
     analysis = await engine._phase_1_discovery(requirement, golden_data)
 
@@ -312,8 +292,10 @@ async def _execute_phase_1(framework, input_dir, output_path, verbose):
         click.echo()
         echo_info(f"Analysis completed")
 
-    # Save analysis
+    # Save analysis and copy golden_data for next phase
     save_json(output_path / "requirement_analysis.json", analysis)
+    save_json(output_path / "golden_data.json", golden_data)
+    echo_info("✓ Copied golden_data.json for Phase 2")
 
     return analysis
 
@@ -336,37 +318,46 @@ async def _execute_phase_2(framework, input_dir, workflow_type, output_path, ver
         llm_plugin=framework.llm_plugin,
         enable_validation=True,
         enable_auto_fix=True,
-        use_expert_agents=True
+        use_expert_agents=True,
     )
 
-    architecture, agents, tasks = await engine._phase_2_architecture(
-        golden_data,
-        analysis,
-        workflow_type
+    # Extract requirement from golden data
+    requirement = (
+        golden_data.system_scope.scope_description
+        or golden_data.system_scope.purpose
+        or golden_data.system_scope.project_name
     )
+
+    # Phase 2 only returns architecture
+    architecture = await engine._phase_2_architecture(requirement, golden_data, analysis)
 
     if verbose:
         click.echo()
-        echo_info(f"Agents designed: {len(agents)}")
-        echo_info(f"Tasks designed: {len(tasks)}")
+        echo_info("Architecture design completed")
 
-    # Save outputs
+    # Save outputs and copy data for next phase
     save_json(output_path / "architecture.json", architecture)
-    save_json(output_path / "agents.json", agents)
-    save_json(output_path / "tasks.json", tasks)
+    save_json(output_path / "golden_data.json", golden_data)
+    save_json(output_path / "requirement_analysis.json", analysis)
+    echo_info("✓ Copied necessary files for Phase 3")
 
-    return {"architecture": architecture, "agents": agents, "tasks": tasks}
+    return {"architecture": architecture}
 
 
 async def _execute_phase_3(framework, input_dir, output_path, verbose):
     """Phase 3: Design"""
-    echo_progress("Refining agent/task design...")
+    echo_progress("Designing agents and tasks...")
 
     # Load previous phase data
     input_path = Path(input_dir)
     golden_data_dict = load_json(input_path / "golden_data.json")
-    agents = load_json(input_path / "agents.json")
-    tasks = load_json(input_path / "tasks.json")
+    architecture = load_json(input_path / "architecture.json")
+
+    # requirement_analysis may or may not exist
+    try:
+        requirement_analysis = load_json(input_path / "requirement_analysis.json")
+    except FileNotFoundError:
+        requirement_analysis = None
 
     from caas_framework.bmad.engine import BMADEngine
     from caas_framework.models.specifications import ConcretizedRequirement as GoldenData
@@ -377,33 +368,31 @@ async def _execute_phase_3(framework, input_dir, output_path, verbose):
         llm_plugin=framework.llm_plugin,
         enable_validation=True,
         enable_auto_fix=True,
-        use_expert_agents=True
+        use_expert_agents=True,
     )
 
-    enhanced_agents, enhanced_tasks, traceability = await engine._phase_3_design(
-        golden_data,
-        agents,
-        tasks
+    # Extract requirement from golden data
+    requirement = (
+        golden_data.system_scope.scope_description
+        or golden_data.system_scope.purpose
+        or golden_data.system_scope.project_name
     )
+
+    # Phase 3 generates agents and tasks
+    agents, tasks = await engine._phase_3_design(requirement, golden_data, architecture)
 
     if verbose:
         click.echo()
-        echo_info(f"Enhanced agents: {len(enhanced_agents)}")
-        echo_info(f"Enhanced tasks: {len(enhanced_tasks)}")
-        if traceability:
-            echo_info("Traceability matrix generated")
+        echo_info(f"Agents designed: {len(agents)}")
+        echo_info(f"Tasks designed: {len(tasks)}")
 
-    # Save outputs
-    save_json(output_path / "enhanced_agents.json", enhanced_agents)
-    save_json(output_path / "enhanced_tasks.json", enhanced_tasks)
-    if traceability:
-        save_json(output_path / "traceability_matrix.json", traceability)
+    # Save outputs and copy data for next phase
+    save_json(output_path / "agents.json", [a.model_dump(mode="json") for a in agents])
+    save_json(output_path / "tasks.json", [t.model_dump(mode="json") for t in tasks])
+    save_json(output_path / "golden_data.json", golden_data)
+    echo_info("✓ Saved agents, tasks, and golden_data for Phase 4")
 
-    return {
-        "agents": enhanced_agents,
-        "tasks": enhanced_tasks,
-        "traceability": traceability
-    }
+    return {"agents": agents, "tasks": tasks}
 
 
 async def _execute_phase_4(framework, input_dir, output_path, verbose):
@@ -412,34 +401,42 @@ async def _execute_phase_4(framework, input_dir, output_path, verbose):
 
     # Load previous phase data
     input_path = Path(input_dir)
-    agents = load_json(input_path / "enhanced_agents.json")
-    tasks = load_json(input_path / "enhanced_tasks.json")
+    agents_data = load_json(input_path / "agents.json")
+    tasks_data = load_json(input_path / "tasks.json")
+    golden_data_dict = load_json(input_path / "golden_data.json")
 
     from caas_framework.bmad.engine import BMADEngine
+    from caas_framework.models.specifications import AgentSpecModel
+    from caas_framework.models.specifications import ConcretizedRequirement as GoldenData
+    from caas_framework.models.specifications import TaskSpecModel
+
+    # Convert to models
+    agents = [AgentSpecModel(**a) for a in agents_data]
+    tasks = [TaskSpecModel(**t) for t in tasks_data]
+    golden_data = GoldenData(**golden_data_dict)
 
     engine = BMADEngine(
         llm_plugin=framework.llm_plugin,
         enable_validation=True,
         enable_auto_fix=True,
-        use_expert_agents=True
+        use_expert_agents=True,
     )
 
-    spec_yaml, validation_reports = await engine._phase_4_development(agents, tasks)
+    spec_yaml = await engine._phase_4_development(agents, tasks, golden_data)
 
     if verbose:
         click.echo()
         echo_info("Spec YAML generated")
-        echo_info(f"Validation reports: {len(validation_reports)}")
 
-    # Save outputs
+    # Save outputs and copy golden_data for Phase 5
     with open(output_path / "spec.yaml", "w", encoding="utf-8") as f:
         f.write(spec_yaml)
     echo_success(f"Saved to: {output_path / 'spec.yaml'}")
 
-    if validation_reports:
-        save_json(output_path / "validation_reports.json", validation_reports)
+    save_json(output_path / "golden_data.json", golden_data)
+    echo_info("✓ Copied golden_data.json for Phase 5")
 
-    return {"spec": spec_yaml, "validation_reports": validation_reports}
+    return {"spec": spec_yaml}
 
 
 async def _execute_phase_5(framework, input_dir, deployment_target, output_path, verbose):
@@ -452,16 +449,38 @@ async def _execute_phase_5(framework, input_dir, deployment_target, output_path,
     with open(input_path / "spec.yaml", "r", encoding="utf-8") as f:
         spec_yaml = f.read()
 
+    # Load golden_data if available (Phase 3 should have copied it)
+    # Otherwise try to find it in the phase chain
+    golden_data_path = input_path / "golden_data.json"
+    if not golden_data_path.exists():
+        # Try parent directories
+        for i in range(5, 0, -1):
+            try_path = (
+                Path(str(input_path).replace(f"phase{i}", f"phase{i-1}")) / "golden_data.json"
+            )
+            if try_path.exists():
+                golden_data_path = try_path
+                break
+
+    if not golden_data_path.exists():
+        echo_error("golden_data.json not found in phase chain")
+        raise FileNotFoundError("golden_data.json is required for Phase 5")
+
+    golden_data_dict = load_json(golden_data_path)
+
     from caas_framework.bmad.engine import BMADEngine
+    from caas_framework.models.specifications import ConcretizedRequirement as GoldenData
+
+    golden_data = GoldenData(**golden_data_dict)
 
     engine = BMADEngine(
         llm_plugin=framework.llm_plugin,
         enable_validation=True,
         enable_auto_fix=True,
-        use_expert_agents=True
+        use_expert_agents=True,
     )
 
-    generated_code = await engine._phase_5_delivery(spec_yaml, deployment_target)
+    generated_code = await engine._phase_5_delivery(spec_yaml, golden_data, deployment_target)
 
     if verbose:
         click.echo()
@@ -469,6 +488,7 @@ async def _execute_phase_5(framework, input_dir, deployment_target, output_path,
 
     # Save generated files
     from caas_cli.utils import save_files
+
     save_files(output_path, generated_code)
 
     return generated_code

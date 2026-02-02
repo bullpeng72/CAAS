@@ -6,13 +6,13 @@ ability to complete tasks and delegate when necessary.
 """
 
 import logging
-from typing import Any, Dict, Optional, List
 from abc import ABC, abstractmethod
+from typing import Any, Dict, List, Optional
 
 from caas_framework.agents.capability_assessment import (
-    CapabilityAssessment,
     AgentCapability,
-    get_capability_registry
+    CapabilityAssessment,
+    get_capability_registry,
 )
 from caas_framework.plugins.llm.base import LLMPlugin
 
@@ -34,9 +34,7 @@ class SelfAwareMixin:
         self._capability_cache: Dict[str, CapabilityAssessment] = {}
 
     async def can_perform(
-        self,
-        task: str,
-        context: Optional[Dict[str, Any]] = None
+        self, task: str, context: Optional[Dict[str, Any]] = None
     ) -> CapabilityAssessment:
         """
         Assess if this agent can perform a task.
@@ -58,10 +56,10 @@ class SelfAwareMixin:
             return self._capability_cache[cache_key]
 
         # Get agent's capabilities
-        agent_role = getattr(self, 'role', self.agent_name)
-        agent_goal = getattr(self, 'goal', '')
-        agent_backstory = getattr(self, 'backstory', '')
-        agent_tools = getattr(self, 'tools', [])
+        agent_role = getattr(self, "role", self.agent_name)
+        agent_goal = getattr(self, "goal", "")
+        agent_backstory = getattr(self, "backstory", "")
+        agent_tools = getattr(self, "tools", [])
 
         # Build assessment prompt
         prompt = self._build_capability_prompt(
@@ -70,12 +68,12 @@ class SelfAwareMixin:
             agent_goal=agent_goal,
             agent_backstory=agent_backstory,
             agent_tools=agent_tools,
-            context=context
+            context=context,
         )
 
         # Use LLM to assess capability
         try:
-            llm = getattr(self, 'llm', None)
+            llm = getattr(self, "llm", None)
             if not llm:
                 logger.warning(f"[{self.agent_name}] No LLM available for capability assessment")
                 # Fallback: assume capable
@@ -83,7 +81,7 @@ class SelfAwareMixin:
                     confidence=0.7,
                     reasoning="No LLM available for assessment, assuming capable",
                     missing_capabilities=[],
-                    alternative_approach=None
+                    alternative_approach=None,
                 )
 
             response = await llm.generate(prompt, temperature=0.3)
@@ -109,7 +107,7 @@ class SelfAwareMixin:
                 confidence=0.6,
                 reasoning=f"Error during assessment: {str(e)}. Assuming moderate capability.",
                 missing_capabilities=[],
-                alternative_approach=None
+                alternative_approach=None,
             )
 
     def _build_capability_prompt(
@@ -119,7 +117,7 @@ class SelfAwareMixin:
         agent_goal: str,
         agent_backstory: str,
         agent_tools: List[str],
-        context: Optional[Dict[str, Any]]
+        context: Optional[Dict[str, Any]],
     ) -> str:
         """Build prompt for capability assessment"""
 
@@ -170,19 +168,19 @@ Assessment:
     def _parse_capability_response(self, response: str) -> CapabilityAssessment:
         """Parse LLM response into CapabilityAssessment"""
 
-        lines = response.strip().split('\n')
+        lines = response.strip().split("\n")
         data = {}
 
         for line in lines:
             line = line.strip()
-            if ':' in line:
-                key, value = line.split(':', 1)
+            if ":" in line:
+                key, value = line.split(":", 1)
                 key = key.strip().upper()
                 value = value.strip()
                 data[key] = value
 
         # Extract confidence
-        confidence_str = data.get('CONFIDENCE', '0.7')
+        confidence_str = data.get("CONFIDENCE", "0.7")
         try:
             confidence = float(confidence_str)
             confidence = max(0.0, min(1.0, confidence))  # Clamp to 0-1
@@ -190,36 +188,36 @@ Assessment:
             confidence = 0.7
 
         # Extract reasoning
-        reasoning = data.get('REASONING', 'No reasoning provided')
+        reasoning = data.get("REASONING", "No reasoning provided")
 
         # Extract missing capabilities
-        missing_cap_str = data.get('MISSING_CAPABILITIES', 'None')
-        if missing_cap_str.lower() == 'none':
+        missing_cap_str = data.get("MISSING_CAPABILITIES", "None")
+        if missing_cap_str.lower() == "none":
             missing_capabilities = []
         else:
-            missing_capabilities = [c.strip() for c in missing_cap_str.split(';') if c.strip()]
+            missing_capabilities = [c.strip() for c in missing_cap_str.split(";") if c.strip()]
 
         # Extract alternative approach
-        alt_approach = data.get('ALTERNATIVE_APPROACH', None)
-        if alt_approach and alt_approach.lower() == 'none':
+        alt_approach = data.get("ALTERNATIVE_APPROACH", None)
+        if alt_approach and alt_approach.lower() == "none":
             alt_approach = None
 
         # Extract suggested agents
-        suggested_str = data.get('SUGGESTED_AGENTS', 'None')
-        if suggested_str.lower() == 'none':
+        suggested_str = data.get("SUGGESTED_AGENTS", "None")
+        if suggested_str.lower() == "none":
             suggested_agents = []
         else:
-            suggested_agents = [a.strip() for a in suggested_str.split(';') if a.strip()]
+            suggested_agents = [a.strip() for a in suggested_str.split(";") if a.strip()]
 
         # Extract missing tools
-        missing_tools_str = data.get('MISSING_TOOLS', 'None')
-        if missing_tools_str.lower() == 'none':
+        missing_tools_str = data.get("MISSING_TOOLS", "None")
+        if missing_tools_str.lower() == "none":
             missing_tools = []
         else:
-            missing_tools = [t.strip() for t in missing_tools_str.split(';') if t.strip()]
+            missing_tools = [t.strip() for t in missing_tools_str.split(";") if t.strip()]
 
         # Extract difficulty
-        difficulty_str = data.get('DIFFICULTY', None)
+        difficulty_str = data.get("DIFFICULTY", None)
         difficulty = None
         if difficulty_str:
             try:
@@ -235,14 +233,11 @@ Assessment:
             alternative_approach=alt_approach,
             suggested_agents=suggested_agents,
             missing_tools=missing_tools,
-            difficulty=difficulty
+            difficulty=difficulty,
         )
 
     async def execute_or_delegate(
-        self,
-        task: str,
-        context: Optional[Dict[str, Any]] = None,
-        force_execute: bool = False
+        self, task: str, context: Optional[Dict[str, Any]] = None, force_execute: bool = False
     ) -> Any:
         """
         Execute task if confident, otherwise delegate or request help.
@@ -265,7 +260,9 @@ Assessment:
 
         # High confidence: execute
         if assessment.can_attempt or force_execute:
-            logger.info(f"[{self.agent_name}] Executing task (confidence={assessment.confidence:.2f})")
+            logger.info(
+                f"[{self.agent_name}] Executing task (confidence={assessment.confidence:.2f})"
+            )
             return await self._execute_task(task, context)
 
         # Low confidence: delegate or request help
@@ -277,11 +274,7 @@ Assessment:
             return await self.request_help(task, assessment, context)
 
     @abstractmethod
-    async def _execute_task(
-        self,
-        task: str,
-        context: Optional[Dict[str, Any]]
-    ) -> Any:
+    async def _execute_task(self, task: str, context: Optional[Dict[str, Any]]) -> Any:
         """
         Execute the task (to be implemented by subclass).
 
@@ -295,10 +288,7 @@ Assessment:
         raise NotImplementedError("Subclass must implement _execute_task")
 
     async def request_help(
-        self,
-        task: str,
-        assessment: CapabilityAssessment,
-        context: Optional[Dict[str, Any]] = None
+        self, task: str, assessment: CapabilityAssessment, context: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
         Request help from other agents.
@@ -311,9 +301,7 @@ Assessment:
         Returns:
             Help request result
         """
-        logger.info(
-            f"[{self.agent_name}] Requesting help: {assessment.reasoning}"
-        )
+        logger.info(f"[{self.agent_name}] Requesting help: {assessment.reasoning}")
 
         # Find better suited agents
         registry = get_capability_registry()
@@ -335,7 +323,7 @@ Assessment:
             "missing_tools": assessment.missing_tools,
             "suggested_agents": suggested,
             "alternative_approach": assessment.alternative_approach,
-            "context": context
+            "context": context,
         }
 
         logger.debug(f"[{self.agent_name}] Help request: {help_request}")
@@ -363,7 +351,7 @@ class SelfAwareAgent(SelfAwareMixin, ABC):
         role: str = "",
         goal: str = "",
         backstory: str = "",
-        tools: Optional[List[str]] = None
+        tools: Optional[List[str]] = None,
     ):
         """
         Initialize self-aware agent.
@@ -392,14 +380,10 @@ class SelfAwareAgent(SelfAwareMixin, ABC):
             tools=self.tools,
             task_types=[],
             backstory=backstory,
-            goal=goal
+            goal=goal,
         )
         get_capability_registry().register(capability)
 
     @abstractmethod
-    async def _execute_task(
-        self,
-        task: str,
-        context: Optional[Dict[str, Any]]
-    ) -> Any:
+    async def _execute_task(self, task: str, context: Optional[Dict[str, Any]]) -> Any:
         """Execute the task (implement in subclass)"""

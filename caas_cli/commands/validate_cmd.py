@@ -4,58 +4,41 @@ Validate Command
 Run specific validators on agent/task design
 """
 
-import click
 from pathlib import Path
+
+import click
 from caas_cli.utils import (
-    echo_success,
     echo_error,
     echo_info,
     echo_progress,
+    echo_success,
     handle_keyboard_interrupt,
     load_json,
+    print_validation_results,
     save_json,
-    print_validation_results
 )
 
 
 @click.command()
 @click.option(
     "--validator",
-    type=click.Choice([
-        "ontology", "golden", "dependency", "python311", "crewai", "all"
-    ]),
+    type=click.Choice(["ontology", "golden", "dependency", "python311", "crewai", "all"]),
     default="all",
-    help="Validator to run (default: all)"
+    help="Validator to run (default: all)",
 )
 @click.option(
-    "--agents",
-    type=click.Path(exists=True),
-    required=True,
-    help="Path to agents.json file"
+    "--agents", type=click.Path(exists=True), required=True, help="Path to agents.json file"
 )
 @click.option(
-    "--tasks",
-    type=click.Path(exists=True),
-    required=True,
-    help="Path to tasks.json file"
+    "--tasks", type=click.Path(exists=True), required=True, help="Path to tasks.json file"
 )
 @click.option(
     "--golden-data",
     type=click.Path(exists=True),
-    help="Path to golden_data.json (required for golden validator)"
+    help="Path to golden_data.json (required for golden validator)",
 )
-@click.option(
-    "--output",
-    "-o",
-    type=click.Path(),
-    help="Save validation report to JSON file"
-)
-@click.option(
-    "--verbose",
-    "-v",
-    is_flag=True,
-    help="Show detailed validation output"
-)
+@click.option("--output", "-o", type=click.Path(), help="Save validation report to JSON file")
+@click.option("--verbose", "-v", is_flag=True, help="Show detailed validation output")
 @handle_keyboard_interrupt
 def validate(validator, agents, tasks, golden_data, output, verbose):
     """
@@ -143,7 +126,7 @@ def validate(validator, agents, tasks, golden_data, output, verbose):
             save_json(output, result)
 
         # Exit with error code if validation failed
-        if hasattr(result, 'is_valid') and not result.is_valid:
+        if hasattr(result, "is_valid") and not result.is_valid:
             return 1
 
     except ImportError as e:
@@ -153,6 +136,7 @@ def validate(validator, agents, tasks, golden_data, output, verbose):
     except Exception as e:
         echo_error(f"Validation error: {e}")
         import traceback
+
         if verbose:
             echo_error(traceback.format_exc())
         return 1
@@ -178,8 +162,8 @@ def _validate_ontology(agents_list, tasks_list, verbose):
 
 def _validate_golden(agents_list, tasks_list, golden_data, verbose):
     """Run golden data validation"""
-    from caas_framework.validation.golden_validator import GoldenDataValidator
     from caas_framework.models.specifications import ConcretizedRequirement as GoldenData
+    from caas_framework.validation.golden_validator import GoldenDataValidator
 
     echo_progress("Validating against Golden Data...")
 
@@ -255,8 +239,8 @@ def _validate_crewai(agents_list, tasks_list, verbose):
 
 def _validate_all(agents_list, tasks_list, golden_data, verbose):
     """Run all validators"""
-    from caas_framework.validation.orchestrator import ValidationOrchestrator
     from caas_framework.models.specifications import ConcretizedRequirement as GoldenData
+    from caas_framework.validation.orchestrator import ValidationOrchestrator
 
     echo_progress("Running all validators...")
 

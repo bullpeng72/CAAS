@@ -6,9 +6,14 @@ Manages loading, saving, and querying the tool ontology.
 
 import json
 from pathlib import Path
-from typing import List, Optional, Dict, Any
-from caas_framework.knowledge.ontology.tool_ontology import ToolOntology, ConceptualTool, ToolCategory
+from typing import Any, Dict, List, Optional
+
 from caas_framework.knowledge.ontology.tool_data_generator import generate_initial_ontology
+from caas_framework.knowledge.ontology.tool_ontology import (
+    ConceptualTool,
+    ToolCategory,
+    ToolOntology,
+)
 from caas_framework.utils.logger import get_logger
 
 logger = get_logger("ontology.tool_manager")
@@ -54,7 +59,7 @@ class ToolOntologyManager:
             self.save()
         else:
             logger.info(f"Loading ontology from {self.ontology_file}")
-            with open(self.ontology_file, 'r', encoding='utf-8') as f:
+            with open(self.ontology_file, "r", encoding="utf-8") as f:
                 data = json.load(f)
                 self._ontology = ToolOntology(**data)
 
@@ -67,13 +72,8 @@ class ToolOntologyManager:
             raise ValueError("No ontology loaded")
 
         logger.info(f"Saving ontology to {self.ontology_file}")
-        with open(self.ontology_file, 'w', encoding='utf-8') as f:
-            json.dump(
-                self._ontology.model_dump(),
-                f,
-                indent=2,
-                ensure_ascii=False
-            )
+        with open(self.ontology_file, "w", encoding="utf-8") as f:
+            json.dump(self._ontology.model_dump(), f, indent=2, ensure_ascii=False)
         logger.info("Ontology saved successfully")
 
     def get_all_tools(self, enabled_only: bool = True) -> List[ConceptualTool]:
@@ -175,7 +175,7 @@ class ToolOntologyManager:
                         "name": impl.name,
                         "description": impl.description,
                         "requires_api_key": impl.requires_api_key,
-                        "api_key_env": impl.api_key_env
+                        "api_key_env": impl.api_key_env,
                     }
                     for impl in tool.implementations
                 ],
@@ -183,7 +183,7 @@ class ToolOntologyManager:
                 "compatible_roles": tool.compatible_roles,
                 "compatible_tasks": tool.compatible_tasks,
                 "usage_count": tool.usage_count,
-                "tags": tool.tags
+                "tags": tool.tags,
             }
             for tool in tools
         ]

@@ -5,41 +5,35 @@ Implements agents that can assess their own capabilities and limitations,
 enabling intelligent delegation and help-seeking behavior.
 """
 
-from typing import Any, List, Optional, Protocol, Callable
-from dataclasses import dataclass
-from pydantic import BaseModel, Field
 import logging
+from dataclasses import dataclass
+from typing import Any, Callable, List, Optional, Protocol
+
+from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
 
 
 class CapabilityAssessment(BaseModel):
     """Assessment of an agent's capability to perform a task."""
-    confidence: float = Field(
-        ge=0.0,
-        le=1.0,
-        description="Confidence level (0.0-1.0)"
-    )
-    reasoning: str = Field(
-        description="Explanation of why agent can or cannot perform task"
-    )
+
+    confidence: float = Field(ge=0.0, le=1.0, description="Confidence level (0.0-1.0)")
+    reasoning: str = Field(description="Explanation of why agent can or cannot perform task")
     missing_capabilities: List[str] = Field(
-        default_factory=list,
-        description="Required capabilities that are missing"
+        default_factory=list, description="Required capabilities that are missing"
     )
     alternative_approach: Optional[str] = Field(
-        default=None,
-        description="Suggested alternative if confidence is low"
+        default=None, description="Suggested alternative if confidence is low"
     )
     estimated_difficulty: Optional[str] = Field(
-        default=None,
-        description="Easy, Medium, Hard, or Impossible"
+        default=None, description="Easy, Medium, Hard, or Impossible"
     )
 
 
 @dataclass
 class AgentCapabilities:
     """Defines an agent's capabilities."""
+
     role: str
     tools: List[str]
     expertise: str
@@ -54,11 +48,7 @@ class AgentCapabilities:
 class SelfAssessmentStrategy(Protocol):
     """Protocol for self-assessment strategies."""
 
-    def assess(
-        self,
-        task: str,
-        capabilities: AgentCapabilities
-    ) -> CapabilityAssessment:
+    def assess(self, task: str, capabilities: AgentCapabilities) -> CapabilityAssessment:
         """Assess capability to perform task."""
         ...
 
@@ -69,20 +59,16 @@ class RuleBasedAssessment:
     def __init__(self):
         # Common capability patterns
         self.tool_requirements = {
-            'search': ['web_search', 'http_client'],
-            'file': ['file_read', 'file_write'],
-            'database': ['database'],
-            'api': ['http_client'],
-            'code': ['code_analysis', 'file_write'],
-            'git': ['git'],
-            'shell': ['shell'],
+            "search": ["web_search", "http_client"],
+            "file": ["file_read", "file_write"],
+            "database": ["database"],
+            "api": ["http_client"],
+            "code": ["code_analysis", "file_write"],
+            "git": ["git"],
+            "shell": ["shell"],
         }
 
-    def assess(
-        self,
-        task: str,
-        capabilities: AgentCapabilities
-    ) -> CapabilityAssessment:
+    def assess(self, task: str, capabilities: AgentCapabilities) -> CapabilityAssessment:
         """Rule-based assessment."""
         task_lower = task.lower()
         confidence = 1.0
@@ -147,7 +133,7 @@ class RuleBasedAssessment:
             reasoning=reasoning,
             missing_capabilities=list(set(missing)),
             alternative_approach=alternative,
-            estimated_difficulty=difficulty
+            estimated_difficulty=difficulty,
         )
 
 
@@ -163,11 +149,7 @@ class LLMBasedAssessment:
         """
         self.llm = llm_provider
 
-    def assess(
-        self,
-        task: str,
-        capabilities: AgentCapabilities
-    ) -> CapabilityAssessment:
+    def assess(self, task: str, capabilities: AgentCapabilities) -> CapabilityAssessment:
         """LLM-based assessment."""
         prompt = f"""You are {capabilities.role}.
 
@@ -191,10 +173,7 @@ than to fail at it.
 """
 
         try:
-            response = self.llm.generate_structured(
-                prompt,
-                schema=CapabilityAssessment
-            )
+            response = self.llm.generate_structured(prompt, schema=CapabilityAssessment)
             return response
         except Exception as e:
             logger.warning(f"LLM assessment failed: {e}, falling back to rule-based")
@@ -216,7 +195,7 @@ class SelfAwareAgent:
         capabilities: AgentCapabilities,
         assessment_strategy: Optional[SelfAssessmentStrategy] = None,
         confidence_threshold: float = 0.7,
-        delegate_handler: Optional[Callable] = None
+        delegate_handler: Optional[Callable] = None,
     ):
         """
         Initialize self-aware agent.
@@ -257,10 +236,7 @@ class SelfAwareAgent:
         return assessment
 
     async def execute_or_delegate(
-        self,
-        task: str,
-        executor: Optional[Callable] = None,
-        verbose: bool = True
+        self, task: str, executor: Optional[Callable] = None, verbose: bool = True
     ) -> tuple[Any, CapabilityAssessment]:
         """
         Execute task if confident, otherwise delegate.
@@ -300,9 +276,7 @@ class SelfAwareAgent:
                 logger.info(f"   Reason: {assessment.reasoning}")
 
                 if assessment.missing_capabilities:
-                    logger.info(
-                        f"   Missing: {', '.join(assessment.missing_capabilities)}"
-                    )
+                    logger.info(f"   Missing: {', '.join(assessment.missing_capabilities)}")
 
                 if assessment.alternative_approach:
                     logger.info(f"   💡 Alternative: {assessment.alternative_approach}")
@@ -314,22 +288,19 @@ class SelfAwareAgent:
                 result = await self.delegate_handler(
                     task=task,
                     reason=assessment.reasoning,
-                    missing_capabilities=assessment.missing_capabilities
+                    missing_capabilities=assessment.missing_capabilities,
                 )
             else:
                 result = {
-                    'status': 'needs_delegation',
-                    'assessment': assessment,
-                    'message': f"{self.capabilities.role} cannot perform this task"
+                    "status": "needs_delegation",
+                    "assessment": assessment,
+                    "message": f"{self.capabilities.role} cannot perform this task",
                 }
 
             return result, assessment
 
     def execute_or_delegate_sync(
-        self,
-        task: str,
-        executor: Optional[Callable] = None,
-        verbose: bool = True
+        self, task: str, executor: Optional[Callable] = None, verbose: bool = True
     ) -> tuple[Any, CapabilityAssessment]:
         """
         Synchronous version of execute_or_delegate.
@@ -369,9 +340,7 @@ class SelfAwareAgent:
                 logger.info(f"   Reason: {assessment.reasoning}")
 
                 if assessment.missing_capabilities:
-                    logger.info(
-                        f"   Missing: {', '.join(assessment.missing_capabilities)}"
-                    )
+                    logger.info(f"   Missing: {', '.join(assessment.missing_capabilities)}")
 
                 if assessment.alternative_approach:
                     logger.info(f"   💡 Alternative: {assessment.alternative_approach}")
@@ -384,13 +353,13 @@ class SelfAwareAgent:
                 result = self.delegate_handler(
                     task=task,
                     reason=assessment.reasoning,
-                    missing_capabilities=assessment.missing_capabilities
+                    missing_capabilities=assessment.missing_capabilities,
                 )
             else:
                 result = {
-                    'status': 'needs_delegation',
-                    'assessment': assessment,
-                    'message': f"{self.capabilities.role} cannot perform this task"
+                    "status": "needs_delegation",
+                    "assessment": assessment,
+                    "message": f"{self.capabilities.role} cannot perform this task",
                 }
 
             return result, assessment
@@ -404,26 +373,26 @@ class SelfAwareAgent:
         """
         if not self.assessment_history:
             return {
-                'total_assessments': 0,
-                'avg_confidence': 0.0,
-                'tasks_within_capability': 0,
-                'tasks_requiring_delegation': 0
+                "total_assessments": 0,
+                "avg_confidence": 0.0,
+                "tasks_within_capability": 0,
+                "tasks_requiring_delegation": 0,
             }
 
         confidences = [a.confidence for _, a in self.assessment_history]
         avg_confidence = sum(confidences) / len(confidences)
 
         within_capability = sum(
-            1 for _, a in self.assessment_history
-            if a.confidence >= self.confidence_threshold
+            1 for _, a in self.assessment_history if a.confidence >= self.confidence_threshold
         )
 
         return {
-            'total_assessments': len(self.assessment_history),
-            'avg_confidence': avg_confidence,
-            'tasks_within_capability': within_capability,
-            'tasks_requiring_delegation': len(self.assessment_history) - within_capability,
-            'delegation_rate': (len(self.assessment_history) - within_capability) / len(self.assessment_history)
+            "total_assessments": len(self.assessment_history),
+            "avg_confidence": avg_confidence,
+            "tasks_within_capability": within_capability,
+            "tasks_requiring_delegation": len(self.assessment_history) - within_capability,
+            "delegation_rate": (len(self.assessment_history) - within_capability)
+            / len(self.assessment_history),
         }
 
 
@@ -434,7 +403,7 @@ def create_self_aware_agent(
     goal: str,
     known_limitations: Optional[List[str]] = None,
     llm_provider: Optional[Any] = None,
-    confidence_threshold: float = 0.7
+    confidence_threshold: float = 0.7,
 ) -> SelfAwareAgent:
     """
     Factory function to create a self-aware agent.
@@ -456,7 +425,7 @@ def create_self_aware_agent(
         tools=tools,
         expertise=expertise,
         goal=goal,
-        known_limitations=known_limitations or []
+        known_limitations=known_limitations or [],
     )
 
     # Choose assessment strategy
@@ -468,5 +437,5 @@ def create_self_aware_agent(
     return SelfAwareAgent(
         capabilities=capabilities,
         assessment_strategy=strategy,
-        confidence_threshold=confidence_threshold
+        confidence_threshold=confidence_threshold,
     )

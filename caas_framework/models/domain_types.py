@@ -6,7 +6,8 @@ Domain Types
 
 import json
 from enum import Enum
-from typing import List, Optional, Dict
+from typing import Dict, List, Optional
+
 from pydantic import BaseModel, Field
 
 
@@ -100,43 +101,28 @@ class ExecutionPattern(str, Enum):
 class DomainClassification(BaseModel):
     """도메인 분류 결과"""
 
-    domain_type: DomainType = Field(
-        description="분류된 도메인 타입"
-    )
+    domain_type: DomainType = Field(description="분류된 도메인 타입")
 
-    confidence: float = Field(
-        ge=0.0,
-        le=1.0,
-        description="분류 신뢰도 (0.0-1.0)"
-    )
+    confidence: float = Field(ge=0.0, le=1.0, description="분류 신뢰도 (0.0-1.0)")
 
-    reasoning: str = Field(
-        description="분류 근거 설명"
-    )
+    reasoning: str = Field(description="분류 근거 설명")
 
     core_entities: List[str] = Field(
-        default_factory=list,
-        description="핵심 엔티티 (예: User, Task, Message)"
+        default_factory=list, description="핵심 엔티티 (예: User, Task, Message)"
     )
 
     core_operations: List[str] = Field(
-        default_factory=list,
-        description="핵심 동작 (예: create, read, update, delete)"
+        default_factory=list, description="핵심 동작 (예: create, read, update, delete)"
     )
 
     execution_pattern: ExecutionPattern = Field(
-        default=ExecutionPattern.CRUD_APPLICATION,
-        description="실행 패턴"
+        default=ExecutionPattern.CRUD_APPLICATION, description="실행 패턴"
     )
 
-    keywords: List[str] = Field(
-        default_factory=list,
-        description="요구사항에서 추출한 주요 키워드"
-    )
+    keywords: List[str] = Field(default_factory=list, description="요구사항에서 추출한 주요 키워드")
 
     alternate_types: List[DomainType] = Field(
-        default_factory=list,
-        description="대안 도메인 타입 (신뢰도 낮은 경우)"
+        default_factory=list, description="대안 도메인 타입 (신뢰도 낮은 경우)"
     )
 
 
@@ -159,6 +145,7 @@ def load_domain_keywords() -> Dict[DomainType, List[str]]:
     try:
         # Try to load from data/ontology/domain_keywords.json
         from pathlib import Path
+
         keywords_path = Path.cwd() / "data" / "ontology" / "domain_keywords.json"
 
         if keywords_path.exists():

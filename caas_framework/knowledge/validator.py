@@ -5,13 +5,13 @@ CAAS Ontology Validator
 Agent Designer UI에서 사용할 수 있는 검증 결과를 제공합니다.
 """
 
-from typing import Any, Dict, List, Optional, Tuple, Union
-from pydantic import BaseModel, Field
 from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple, Union
 
-from caas_framework.utils.logger import get_logger, LoggerMixin
-from caas_framework.knowledge.ontology import OntologyManager, AgentRole
+from pydantic import BaseModel, Field
 
+from caas_framework.knowledge.ontology import AgentRole, OntologyManager
+from caas_framework.utils.logger import LoggerMixin, get_logger
 
 logger = get_logger("knowledge.validator")
 
@@ -37,6 +37,7 @@ def _safe_get(obj: Union[Dict, BaseModel], key: str, default: Any = None) -> Any
 
 class ValidationSeverity(str, Enum):
     """검증 결과 심각도"""
+
     ERROR = "error"
     WARNING = "warning"
     INFO = "info"
@@ -45,6 +46,7 @@ class ValidationSeverity(str, Enum):
 
 class ValidationIssue(BaseModel):
     """검증 이슈"""
+
     severity: ValidationSeverity
     category: str  # "role", "task", "tool", "assignment"
     agent_id: Optional[str] = None
@@ -57,6 +59,7 @@ class ValidationIssue(BaseModel):
 
 class ValidationResult(BaseModel):
     """검증 결과"""
+
     is_valid: bool = True
     issues: List[ValidationIssue] = Field(default_factory=list)
     summary: Dict[str, int] = Field(default_factory=dict)
@@ -74,9 +77,7 @@ class OntologyValidator(LoggerMixin):
         self.ontology = OntologyManager()
 
     def validate_agents_and_tasks(
-        self,
-        agents: List[Dict[str, Any]],
-        tasks: List[Dict[str, Any]]
+        self, agents: List[Dict[str, Any]], tasks: List[Dict[str, Any]]
     ) -> ValidationResult:
         """
         에이전트와 태스크를 검증합니다.
@@ -115,13 +116,11 @@ class OntologyValidator(LoggerMixin):
 
         is_valid = summary["errors"] == 0
 
-        self.logger.info(f"검증 완료: {summary['total']}개 이슈 ({summary['errors']} errors, {summary['warnings']} warnings)")
-
-        return ValidationResult(
-            is_valid=is_valid,
-            issues=issues,
-            summary=summary
+        self.logger.info(
+            f"검증 완료: {summary['total']}개 이슈 ({summary['errors']} errors, {summary['warnings']} warnings)"
         )
+
+        return ValidationResult(is_valid=is_valid, issues=issues, summary=summary)
 
     def _validate_agent_roles(self, agents: List[Dict[str, Any]]) -> List[ValidationIssue]:
         """에이전트 역할 검증"""
@@ -140,32 +139,33 @@ class OntologyValidator(LoggerMixin):
 
             # 비표준 역할 감지
             if role.lower() != inferred_role.value:
-                issues.append(ValidationIssue(
-                    severity=ValidationSeverity.WARNING,
-                    category="role",
-                    agent_id=agent_id,
-                    message=f"비표준 역할: '{role}'",
-                    suggestion=f"표준 역할 '{inferred_role.value}'로 변경을 권장합니다.",
-                    auto_fix_available=True,
-                    auto_fix_data={
-                        "action": "normalize_role",
-                        "agent_id": agent_id,
-                        "new_role": inferred_role.value
-                    }
-                ))
+                issues.append(
+                    ValidationIssue(
+                        severity=ValidationSeverity.WARNING,
+                        category="role",
+                        agent_id=agent_id,
+                        message=f"비표준 역할: '{role}'",
+                        suggestion=f"표준 역할 '{inferred_role.value}'로 변경을 권장합니다.",
+                        auto_fix_available=True,
+                        auto_fix_data={
+                            "action": "normalize_role",
+                            "agent_id": agent_id,
+                            "new_role": inferred_role.value,
+                        },
+                    )
+                )
 
         return issues
 
     def _validate_agent_tools(
-        self,
-        agents: List[Dict[str, Any]],
-        tasks: List[Dict[str, Any]]
+        self, agents: List[Dict[str, Any]], tasks: List[Dict[str, Any]]
     ) -> List[ValidationIssue]:
         """에이전트 도구 검증"""
         issues = []
 
         # Tool Registry에서 활성화된 도구 목록 가져오기 (한 번만)
         from caas_framework.models.tool_registry import get_enabled_tools_dict
+
         enabled_tools = get_enabled_tools_dict()
 
         for agent in agents:
@@ -180,25 +180,30 @@ class OntologyValidator(LoggerMixin):
                     unregistered_tools.append(tool)
 
             if unregistered_tools:
-                issues.append(ValidationIssue(
-                    severity=ValidationSeverity.ERROR,
-                    category="tool",
-                    agent_id=agent_id,
-                    message=f"미등록 도구 사용: {', '.join(unregistered_tools)}",
-                    suggestion=f"다음 도구를 Tool Registry에 등록하거나 제거하세요: {', '.join(unregistered_tools)}",
-                    auto_fix_available=True,
-                    auto_fix_data={
-                        "action": "remove_tools",
-                        "agent_id": agent_id,
-                        "tools_to_remove": unregistered_tools
-                    }
-                ))
+                issues.append(
+                    ValidationIssue(
+                        severity=ValidationSeverity.ERROR,
+                        category="tool",
+                        agent_id=agent_id,
+                        message=f"미등록 도구 사용: {', '.join(unregistered_tools)}",
+                        suggestion=f"다음 도구를 Tool Registry에 등록하거나 제거하세요: {', '.join(unregistered_tools)}",
+                        auto_fix_available=True,
+                        auto_fix_data={
+                            "action": "remove_tools",
+                            "agent_id": agent_id,
+                            "tools_to_remove": unregistered_tools,
+                        },
+                    )
+                )
 
             # 에이전트가 담당할 태스크 찾기
             agent_tasks = [
-                t for t in tasks
-                if (_safe_get(t, "assigned_agent") or _safe_get(t, "agent", "")).lower() in agent_id.lower()
-                or (_safe_get(t, "assigned_agent") or _safe_get(t, "agent", "")).lower() in role.lower()
+                t
+                for t in tasks
+                if (_safe_get(t, "assigned_agent") or _safe_get(t, "agent", "")).lower()
+                in agent_id.lower()
+                or (_safe_get(t, "assigned_agent") or _safe_get(t, "agent", "")).lower()
+                in role.lower()
             ]
 
             if not agent_tasks:
@@ -218,8 +223,7 @@ class OntologyValidator(LoggerMixin):
 
             # 추천 도구 계산
             recommended_tools = self.ontology.recommend_agent_tools(
-                role=inferred_role,
-                assigned_tasks=task_types
+                role=inferred_role, assigned_tasks=task_types
             )
 
             # 추천 도구 중 Tool Registry에 있는 것만 필터링
@@ -229,26 +233,26 @@ class OntologyValidator(LoggerMixin):
             missing_tools = set(recommended_tools) - current_tools
 
             if missing_tools:
-                issues.append(ValidationIssue(
-                    severity=ValidationSeverity.INFO,
-                    category="tool",
-                    agent_id=agent_id,
-                    message=f"추천 도구 누락: {len(missing_tools)}개",
-                    suggestion=f"다음 도구 추가 권장: {', '.join(list(missing_tools)[:3])}",
-                    auto_fix_available=True,
-                    auto_fix_data={
-                        "action": "add_tools",
-                        "agent_id": agent_id,
-                        "tools_to_add": list(missing_tools)
-                    }
-                ))
+                issues.append(
+                    ValidationIssue(
+                        severity=ValidationSeverity.INFO,
+                        category="tool",
+                        agent_id=agent_id,
+                        message=f"추천 도구 누락: {len(missing_tools)}개",
+                        suggestion=f"다음 도구 추가 권장: {', '.join(list(missing_tools)[:3])}",
+                        auto_fix_available=True,
+                        auto_fix_data={
+                            "action": "add_tools",
+                            "agent_id": agent_id,
+                            "tools_to_add": list(missing_tools),
+                        },
+                    )
+                )
 
         return issues
 
     def _validate_task_assignments(
-        self,
-        agents: List[Dict[str, Any]],
-        tasks: List[Dict[str, Any]]
+        self, agents: List[Dict[str, Any]], tasks: List[Dict[str, Any]]
     ) -> List[ValidationIssue]:
         """태스크 할당 검증"""
         issues = []
@@ -261,8 +265,10 @@ class OntologyValidator(LoggerMixin):
             # 할당된 에이전트 찾기
             assigned_agent = None
             for agent in agents:
-                if (_safe_get(agent, "id", "").lower() in assigned_agent_name.lower()
-                    or _safe_get(agent, "role", "").lower() in assigned_agent_name.lower()):
+                if (
+                    _safe_get(agent, "id", "").lower() in assigned_agent_name.lower()
+                    or _safe_get(agent, "role", "").lower() in assigned_agent_name.lower()
+                ):
                     assigned_agent = agent
                     break
 
@@ -294,28 +300,34 @@ class OntologyValidator(LoggerMixin):
                     if not suitable_agent:
                         suitable_agent = agents[0]
 
-                    issues.append(ValidationIssue(
-                        severity=ValidationSeverity.ERROR,
-                        category="assignment",
-                        task_id=task_id,
-                        message=f"할당된 에이전트를 찾을 수 없음: '{assigned_agent_name}'",
-                        suggestion=f"에이전트 '{_safe_get(suitable_agent, 'id', _safe_get(suitable_agent, 'role'))}'를 자동 할당할 수 있습니다.",
-                        auto_fix_available=True,
-                        auto_fix_data={
-                            "action": "assign_agent",
-                            "task_id": task_id,
-                            "agent_id": _safe_get(suitable_agent, "id", _safe_get(suitable_agent, "role"))
-                        }
-                    ))
+                    issues.append(
+                        ValidationIssue(
+                            severity=ValidationSeverity.ERROR,
+                            category="assignment",
+                            task_id=task_id,
+                            message=f"할당된 에이전트를 찾을 수 없음: '{assigned_agent_name}'",
+                            suggestion=f"에이전트 '{_safe_get(suitable_agent, 'id', _safe_get(suitable_agent, 'role'))}'를 자동 할당할 수 있습니다.",
+                            auto_fix_available=True,
+                            auto_fix_data={
+                                "action": "assign_agent",
+                                "task_id": task_id,
+                                "agent_id": _safe_get(
+                                    suitable_agent, "id", _safe_get(suitable_agent, "role")
+                                ),
+                            },
+                        )
+                    )
                 else:
-                    issues.append(ValidationIssue(
-                        severity=ValidationSeverity.ERROR,
-                        category="assignment",
-                        task_id=task_id,
-                        message=f"할당된 에이전트를 찾을 수 없음: '{assigned_agent_name}'",
-                        suggestion="먼저 에이전트를 생성하세요.",
-                        auto_fix_available=False
-                    ))
+                    issues.append(
+                        ValidationIssue(
+                            severity=ValidationSeverity.ERROR,
+                            category="assignment",
+                            task_id=task_id,
+                            message=f"할당된 에이전트를 찾을 수 없음: '{assigned_agent_name}'",
+                            suggestion="먼저 에이전트를 생성하세요.",
+                            auto_fix_available=False,
+                        )
+                    )
                 continue
 
             # 역할-태스크 적합성 검증
@@ -338,9 +350,7 @@ class OntologyValidator(LoggerMixin):
 
                 # 권장 태스크 설명 생성
                 recommended_description = self._generate_recommended_description(
-                    _safe_get(task, "description", ""),
-                    inferred_role,
-                    suitable_tasks
+                    _safe_get(task, "description", ""), inferred_role, suitable_tasks
                 )
 
                 if suitable_roles:
@@ -353,15 +363,17 @@ class OntologyValidator(LoggerMixin):
                             f"또는 태스크 설명을 '{inferred_role.value}' 역할에 맞게 수정:\n\"{recommended_description}\""
                         )
 
-                    issues.append(ValidationIssue(
-                        severity=ValidationSeverity.WARNING,
-                        category="assignment",
-                        task_id=task_id,
-                        agent_id=_safe_get(assigned_agent, "id"),
-                        message=f"부적합한 태스크 할당: '{task_type.value}' 태스크를 '{inferred_role.value}' 에이전트가 수행",
-                        suggestion="\n".join(suggestion_parts),
-                        auto_fix_available=False  # 재할당은 수동으로
-                    ))
+                    issues.append(
+                        ValidationIssue(
+                            severity=ValidationSeverity.WARNING,
+                            category="assignment",
+                            task_id=task_id,
+                            agent_id=_safe_get(assigned_agent, "id"),
+                            message=f"부적합한 태스크 할당: '{task_type.value}' 태스크를 '{inferred_role.value}' 에이전트가 수행",
+                            suggestion="\n".join(suggestion_parts),
+                            auto_fix_available=False,  # 재할당은 수동으로
+                        )
+                    )
 
         return issues
 
@@ -378,38 +390,39 @@ class OntologyValidator(LoggerMixin):
             # 존재하지 않는 의존성 확인
             for dep in dependencies:
                 if dep not in task_ids:
-                    issues.append(ValidationIssue(
-                        severity=ValidationSeverity.ERROR,
-                        category="task",
-                        task_id=task_id,
-                        message=f"존재하지 않는 의존 태스크: '{dep}'",
-                        suggestion="의존성을 제거하거나 올바른 태스크 ID로 수정하세요.",
-                        auto_fix_available=False
-                    ))
+                    issues.append(
+                        ValidationIssue(
+                            severity=ValidationSeverity.ERROR,
+                            category="task",
+                            task_id=task_id,
+                            message=f"존재하지 않는 의존 태스크: '{dep}'",
+                            suggestion="의존성을 제거하거나 올바른 태스크 ID로 수정하세요.",
+                            auto_fix_available=False,
+                        )
+                    )
 
             # 순환 의존성 확인 (간단한 버전)
             if task_id in dependencies:
-                issues.append(ValidationIssue(
-                    severity=ValidationSeverity.ERROR,
-                    category="task",
-                    task_id=task_id,
-                    message="자기 자신을 의존하는 순환 의존성",
-                    suggestion="의존성을 제거하세요.",
-                    auto_fix_available=True,
-                    auto_fix_data={
-                        "action": "remove_circular_dependency",
-                        "task_id": task_id,
-                        "dependency_to_remove": task_id
-                    }
-                ))
+                issues.append(
+                    ValidationIssue(
+                        severity=ValidationSeverity.ERROR,
+                        category="task",
+                        task_id=task_id,
+                        message="자기 자신을 의존하는 순환 의존성",
+                        suggestion="의존성을 제거하세요.",
+                        auto_fix_available=True,
+                        auto_fix_data={
+                            "action": "remove_circular_dependency",
+                            "task_id": task_id,
+                            "dependency_to_remove": task_id,
+                        },
+                    )
+                )
 
         return issues
 
     def apply_auto_fix(
-        self,
-        agents: List[Dict[str, Any]],
-        tasks: List[Dict[str, Any]],
-        issue: ValidationIssue
+        self, agents: List[Dict[str, Any]], tasks: List[Dict[str, Any]], issue: ValidationIssue
     ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
         """
         자동 수정 적용
@@ -460,7 +473,9 @@ class OntologyValidator(LoggerMixin):
                 if _safe_get(agent, "id") == agent_id:
                     current_tools = _safe_get(agent, "tools", [])
                     agent["tools"] = [t for t in current_tools if t not in tools_to_remove]
-                    self.logger.info(f"✅ 미등록 도구 제거: {agent_id} - {', '.join(tools_to_remove)}")
+                    self.logger.info(
+                        f"✅ 미등록 도구 제거: {agent_id} - {', '.join(tools_to_remove)}"
+                    )
                     break
 
         elif action == "remove_circular_dependency":
@@ -509,7 +524,7 @@ class OntologyValidator(LoggerMixin):
             "info": result.summary.get("info", 0),
             "auto_fixable": result.summary.get("auto_fixable", 0),
             "is_valid": result.is_valid,
-            "health_score": self._calculate_health_score(result)
+            "health_score": self._calculate_health_score(result),
         }
 
     def _calculate_health_score(self, result: ValidationResult) -> int:
@@ -536,10 +551,7 @@ class OntologyValidator(LoggerMixin):
         return score
 
     def _generate_recommended_description(
-        self,
-        original_description: str,
-        agent_role,
-        suitable_tasks: List
+        self, original_description: str, agent_role, suitable_tasks: List
     ) -> str:
         """
         에이전트 역할에 맞는 권장 태스크 설명 생성
@@ -552,7 +564,7 @@ class OntologyValidator(LoggerMixin):
         Returns:
             str: 권장 태스크 설명
         """
-        from caas_framework.knowledge.ontology import TaskType, AgentRole
+        from caas_framework.knowledge.ontology import AgentRole, TaskType
 
         # 원본 설명에서 핵심 키워드 추출
         original_lower = original_description.lower()

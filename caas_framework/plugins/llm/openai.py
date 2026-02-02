@@ -8,10 +8,10 @@ Supports:
 - JSON mode
 """
 
-from typing import Any, AsyncIterator, Dict, List, Optional
 import os
+from typing import Any, AsyncIterator, Dict, List, Optional
 
-from caas_framework.plugins.llm.base import LLMPlugin, LLMMessage, LLMResponse
+from caas_framework.plugins.llm.base import LLMMessage, LLMPlugin, LLMResponse
 
 
 class OpenAIPlugin(LLMPlugin):
@@ -33,17 +33,12 @@ class OpenAIPlugin(LLMPlugin):
             from openai import AsyncOpenAI
 
             self._client = AsyncOpenAI(
-                api_key=self.api_key,
-                base_url=self.api_base,
-                organization=self.organization
+                api_key=self.api_key, base_url=self.api_base, organization=self.organization
             )
             self._initialized = True
 
         except ImportError:
-            raise ImportError(
-                "OpenAI package not installed. "
-                "Install with: pip install openai"
-            )
+            raise ImportError("OpenAI package not installed. " "Install with: pip install openai")
 
     async def ainvoke(
         self,
@@ -51,7 +46,7 @@ class OpenAIPlugin(LLMPlugin):
         temperature: Optional[float] = None,
         max_tokens: Optional[int] = None,
         response_format: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ) -> LLMResponse:
         """Async OpenAI call"""
         if not self._initialized:
@@ -90,9 +85,9 @@ class OpenAIPlugin(LLMPlugin):
             usage={
                 "prompt_tokens": response.usage.prompt_tokens,
                 "completion_tokens": response.usage.completion_tokens,
-                "total_tokens": response.usage.total_tokens
+                "total_tokens": response.usage.total_tokens,
             },
-            finish_reason=response.choices[0].finish_reason
+            finish_reason=response.choices[0].finish_reason,
         )
 
     async def stream(
@@ -100,7 +95,7 @@ class OpenAIPlugin(LLMPlugin):
         messages: List[LLMMessage],
         temperature: Optional[float] = None,
         max_tokens: Optional[int] = None,
-        **kwargs
+        **kwargs,
     ) -> AsyncIterator[str]:
         """Streaming OpenAI call"""
         if not self._initialized:
@@ -119,7 +114,7 @@ class OpenAIPlugin(LLMPlugin):
             "model": self.model,
             "messages": openai_messages,
             "temperature": temperature or self.temperature,
-            "stream": True
+            "stream": True,
         }
 
         if max_tokens or self.max_tokens:

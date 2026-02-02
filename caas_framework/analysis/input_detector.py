@@ -4,7 +4,7 @@ Input Detector
 Automatically detects if user input is needed based on task descriptions.
 """
 
-from typing import List, Dict, Any
+from typing import Any, Dict, List
 
 
 class InputDetector:
@@ -15,12 +15,12 @@ class InputDetector:
     # Phrases that indicate user input collection is needed
     # These are verb phrases that indicate INPUT COLLECTION, not just data usage
     INPUT_COLLECTION_PHRASES = [
-        "입력받",      # receive input
-        "입력하",      # input/enter
-        "사용자로부터", # from user
+        "입력받",  # receive input
+        "입력하",  # input/enter
+        "사용자로부터",  # from user
         "사용자 입력",  # user input
-        "입력을 받",    # receive input
-        "입력을",      # input (as object)
+        "입력을 받",  # receive input
+        "입력을",  # input (as object)
         "from user",
         "from the user",
         "receive input",
@@ -44,10 +44,7 @@ class InputDetector:
     }
 
     @classmethod
-    def detect_input_requirements(
-        cls,
-        tasks: List[Dict[str, Any]]
-    ) -> Dict[str, Dict[str, Any]]:
+    def detect_input_requirements(cls, tasks: List[Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
         """
         Detect which tasks require user input.
 
@@ -127,14 +124,11 @@ class InputDetector:
             "requires_input": True,
             "input_type": input_type,
             "input_name": input_name,
-            "prompt_message": prompt_message
+            "prompt_message": prompt_message,
         }
 
     @classmethod
-    def generate_input_collection_code(
-        cls,
-        input_requirements: Dict[str, Dict[str, Any]]
-    ) -> str:
+    def generate_input_collection_code(cls, input_requirements: Dict[str, Dict[str, Any]]) -> str:
         """
         Generate Python code to collect user inputs.
 
@@ -147,11 +141,7 @@ class InputDetector:
         if not input_requirements:
             return ""
 
-        code_lines = [
-            "# Collect user inputs",
-            "user_inputs = {}",
-            ""
-        ]
+        code_lines = ["# Collect user inputs", "user_inputs = {}", ""]
 
         for task_id, spec in input_requirements.items():
             input_name = spec["input_name"]
@@ -180,9 +170,7 @@ class InputDetector:
 
     @classmethod
     def inject_input_placeholders(
-        cls,
-        tasks: List[Dict[str, Any]],
-        input_requirements: Dict[str, Dict[str, Any]]
+        cls, tasks: List[Dict[str, Any]], input_requirements: Dict[str, Dict[str, Any]]
     ) -> List[Dict[str, Any]]:
         """
         Inject input placeholders into task descriptions and remove input collection phrases.
@@ -237,7 +225,8 @@ class InputDetector:
 
                 # Clean up spacing
                 import re
-                cleaned_desc = re.sub(r'\s+', ' ', cleaned_desc).strip()
+
+                cleaned_desc = re.sub(r"\s+", " ", cleaned_desc).strip()
 
                 # Capitalize first letter if needed
                 if cleaned_desc and not cleaned_desc[0].isupper():

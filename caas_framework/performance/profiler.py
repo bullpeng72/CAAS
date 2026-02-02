@@ -4,26 +4,27 @@ Performance Profiler
 Tools for profiling workflow execution and identifying bottlenecks.
 """
 
-import time
 import asyncio
 import logging
-from typing import Dict, List, Optional, Any, Callable
+import time
+from collections import defaultdict
+from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from datetime import datetime
-from contextlib import asynccontextmanager
-from collections import defaultdict
+from typing import Any, Callable, Dict, List, Optional
 
 
 @dataclass
 class ProfiledOperation:
     """Profiled operation metrics"""
+
     name: str
     start_time: float
     end_time: Optional[float] = None
     duration_ms: Optional[float] = None
     success: bool = True
     metadata: Dict[str, Any] = field(default_factory=dict)
-    children: List['ProfiledOperation'] = field(default_factory=list)
+    children: List["ProfiledOperation"] = field(default_factory=list)
 
     def finish(self, success: bool = True):
         """Mark operation as finished"""
@@ -31,7 +32,7 @@ class ProfiledOperation:
         self.duration_ms = (self.end_time - self.start_time) * 1000
         self.success = success
 
-    def add_child(self, child: 'ProfiledOperation'):
+    def add_child(self, child: "ProfiledOperation"):
         """Add child operation"""
         self.children.append(child)
 
@@ -42,7 +43,7 @@ class ProfiledOperation:
             "duration_ms": f"{self.duration_ms:.2f}" if self.duration_ms else "N/A",
             "success": self.success,
             "metadata": self.metadata,
-            "children": [c.to_dict() for c in self.children]
+            "children": [c.to_dict() for c in self.children],
         }
 
 
@@ -70,11 +71,7 @@ class PerformanceProfiler:
         self.logger = logging.getLogger(__name__)
 
     @asynccontextmanager
-    async def profile(
-        self,
-        operation_name: str,
-        metadata: Optional[Dict[str, Any]] = None
-    ):
+    async def profile(self, operation_name: str, metadata: Optional[Dict[str, Any]] = None):
         """
         Profile an async operation.
 
@@ -91,9 +88,7 @@ class PerformanceProfiler:
             return
 
         operation = ProfiledOperation(
-            name=operation_name,
-            start_time=time.time(),
-            metadata=metadata or {}
+            name=operation_name, start_time=time.time(), metadata=metadata or {}
         )
 
         # Add to current parent if exists
@@ -123,10 +118,7 @@ class PerformanceProfiler:
         if not self.operations:
             return 0.0
 
-        return sum(
-            op.duration_ms for op in self.operations
-            if op.duration_ms is not None
-        )
+        return sum(op.duration_ms for op in self.operations if op.duration_ms is not None)
 
     def get_operation_stats(self) -> Dict[str, Dict[str, Any]]:
         """
@@ -135,15 +127,17 @@ class PerformanceProfiler:
         Returns:
             Dict mapping operation names to stats
         """
-        stats = defaultdict(lambda: {
-            "count": 0,
-            "total_time_ms": 0.0,
-            "avg_time_ms": 0.0,
-            "min_time_ms": float('inf'),
-            "max_time_ms": 0.0,
-            "success_count": 0,
-            "failure_count": 0
-        })
+        stats = defaultdict(
+            lambda: {
+                "count": 0,
+                "total_time_ms": 0.0,
+                "avg_time_ms": 0.0,
+                "min_time_ms": float("inf"),
+                "max_time_ms": 0.0,
+                "success_count": 0,
+                "failure_count": 0,
+            }
+        )
 
         def collect_stats(operations: List[ProfiledOperation]):
             for op in operations:
@@ -179,21 +173,19 @@ class PerformanceProfiler:
         Args:
             min_duration_ms: Only show operations taking longer than this
         """
-        print("\n" + "="*80)
+        print("\n" + "=" * 80)
         print("PERFORMANCE PROFILE REPORT")
-        print("="*80)
+        print("=" * 80)
 
         stats = self.get_operation_stats()
 
         # Sort by total time descending
-        sorted_stats = sorted(
-            stats.items(),
-            key=lambda x: x[1]["total_time_ms"],
-            reverse=True
-        )
+        sorted_stats = sorted(stats.items(), key=lambda x: x[1]["total_time_ms"], reverse=True)
 
-        print(f"\n{'Operation':<40} {'Count':>8} {'Total (ms)':>12} {'Avg (ms)':>12} {'Success Rate':>12}")
-        print("-"*80)
+        print(
+            f"\n{'Operation':<40} {'Count':>8} {'Total (ms)':>12} {'Avg (ms)':>12} {'Success Rate':>12}"
+        )
+        print("-" * 80)
 
         for name, s in sorted_stats:
             if s["total_time_ms"] < min_duration_ms:
@@ -207,9 +199,9 @@ class PerformanceProfiler:
                 f"{success_rate:>11.1f}%"
             )
 
-        print("-"*80)
+        print("-" * 80)
         print(f"{'TOTAL':<40} {'':<8} {self.get_total_time():>12.2f}")
-        print("="*80 + "\n")
+        print("=" * 80 + "\n")
 
     def clear(self):
         """Clear all profiling data"""
@@ -235,9 +227,7 @@ class BottleneckAnalyzer:
         self.logger = logging.getLogger(__name__)
 
     def identify_bottlenecks(
-        self,
-        threshold_percent: float = 10.0,
-        min_duration_ms: float = 100.0
+        self, threshold_percent: float = 10.0, min_duration_ms: float = 100.0
     ) -> List[Dict[str, Any]]:
         """
         Identify bottleneck operations.
@@ -264,7 +254,7 @@ class BottleneckAnalyzer:
                     "percentage_of_total": time_percent,
                     "call_count": s["count"],
                     "avg_time_ms": s["avg_time_ms"],
-                    "recommendations": self._get_recommendations(name, s)
+                    "recommendations": self._get_recommendations(name, s),
                 }
                 bottlenecks.append(bottleneck)
 
@@ -273,11 +263,7 @@ class BottleneckAnalyzer:
 
         return bottlenecks
 
-    def _get_recommendations(
-        self,
-        operation_name: str,
-        stats: Dict[str, Any]
-    ) -> List[str]:
+    def _get_recommendations(self, operation_name: str, stats: Dict[str, Any]) -> List[str]:
         """
         Get optimization recommendations for an operation.
 
@@ -298,9 +284,7 @@ class BottleneckAnalyzer:
 
         # LLM-related operations
         if "llm" in operation_name.lower():
-            recommendations.append(
-                "LLM call detected. Enable caching with LLMCacheWrapper."
-            )
+            recommendations.append("LLM call detected. Enable caching with LLMCacheWrapper.")
             if stats["count"] > 5:
                 recommendations.append(
                     "Multiple LLM calls. Consider batching prompts or using streaming."
@@ -308,9 +292,7 @@ class BottleneckAnalyzer:
 
         # Validation operations
         if "validation" in operation_name.lower():
-            recommendations.append(
-                "Validation overhead detected. Use validation caching."
-            )
+            recommendations.append("Validation overhead detected. Use validation caching.")
 
         # Long average time
         if stats["avg_time_ms"] > 1000:
@@ -336,9 +318,9 @@ class BottleneckAnalyzer:
         """Print bottleneck analysis report"""
         bottlenecks = self.identify_bottlenecks()
 
-        print("\n" + "="*80)
+        print("\n" + "=" * 80)
         print("BOTTLENECK ANALYSIS")
-        print("="*80)
+        print("=" * 80)
 
         if not bottlenecks:
             print("\n✅ No significant bottlenecks detected!\n")
@@ -349,10 +331,10 @@ class BottleneckAnalyzer:
             print(f"   Time: {b['total_time_ms']:.2f}ms ({b['percentage_of_total']:.1f}% of total)")
             print(f"   Calls: {b['call_count']} (avg: {b['avg_time_ms']:.2f}ms per call)")
             print(f"   Recommendations:")
-            for rec in b['recommendations']:
+            for rec in b["recommendations"]:
                 print(f"   - {rec}")
 
-        print("\n" + "="*80 + "\n")
+        print("\n" + "=" * 80 + "\n")
 
     def get_optimization_summary(self) -> Dict[str, Any]:
         """
@@ -365,14 +347,8 @@ class BottleneckAnalyzer:
         stats = self.profiler.get_operation_stats()
 
         # Count operation types
-        llm_operations = sum(
-            1 for name in stats.keys()
-            if "llm" in name.lower()
-        )
-        validation_operations = sum(
-            1 for name in stats.keys()
-            if "validation" in name.lower()
-        )
+        llm_operations = sum(1 for name in stats.keys() if "llm" in name.lower())
+        validation_operations = sum(1 for name in stats.keys() if "validation" in name.lower())
 
         return {
             "total_time_ms": self.profiler.get_total_time(),
@@ -380,13 +356,10 @@ class BottleneckAnalyzer:
             "bottleneck_count": len(bottlenecks),
             "llm_operation_count": llm_operations,
             "validation_operation_count": validation_operations,
-            "optimization_potential": self._calculate_optimization_potential(bottlenecks)
+            "optimization_potential": self._calculate_optimization_potential(bottlenecks),
         }
 
-    def _calculate_optimization_potential(
-        self,
-        bottlenecks: List[Dict[str, Any]]
-    ) -> str:
+    def _calculate_optimization_potential(self, bottlenecks: List[Dict[str, Any]]) -> str:
         """
         Calculate potential time savings from optimizations.
 

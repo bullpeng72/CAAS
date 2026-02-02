@@ -5,11 +5,13 @@ Generates deployment configurations (Docker, Kubernetes, docker-compose, etc.)
 """
 
 from typing import Dict
+
 from pydantic import BaseModel
 
 
 class DeploymentConfig(BaseModel):
     """Deployment configuration"""
+
     target: str  # "docker", "kubernetes", "terraform"
     project_name: str
     has_database: bool = False
@@ -36,7 +38,7 @@ class DeploymentGenerator:
         Returns:
             str: Dockerfile content
         """
-        dockerfile = f'''# Dockerfile for {config.project_name}
+        dockerfile = f"""# Dockerfile for {config.project_name}
 
 FROM python:{config.python_version}-slim
 
@@ -63,9 +65,9 @@ ENV PYTHONUNBUFFERED=1
 ENV PYTHONPATH=/app
 
 # Expose port (if API exists)
-'''
+"""
         if config.has_api:
-            dockerfile += 'EXPOSE 8000\n\n'
+            dockerfile += "EXPOSE 8000\n\n"
             dockerfile += '# Run FastAPI application\nCMD ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000"]\n'
         else:
             dockerfile += '\n# Run CrewAI application\nCMD ["python", "main.py"]\n'
@@ -82,37 +84,37 @@ ENV PYTHONPATH=/app
         Returns:
             str: docker-compose.yml content
         """
-        compose = f'''version: '3.8'
+        compose = f"""version: '3.8'
 
 services:
   app:
     build: .
     container_name: {config.project_name}
     restart: unless-stopped
-'''
+"""
 
         if config.has_api:
-            compose += '''    ports:
+            compose += """    ports:
       - "8000:8000"
-'''
+"""
 
-        compose += '''    environment:
+        compose += """    environment:
       - PYTHONUNBUFFERED=1
-'''
+"""
 
         if config.has_database:
-            compose += '''      - DATABASE_URL=${DATABASE_URL:-postgresql://user:password@db:5432/dbname}
+            compose += """      - DATABASE_URL=${DATABASE_URL:-postgresql://user:password@db:5432/dbname}
     depends_on:
       - db
-'''
+"""
 
         if config.has_ui:
-            compose += '''    volumes:
+            compose += """    volumes:
       - ./src:/app/src
-'''
+"""
 
         if config.has_database:
-            compose += '''
+            compose += """
   db:
     image: postgres:15-alpine
     container_name: {config.project_name}_db
@@ -128,7 +130,7 @@ services:
 
 volumes:
   postgres_data:
-'''
+"""
 
         return compose
 
@@ -142,7 +144,7 @@ volumes:
         Returns:
             str: deployment.yaml content
         """
-        deployment = f'''apiVersion: apps/v1
+        deployment = f"""apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {config.project_name}
@@ -166,17 +168,17 @@ spec:
         env:
         - name: PYTHONUNBUFFERED
           value: "1"
-'''
+"""
 
         if config.has_database:
-            deployment += '''        - name: DATABASE_URL
+            deployment += """        - name: DATABASE_URL
           valueFrom:
             secretKeyRef:
               name: db-secret
               key: database-url
-'''
+"""
 
-        deployment += '''        resources:
+        deployment += """        resources:
           requests:
             memory: "256Mi"
             cpu: "250m"
@@ -195,7 +197,7 @@ spec:
             port: 8000
           initialDelaySeconds: 5
           periodSeconds: 5
-'''
+"""
 
         return deployment
 
@@ -209,7 +211,7 @@ spec:
         Returns:
             str: service.yaml content
         """
-        service = f'''apiVersion: v1
+        service = f"""apiVersion: v1
 kind: Service
 metadata:
   name: {config.project_name}
@@ -221,7 +223,7 @@ spec:
   - protocol: TCP
     port: 80
     targetPort: 8000
-'''
+"""
 
         return service
 
@@ -235,7 +237,7 @@ spec:
         Returns:
             str: GitHub Actions workflow content
         """
-        workflow = f'''name: CI/CD Pipeline
+        workflow = f"""name: CI/CD Pipeline
 
 on:
   push:
@@ -296,7 +298,7 @@ jobs:
     - name: Deploy to production
       run: |
         echo "Deploy to production here"
-'''
+"""
 
         return workflow
 
@@ -310,7 +312,7 @@ jobs:
         Returns:
             str: Makefile content
         """
-        makefile = f'''# Makefile for {config.project_name}
+        makefile = f"""# Makefile for {config.project_name}
 
 .PHONY: install test run docker-build docker-run clean
 
@@ -356,14 +358,11 @@ help:
 \t@echo "  clean        - Clean cache files"
 \t@echo "  format       - Format code"
 \t@echo "  lint         - Lint code"
-'''
+"""
 
         return makefile
 
-    def generate_all(
-        self,
-        config: DeploymentConfig
-    ) -> Dict[str, str]:
+    def generate_all(self, config: DeploymentConfig) -> Dict[str, str]:
         """
         Generate all deployment files.
 
@@ -378,7 +377,9 @@ help:
         # Docker
         files["Dockerfile"] = self.generate_dockerfile(config)
         files["docker-compose.yml"] = self.generate_docker_compose(config)
-        files[".dockerignore"] = '''
+        files[
+            ".dockerignore"
+        ] = """
 __pycache__
 *.pyc
 *.pyo
@@ -395,7 +396,7 @@ venv/
 .coverage
 htmlcov/
 *.log
-'''
+"""
 
         # Kubernetes (if target is kubernetes)
         if config.target == "kubernetes":
@@ -409,7 +410,9 @@ htmlcov/
         files["Makefile"] = self.generate_makefile(config)
 
         # .env.example
-        files[".env.example"] = '''
+        files[
+            ".env.example"
+        ] = """
 # Environment variables
 # Copy this file to .env and fill in your actual values
 
@@ -426,6 +429,6 @@ POSTGRES_DB=your_database
 # Application
 DEBUG=false
 LOG_LEVEL=INFO
-'''
+"""
 
         return files

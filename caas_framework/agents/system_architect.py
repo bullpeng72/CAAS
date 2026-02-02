@@ -10,12 +10,8 @@ Expert agent responsible for Phase 2 (Architecture):
 
 from typing import Any, Dict, List, Optional
 
-from caas_framework.agents.base import (
-    BaseExpertAgent,
-    AgentPhase,
-    ValidationIssue
-)
-from caas_framework.agents.executors import RefinementExecutor, GoldenDataEnhancer
+from caas_framework.agents.base import AgentPhase, BaseExpertAgent, ValidationIssue
+from caas_framework.agents.executors import GoldenDataEnhancer, RefinementExecutor
 from caas_framework.agents.registry import register_agent
 from caas_framework.models.specifications import ConcretizedRequirement
 from caas_framework.plugins.llm.base import LLMPlugin
@@ -31,11 +27,7 @@ class SystemArchitectAgent(BaseExpertAgent):
     all requirements and aligns with Golden Data structure.
     """
 
-    def __init__(
-        self,
-        llm_plugin: LLMPlugin,
-        golden_data: Optional[ConcretizedRequirement] = None
-    ):
+    def __init__(self, llm_plugin: LLMPlugin, golden_data: Optional[ConcretizedRequirement] = None):
         super().__init__(llm_plugin, golden_data, AgentPhase.ARCHITECTURE)
 
     @property
@@ -55,14 +47,14 @@ class SystemArchitectAgent(BaseExpertAgent):
             "Technology stack selection",
             "Integration pattern design",
             "Scalability planning",
-            "Architecture pattern application"
+            "Architecture pattern application",
         ]
 
     async def _do_work(
         self,
         requirement: Optional[str],
         context: Optional[Dict[str, Any]],
-        previous_outputs: Optional[Dict[AgentPhase, Any]]
+        previous_outputs: Optional[Dict[AgentPhase, Any]],
     ) -> Dict[str, Any]:
         """
         Design system architecture.
@@ -83,17 +75,13 @@ class SystemArchitectAgent(BaseExpertAgent):
         if previous_outputs and AgentPhase.DISCOVERY in previous_outputs:
             req_analysis = previous_outputs[AgentPhase.DISCOVERY]
 
-        prompt = self._build_architecture_prompt(
-            requirement,
-            req_analysis,
-            context_summary
-        )
+        prompt = self._build_architecture_prompt(requirement, req_analysis, context_summary)
 
         # Use unified LLM helper (uses TEMPERATURE_CREATIVE by default for ARCHITECTURE phase)
         architecture = await self._invoke_llm_structured(
             prompt=prompt,
-            expected_fields=['components', 'data_flow', 'integration_points', 'technology_stack'],
-            fallback_factory=self._create_fallback_architecture
+            expected_fields=["components", "data_flow", "integration_points", "technology_stack"],
+            fallback_factory=self._create_fallback_architecture,
         )
 
         # Enhance with Golden Data alignment
@@ -103,15 +91,14 @@ class SystemArchitectAgent(BaseExpertAgent):
         return architecture
 
     def _build_architecture_prompt(
-        self,
-        requirement: str,
-        req_analysis: Optional[Dict[str, Any]],
-        context: str
+        self, requirement: str, req_analysis: Optional[Dict[str, Any]], context: str
     ) -> str:
         """Build LLM prompt for architecture design."""
 
         builder = (
-            PromptBuilder("design a comprehensive system architecture for the following requirement")
+            PromptBuilder(
+                "design a comprehensive system architecture for the following requirement"
+            )
             .add_task("You are an expert System Architect.")
             .add_input(requirement=requirement)
         )
@@ -120,14 +107,13 @@ class SystemArchitectAgent(BaseExpertAgent):
         if self.golden_data:
             builder.add_golden_data(
                 self.golden_data,
-                fields=['domain', 'data_models', 'ui_components', 'deployment_target']
+                fields=["domain", "data_models", "ui_components", "deployment_target"],
             )
 
         # Add requirements analysis from previous phase
         if req_analysis:
             builder.add_previous_outputs(
-                {"requirement_analysis": req_analysis},
-                phases=["requirement_analysis"]
+                {"requirement_analysis": req_analysis}, phases=["requirement_analysis"]
             )
 
         # Add context if provided
@@ -135,67 +121,67 @@ class SystemArchitectAgent(BaseExpertAgent):
             builder.add_context("Additional Context", context)
 
         # Add output format
-        builder.add_output_format({
-            "components": [
-                {
-                    "id": "component_id",
-                    "name": "Component Name",
-                    "type": "backend|frontend|database|service|api",
-                    "responsibility": "What this component does",
-                    "interfaces": ["interface1", "interface2"],
-                    "dependencies": ["component_id1", "component_id2"]
-                }
-            ],
-            "data_flow": {
-                "flows": [
+        builder.add_output_format(
+            {
+                "components": [
                     {
-                        "from": "component_id",
-                        "to": "component_id",
-                        "data": "what data flows",
-                        "protocol": "REST|gRPC|WebSocket|etc"
+                        "id": "component_id",
+                        "name": "Component Name",
+                        "type": "backend|frontend|database|service|api",
+                        "responsibility": "What this component does",
+                        "interfaces": ["interface1", "interface2"],
+                        "dependencies": ["component_id1", "component_id2"],
                     }
-                ]
+                ],
+                "data_flow": {
+                    "flows": [
+                        {
+                            "from": "component_id",
+                            "to": "component_id",
+                            "data": "what data flows",
+                            "protocol": "REST|gRPC|WebSocket|etc",
+                        }
+                    ]
+                },
+                "integration_points": [
+                    {
+                        "name": "Integration name",
+                        "type": "external_api|database|service",
+                        "purpose": "why this integration",
+                        "protocol": "REST|GraphQL|etc",
+                    }
+                ],
+                "technology_stack": {
+                    "backend": ["framework", "language"],
+                    "frontend": ["framework", "library"],
+                    "database": ["database_type"],
+                    "infrastructure": ["docker", "kubernetes"],
+                    "tools": ["tool1", "tool2"],
+                },
+                "architecture_patterns": ["Microservices", "Event-driven", "CQRS", "etc"],
+                "deployment_architecture": {
+                    "environment": "cloud|on-premise|hybrid",
+                    "containers": ["container1", "container2"],
+                    "services": ["service1", "service2"],
+                    "scaling_strategy": "horizontal|vertical|auto",
+                },
+                "security_architecture": {
+                    "authentication": "strategy",
+                    "authorization": "strategy",
+                    "data_protection": ["encryption", "etc"],
+                },
             },
-            "integration_points": [
-                {
-                    "name": "Integration name",
-                    "type": "external_api|database|service",
-                    "purpose": "why this integration",
-                    "protocol": "REST|GraphQL|etc"
-                }
-            ],
-            "technology_stack": {
-                "backend": ["framework", "language"],
-                "frontend": ["framework", "library"],
-                "database": ["database_type"],
-                "infrastructure": ["docker", "kubernetes"],
-                "tools": ["tool1", "tool2"]
-            },
-            "architecture_patterns": [
-                "Microservices",
-                "Event-driven",
-                "CQRS",
-                "etc"
-            ],
-            "deployment_architecture": {
-                "environment": "cloud|on-premise|hybrid",
-                "containers": ["container1", "container2"],
-                "services": ["service1", "service2"],
-                "scaling_strategy": "horizontal|vertical|auto"
-            },
-            "security_architecture": {
-                "authentication": "strategy",
-                "authorization": "strategy",
-                "data_protection": ["encryption", "etc"]
-            }
-        }, "Design system architecture in JSON format:")
+            "Design system architecture in JSON format:",
+        )
 
-        builder.add_guidelines([
-            "Support all functional and non-functional requirements",
-            "Align with Golden Data structure",
-            "Be scalable and maintainable",
-            "Follow best practices and patterns"
-        ])
+        builder.add_guidelines(
+            [
+                "Support all functional and non-functional requirements",
+                "Align with Golden Data structure",
+                "Be scalable and maintainable",
+                "Follow best practices and patterns",
+            ]
+        )
 
         return builder.build()
 
@@ -209,7 +195,7 @@ class SystemArchitectAgent(BaseExpertAgent):
                     "type": "backend",
                     "responsibility": "Core business logic",
                     "interfaces": ["REST API"],
-                    "dependencies": []
+                    "dependencies": [],
                 }
             ],
             "data_flow": {"flows": []},
@@ -219,20 +205,20 @@ class SystemArchitectAgent(BaseExpertAgent):
                 "frontend": ["Streamlit"],
                 "database": ["PostgreSQL"],
                 "infrastructure": ["Docker"],
-                "tools": []
+                "tools": [],
             },
             "architecture_patterns": ["Monolithic"],
             "deployment_architecture": {
                 "environment": "cloud",
                 "containers": ["app"],
                 "services": ["app-service"],
-                "scaling_strategy": "horizontal"
+                "scaling_strategy": "horizontal",
             },
             "security_architecture": {
                 "authentication": "JWT",
                 "authorization": "RBAC",
-                "data_protection": ["TLS", "encryption-at-rest"]
-            }
+                "data_protection": ["TLS", "encryption-at-rest"],
+            },
         }
 
     def _align_with_golden_data(self, architecture: Dict[str, Any]) -> Dict[str, Any]:
@@ -243,8 +229,7 @@ class SystemArchitectAgent(BaseExpertAgent):
         # Use GoldenDataEnhancer for data model alignment
         enhancer = GoldenDataEnhancer(self.golden_data)
         architecture = enhancer.enhance_with_data_models(
-            output=architecture,
-            components_key="components"
+            output=architecture, components_key="components"
         )
 
         # Custom logic: Add database component if missing but data models exist
@@ -254,16 +239,22 @@ class SystemArchitectAgent(BaseExpertAgent):
 
             if self.golden_data.data_models and not db_components:
                 data_models = self.golden_data.data_models
-                model_names = ', '.join(dm.entity_name for dm in data_models[:3]) if data_models else "data entities"
+                model_names = (
+                    ", ".join(dm.entity_name for dm in data_models[:3])
+                    if data_models
+                    else "data entities"
+                )
 
-                architecture.setdefault("components", []).append({
-                    "id": "database",
-                    "name": "Data Layer",
-                    "type": "database",
-                    "responsibility": f"Stores {model_names}",
-                    "interfaces": ["ORM"],
-                    "dependencies": []
-                })
+                architecture.setdefault("components", []).append(
+                    {
+                        "id": "database",
+                        "name": "Data Layer",
+                        "type": "database",
+                        "responsibility": f"Stores {model_names}",
+                        "interfaces": ["ORM"],
+                        "dependencies": [],
+                    }
+                )
 
         return architecture
 
@@ -272,7 +263,7 @@ class SystemArchitectAgent(BaseExpertAgent):
         output: Dict[str, Any],
         issues: List[ValidationIssue],
         context: Optional[Dict[str, Any]],
-        iteration: int
+        iteration: int,
     ) -> Dict[str, Any]:
         """
         Refine architecture based on validation feedback.
@@ -280,9 +271,7 @@ class SystemArchitectAgent(BaseExpertAgent):
         Uses RefinementExecutor for standardized refinement workflow.
         """
         executor = RefinementExecutor.create_for_agent(
-            agent=self,
-            agent_role="Expert System Architect",
-            output_type="system architecture"
+            agent=self, agent_role="Expert System Architect", output_type="system architecture"
         )
 
         return await executor.refine_output(
@@ -293,6 +282,6 @@ class SystemArchitectAgent(BaseExpertAgent):
                 "Address component dependencies",
                 "Ensure data flow covers all requirements",
                 "Verify technology stack alignment",
-                "Check scalability considerations"
-            ]
+                "Check scalability considerations",
+            ],
         )

@@ -11,26 +11,28 @@ Enables intelligent routing across multiple LLM models with:
 
 import logging
 import time
-from typing import Any, AsyncIterator, Dict, List, Optional, Tuple
-from enum import Enum
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
+from enum import Enum
+from typing import Any, AsyncIterator, Dict, List, Optional, Tuple
 
-from caas_framework.plugins.llm.base import LLMPlugin, LLMMessage, LLMResponse
 from caas_framework.agents.base import AgentPhase
+from caas_framework.plugins.llm.base import LLMMessage, LLMPlugin, LLMResponse
 
 
 class ModelSelectionStrategy(str, Enum):
     """Model selection strategies"""
-    PHASE_BASED = "phase_based"          # Select based on phase complexity
-    COST_OPTIMIZED = "cost_optimized"    # Always use cheapest model
+
+    PHASE_BASED = "phase_based"  # Select based on phase complexity
+    COST_OPTIMIZED = "cost_optimized"  # Always use cheapest model
     PERFORMANCE_FIRST = "performance_first"  # Use fastest/best model
-    ADAPTIVE = "adaptive"                # Learn from performance history
+    ADAPTIVE = "adaptive"  # Learn from performance history
 
 
 @dataclass
 class ModelMetrics:
     """Performance metrics for a model"""
+
     model_name: str
     total_requests: int = 0
     successful_requests: int = 0
@@ -65,12 +67,13 @@ class ModelMetrics:
 @dataclass
 class ModelConfig:
     """Configuration for a single model"""
+
     name: str
     plugin: LLMPlugin
-    cost_per_1k_tokens: float = 0.0      # Cost per 1000 tokens
-    max_tokens: int = 4096                # Maximum tokens
+    cost_per_1k_tokens: float = 0.0  # Cost per 1000 tokens
+    max_tokens: int = 4096  # Maximum tokens
     suitable_phases: List[AgentPhase] = field(default_factory=list)  # Best phases for this model
-    priority: int = 1                     # Higher = higher priority (used in fallback)
+    priority: int = 1  # Higher = higher priority (used in fallback)
 
 
 class ModelPerformanceTracker:
@@ -86,7 +89,7 @@ class ModelPerformanceTracker:
         success: bool,
         latency_ms: float,
         tokens_used: int = 0,
-        cost_per_1k: float = 0.0
+        cost_per_1k: float = 0.0,
     ):
         """Record a model request"""
         if model_name not in self.metrics:
@@ -126,9 +129,7 @@ class ModelPerformanceTracker:
         return metrics.consecutive_failures < max_consecutive_failures
 
     def get_best_model_by_metric(
-        self,
-        available_models: List[str],
-        metric: str = "success_rate"
+        self, available_models: List[str], metric: str = "success_rate"
     ) -> Optional[str]:
         """Get best model based on a metric"""
         if not available_models:
@@ -136,8 +137,7 @@ class ModelPerformanceTracker:
 
         # Filter to models we have metrics for
         models_with_metrics = [
-            m for m in available_models
-            if m in self.metrics and self.metrics[m].total_requests > 0
+            m for m in available_models if m in self.metrics and self.metrics[m].total_requests > 0
         ]
 
         if not models_with_metrics:
@@ -173,7 +173,7 @@ class MultiModelRouter(LLMPlugin):
         strategy: ModelSelectionStrategy = ModelSelectionStrategy.PHASE_BASED,
         enable_fallback: bool = True,
         max_retries_per_model: int = 1,
-        logger: Optional[logging.Logger] = None
+        logger: Optional[logging.Logger] = None,
     ):
         """
         Initialize multi-model router.
@@ -196,8 +196,8 @@ class MultiModelRouter(LLMPlugin):
             config={
                 "model": first_model.model,
                 "temperature": first_model.temperature,
-                "max_tokens": first_model.max_tokens
-            }
+                "max_tokens": first_model.max_tokens,
+            },
         )
 
         self.models = {model.name: model for model in models}
@@ -276,9 +276,7 @@ class MultiModelRouter(LLMPlugin):
         return phase_map
 
     def select_model(
-        self,
-        phase: Optional[AgentPhase] = None,
-        prefer_low_cost: bool = False
+        self, phase: Optional[AgentPhase] = None, prefer_low_cost: bool = False
     ) -> str:
         """
         Select best model based on strategy and context.
@@ -305,8 +303,7 @@ class MultiModelRouter(LLMPlugin):
         elif self.strategy == ModelSelectionStrategy.PERFORMANCE_FIRST:
             # Select best performing model
             best = self.performance_tracker.get_best_model_by_metric(
-                list(self.models.keys()),
-                metric="success_rate"
+                list(self.models.keys()), metric="success_rate"
             )
             if best and self.performance_tracker.is_model_healthy(best):
                 return best
@@ -316,14 +313,12 @@ class MultiModelRouter(LLMPlugin):
             if prefer_low_cost:
                 # Optimize for cost while maintaining quality
                 best = self.performance_tracker.get_best_model_by_metric(
-                    list(self.models.keys()),
-                    metric="cost"
+                    list(self.models.keys()), metric="cost"
                 )
             else:
                 # Optimize for performance
                 best = self.performance_tracker.get_best_model_by_metric(
-                    list(self.models.keys()),
-                    metric="success_rate"
+                    list(self.models.keys()), metric="success_rate"
                 )
 
             if best and self.performance_tracker.is_model_healthy(best):
@@ -349,7 +344,7 @@ class MultiModelRouter(LLMPlugin):
         other_models = sorted(
             [m for name, m in self.models.items() if name != primary_model],
             key=lambda m: m.priority,
-            reverse=True
+            reverse=True,
         )
 
         for model_config in other_models:
@@ -365,7 +360,7 @@ class MultiModelRouter(LLMPlugin):
         max_tokens: Optional[int] = None,
         response_format: Optional[str] = None,
         phase: Optional[AgentPhase] = None,
-        **kwargs
+        **kwargs,
     ) -> LLMResponse:
         """
         Async LLM call with automatic model selection and fallback.
@@ -406,7 +401,7 @@ class MultiModelRouter(LLMPlugin):
                     temperature=temperature,
                     max_tokens=max_tokens,
                     response_format=response_format,
-                    **kwargs
+                    **kwargs,
                 )
 
                 # Record success
@@ -417,7 +412,7 @@ class MultiModelRouter(LLMPlugin):
                     success=True,
                     latency_ms=latency_ms,
                     tokens_used=tokens_used,
-                    cost_per_1k=model_config.cost_per_1k_tokens
+                    cost_per_1k=model_config.cost_per_1k_tokens,
                 )
 
                 self.logger.debug(
@@ -431,9 +426,7 @@ class MultiModelRouter(LLMPlugin):
                 # Record failure
                 latency_ms = (time.time() - start_time) * 1000
                 self.performance_tracker.record_request(
-                    model_name=model_name,
-                    success=False,
-                    latency_ms=latency_ms
+                    model_name=model_name, success=False, latency_ms=latency_ms
                 )
 
                 last_error = e
@@ -453,7 +446,7 @@ class MultiModelRouter(LLMPlugin):
         temperature: Optional[float] = None,
         max_tokens: Optional[int] = None,
         phase: Optional[AgentPhase] = None,
-        **kwargs
+        **kwargs,
     ) -> AsyncIterator[str]:
         """
         Streaming LLM call with model selection.
@@ -476,10 +469,7 @@ class MultiModelRouter(LLMPlugin):
 
         # Stream from selected model
         async for chunk in model_config.plugin.stream(
-            messages=messages,
-            temperature=temperature,
-            max_tokens=max_tokens,
-            **kwargs
+            messages=messages, temperature=temperature, max_tokens=max_tokens, **kwargs
         ):
             yield chunk
 
@@ -490,11 +480,7 @@ class MultiModelRouter(LLMPlugin):
         Returns:
             Dictionary with performance metrics
         """
-        report = {
-            "strategy": self.strategy.value,
-            "total_models": len(self.models),
-            "models": {}
-        }
+        report = {"strategy": self.strategy.value, "total_models": len(self.models), "models": {}}
 
         for model_name, metrics in self.performance_tracker.get_all_metrics().items():
             report["models"][model_name] = {
@@ -503,7 +489,7 @@ class MultiModelRouter(LLMPlugin):
                 "average_latency_ms": f"{metrics.average_latency_ms:.0f}ms",
                 "total_cost_usd": f"${metrics.total_cost_usd:.4f}",
                 "average_cost_per_request": f"${metrics.average_cost_per_request:.4f}",
-                "consecutive_failures": metrics.consecutive_failures
+                "consecutive_failures": metrics.consecutive_failures,
             }
 
         return report

@@ -24,12 +24,11 @@ Usage:
     >>> agent_instance = discovery_agent_class(llm_plugin, golden_data)
 """
 
-from typing import Dict, List, Type, Optional, Callable
-from enum import Enum
 import logging
+from enum import Enum
+from typing import Callable, Dict, List, Optional, Type
 
-from caas_framework.agents.base import BaseExpertAgent, AgentPhase
-
+from caas_framework.agents.base import AgentPhase, BaseExpertAgent
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +43,7 @@ class AgentRegistry:
     Thread-safe for multi-threaded environments.
     """
 
-    _instance: Optional['AgentRegistry'] = None
+    _instance: Optional["AgentRegistry"] = None
     _initialized: bool = False
 
     def __new__(cls):
@@ -69,10 +68,7 @@ class AgentRegistry:
             logger.info("AgentRegistry initialized")
 
     def register(
-        self,
-        agent_class: Type[BaseExpertAgent],
-        phase: AgentPhase,
-        override: bool = False
+        self, agent_class: Type[BaseExpertAgent], phase: AgentPhase, override: bool = False
     ) -> None:
         """
         Register an agent class.
@@ -87,9 +83,7 @@ class AgentRegistry:
         """
         # Validate agent class
         if not issubclass(agent_class, BaseExpertAgent):
-            raise TypeError(
-                f"Agent class {agent_class.__name__} must inherit from BaseExpertAgent"
-            )
+            raise TypeError(f"Agent class {agent_class.__name__} must inherit from BaseExpertAgent")
 
         # Check for existing registration
         if phase in self._agents_by_phase and not override:
@@ -110,9 +104,7 @@ class AgentRegistry:
         if agent_class not in self._all_agents:
             self._all_agents.append(agent_class)
 
-        logger.info(
-            f"Registered agent {class_name} for phase {phase.value}"
-        )
+        logger.info(f"Registered agent {class_name} for phase {phase.value}")
 
     def get_agent_class(self, phase: AgentPhase) -> Type[BaseExpertAgent]:
         """
@@ -208,7 +200,7 @@ class AgentRegistry:
             "total_agents": len(self._all_agents),
             "phases_covered": len(self._agents_by_phase),
             "registered_phases": [phase.value for phase in self._agents_by_phase.keys()],
-            "registered_agents": [cls.__name__ for cls in self._all_agents]
+            "registered_agents": [cls.__name__ for cls in self._all_agents],
         }
 
 
@@ -227,8 +219,7 @@ def get_agent_registry() -> AgentRegistry:
 
 
 def register_agent(
-    phase: AgentPhase,
-    override: bool = False
+    phase: AgentPhase, override: bool = False
 ) -> Callable[[Type[BaseExpertAgent]], Type[BaseExpertAgent]]:
     """
     Decorator to register an agent class.
@@ -245,6 +236,7 @@ def register_agent(
     Returns:
         Decorator function
     """
+
     def decorator(agent_class: Type[BaseExpertAgent]) -> Type[BaseExpertAgent]:
         """Register the agent class."""
         registry = get_agent_registry()
@@ -266,11 +258,13 @@ def discover_agents() -> AgentRegistry:
     """
     try:
         # Import all agent modules to trigger registration
-        from caas_framework.agents import requirement_analyst
-        from caas_framework.agents import system_architect
-        from caas_framework.agents import agent_designer
-        from caas_framework.agents import code_generator
-        from caas_framework.agents import qa_specialist
+        from caas_framework.agents import (
+            agent_designer,
+            code_generator,
+            qa_specialist,
+            requirement_analyst,
+            system_architect,
+        )
 
         logger.info("Agent discovery completed")
 
@@ -280,12 +274,7 @@ def discover_agents() -> AgentRegistry:
     return get_agent_registry()
 
 
-def create_agent(
-    phase: AgentPhase,
-    llm_plugin,
-    golden_data=None,
-    **kwargs
-) -> BaseExpertAgent:
+def create_agent(phase: AgentPhase, llm_plugin, golden_data=None, **kwargs) -> BaseExpertAgent:
     """
     Factory function to create agent instance by phase.
 

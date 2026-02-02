@@ -7,11 +7,11 @@ Interactive Questions Command
 import click
 from caas_cli.config import get_config
 from caas_cli.utils import (
-    echo_success,
     echo_error,
     echo_info,
+    echo_success,
     echo_warning,
-    handle_keyboard_interrupt
+    handle_keyboard_interrupt,
 )
 
 
@@ -21,30 +21,26 @@ from caas_cli.utils import (
     "-g",
     type=click.Path(exists=True),
     required=True,
-    help="[Phase 0] Gap Analysis results JSON file (from 'caas analyze-gaps')"
+    help="[Phase 0] Gap Analysis results JSON file (from 'caas analyze-gaps')",
 )
 @click.option(
     "--domain",
     "-d",
     type=str,
     required=True,
-    help="Domain context for question generation (TASK_MANAGEMENT, E_COMMERCE, FINANCE, HEALTHCARE, etc.)"
+    help="Domain context for question generation (TASK_MANAGEMENT, E_COMMERCE, FINANCE, HEALTHCARE, etc.)",
 )
 @click.option(
     "--output",
     "-o",
     type=click.Path(),
-    help="Output answers JSON file path (default: answers.json)"
+    help="Output answers JSON file path (default: answers.json)",
 )
-@click.option(
-    "--api-url",
-    type=str,
-    help="API URL (overrides config) - for remote API mode"
-)
+@click.option("--api-url", type=str, help="API URL (overrides config) - for remote API mode")
 @click.option(
     "--interactive/--no-interactive",
     default=True,
-    help="Enable interactive CLI mode for answering questions (default: enabled)"
+    help="Enable interactive CLI mode for answering questions (default: enabled)",
 )
 @handle_keyboard_interrupt
 def questions(gaps, domain, output, api_url, interactive):
@@ -146,18 +142,20 @@ def questions(gaps, domain, output, api_url, interactive):
 
     # Load gaps
     try:
-        with open(gaps, 'r', encoding='utf-8') as f:
+        with open(gaps, "r", encoding="utf-8") as f:
             gaps_result = json.load(f)
-            gaps_list = gaps_result.get('gaps', [])
+            gaps_list = gaps_result.get("gaps", [])
     except Exception as e:
         echo_error(f"Failed to load gaps file: {e}")
         return
 
-    click.echo("""
+    click.echo(
+        """
 ╔══════════════════════════════════════════════════════════════╗
 ║            CAAS Interactive Questions                        ║
 ╚══════════════════════════════════════════════════════════════╝
-""")
+"""
+    )
 
     echo_info(f"Domain: {domain}")
     echo_info(f"Gaps: {len(gaps_list)}")
@@ -169,16 +167,13 @@ def questions(gaps, domain, output, api_url, interactive):
 
         response = requests.post(
             f"{api_url}/api/v1/requirements/generate-questions",
-            json={
-                "gaps": gaps_list,
-                "domain": domain
-            },
-            timeout=60
+            json={"gaps": gaps_list, "domain": domain},
+            timeout=60,
         )
 
         if response.status_code == 200:
             result = response.json()
-            questions_list = result.get('questions', [])
+            questions_list = result.get("questions", [])
 
             if not questions_list:
                 echo_success("✅ No questions needed - all information is sufficient!")
@@ -194,67 +189,61 @@ def questions(gaps, domain, output, api_url, interactive):
                 for i, q in enumerate(questions_list, 1):
                     click.echo(click.style(f"Q{i}. {q['question_text']}", bold=True))
 
-                    if q.get('help_text'):
-                        click.echo(click.style(f"   💡 {q['help_text']}", fg='blue'))
+                    if q.get("help_text"):
+                        click.echo(click.style(f"   💡 {q['help_text']}", fg="blue"))
 
-                    q_type = q['question_type']
-                    q_id = q['id']
+                    q_type = q["question_type"]
+                    q_id = q["id"]
 
-                    if q_type == 'YES_NO':
+                    if q_type == "YES_NO":
                         answer = click.confirm("   답변", default=True)
                         answers[q_id] = "yes" if answer else "no"
 
-                    elif q_type == 'SINGLE_CHOICE':
-                        options = q.get('options', [])
+                    elif q_type == "SINGLE_CHOICE":
+                        options = q.get("options", [])
                         click.echo("   선택지:")
                         for idx, opt in enumerate(options, 1):
                             click.echo(f"     {idx}. {opt}")
 
                         choice = click.prompt(
-                            "   선택",
-                            type=click.IntRange(1, len(options)),
-                            default=1
+                            "   선택", type=click.IntRange(1, len(options)), default=1
                         )
                         answers[q_id] = options[choice - 1]
 
-                    elif q_type == 'MULTI_CHOICE':
-                        options = q.get('options', [])
+                    elif q_type == "MULTI_CHOICE":
+                        options = q.get("options", [])
                         click.echo("   선택지 (쉼표로 구분):")
                         for idx, opt in enumerate(options, 1):
                             click.echo(f"     {idx}. {opt}")
 
-                        choices_str = click.prompt(
-                            "   선택 (예: 1,3,4)",
-                            type=str,
-                            default="1"
-                        )
+                        choices_str = click.prompt("   선택 (예: 1,3,4)", type=str, default="1")
 
                         try:
-                            choice_indices = [int(c.strip()) for c in choices_str.split(',')]
-                            selected = [options[idx - 1] for idx in choice_indices if 1 <= idx <= len(options)]
+                            choice_indices = [int(c.strip()) for c in choices_str.split(",")]
+                            selected = [
+                                options[idx - 1]
+                                for idx in choice_indices
+                                if 1 <= idx <= len(options)
+                            ]
                             answers[q_id] = selected
                         except (ValueError, IndexError):
                             echo_warning("Invalid input, skipping question")
 
-                    elif q_type == 'TEXT_INPUT':
+                    elif q_type == "TEXT_INPUT":
                         answer = click.prompt(
                             "   입력",
                             type=str,
-                            default=q.get('default_value', ''),
-                            show_default=True
+                            default=q.get("default_value", ""),
+                            show_default=True,
                         )
                         answers[q_id] = answer
 
-                    elif q_type == 'NUMBER_INPUT':
-                        min_val = q.get('min_value', 0)
-                        max_val = q.get('max_value', 1000000)
-                        default_val = float(q.get('default_value', min_val))
+                    elif q_type == "NUMBER_INPUT":
+                        min_val = q.get("min_value", 0)
+                        max_val = q.get("max_value", 1000000)
+                        default_val = float(q.get("default_value", min_val))
 
-                        answer = click.prompt(
-                            "   숫자 입력",
-                            type=float,
-                            default=default_val
-                        )
+                        answer = click.prompt("   숫자 입력", type=float, default=default_val)
                         answers[q_id] = answer
 
                     click.echo()
@@ -265,7 +254,7 @@ def questions(gaps, domain, output, api_url, interactive):
                 # Non-interactive mode - just show questions
                 for i, q in enumerate(questions_list, 1):
                     click.echo(f"{i}. [{q['question_type']}] {q['question_text']}")
-                    if q.get('options'):
+                    if q.get("options"):
                         click.echo(f"   Options: {', '.join(q['options'])}")
 
                 echo_info("Run with --interactive to answer questions")
@@ -280,10 +269,10 @@ def questions(gaps, domain, output, api_url, interactive):
                     "questions": questions_list,
                     "answers": answers,
                     "total_questions": len(questions_list),
-                    "total_answers": len(answers)
+                    "total_answers": len(answers),
                 }
 
-                with open(output_path, 'w', encoding='utf-8') as f:
+                with open(output_path, "w", encoding="utf-8") as f:
                     json.dump(output_data, f, indent=2, ensure_ascii=False)
 
                 echo_success(f"Answers saved to: {output}")
@@ -302,13 +291,9 @@ def questions(gaps, domain, output, api_url, interactive):
             output_path = Path(output)
             output_path.parent.mkdir(parents=True, exist_ok=True)
 
-            output_data = {
-                "domain": domain,
-                "answers": answers,
-                "partial": True
-            }
+            output_data = {"domain": domain, "answers": answers, "partial": True}
 
-            with open(output_path, 'w', encoding='utf-8') as f:
+            with open(output_path, "w", encoding="utf-8") as f:
                 json.dump(output_data, f, indent=2, ensure_ascii=False)
 
             echo_info(f"Partial answers saved to: {output}")

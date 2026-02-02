@@ -11,20 +11,20 @@ Comprehensive code generator that produces 100% production-ready code with:
 - Execution validation
 """
 
-from typing import Dict, List, Optional
 from dataclasses import dataclass, field
+from typing import Dict, List, Optional
 
-from caas_framework.models.specifications import (
-    ConcretizedRequirement,
-    AgentSpecModel,
-    TaskSpecModel,
-)
+from caas_framework.codegen.cicd_generator import CICDConfig, CICDGenerator
+from caas_framework.codegen.doc_generator import DocumentationConfig, DocumentationGenerator
 from caas_framework.codegen.engine import CodeGenerationEngine
+from caas_framework.codegen.execution_validator import ExecutionValidationResult, ExecutionValidator
 from caas_framework.codegen.injectors import ErrorHandlingInjector, LoggingInjector
 from caas_framework.codegen.test_generator import TestGenerator
-from caas_framework.codegen.doc_generator import DocumentationGenerator, DocumentationConfig
-from caas_framework.codegen.cicd_generator import CICDGenerator, CICDConfig
-from caas_framework.codegen.execution_validator import ExecutionValidator, ExecutionValidationResult
+from caas_framework.models.specifications import (
+    AgentSpecModel,
+    ConcretizedRequirement,
+    TaskSpecModel,
+)
 
 
 @dataclass
@@ -72,6 +72,7 @@ class ProductionConfig:
 @dataclass
 class ProductionCodeResult:
     """Production code generation result"""
+
     success: bool
     files: Dict[str, str] = field(default_factory=dict)
     validation_result: Optional[ExecutionValidationResult] = None
@@ -112,35 +113,44 @@ class ProductionCodeGenerator:
             enable_error_handling=self.config.enable_error_handling,
             enable_logging=self.config.enable_logging,
             enable_tests=self.config.enable_tests,
-            enable_deployment=self.config.enable_deployment
+            enable_deployment=self.config.enable_deployment,
         )
 
         # Enhanced injectors
-        self.error_injector = ErrorHandlingInjector(
-            enable_retry=self.config.enable_retry_logic,
-            max_retries=self.config.max_retries
-        ) if self.config.enable_error_handling else None
+        self.error_injector = (
+            ErrorHandlingInjector(
+                enable_retry=self.config.enable_retry_logic, max_retries=self.config.max_retries
+            )
+            if self.config.enable_error_handling
+            else None
+        )
 
-        self.logging_injector = LoggingInjector(
-            use_json_format=self.config.use_structured_logging
-        ) if self.config.enable_logging else None
+        self.logging_injector = (
+            LoggingInjector(use_json_format=self.config.use_structured_logging)
+            if self.config.enable_logging
+            else None
+        )
 
         # Additional generators
         self.doc_generator = DocumentationGenerator() if self.config.enable_docs else None
         self.cicd_generator = CICDGenerator() if self.config.enable_cicd else None
-        self.validator = ExecutionValidator(
-            enable_syntax_check=self.config.validate_syntax,
-            enable_import_check=self.config.validate_imports,
-            enable_type_check=self.config.validate_types,
-            enable_dry_run=self.config.enable_dry_run
-        ) if self.config.enable_validation else None
+        self.validator = (
+            ExecutionValidator(
+                enable_syntax_check=self.config.validate_syntax,
+                enable_import_check=self.config.validate_imports,
+                enable_type_check=self.config.validate_types,
+                enable_dry_run=self.config.enable_dry_run,
+            )
+            if self.config.enable_validation
+            else None
+        )
 
     def generate(
         self,
         golden_data: ConcretizedRequirement,
         agents: List[AgentSpecModel],
         tasks: List[TaskSpecModel],
-        deployment_target: Optional[str] = None
+        deployment_target: Optional[str] = None,
     ) -> ProductionCodeResult:
         """
         Generate complete production-ready project.
@@ -162,7 +172,7 @@ class ProductionCodeGenerator:
                 golden_data=golden_data,
                 agents=agents,
                 tasks=tasks,
-                deployment_target=deployment_target or self.config.deployment_target
+                deployment_target=deployment_target or self.config.deployment_target,
             )
 
             if not base_result.success:
@@ -194,14 +204,9 @@ class ProductionCodeGenerator:
                     format=self.config.docs_format,
                     project_name=golden_data.project_name or "My Project",
                     include_api_docs=True,
-                    include_architecture_diagram=True
+                    include_architecture_diagram=True,
                 )
-                doc_files = self.doc_generator.generate_all(
-                    golden_data,
-                    agents,
-                    tasks,
-                    doc_config
-                )
+                doc_files = self.doc_generator.generate_all(golden_data, agents, tasks, doc_config)
                 result.files.update(doc_files)
                 result.docs_generated = True
 
@@ -212,7 +217,7 @@ class ProductionCodeGenerator:
                     run_tests=self.config.enable_tests,
                     run_linting=self.config.run_linting,
                     build_docker=self.config.enable_deployment,
-                    deploy_enabled=False  # Deployment requires manual setup
+                    deploy_enabled=False,  # Deployment requires manual setup
                 )
                 cicd_files = self.cicd_generator.generate_all(cicd_config)
                 result.files.update(cicd_files)
@@ -233,9 +238,7 @@ class ProductionCodeGenerator:
 
                     # Log validation issues
                     for issue in validation_result.issues[:5]:  # First 5 issues
-                        result.warnings.append(
-                            f"[{issue.severity}] {issue.file}: {issue.message}"
-                        )
+                        result.warnings.append(f"[{issue.severity}] {issue.file}: {issue.message}")
 
             result.success = True
 
@@ -251,7 +254,7 @@ class ProductionCodeGenerator:
             return
 
         for path, content in files.items():
-            if path.endswith('.py') and not path.startswith('tests/'):
+            if path.endswith(".py") and not path.startswith("tests/"):
                 try:
                     # Inject retry logic
                     if self.config.enable_retry_logic:
@@ -266,7 +269,9 @@ class ProductionCodeGenerator:
 
         # Add error handling utilities
         if self.config.enable_circuit_breaker:
-            files["src/utils/error_handling.py"] = self.error_injector.generate_error_handling_utils()
+            files["src/utils/error_handling.py"] = (
+                self.error_injector.generate_error_handling_utils()
+            )
 
     def _inject_structured_logging(self, files: Dict[str, str]) -> None:
         """Inject structured logging (JSON format)"""
@@ -274,11 +279,10 @@ class ProductionCodeGenerator:
             return
 
         for path, content in files.items():
-            if path.endswith('.py') and not path.startswith('tests/'):
+            if path.endswith(".py") and not path.startswith("tests/"):
                 try:
                     content = self.logging_injector.inject(
-                        content,
-                        logger_name=path.replace('/', '.').replace('.py', '')
+                        content, logger_name=path.replace("/", ".").replace(".py", "")
                     )
                     files[path] = content
                 except Exception:
@@ -288,21 +292,17 @@ class ProductionCodeGenerator:
         files["src/utils/logging.py"] = self.logging_injector.generate_structured_logging_utils()
 
     def _generate_comprehensive_tests(
-        self,
-        agents: List[AgentSpecModel],
-        tasks: List[TaskSpecModel]
+        self, agents: List[AgentSpecModel], tasks: List[TaskSpecModel]
     ) -> Dict[str, str]:
         """Generate comprehensive test suite with 80%+ coverage goal"""
         test_gen = TestGenerator()
 
-        files = test_gen.generate_all_tests(
-            agents=agents,
-            tasks=tasks,
-            api_endpoints=[]
-        )
+        files = test_gen.generate_all_tests(agents=agents, tasks=tasks, api_endpoints=[])
 
         # Add pytest.ini for coverage configuration
-        files["pytest.ini"] = f'''[pytest]
+        files[
+            "pytest.ini"
+        ] = f"""[pytest]
 testpaths = tests
 python_files = test_*.py
 python_functions = test_*
@@ -314,10 +314,12 @@ addopts =
     --cov-report=term-missing
     --cov-report=xml
     --cov-fail-under={int(self.config.target_coverage * 100)}
-'''
+"""
 
         # Add .coveragerc
-        files[".coveragerc"] = '''[run]
+        files[
+            ".coveragerc"
+        ] = """[run]
 source = src
 omit =
     tests/*
@@ -332,7 +334,7 @@ skip_covered = False
 
 [html]
 directory = htmlcov
-'''
+"""
 
         return files
 
@@ -340,7 +342,9 @@ directory = htmlcov
         """Add utility and configuration files"""
 
         # requirements-dev.txt
-        files["requirements-dev.txt"] = '''# Development dependencies
+        files[
+            "requirements-dev.txt"
+        ] = """# Development dependencies
 pytest>=7.0.0
 pytest-cov>=4.0.0
 pytest-asyncio>=0.21.0
@@ -348,10 +352,12 @@ black>=23.0.0
 flake8>=6.0.0
 mypy>=1.0.0
 isort>=5.12.0
-'''
+"""
 
         # Makefile for common tasks
-        files["Makefile"] = '''
+        files[
+            "Makefile"
+        ] = """
 .PHONY: install test lint format clean
 
 install:
@@ -373,11 +379,13 @@ clean:
 \trm -rf __pycache__ .pytest_cache .coverage htmlcov
 \tfind . -type d -name __pycache__ -exec rm -rf {} +
 \tfind . -type f -name "*.pyc" -delete
-'''
+"""
 
         # .env.example
-        files[".env.example"] = '''# Environment variables
+        files[
+            ".env.example"
+        ] = """# Environment variables
 OPENAI_API_KEY=your_api_key_here
 LOG_LEVEL=INFO
 ENVIRONMENT=development
-'''
+"""

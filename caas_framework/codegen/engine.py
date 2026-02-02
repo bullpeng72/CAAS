@@ -4,34 +4,32 @@ Code Generation Engine
 Main engine for production-ready code generation.
 """
 
-from typing import Dict, List, Any, Optional
 from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional
 
-from caas_framework.models.specifications import (
-    ConcretizedRequirement,
-    AgentSpecModel,
-    TaskSpecModel,
-)
-from caas_framework.codegen.domain_strategy import DomainStrategy, CodeGenStrategy
-from caas_framework.codegen.injectors import ErrorHandlingInjector, LoggingInjector
-from caas_framework.codegen.test_generator import TestGenerator
-from caas_framework.codegen.deployment_generator import (
-    DeploymentGenerator,
-    DeploymentConfig,
-)
-from caas_framework.codegen.llm_code_generator import LLMCodeGenerator
+from caas_framework.codegen.deployment_generator import DeploymentConfig, DeploymentGenerator
+from caas_framework.codegen.domain_strategy import CodeGenStrategy, DomainStrategy
 from caas_framework.codegen.frontend_generator import (
-    FrontendGenerator,
     FrontendConfig,
     FrontendFramework,
+    FrontendGenerator,
 )
+from caas_framework.codegen.injectors import ErrorHandlingInjector, LoggingInjector
+from caas_framework.codegen.llm_code_generator import LLMCodeGenerator
 from caas_framework.codegen.port_manager import PortManager
+from caas_framework.codegen.test_generator import TestGenerator
+from caas_framework.models.specifications import (
+    AgentSpecModel,
+    ConcretizedRequirement,
+    TaskSpecModel,
+)
 from caas_framework.plugins.llm.base import LLMPlugin
 
 
 @dataclass
 class GeneratedFile:
     """Generated file specification"""
+
     path: str
     content: str
     file_type: str  # "python", "yaml", "dockerfile", "markdown"
@@ -40,6 +38,7 @@ class GeneratedFile:
 @dataclass
 class CodeGenerationResult:
     """Code generation result"""
+
     project_name: str
     files: Dict[str, str] = field(default_factory=dict)  # path -> content
     generated_files: List[GeneratedFile] = field(default_factory=list)
@@ -70,7 +69,7 @@ class CodeGenerationEngine:
         enable_llm_generation: bool = True,
         enable_frontend: bool = False,
         frontend_framework: FrontendFramework = FrontendFramework.STREAMLIT,
-        tdd_mode: bool = False
+        tdd_mode: bool = False,
     ):
         """
         Initialize code generation engine.
@@ -101,11 +100,14 @@ class CodeGenerationEngine:
         self.logging_injector = LoggingInjector() if enable_logging else None
         self.test_generator = TestGenerator() if enable_tests else None
         self.deployment_generator = DeploymentGenerator() if enable_deployment else None
-        self.llm_generator = LLMCodeGenerator(llm_plugin) if (enable_llm_generation and llm_plugin) else None
+        self.llm_generator = (
+            LLMCodeGenerator(llm_plugin) if (enable_llm_generation and llm_plugin) else None
+        )
 
         # Initialize TDD generator if TDD mode is enabled
         if tdd_mode:
             from caas_framework.codegen.test_generator import TestFirstCodeGenerator
+
             self.tdd_generator = TestFirstCodeGenerator(llm_client=llm_plugin)
         else:
             self.tdd_generator = None
@@ -120,7 +122,7 @@ class CodeGenerationEngine:
         agents: List[AgentSpecModel],
         tasks: List[TaskSpecModel],
         deployment_target: str = "docker",
-        tdd_mode: bool = False
+        tdd_mode: bool = False,
     ) -> CodeGenerationResult:
         """
         Generate complete project code.
@@ -135,9 +137,7 @@ class CodeGenerationEngine:
         Returns:
             CodeGenerationResult: Generation result
         """
-        result = CodeGenerationResult(
-            project_name=golden_data.project_name or "my_crew_project"
-        )
+        result = CodeGenerationResult(project_name=golden_data.project_name or "my_crew_project")
 
         try:
             # 1. Determine domain strategy
@@ -145,10 +145,7 @@ class CodeGenerationEngine:
 
             # 2. Generate core files
             core_files = await self._generate_core_files(
-                golden_data,
-                agents,
-                tasks,
-                strategy_config.strategy
+                golden_data, agents, tasks, strategy_config.strategy
             )
             result.files.update(core_files)
 
@@ -165,6 +162,7 @@ class CodeGenerationEngine:
             if tdd_mode or self.tdd_mode:
                 if self.tdd_generator and golden_data.features:
                     import logging
+
                     logger = logging.getLogger(__name__)
                     logger.info("🔴 Starting TDD (Test-First) Code Generation...")
 
@@ -173,23 +171,28 @@ class CodeGenerationEngine:
                         feature_spec = {
                             "name": feature.name.replace(" ", "_").lower(),
                             "description": feature.description,
-                            "acceptance_criteria": feature.acceptance_criteria if hasattr(feature, "acceptance_criteria") else [],
+                            "acceptance_criteria": (
+                                feature.acceptance_criteria
+                                if hasattr(feature, "acceptance_criteria")
+                                else []
+                            ),
                             "components": ["agent", "task"],
-                            "domain": golden_data.domain
+                            "domain": golden_data.domain,
                         }
 
                         logger.info(f"  Running TDD cycle for feature: {feature.name}")
 
                         # Execute TDD cycle (RED-GREEN-REFACTOR)
                         tdd_result = self.tdd_generator.tdd_cycle(
-                            feature_spec=feature_spec,
-                            output_dir=f"./tdd_{result.project_name}"
+                            feature_spec=feature_spec, output_dir=f"./tdd_{result.project_name}"
                         )
 
                         # Integrate TDD-generated files into result
                         if tdd_result.get("all_tests_passed"):
                             logger.info(f"  ✅ TDD cycle completed successfully for {feature.name}")
-                            logger.info(f"     Coverage: {tdd_result.get('final_coverage', 0) * 100:.1f}%")
+                            logger.info(
+                                f"     Coverage: {tdd_result.get('final_coverage', 0) * 100:.1f}%"
+                            )
                             logger.info(f"     Iterations: {tdd_result.get('iterations', 0)}")
 
                             # Add TDD test file to result
@@ -230,10 +233,11 @@ class CodeGenerationEngine:
                 test_files = self.test_generator.generate_all_tests(
                     agents=agents,
                     tasks=tasks,
-                    api_endpoints=[] if not strategy_config.requires_crud else [
-                        {"path": "/", "method": "GET"},
-                        {"path": "/health", "method": "GET"}
-                    ]
+                    api_endpoints=(
+                        []
+                        if not strategy_config.requires_crud
+                        else [{"path": "/", "method": "GET"}, {"path": "/health", "method": "GET"}]
+                    ),
                 )
                 result.files.update(test_files)
 
@@ -241,8 +245,7 @@ class CodeGenerationEngine:
             frontend_port = None
             if self.enable_frontend and self.frontend_generator:
                 frontend_port = self.port_manager.allocate_port(
-                    service_name="frontend",
-                    project_name=result.project_name
+                    service_name="frontend", project_name=result.project_name
                 )
 
             # 7. Generate deployment files
@@ -253,7 +256,7 @@ class CodeGenerationEngine:
                     has_database=strategy_config.requires_database,
                     has_api=strategy_config.requires_crud,
                     has_ui=True,
-                    ui_port=frontend_port if frontend_port else 8600
+                    ui_port=frontend_port if frontend_port else 8600,
                 )
                 deployment_files = self.deployment_generator.generate_all(deployment_config)
                 result.files.update(deployment_files)
@@ -264,30 +267,22 @@ class CodeGenerationEngine:
                     framework=self.frontend_framework,
                     project_name=result.project_name,
                     port=frontend_port,
-                    backend_url="http://localhost:8000"
+                    backend_url="http://localhost:8000",
                 )
                 frontend_files = self.frontend_generator.generate(frontend_config)
                 # Prefix all frontend files with "frontend/" directory
                 prefixed_frontend_files = {
-                    f"frontend/{path}": content
-                    for path, content in frontend_files.items()
+                    f"frontend/{path}": content for path, content in frontend_files.items()
                 }
                 result.files.update(prefixed_frontend_files)
 
             # 9. Generate additional files
-            additional_files = self._generate_additional_files(
-                golden_data,
-                strategy_config
-            )
+            additional_files = self._generate_additional_files(golden_data, strategy_config)
             result.files.update(additional_files)
 
             # Convert to GeneratedFile objects
             result.generated_files = [
-                GeneratedFile(
-                    path=path,
-                    content=content,
-                    file_type=self._get_file_type(path)
-                )
+                GeneratedFile(path=path, content=content, file_type=self._get_file_type(path))
                 for path, content in result.files.items()
             ]
 
@@ -304,7 +299,7 @@ class CodeGenerationEngine:
         golden_data: ConcretizedRequirement,
         agents: List[AgentSpecModel],
         tasks: List[TaskSpecModel],
-        strategy: CodeGenStrategy
+        strategy: CodeGenStrategy,
     ) -> Dict[str, str]:
         """Generate core project files with LLM-powered code generation"""
         files = {}
@@ -330,9 +325,7 @@ class CodeGenerationEngine:
         # 2. Generate CRUD API (for CRUD_BASED and HYBRID strategies)
         if strategy in [CodeGenStrategy.CRUD_BASED, CodeGenStrategy.HYBRID]:
             if self.llm_generator:
-                crud_files = await self.llm_generator.generate_crud_api(
-                    golden_data, agents, tasks
-                )
+                crud_files = await self.llm_generator.generate_crud_api(golden_data, agents, tasks)
                 files.update(crud_files)
 
         # 3. agents.py (pass generated tool classes for proper mapping)
@@ -343,17 +336,11 @@ class CodeGenerationEngine:
 
         # 5. crew.py
         files["src/crew.py"] = self._generate_crew_file(
-            golden_data.project_name or "my_crew",
-            agents,
-            tasks,
-            golden_data
+            golden_data.project_name or "my_crew", agents, tasks, golden_data
         )
 
         # 6. main.py
-        files["main.py"] = self._generate_main_file(
-            golden_data.project_name or "my_crew",
-            strategy
-        )
+        files["main.py"] = self._generate_main_file(golden_data.project_name or "my_crew", strategy)
 
         # 7. requirements.txt (pass generated files for dependency detection)
         files["requirements.txt"] = self._generate_requirements(strategy, files)
@@ -380,15 +367,13 @@ class CodeGenerationEngine:
         import re
 
         # Find all class definitions that inherit from BaseTool
-        pattern = r'class\s+([A-Z][a-zA-Z0-9]*)\s*\(.*BaseTool.*\):'
+        pattern = r"class\s+([A-Z][a-zA-Z0-9]*)\s*\(.*BaseTool.*\):"
         matches = re.findall(pattern, tools_code)
 
         return matches
 
     def _generate_agents_file(
-        self,
-        agents: List[AgentSpecModel],
-        generated_tool_classes: Optional[List[str]] = None
+        self, agents: List[AgentSpecModel], generated_tool_classes: Optional[List[str]] = None
     ) -> str:
         """
         Generate agents.py with tool imports.
@@ -493,18 +478,18 @@ from src.agents import *
         project_name: str,
         agents: List[AgentSpecModel],
         tasks: List[TaskSpecModel],
-        golden_data: ConcretizedRequirement
+        golden_data: ConcretizedRequirement,
     ) -> str:
         """Generate crew.py with dynamic process type based on workflow_type"""
         agent_ids = ", ".join([a.id for a in agents])
         task_ids = ", ".join([t.id for t in tasks])
 
         # Determine process type from golden_data
-        workflow_type = getattr(golden_data, 'workflow_type', 'sequential')
-        if workflow_type == 'hierarchical':
-            process_type = 'Process.hierarchical'
+        workflow_type = getattr(golden_data, "workflow_type", "sequential")
+        if workflow_type == "hierarchical":
+            process_type = "Process.hierarchical"
         else:
-            process_type = 'Process.sequential'
+            process_type = "Process.sequential"
 
         # Base imports
         imports = f'''"""
@@ -516,42 +501,42 @@ Main crew configuration.
 from crewai import Crew, Process'''
 
         # Add ChatOpenAI import for hierarchical mode
-        if workflow_type == 'hierarchical':
-            imports += '\nfrom langchain_openai import ChatOpenAI'
+        if workflow_type == "hierarchical":
+            imports += "\nfrom langchain_openai import ChatOpenAI"
 
-        imports += f'''
+        imports += f"""
 from src.agents import {agent_ids}
 from src.tasks import {task_ids}
-'''
+"""
 
         # Generate manager LLM configuration for hierarchical mode
         manager_llm_config = ""
-        if workflow_type == 'hierarchical':
-            manager_llm_config = '''
+        if workflow_type == "hierarchical":
+            manager_llm_config = """
 # Manager LLM for hierarchical process
 manager_llm = ChatOpenAI(
     model="gpt-4o-mini",
     temperature=0.1
 )
-'''
+"""
 
         # Generate crew configuration
-        crew_config = f'''
+        crew_config = f"""
 # Create crew
 crew = Crew(
     agents=[{agent_ids}],
     tasks=[{task_ids}],
-    process={process_type},'''
+    process={process_type},"""
 
-        if workflow_type == 'hierarchical':
-            crew_config += '''
-    manager_llm=manager_llm,'''
+        if workflow_type == "hierarchical":
+            crew_config += """
+    manager_llm=manager_llm,"""
 
-        crew_config += '''
+        crew_config += """
     verbose=True,
     memory=True
 )
-'''
+"""
 
         # Generate kickoff functions
         kickoff_functions = '''
@@ -643,9 +628,7 @@ if __name__ == "__main__":
         return code
 
     def _generate_requirements(
-        self,
-        strategy: CodeGenStrategy,
-        generated_files: Optional[Dict[str, str]] = None
+        self, strategy: CodeGenStrategy, generated_files: Optional[Dict[str, str]] = None
     ) -> str:
         """
         Generate requirements.txt with auto-detected dependencies.
@@ -658,20 +641,13 @@ if __name__ == "__main__":
             requirements.txt content
         """
         # Base requirements
-        requirements = [
-            "crewai>=0.1.0",
-            "pydantic>=2.0.0",
-            "python-dotenv>=1.0.0"
-        ]
+        requirements = ["crewai>=0.1.0", "pydantic>=2.0.0", "python-dotenv>=1.0.0"]
 
         # Strategy-specific requirements
         if strategy in [CodeGenStrategy.CRUD_BASED, CodeGenStrategy.HYBRID]:
-            requirements.extend([
-                "fastapi>=0.104.0",
-                "uvicorn>=0.24.0",
-                "sqlalchemy>=2.0.0",
-                "alembic>=1.12.0"
-            ])
+            requirements.extend(
+                ["fastapi>=0.104.0", "uvicorn>=0.24.0", "sqlalchemy>=2.0.0", "alembic>=1.12.0"]
+            )
 
         # Auto-detect dependencies from generated files
         if generated_files:
@@ -722,18 +698,14 @@ if __name__ == "__main__":
         detected_packages = set()
 
         # Only analyze Python files
-        python_files = {
-            path: content
-            for path, content in files.items()
-            if path.endswith('.py')
-        }
+        python_files = {path: content for path, content in files.items() if path.endswith(".py")}
 
         for file_path, content in python_files.items():
             # Find all import statements
             # Matches: import foo, from foo import bar, from foo.bar import baz
-            import_pattern = r'^\s*(?:from\s+([a-zA-Z0-9_]+)|import\s+([a-zA-Z0-9_]+))'
+            import_pattern = r"^\s*(?:from\s+([a-zA-Z0-9_]+)|import\s+([a-zA-Z0-9_]+))"
 
-            for line in content.split('\n'):
+            for line in content.split("\n"):
                 match = re.match(import_pattern, line)
                 if match:
                     # Get the base module name (either from 'from X' or 'import X')
@@ -746,22 +718,20 @@ if __name__ == "__main__":
         return list(detected_packages)
 
     def _generate_readme(
-        self,
-        golden_data: ConcretizedRequirement,
-        strategy: CodeGenStrategy
+        self, golden_data: ConcretizedRequirement, strategy: CodeGenStrategy
     ) -> str:
         """Generate README.md"""
-        readme = f'''# {golden_data.project_name or "CrewAI Project"}
+        readme = f"""# {golden_data.project_name or "CrewAI Project"}
 
 {golden_data.description}
 
 ## Features
 
-'''
+"""
         for feature in golden_data.features[:10]:  # First 10 features
             readme += f"- **{feature.name}**: {feature.description}\n"
 
-        readme += f'''
+        readme += f"""
 
 ## Domain
 
@@ -823,7 +793,7 @@ docker-compose up
 ## License
 
 MIT
-'''
+"""
 
         return readme
 
@@ -833,7 +803,7 @@ MIT
             return
 
         for path, content in files.items():
-            if path.endswith('.py') and not path.startswith('tests/'):
+            if path.endswith(".py") and not path.startswith("tests/"):
                 try:
                     files[path] = self.error_injector.inject(content)
                 except Exception:
@@ -846,26 +816,25 @@ MIT
             return
 
         for path, content in files.items():
-            if path.endswith('.py') and not path.startswith('tests/'):
+            if path.endswith(".py") and not path.startswith("tests/"):
                 try:
                     files[path] = self.logging_injector.inject(
-                        content,
-                        logger_name=path.replace('/', '.').replace('.py', '')
+                        content, logger_name=path.replace("/", ".").replace(".py", "")
                     )
                 except Exception:
                     # If injection fails, keep original
                     pass
 
     def _generate_additional_files(
-        self,
-        golden_data: ConcretizedRequirement,
-        strategy_config: Any
+        self, golden_data: ConcretizedRequirement, strategy_config: Any
     ) -> Dict[str, str]:
         """Generate additional helper files"""
         files = {}
 
         # .gitignore
-        files[".gitignore"] = '''
+        files[
+            ".gitignore"
+        ] = """
 # Python
 __pycache__/
 *.py[cod]
@@ -894,10 +863,12 @@ htmlcov/
 # Database
 *.db
 *.sqlite
-'''
+"""
 
         # pyproject.toml
-        files["pyproject.toml"] = f'''
+        files[
+            "pyproject.toml"
+        ] = f"""
 [tool.black]
 line-length = 100
 target-version = ['py311']
@@ -915,21 +886,21 @@ python_functions = "test_*"
 python_version = "3.11"
 warn_return_any = true
 warn_unused_configs = true
-'''
+"""
 
         return files
 
     def _get_file_type(self, path: str) -> str:
         """Get file type from path"""
-        if path.endswith('.py'):
+        if path.endswith(".py"):
             return "python"
-        elif path.endswith(('.yaml', '.yml')):
+        elif path.endswith((".yaml", ".yml")):
             return "yaml"
-        elif path.endswith('.md'):
+        elif path.endswith(".md"):
             return "markdown"
-        elif 'Dockerfile' in path:
+        elif "Dockerfile" in path:
             return "dockerfile"
-        elif path.endswith('.txt'):
+        elif path.endswith(".txt"):
             return "text"
         else:
             return "other"

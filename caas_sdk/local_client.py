@@ -5,10 +5,10 @@ Synchronous wrapper around CAAS_API for local execution (no REST API required).
 Provides a simple, batteries-included interface for Python applications.
 """
 
-from typing import Optional, Dict, Any, List, Callable
 import asyncio
 import logging
 from pathlib import Path
+from typing import Any, Callable, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -60,7 +60,7 @@ class CAASLocalClient:
         self,
         api_key: Optional[str] = None,
         config: Optional[Dict[str, Any]] = None,
-        event_callback: Optional[Callable] = None
+        event_callback: Optional[Callable] = None,
     ):
         """
         Initialize CAAS Local Client.
@@ -88,7 +88,7 @@ class CAASLocalClient:
         # Merge config with API key
         full_config = config or {}
         if api_key:
-            full_config['llm_api_key'] = api_key
+            full_config["llm_api_key"] = api_key
 
         # Create GenerationConfig
         self.config = GenerationConfig(**full_config)
@@ -109,11 +109,7 @@ class CAASLocalClient:
 
         logger.info("CAAS Local Client initialized")
 
-    def generate(
-        self,
-        requirement: str,
-        golden_data: Optional[Any] = None
-    ) -> Dict[str, Any]:
+    def generate(self, requirement: str, golden_data: Optional[Any] = None) -> Dict[str, Any]:
         """
         Generate code from natural language requirement (synchronous).
 
@@ -152,9 +148,7 @@ class CAASLocalClient:
         logger.info(f"Generating code for: {requirement[:100]}...")
 
         # Run async API call in event loop
-        result = self.loop.run_until_complete(
-            self.api.generate(requirement, golden_data)
-        )
+        result = self.loop.run_until_complete(self.api.generate(requirement, golden_data))
 
         # Convert GenerationResult to dict
         return self._result_to_dict(result)
@@ -163,7 +157,7 @@ class CAASLocalClient:
         self,
         agents: List[Dict[str, Any]],
         tasks: List[Dict[str, Any]],
-        workflow_type: str = "sequential"
+        workflow_type: str = "sequential",
     ) -> Dict[str, Any]:
         """
         Generate code from agent/task design (synchronous).
@@ -224,11 +218,7 @@ class CAASLocalClient:
 
         return self._result_to_dict(result)
 
-    def subscribe_event(
-        self,
-        event_type: str,
-        callback: Callable[[Any], None]
-    ):
+    def subscribe_event(self, event_type: str, callback: Callable[[Any], None]):
         """
         Subscribe to framework events.
 
@@ -247,11 +237,7 @@ class CAASLocalClient:
         """
         self.api.subscribe_event(event_type, callback)
 
-    def unsubscribe_event(
-        self,
-        event_type: str,
-        callback: Callable[[Any], None]
-    ):
+    def unsubscribe_event(self, event_type: str, callback: Callable[[Any], None]):
         """
         Unsubscribe from framework events.
 
@@ -261,12 +247,7 @@ class CAASLocalClient:
         """
         self.api.unsubscribe_event(event_type, callback)
 
-    def save_files(
-        self,
-        files: Dict[str, str],
-        output_dir: str,
-        overwrite: bool = False
-    ):
+    def save_files(self, files: Dict[str, str], output_dir: str, overwrite: bool = False):
         """
         Save generated files to disk.
 
@@ -318,7 +299,7 @@ class CAASLocalClient:
             "agent_start",
             "agent_complete",
             "validation_start",
-            "validation_complete"
+            "validation_complete",
         ]
 
         for event_type in event_types:
@@ -339,7 +320,7 @@ class CAASLocalClient:
             "files": result.files,
             "metadata": result.metadata,
             "errors": result.errors,
-            "warnings": result.warnings
+            "warnings": result.warnings,
         }
 
     def close(self):
@@ -359,9 +340,7 @@ class CAASLocalClient:
 
 # Convenience function for quick usage
 def generate(
-    requirement: str,
-    api_key: Optional[str] = None,
-    config: Optional[Dict[str, Any]] = None
+    requirement: str, api_key: Optional[str] = None, config: Optional[Dict[str, Any]] = None
 ) -> Dict[str, Any]:
     """
     Quick generation function (convenience wrapper).

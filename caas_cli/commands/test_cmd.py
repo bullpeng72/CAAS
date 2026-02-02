@@ -4,16 +4,17 @@ Test Command
 Execute tests on generated code
 """
 
-import click
 import sys
 from pathlib import Path
+
+import click
 from caas_cli.utils import (
-    echo_success,
     echo_error,
     echo_info,
     echo_progress,
+    echo_success,
     echo_warning,
-    handle_keyboard_interrupt
+    handle_keyboard_interrupt,
 )
 
 
@@ -28,37 +29,19 @@ def test():
     "--test-file",
     type=click.Path(exists=True),
     required=True,
-    help="Path to test file or directory"
+    help="Path to test file or directory",
 )
 @click.option(
-    "--coverage/--no-coverage",
-    default=True,
-    help="Enable code coverage (default: enabled)"
+    "--coverage/--no-coverage", default=True, help="Enable code coverage (default: enabled)"
+)
+@click.option("--verbose/--quiet", "-v/-q", default=True, help="Verbose output (default: verbose)")
+@click.option(
+    "--marker", "-m", type=str, help="Run tests with specific marker (e.g., 'unit', 'integration')"
 )
 @click.option(
-    "--verbose/--quiet",
-    "-v/-q",
-    default=True,
-    help="Verbose output (default: verbose)"
+    "--parallel", "-n", type=int, help="Run tests in parallel (specify number of workers)"
 )
-@click.option(
-    "--marker",
-    "-m",
-    type=str,
-    help="Run tests with specific marker (e.g., 'unit', 'integration')"
-)
-@click.option(
-    "--parallel",
-    "-n",
-    type=int,
-    help="Run tests in parallel (specify number of workers)"
-)
-@click.option(
-    "--report",
-    "-r",
-    type=click.Path(),
-    help="Save test report to file"
-)
+@click.option("--report", "-r", type=click.Path(), help="Save test report to file")
 @handle_keyboard_interrupt
 def run(test_file, coverage, verbose, marker, parallel, report):
     """
@@ -136,17 +119,12 @@ def run(test_file, coverage, verbose, marker, parallel, report):
         if test_path.is_file():
             test_code = test_path.read_text()
             result = executor.execute_pytest(
-                test_file_path=test_file,
-                test_code=test_code,
-                coverage=coverage,
-                verbose=verbose
+                test_file_path=test_file, test_code=test_code, coverage=coverage, verbose=verbose
             )
         else:
             # Run directory tests
             result = executor.execute_pytest_directory(
-                test_directory=test_file,
-                coverage=coverage,
-                verbose=verbose
+                test_directory=test_file, coverage=coverage, verbose=verbose
             )
 
         # Print results
@@ -157,10 +135,10 @@ def run(test_file, coverage, verbose, marker, parallel, report):
         click.echo(f"  Failed:         {result.failed}")
         click.echo(f"  Skipped:        {result.skipped}")
 
-        if hasattr(result, 'duration'):
+        if hasattr(result, "duration"):
             click.echo(f"  Duration:       {result.duration:.2f}s")
 
-        if coverage and hasattr(result, 'coverage_percent'):
+        if coverage and hasattr(result, "coverage_percent"):
             click.echo(f"  Coverage:       {result.coverage_percent:.1f}%")
 
         # Show status
@@ -179,6 +157,7 @@ def run(test_file, coverage, verbose, marker, parallel, report):
     except Exception as e:
         echo_error(f"Test execution error: {e}")
         import traceback
+
         if verbose:
             echo_error(traceback.format_exc())
         return 1
@@ -189,13 +168,10 @@ def run(test_file, coverage, verbose, marker, parallel, report):
     "--test-file",
     type=click.Path(exists=True),
     required=True,
-    help="Path to test file or directory"
+    help="Path to test file or directory",
 )
 @click.option(
-    "--min-coverage",
-    type=float,
-    default=80.0,
-    help="Minimum coverage percentage (default: 80.0)"
+    "--min-coverage", type=float, default=80.0, help="Minimum coverage percentage (default: 80.0)"
 )
 @handle_keyboard_interrupt
 def coverage(test_file, min_coverage):
@@ -227,23 +203,18 @@ def coverage(test_file, min_coverage):
         if test_path.is_file():
             test_code = test_path.read_text()
             result = executor.execute_pytest(
-                test_file_path=test_file,
-                test_code=test_code,
-                coverage=True,
-                verbose=False
+                test_file_path=test_file, test_code=test_code, coverage=True, verbose=False
             )
         else:
             result = executor.execute_pytest_directory(
-                test_directory=test_file,
-                coverage=True,
-                verbose=False
+                test_directory=test_file, coverage=True, verbose=False
             )
 
         # Show coverage
         click.echo()
         click.echo(click.style("Coverage Report:", bold=True))
 
-        if hasattr(result, 'coverage_percent'):
+        if hasattr(result, "coverage_percent"):
             coverage_pct = result.coverage_percent
             click.echo(f"  Coverage: {coverage_pct:.1f}%")
             click.echo(f"  Minimum:  {min_coverage:.1f}%")
@@ -286,6 +257,7 @@ def validate(test_file):
 
         # Check syntax
         import ast
+
         try:
             ast.parse(test_code)
             echo_success("Test file syntax is valid")

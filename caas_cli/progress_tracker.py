@@ -5,21 +5,22 @@ Real-time progress display for BMAD phases using Rich library.
 Provides visual feedback to users during code generation.
 """
 
+import time
 from typing import Optional
+
+from rich import box
 from rich.console import Console
+from rich.panel import Panel
 from rich.progress import (
+    BarColumn,
     Progress,
     SpinnerColumn,
-    TextColumn,
-    BarColumn,
     TaskProgressColumn,
+    TextColumn,
+    TimeElapsedColumn,
     TimeRemainingColumn,
-    TimeElapsedColumn
 )
 from rich.table import Table
-from rich.panel import Panel
-from rich import box
-import time
 
 
 class CLIProgressTracker:
@@ -64,7 +65,7 @@ class CLIProgressTracker:
             BarColumn(),
             TaskProgressColumn(),
             TimeElapsedColumn(),
-            console=self.console
+            console=self.console,
         )
         self.progress.start()
 
@@ -89,10 +90,7 @@ class CLIProgressTracker:
         if description:
             display_text += f" - {description}"
 
-        task_id = self.progress.add_task(
-            display_text,
-            total=None  # Indeterminate progress
-        )
+        task_id = self.progress.add_task(display_text, total=None)  # Indeterminate progress
 
         self.phase_tasks[phase_name] = task_id
         self.phase_times[phase_name] = time.time()
@@ -111,16 +109,10 @@ class CLIProgressTracker:
 
         task_id = self.phase_tasks[phase_name]
         self.progress.update(
-            task_id,
-            description=f"[bold blue]{phase_name}[/bold blue] - {message}"
+            task_id, description=f"[bold blue]{phase_name}[/bold blue] - {message}"
         )
 
-    def complete_phase(
-        self,
-        phase_name: str,
-        success: bool = True,
-        message: str = ""
-    ):
+    def complete_phase(self, phase_name: str, success: bool = True, message: str = ""):
         """
         Mark phase as completed.
 
@@ -148,10 +140,7 @@ class CLIProgressTracker:
         display_text += f" ({duration:.1f}s)"
 
         self.progress.update(
-            task_id,
-            description=f"[{style}]{display_text}[/{style}]",
-            completed=100,
-            total=100
+            task_id, description=f"[{style}]{display_text}[/{style}]", completed=100, total=100
         )
 
     def debug(self, message: str):
@@ -216,7 +205,7 @@ class CLIProgressTracker:
             "debug": self.debug,
             "info": self.info,
             "warning": self.warning,
-            "error": self.error
+            "error": self.error,
         }
         log_func = level_map.get(level, self.info)
         log_func(message)
@@ -243,7 +232,9 @@ class CLIProgressTracker:
         """
         if self.progress:
             iter_text = f" ({iterations} iterations)" if iterations > 1 else ""
-            self.console.print(f"[green]✅ [{agent_name}] Completed in {duration:.1f}s{iter_text}[/green]")
+            self.console.print(
+                f"[green]✅ [{agent_name}] Completed in {duration:.1f}s{iter_text}[/green]"
+            )
 
     def validation_start(self, validator_name: str, items_count: int):
         """
@@ -254,7 +245,9 @@ class CLIProgressTracker:
             items_count: Number of items to validate
         """
         if self.progress:
-            self.console.print(f"[cyan]🔍 {validator_name}: Validating {items_count} items...[/cyan]")
+            self.console.print(
+                f"[cyan]🔍 {validator_name}: Validating {items_count} items...[/cyan]"
+            )
 
     def validation_result(self, validator_name: str, passed: bool, issues_count: int = 0):
         """
@@ -269,14 +262,12 @@ class CLIProgressTracker:
             if passed:
                 self.console.print(f"[green]✅ {validator_name}: Passed[/green]")
             else:
-                self.console.print(f"[yellow]⚠️  {validator_name}: Found {issues_count} issues[/yellow]")
+                self.console.print(
+                    f"[yellow]⚠️  {validator_name}: Found {issues_count} issues[/yellow]"
+                )
 
     def display_summary(
-        self,
-        phases_completed: list,
-        total_duration: float,
-        success: bool,
-        errors: list = None
+        self, phases_completed: list, total_duration: float, success: bool, errors: list = None
     ):
         """
         Display final summary.
@@ -292,7 +283,7 @@ class CLIProgressTracker:
             title="🎯 BMAD Execution Summary",
             box=box.ROUNDED,
             show_header=True,
-            header_style="bold cyan"
+            header_style="bold cyan",
         )
 
         table.add_column("Phase", style="cyan", no_wrap=True)
@@ -305,11 +296,7 @@ class CLIProgressTracker:
             if duration > 0:
                 duration = time.time() - duration
 
-            table.add_row(
-                phase_name,
-                "✅ Complete",
-                f"{duration:.1f}s"
-            )
+            table.add_row(phase_name, "✅ Complete", f"{duration:.1f}s")
 
         # Display table
         self.console.print()
@@ -324,7 +311,7 @@ class CLIProgressTracker:
                     f"Total time: {total_duration:.1f}s\n"
                     f"Phases completed: {len(phases_completed)}",
                     box=box.DOUBLE,
-                    border_style="green"
+                    border_style="green",
                 )
             )
         else:
@@ -335,7 +322,7 @@ class CLIProgressTracker:
                     f"Total time: {total_duration:.1f}s\n"
                     f"Errors:\n{error_text}",
                     box=box.DOUBLE,
-                    border_style="red"
+                    border_style="red",
                 )
             )
 
@@ -382,8 +369,8 @@ class SimpleProgressReporter:
             self.start()
 
         # Display workflow start message
-        from rich.panel import Panel
         from rich import box
+        from rich.panel import Panel
 
         self.tracker.console.print()
         self.tracker.console.print(
@@ -392,7 +379,7 @@ class SimpleProgressReporter:
                 f"Workflow: {workflow_name}\n"
                 f"Total Phases: {total_phases}",
                 box=box.ROUNDED,
-                border_style="cyan"
+                border_style="cyan",
             )
         )
         self.tracker.console.print()
@@ -405,8 +392,8 @@ class SimpleProgressReporter:
             success: Whether the workflow completed successfully
             summary: Optional summary dictionary with workflow results
         """
-        from rich.panel import Panel
         from rich import box
+        from rich.panel import Panel
 
         self.tracker.console.print()
 
@@ -424,12 +411,7 @@ class SimpleProgressReporter:
                     msg += f"\nAgents Created: {summary['agents_count']}"
 
             self.tracker.console.print(
-                Panel(
-                    msg,
-                    box=box.DOUBLE,
-                    border_style="green",
-                    title="Workflow Complete"
-                )
+                Panel(msg, box=box.DOUBLE, border_style="green", title="Workflow Complete")
             )
         else:
             # Build failure message
@@ -443,12 +425,7 @@ class SimpleProgressReporter:
                     msg += f"\nError: {summary['error']}"
 
             self.tracker.console.print(
-                Panel(
-                    msg,
-                    box=box.DOUBLE,
-                    border_style="red",
-                    title="Workflow Failed"
-                )
+                Panel(msg, box=box.DOUBLE, border_style="red", title="Workflow Failed")
             )
 
         self.tracker.console.print()

@@ -4,16 +4,18 @@ Validation Models
 Models for validation results and reports.
 """
 
-from typing import Any, Dict, List, Optional
-from enum import Enum
-from pydantic import BaseModel, Field
 from dataclasses import dataclass
+from enum import Enum
+from typing import Any, Dict, List, Optional
 
+from pydantic import BaseModel, Field
 
 # ==================== Validation Severity ====================
 
+
 class ValidationSeverity(str, Enum):
     """검증 결과 심각도"""
+
     ERROR = "error"
     WARNING = "warning"
     INFO = "info"
@@ -22,14 +24,17 @@ class ValidationSeverity(str, Enum):
 
 # ==================== Compliance Status ====================
 
+
 class ComplianceStatus(str, Enum):
     """Golden Data 준수 상태"""
+
     COMPLIANT = "compliant"
     PARTIAL = "partial"
     NON_COMPLIANT = "non_compliant"
 
 
 # ==================== Ontology Validation ====================
+
 
 class ValidationIssue(BaseModel):
     """
@@ -43,6 +48,7 @@ class ValidationIssue(BaseModel):
 
     Supports both string severity and enum severity for backward compatibility.
     """
+
     # Core fields (required)
     severity: str  # "error", "warning", "info" (or ValidationSeverity enum value)
     issue_type: str  # "syntax", "import", "type", "runtime", "role", "task", "tool", etc.
@@ -81,6 +87,7 @@ class ValidationResult(BaseModel):
 
     Consolidates ValidationResult definitions from validation modules.
     """
+
     is_valid: bool = True
     issues: List[ValidationIssue] = Field(default_factory=list)
     summary: Dict[str, int] = Field(default_factory=dict)
@@ -103,8 +110,10 @@ class ValidationResult(BaseModel):
 
 # ==================== Golden Data Validation ====================
 
+
 class MissingItem(BaseModel):
     """누락된 항목"""
+
     item_type: str  # "feature", "task", "component", etc.
     item_id: str
     item_name: str
@@ -114,6 +123,7 @@ class MissingItem(BaseModel):
 
 class ExtraItem(BaseModel):
     """추가된 항목 (hallucination)"""
+
     item_type: str
     item_id: str
     item_name: str
@@ -123,6 +133,7 @@ class ExtraItem(BaseModel):
 
 class MismatchedItem(BaseModel):
     """일치하지 않는 항목"""
+
     item_type: str
     item_id: str
     item_name: str
@@ -134,6 +145,7 @@ class MismatchedItem(BaseModel):
 
 class GoldenValidationReport(BaseModel):
     """Golden Data 검증 리포트"""
+
     phase_name: str
     coverage_score: float = Field(ge=0.0, le=1.0)
     missing_items: List[MissingItem] = Field(default_factory=list)
@@ -147,9 +159,11 @@ class GoldenValidationReport(BaseModel):
 
 # ==================== Dependency Validation ====================
 
+
 @dataclass
 class DependencyIssue:
     """의존성 이슈"""
+
     severity: str  # "error", "warning", "info"
     task_id: str
     message: str

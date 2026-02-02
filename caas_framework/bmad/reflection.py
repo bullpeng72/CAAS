@@ -4,16 +4,18 @@ BMAD Reflection Engine (CORE - Collaboration Optimized Reflection Engine)
 생성된 결과를 자체 평가하고 개선하는 피드백 루프
 """
 
-from typing import List, Dict, Optional
-from pydantic import BaseModel, Field
 import ast
 import logging
+from typing import Dict, List, Optional
+
+from pydantic import BaseModel, Field
 
 logger = logging.getLogger("caas_framework.bmad.reflection")
 
 
 class ReflectionFeedback(BaseModel):
     """반성 피드백"""
+
     aspect: str  # "code_quality", "spec_clarity", "test_coverage"
     score: float = Field(ge=0.0, le=1.0, description="평가 점수 (0.0 ~ 1.0)")
     issues: List[str] = Field(default_factory=list)
@@ -23,6 +25,7 @@ class ReflectionFeedback(BaseModel):
 
 class ReflectionResult(BaseModel):
     """반성 결과"""
+
     overall_score: float = Field(ge=0.0, le=1.0)
     feedbacks: List[ReflectionFeedback]
     requires_iteration: bool
@@ -48,10 +51,7 @@ class ReflectionEngine:
         self.logger.info(f"ReflectionEngine 초기화: threshold={quality_threshold}")
 
     def reflect_on_spec(
-        self,
-        spec_yaml: str,
-        requirement: str,
-        use_llm: bool = False
+        self, spec_yaml: str, requirement: str, use_llm: bool = False
     ) -> ReflectionResult:
         """
         스펙에 대한 반성
@@ -91,17 +91,19 @@ class ReflectionEngine:
             overall_score=overall_score,
             feedbacks=feedbacks,
             requires_iteration=overall_score < self.quality_threshold,
-            iteration_plan=self._create_iteration_plan(feedbacks) if overall_score < self.quality_threshold else None
+            iteration_plan=(
+                self._create_iteration_plan(feedbacks)
+                if overall_score < self.quality_threshold
+                else None
+            ),
         )
 
-        self.logger.info(f"스펙 반성 완료: 점수={overall_score:.2f}, 재생성 필요={result.requires_iteration}")
+        self.logger.info(
+            f"스펙 반성 완료: 점수={overall_score:.2f}, 재생성 필요={result.requires_iteration}"
+        )
         return result
 
-    def reflect_on_code(
-        self,
-        code_files: Dict[str, str],
-        spec_yaml: str
-    ) -> ReflectionResult:
+    def reflect_on_code(self, code_files: Dict[str, str], spec_yaml: str) -> ReflectionResult:
         """
         생성된 코드에 대한 반성
 
@@ -138,10 +140,14 @@ class ReflectionEngine:
             overall_score=overall_score,
             feedbacks=feedbacks,
             requires_iteration=overall_score < 0.75,  # 코드는 더 높은 기준
-            iteration_plan=self._create_code_iteration_plan(feedbacks) if overall_score < 0.75 else None
+            iteration_plan=(
+                self._create_code_iteration_plan(feedbacks) if overall_score < 0.75 else None
+            ),
         )
 
-        self.logger.info(f"코드 반성 완료: 점수={overall_score:.2f}, 재생성 필요={result.requires_iteration}")
+        self.logger.info(
+            f"코드 반성 완료: 점수={overall_score:.2f}, 재생성 필요={result.requires_iteration}"
+        )
         return result
 
     # ========================================================================
@@ -156,6 +162,7 @@ class ReflectionEngine:
         # YAML 파싱 가능 여부
         try:
             import yaml
+
             spec_dict = yaml.safe_load(spec_yaml)
         except Exception as e:
             issues.append(f"YAML 파싱 실패: {str(e)}")
@@ -164,7 +171,7 @@ class ReflectionEngine:
                 score=0.0,
                 issues=issues,
                 suggestions=["YAML 구문을 수정하세요"],
-                severity="critical"
+                severity="critical",
             )
 
         # 필수 필드 검증
@@ -179,7 +186,7 @@ class ReflectionEngine:
             score=max(0.0, score),
             issues=issues,
             suggestions=["누락된 필드를 추가하세요"] if issues else [],
-            severity="critical" if score < 0.5 else "warning"
+            severity="critical" if score < 0.5 else "warning",
         )
 
     def _evaluate_spec_completeness(self, spec_yaml: str, requirement: str) -> ReflectionFeedback:
@@ -233,7 +240,7 @@ class ReflectionEngine:
             score=max(0.0, score),
             issues=issues,
             suggestions=suggestions,
-            severity="warning" if score >= 0.5 else "critical"
+            severity="warning" if score >= 0.5 else "critical",
         )
 
     def _evaluate_spec_with_llm(self, spec_yaml: str, requirement: str) -> ReflectionFeedback:
@@ -246,7 +253,7 @@ class ReflectionEngine:
             score=0.8,  # 기본 점수
             issues=[],
             suggestions=["LLM 기반 평가는 선택적 기능입니다"],
-            severity="info"
+            severity="info",
         )
 
     # ========================================================================
@@ -259,7 +266,7 @@ class ReflectionEngine:
         suggestions = []
         score = 1.0
 
-        python_files = {k: v for k, v in code_files.items() if k.endswith('.py')}
+        python_files = {k: v for k, v in code_files.items() if k.endswith(".py")}
 
         for filename, code in python_files.items():
             # 구문 검증
@@ -270,7 +277,7 @@ class ReflectionEngine:
                 score -= 0.3
 
             # 코드 길이
-            lines = code.split('\n')
+            lines = code.split("\n")
             if len(lines) > 500:
                 suggestions.append(f"{filename}: 파일이 너무 길 (500줄 초과)")
                 score -= 0.05
@@ -285,10 +292,12 @@ class ReflectionEngine:
             score=max(0.0, score),
             issues=issues,
             suggestions=suggestions,
-            severity="critical" if issues else "info"
+            severity="critical" if issues else "info",
         )
 
-    def _evaluate_spec_compliance(self, code_files: Dict[str, str], spec_yaml: str) -> ReflectionFeedback:
+    def _evaluate_spec_compliance(
+        self, code_files: Dict[str, str], spec_yaml: str
+    ) -> ReflectionFeedback:
         """스펙 준수도 평가"""
         import yaml
 
@@ -330,7 +339,7 @@ class ReflectionEngine:
             score=max(0.0, score),
             issues=issues,
             suggestions=suggestions,
-            severity="critical" if score < 0.5 else "warning"
+            severity="critical" if score < 0.5 else "warning",
         )
 
     def _evaluate_best_practices(self, code_files: Dict[str, str]) -> ReflectionFeedback:
@@ -338,21 +347,21 @@ class ReflectionEngine:
         suggestions = []
         score = 1.0
 
-        python_files = {k: v for k, v in code_files.items() if k.endswith('.py')}
+        python_files = {k: v for k, v in code_files.items() if k.endswith(".py")}
 
         for filename, code in python_files.items():
             # Type hints 체크
-            if '->' not in code and ':' not in code:
+            if "->" not in code and ":" not in code:
                 suggestions.append(f"{filename}: Type hints 부족")
                 score -= 0.05
 
             # 위험한 패턴 체크
-            if 'eval(' in code or 'exec(' in code:
+            if "eval(" in code or "exec(" in code:
                 suggestions.append(f"{filename}: eval/exec 사용 지양")
                 score -= 0.1
 
             # 하드코딩된 비밀번호 체크
-            if 'password' in code.lower() and '=' in code:
+            if "password" in code.lower() and "=" in code:
                 suggestions.append(f"{filename}: 하드코딩된 비밀번호 가능성")
                 score -= 0.1
 
@@ -361,13 +370,15 @@ class ReflectionEngine:
             score=max(0.0, score),
             issues=[],
             suggestions=suggestions,
-            severity="info"
+            severity="info",
         )
 
     def _evaluate_test_coverage(self, code_files: Dict[str, str]) -> ReflectionFeedback:
         """테스트 커버리지 평가"""
-        test_files = {k: v for k, v in code_files.items() if 'test' in k.lower()}
-        code_files_count = len([k for k in code_files.keys() if k.endswith('.py') and 'test' not in k.lower()])
+        test_files = {k: v for k, v in code_files.items() if "test" in k.lower()}
+        code_files_count = len(
+            [k for k in code_files.keys() if k.endswith(".py") and "test" not in k.lower()]
+        )
 
         issues = []
         suggestions = []
@@ -386,7 +397,7 @@ class ReflectionEngine:
             score=score,
             issues=issues,
             suggestions=suggestions,
-            severity="warning" if issues else "info"
+            severity="warning" if issues else "info",
         )
 
     # ========================================================================
@@ -416,7 +427,7 @@ class ReflectionEngine:
             for i, warning in enumerate(warnings, 1):
                 plan_parts.append(f"{i}. {warning}\n")
 
-        return ''.join(plan_parts)
+        return "".join(plan_parts)
 
     def _create_code_iteration_plan(self, feedbacks: List[ReflectionFeedback]) -> str:
         """코드 개선 계획 생성"""
@@ -437,4 +448,4 @@ class ReflectionEngine:
                     for suggestion in fb.suggestions:
                         plan_parts.append(f"- {suggestion}\n")
 
-        return ''.join(plan_parts)
+        return "".join(plan_parts)

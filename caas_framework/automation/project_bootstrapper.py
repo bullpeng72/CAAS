@@ -8,8 +8,8 @@ virtual environment setup, dependency installation, and README generation.
 import subprocess
 import sys
 from dataclasses import dataclass
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 from typing import Dict, Optional
 
 from caas_framework.automation.cicd_generator import CICDGenerator
@@ -18,6 +18,7 @@ from caas_framework.automation.cicd_generator import CICDGenerator
 @dataclass
 class TestResult:
     """Result of running tests"""
+
     passed: bool
     output: str
 
@@ -25,6 +26,7 @@ class TestResult:
 @dataclass
 class BootstrapResult:
     """Result of project bootstrap operation"""
+
     project_dir: Path
     files_created: int
     git_initialized: bool
@@ -46,7 +48,7 @@ class ProjectBootstrapper:
         auto_test: bool = False,
         auto_cicd: bool = False,
         include_docker: bool = False,
-        verbose: bool = True
+        verbose: bool = True,
     ) -> BootstrapResult:
         """
         Bootstrap a complete project from generated code files
@@ -117,21 +119,16 @@ class ProjectBootstrapper:
             files_created=files_written,
             git_initialized=git_initialized,
             dependencies_installed=dependencies_installed,
-            tests_passed=test_result.passed if test_result else None
+            tests_passed=test_result.passed if test_result else None,
         )
 
-    def _write_files(
-        self,
-        project_dir: Path,
-        files: Dict[str, str],
-        verbose: bool
-    ) -> int:
+    def _write_files(self, project_dir: Path, files: Dict[str, str], verbose: bool) -> int:
         """Write all generated files to project directory"""
         files_written = 0
 
         for filename, content in files.items():
             # Skip metadata fields (those starting with _)
-            if filename.startswith('_'):
+            if filename.startswith("_"):
                 continue
 
             file_path = project_dir / filename
@@ -151,12 +148,7 @@ class ProjectBootstrapper:
         """Initialize git repository with .gitignore and initial commit"""
         try:
             # Initialize git
-            subprocess.run(
-                ['git', 'init'],
-                cwd=project_dir,
-                check=True,
-                capture_output=True
-            )
+            subprocess.run(["git", "init"], cwd=project_dir, check=True, capture_output=True)
 
             # Create .gitignore
             gitignore_content = """# Python
@@ -191,23 +183,18 @@ htmlcov/
 .DS_Store
 Thumbs.db
 """
-            gitignore_path = project_dir / '.gitignore'
+            gitignore_path = project_dir / ".gitignore"
             gitignore_path.write_text(gitignore_content)
 
             # Add all files
-            subprocess.run(
-                ['git', 'add', '.'],
-                cwd=project_dir,
-                check=True,
-                capture_output=True
-            )
+            subprocess.run(["git", "add", "."], cwd=project_dir, check=True, capture_output=True)
 
             # Initial commit
             subprocess.run(
-                ['git', 'commit', '-m', 'Initial commit from CAAS'],
+                ["git", "commit", "-m", "Initial commit from CAAS"],
                 cwd=project_dir,
                 check=True,
-                capture_output=True
+                capture_output=True,
             )
 
             if verbose:
@@ -224,10 +211,10 @@ Thumbs.db
         """Create Python virtual environment"""
         try:
             subprocess.run(
-                [sys.executable, '-m', 'venv', 'venv'],
+                [sys.executable, "-m", "venv", "venv"],
                 cwd=project_dir,
                 check=True,
-                capture_output=True
+                capture_output=True,
             )
 
             if verbose:
@@ -239,7 +226,7 @@ Thumbs.db
 
     def _install_dependencies(self, project_dir: Path, verbose: bool) -> bool:
         """Install dependencies from requirements.txt"""
-        requirements_path = project_dir / 'requirements.txt'
+        requirements_path = project_dir / "requirements.txt"
 
         if not requirements_path.exists():
             if verbose:
@@ -248,10 +235,10 @@ Thumbs.db
 
         try:
             # Determine venv python path based on OS
-            if sys.platform == 'win32':
-                venv_python = project_dir / 'venv' / 'Scripts' / 'python.exe'
+            if sys.platform == "win32":
+                venv_python = project_dir / "venv" / "Scripts" / "python.exe"
             else:
-                venv_python = project_dir / 'venv' / 'bin' / 'python'
+                venv_python = project_dir / "venv" / "bin" / "python"
 
             if not venv_python.exists():
                 if verbose:
@@ -260,18 +247,18 @@ Thumbs.db
 
             # Upgrade pip
             subprocess.run(
-                [str(venv_python), '-m', 'pip', 'install', '--upgrade', 'pip'],
+                [str(venv_python), "-m", "pip", "install", "--upgrade", "pip"],
                 cwd=project_dir,
                 check=True,
-                capture_output=True
+                capture_output=True,
             )
 
             # Install requirements
             subprocess.run(
-                [str(venv_python), '-m', 'pip', 'install', '-r', 'requirements.txt'],
+                [str(venv_python), "-m", "pip", "install", "-r", "requirements.txt"],
                 cwd=project_dir,
                 check=True,
-                capture_output=True
+                capture_output=True,
             )
 
             if verbose:
@@ -288,22 +275,21 @@ Thumbs.db
         """Run pytest if available"""
         try:
             # Determine venv python path
-            if sys.platform == 'win32':
-                venv_python = project_dir / 'venv' / 'Scripts' / 'python.exe'
+            if sys.platform == "win32":
+                venv_python = project_dir / "venv" / "Scripts" / "python.exe"
             else:
-                venv_python = project_dir / 'venv' / 'bin' / 'python'
+                venv_python = project_dir / "venv" / "bin" / "python"
 
             # Run pytest
             result = subprocess.run(
-                [str(venv_python), '-m', 'pytest', '-v'],
+                [str(venv_python), "-m", "pytest", "-v"],
                 cwd=project_dir,
                 capture_output=True,
-                text=True
+                text=True,
             )
 
             test_result = TestResult(
-                passed=result.returncode == 0,
-                output=result.stdout + result.stderr
+                passed=result.returncode == 0, output=result.stdout + result.stderr
             )
 
             if verbose:
@@ -319,21 +305,16 @@ Thumbs.db
                 print("⚠️  pytest not found, skipping tests")
             return None
 
-    def _generate_readme(
-        self,
-        project_dir: Path,
-        files: Dict[str, str],
-        verbose: bool
-    ):
+    def _generate_readme(self, project_dir: Path, files: Dict[str, str], verbose: bool):
         """Generate README.md with project information"""
 
         # Get description from metadata if available
-        description = files.get('_description', 'CrewAI-based automation system')
+        description = files.get("_description", "CrewAI-based automation system")
 
         # Build file list (exclude metadata fields)
         file_list = []
         for filename in sorted(files.keys()):
-            if not filename.startswith('_'):
+            if not filename.startswith("_"):
                 file_list.append(f"- `{filename}`")
 
         readme_content = f"""# {project_dir.name}
@@ -406,7 +387,7 @@ OPENAI_API_KEY=your_api_key_here
 *Generated by CAAS on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}*
 """
 
-        readme_path = project_dir / 'README.md'
+        readme_path = project_dir / "README.md"
         readme_path.write_text(readme_content)
 
         if verbose:
@@ -415,8 +396,7 @@ OPENAI_API_KEY=your_api_key_here
     def _print_completion(self, project_dir: Path, project_name: str):
         """Print completion message with next steps"""
         activate_cmd = (
-            f"venv\\Scripts\\activate" if sys.platform == 'win32'
-            else "source venv/bin/activate"
+            f"venv\\Scripts\\activate" if sys.platform == "win32" else "source venv/bin/activate"
         )
 
         print(f"\n{'=' * 70}")
@@ -437,5 +417,5 @@ OPENAI_API_KEY=your_api_key_here
             project_dir=project_dir,
             include_docker=include_docker,
             include_coverage=True,
-            verbose=verbose
+            verbose=verbose,
         )

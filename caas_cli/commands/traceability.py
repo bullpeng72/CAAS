@@ -6,59 +6,40 @@ Traceability Command
 
 import click
 from caas_cli.config import get_config
-from caas_cli.utils import (
-    echo_success,
-    echo_error,
-    echo_info,
-    handle_keyboard_interrupt
-)
+from caas_cli.utils import echo_error, echo_info, echo_success, handle_keyboard_interrupt
 
 
 @click.command()
-@click.option(
-    "--requirement",
-    "-r",
-    required=True,
-    help="Original requirement text to trace"
-)
+@click.option("--requirement", "-r", required=True, help="Original requirement text to trace")
 @click.option(
     "--golden-data",
     "-g",
     type=click.Path(exists=True),
     required=True,
-    help="[Phase 0] Golden Data JSON file (structured requirements)"
+    help="[Phase 0] Golden Data JSON file (structured requirements)",
 )
 @click.option(
     "--agents",
     "-a",
     type=click.Path(exists=True),
     required=True,
-    help="[Phase 1] Agents JSON file (agent specifications)"
+    help="[Phase 1] Agents JSON file (agent specifications)",
 )
 @click.option(
     "--tasks",
     "-t",
     type=click.Path(exists=True),
     required=True,
-    help="[Phase 1] Tasks JSON file (task specifications)"
+    help="[Phase 1] Tasks JSON file (task specifications)",
 )
-@click.option(
-    "--output",
-    "-o",
-    type=click.Path(),
-    help="Output report file path (default: stdout)"
-)
+@click.option("--output", "-o", type=click.Path(), help="Output report file path (default: stdout)")
 @click.option(
     "--format",
     type=click.Choice(["text", "json", "markdown"]),
     default="text",
-    help="Output format: text (human-readable), json (structured), markdown (documentation)"
+    help="Output format: text (human-readable), json (structured), markdown (documentation)",
 )
-@click.option(
-    "--api-url",
-    type=str,
-    help="API URL (overrides config) - for remote API mode"
-)
+@click.option("--api-url", type=str, help="API URL (overrides config) - for remote API mode")
 @handle_keyboard_interrupt
 def traceability(requirement, golden_data, agents, tasks, output, format, api_url):
     """
@@ -176,21 +157,23 @@ def traceability(requirement, golden_data, agents, tasks, output, format, api_ur
 
     # Load files
     try:
-        with open(golden_data, 'r', encoding='utf-8') as f:
+        with open(golden_data, "r", encoding="utf-8") as f:
             golden_data_dict = json.load(f)
-        with open(agents, 'r', encoding='utf-8') as f:
+        with open(agents, "r", encoding="utf-8") as f:
             agents_list = json.load(f)
-        with open(tasks, 'r', encoding='utf-8') as f:
+        with open(tasks, "r", encoding="utf-8") as f:
             tasks_list = json.load(f)
     except Exception as e:
         echo_error(f"Failed to load files: {e}")
         return
 
-    click.echo("""
+    click.echo(
+        """
 ╔══════════════════════════════════════════════════════════════╗
 ║              CAAS Traceability Matrix                         ║
 ╚══════════════════════════════════════════════════════════════╝
-""")
+"""
+    )
 
     echo_info(f"Requirement: {requirement}")
     click.echo()
@@ -205,9 +188,9 @@ def traceability(requirement, golden_data, agents, tasks, output, format, api_ur
                 "requirement": requirement,
                 "golden_data": golden_data_dict,
                 "agents": agents_list,
-                "tasks": tasks_list
+                "tasks": tasks_list,
             },
-            timeout=120
+            timeout=120,
         )
 
         if response.status_code == 200:
@@ -225,26 +208,26 @@ def traceability(requirement, golden_data, agents, tasks, output, format, api_ur
                 click.echo()
 
                 # Links sample
-                if result['links']:
+                if result["links"]:
                     click.echo(click.style("추적 링크 (최대 20개):", bold=True))
                     click.echo()
 
-                    for i, link in enumerate(result['links'][:20], 1):
+                    for i, link in enumerate(result["links"][:20], 1):
                         click.echo(
                             f"{i}. {link['source_type']}:{link['source_id']} "
                             f"→ {link['target_type']}:{link['target_id']} "
                             f"({link['confidence']:.0%})"
                         )
 
-                    if len(result['links']) > 20:
+                    if len(result["links"]) > 20:
                         echo_info(f"... and {len(result['links']) - 20} more links")
 
                 click.echo()
 
                 # Gaps
-                if result['gaps']:
+                if result["gaps"]:
                     click.echo(click.style("미구현 항목:", bold=True))
-                    for gap in result['gaps'][:10]:
+                    for gap in result["gaps"][:10]:
                         click.echo(f"  ⚠️  {gap}")
 
             elif format == "json":
@@ -266,12 +249,12 @@ def traceability(requirement, golden_data, agents, tasks, output, format, api_ur
 | # | Source | → | Target | Confidence |
 |---|--------|---|--------|------------|
 """
-                for i, link in enumerate(result['links'][:50], 1):
+                for i, link in enumerate(result["links"][:50], 1):
                     report += f"| {i} | {link['source_type']}:{link['source_id']} | → | {link['target_type']}:{link['target_id']} | {link['confidence']:.0%} |\n"
 
-                if result['gaps']:
+                if result["gaps"]:
                     report += "\n## 미구현 항목\n\n"
-                    for gap in result['gaps']:
+                    for gap in result["gaps"]:
                         report += f"- ⚠️ {gap}\n"
 
                 click.echo(report)
@@ -282,10 +265,14 @@ def traceability(requirement, golden_data, agents, tasks, output, format, api_ur
                 output_path.parent.mkdir(parents=True, exist_ok=True)
 
                 if format == "markdown":
-                    with open(output_path, 'w', encoding='utf-8') as f:
-                        f.write(report if format == "markdown" else json.dumps(result, indent=2, ensure_ascii=False))
+                    with open(output_path, "w", encoding="utf-8") as f:
+                        f.write(
+                            report
+                            if format == "markdown"
+                            else json.dumps(result, indent=2, ensure_ascii=False)
+                        )
                 else:
-                    with open(output_path, 'w', encoding='utf-8') as f:
+                    with open(output_path, "w", encoding="utf-8") as f:
                         if format == "json":
                             json.dump(result, f, indent=2, ensure_ascii=False)
                         else:

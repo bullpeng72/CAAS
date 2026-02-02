@@ -4,44 +4,45 @@ Spec Converter
 RequirementAnalysis를 MultiProjectSpec으로 변환합니다.
 """
 
+import logging
 import re
-from typing import List, Optional, Dict, Any
+from typing import Any, Dict, List, Optional
+
+from caas_framework.knowledge.patterns import get_agent_pattern
+from caas_framework.models import DomainType
 from caas_framework.models.analysis import (
-    RequirementAnalysis,
     AgentRequirement,
-    TaskRequirement,
-    UIPageRequirement,
-    UIComponentRequirement,
     BackendAPIRequirement,
+    RequirementAnalysis,
+    TaskRequirement,
+    UIComponentRequirement,
+    UIPageRequirement,
 )
 from caas_framework.sdd.engine import (
-    ProjectSpec,
-    CrewAISpec,
     AgentSpecModel,
-    TaskSpecModel,
+    CrewAISpec,
     CrewConfigSpec,
+    ProjectSpec,
+    TaskSpecModel,
 )
 from caas_framework.sdd.multi_spec import (
-    MultiProjectSpec,
-    ProjectTemplate,
-    FrontendSpec,
-    FrontendFramework,
-    BackendSpec,
+    APIEndpoint,
     BackendFramework,
+    BackendSpec,
     DatabaseSpec,
     DatabaseType,
-    UIPage,
+    DataField,
+    DataModel,
+    FieldType,
+    FrontendFramework,
+    FrontendSpec,
+    HTTPMethod,
+    MultiProjectSpec,
+    ProjectTemplate,
     UIComponent,
     UIComponentType,
-    APIEndpoint,
-    HTTPMethod,
-    DataModel,
-    DataField,
-    FieldType,
+    UIPage,
 )
-import logging
-from caas_framework.models import DomainType
-from caas_framework.knowledge.patterns import get_agent_pattern
 
 logger = logging.getLogger("caas_framework.sdd.spec_converter")
 
@@ -58,16 +59,16 @@ def clean_name(text: str) -> str:
     """
     # 소문자로 변환하고 공백을 언더스코어로
     name = text.lower().strip()
-    name = re.sub(r'\s+', '_', name)
+    name = re.sub(r"\s+", "_", name)
 
     # 특수문자 제거 (알파벳, 숫자, 언더스코어만 유지)
-    name = re.sub(r'[^a-z0-9_]', '', name)
+    name = re.sub(r"[^a-z0-9_]", "", name)
 
     # 연속된 언더스코어 제거
-    name = re.sub(r'_+', '_', name)
+    name = re.sub(r"_+", "_", name)
 
     # 앞뒤 언더스코어 제거
-    name = name.strip('_')
+    name = name.strip("_")
 
     # 빈 문자열이거나 숫자로 시작하면 prefix 추가
     if not name:
@@ -108,7 +109,7 @@ def map_ui_component_type(component_type_str: str) -> UIComponentType:
         UIComponentType enum 값
     """
     # 문자열 정규화
-    normalized = component_type_str.upper().replace('-', '_').replace(' ', '_')
+    normalized = component_type_str.upper().replace("-", "_").replace(" ", "_")
 
     # 직접 매칭 시도
     try:
@@ -118,20 +119,20 @@ def map_ui_component_type(component_type_str: str) -> UIComponentType:
 
     # 부분 매칭
     mapping = {
-        'TEXT': UIComponentType.TEXT_INPUT,
-        'INPUT': UIComponentType.TEXT_INPUT,
-        'AREA': UIComponentType.TEXT_AREA,
-        'BUTTON': UIComponentType.BUTTON,
-        'BTN': UIComponentType.BUTTON,
-        'SELECT': UIComponentType.SELECT,
-        'DROPDOWN': UIComponentType.SELECT,
-        'TABLE': UIComponentType.TABLE,
-        'CHART': UIComponentType.CHART,
-        'GRAPH': UIComponentType.CHART,
-        'FILE': UIComponentType.FILE_UPLOAD,
-        'UPLOAD': UIComponentType.FILE_UPLOAD,
-        'MARKDOWN': UIComponentType.MARKDOWN,
-        'MD': UIComponentType.MARKDOWN,
+        "TEXT": UIComponentType.TEXT_INPUT,
+        "INPUT": UIComponentType.TEXT_INPUT,
+        "AREA": UIComponentType.TEXT_AREA,
+        "BUTTON": UIComponentType.BUTTON,
+        "BTN": UIComponentType.BUTTON,
+        "SELECT": UIComponentType.SELECT,
+        "DROPDOWN": UIComponentType.SELECT,
+        "TABLE": UIComponentType.TABLE,
+        "CHART": UIComponentType.CHART,
+        "GRAPH": UIComponentType.CHART,
+        "FILE": UIComponentType.FILE_UPLOAD,
+        "UPLOAD": UIComponentType.FILE_UPLOAD,
+        "MARKDOWN": UIComponentType.MARKDOWN,
+        "MD": UIComponentType.MARKDOWN,
     }
 
     for key, value in mapping.items():
@@ -160,7 +161,7 @@ def convert_ui_component(comp: UIComponentRequirement) -> UIComponent:
         component_type=component_type,
         label=comp.label,
         description=comp.description,
-        props={}
+        props={},
     )
 
 
@@ -181,7 +182,7 @@ def convert_ui_page(page: UIPageRequirement) -> UIPage:
         title=page.title,
         description=page.description,
         components=components,
-        layout="single_column"
+        layout="single_column",
     )
 
 
@@ -206,13 +207,12 @@ def convert_backend_api(api: BackendAPIRequirement) -> APIEndpoint:
         method=method,
         description=api.description,
         summary=api.description,
-        tags=["agent"]
+        tags=["agent"],
     )
 
 
 def generate_execution_agents_from_domain(
-    domain_classification: Dict[str, Any],
-    tools: List[str] = None
+    domain_classification: Dict[str, Any], tools: List[str] = None
 ) -> List[AgentRequirement]:
     """
     Domain Classification 결과로부터 Execution Agents를 생성합니다.
@@ -228,7 +228,7 @@ def generate_execution_agents_from_domain(
         List[AgentRequirement]: Execution agent 목록
     """
     try:
-        domain_type = DomainType(domain_classification.get('domain_type'))
+        domain_type = DomainType(domain_classification.get("domain_type"))
         pattern = get_agent_pattern(domain_type)
 
         logger.info(f"🤖 Generating execution agents for domain: {domain_type}")
@@ -236,10 +236,10 @@ def generate_execution_agents_from_domain(
         execution_agents = []
         for agent_info in pattern.execution_agents:
             agent_req = AgentRequirement(
-                role=agent_info['role'],
-                goal=agent_info['goal'],
-                skills=agent_info.get('skills', []),
-                priority=3  # 기본 우선순위
+                role=agent_info["role"],
+                goal=agent_info["goal"],
+                skills=agent_info.get("skills", []),
+                priority=3,  # 기본 우선순위
             )
             execution_agents.append(agent_req)
             logger.info(f"   ✅ Created execution agent: {agent_info['role']}")
@@ -254,8 +254,7 @@ def generate_execution_agents_from_domain(
 
 
 def generate_execution_tasks_from_domain(
-    domain_classification: Dict[str, Any],
-    execution_agents: List[AgentRequirement]
+    domain_classification: Dict[str, Any], execution_agents: List[AgentRequirement]
 ) -> List[TaskRequirement]:
     """
     Domain Classification과 Execution Agents로부터 적절한 Tasks를 생성합니다.
@@ -268,8 +267,8 @@ def generate_execution_tasks_from_domain(
         List[TaskRequirement]: Execution task 목록
     """
     try:
-        domain_type = DomainType(domain_classification.get('domain_type'))
-        core_operations = domain_classification.get('core_operations', [])
+        domain_type = DomainType(domain_classification.get("domain_type"))
+        core_operations = domain_classification.get("core_operations", [])
 
         logger.info(f"⚙️ Generating execution tasks for domain: {domain_type}")
 
@@ -284,7 +283,7 @@ def generate_execution_tasks_from_domain(
                     description=f"Execute main {domain_type.value} operations: {', '.join(core_operations[:3])}",
                     assigned_agent=agent.role,
                     dependencies=[],
-                    output_type="structured_data"
+                    output_type="structured_data",
                 )
             else:
                 # 나머지 agent는 보조 작업
@@ -293,7 +292,7 @@ def generate_execution_tasks_from_domain(
                     description=f"{agent.goal}",
                     assigned_agent=agent.role,
                     dependencies=[execution_tasks[0].name] if execution_tasks else [],
-                    output_type="text"
+                    output_type="text",
                 )
 
             execution_tasks.append(task)
@@ -307,10 +306,7 @@ def generate_execution_tasks_from_domain(
         return []
 
 
-def convert_agent_to_spec(
-    agent: AgentRequirement,
-    tools: List[str] = None
-) -> AgentSpecModel:
+def convert_agent_to_spec(agent: AgentRequirement, tools: List[str] = None) -> AgentSpecModel:
     """
     AgentRequirement를 AgentSpecModel로 변환
 
@@ -336,14 +332,11 @@ You work efficiently and deliver high-quality results."""
         tools=tools or [],
         verbose=True,
         allow_delegation=False,
-        memory=True
+        memory=True,
     )
 
 
-def convert_task_to_spec(
-    task: TaskRequirement,
-    agent_map: Dict[str, str]
-) -> TaskSpecModel:
+def convert_task_to_spec(task: TaskRequirement, agent_map: Dict[str, str]) -> TaskSpecModel:
     """
     TaskRequirement를 TaskSpecModel로 변환
 
@@ -371,9 +364,14 @@ def convert_task_to_spec(
     # 4. 부분 문자열 매칭 (최후의 수단)
     else:
         for key, value in agent_map.items():
-            if task.assigned_agent.lower() in key.lower() or key.lower() in task.assigned_agent.lower():
+            if (
+                task.assigned_agent.lower() in key.lower()
+                or key.lower() in task.assigned_agent.lower()
+            ):
                 agent_id = value
-                logger.info(f"Task '{task_id}': Fuzzy matched agent '{task.assigned_agent}' → '{agent_id}' via '{key}'")
+                logger.info(
+                    f"Task '{task_id}': Fuzzy matched agent '{task.assigned_agent}' → '{agent_id}' via '{key}'"
+                )
                 break
 
     # 5. 폴백: agent_map에서 첫 번째 agent 사용
@@ -388,7 +386,9 @@ def convert_task_to_spec(
         else:
             agent_id = "agent_1"
 
-        logger.warning(f"Task '{task_id}': Could not find agent for '{task.assigned_agent}', using fallback '{agent_id}'")
+        logger.warning(
+            f"Task '{task_id}': Could not find agent for '{task.assigned_agent}', using fallback '{agent_id}'"
+        )
 
     logger.info(f"Task '{task_id}' assigned to agent '{agent_id}'")
 
@@ -399,13 +399,12 @@ def convert_task_to_spec(
         agent=agent_id,
         dependencies=[clean_id(dep, "task") for dep in task.dependencies],
         async_execution=False,
-        human_input=False
+        human_input=False,
     )
 
 
 def convert_analysis_to_multi_spec(
-    analysis: RequirementAnalysis,
-    project_name: Optional[str] = None
+    analysis: RequirementAnalysis, project_name: Optional[str] = None
 ) -> MultiProjectSpec:
     """
     RequirementAnalysis를 MultiProjectSpec으로 변환
@@ -429,11 +428,7 @@ def convert_analysis_to_multi_spec(
     else:
         project_name = clean_name(project_name)
 
-    project = ProjectSpec(
-        name=project_name,
-        description=analysis.summary,
-        domain=analysis.domain
-    )
+    project = ProjectSpec(name=project_name, description=analysis.summary, domain=analysis.domain)
 
     # 2. Agent와 Task 변환
     # Domain Classification이 있으면 Execution Agents 생성
@@ -441,26 +436,31 @@ def convert_analysis_to_multi_spec(
     tasks_to_use = analysis.tasks
 
     if analysis.domain_classification:
-        logger.info(f"🎯 Domain Classification detected: {analysis.domain_classification.get('domain_type')}")
+        logger.info(
+            f"🎯 Domain Classification detected: {analysis.domain_classification.get('domain_type')}"
+        )
 
         # Execution Agents 생성
         execution_agents = generate_execution_agents_from_domain(
-            domain_classification=analysis.domain_classification,
-            tools=analysis.suggested_tools
+            domain_classification=analysis.domain_classification, tools=analysis.suggested_tools
         )
 
         if execution_agents:
-            logger.info(f"✅ Using {len(execution_agents)} execution agents instead of {len(analysis.agents)} build agents")
+            logger.info(
+                f"✅ Using {len(execution_agents)} execution agents instead of {len(analysis.agents)} build agents"
+            )
             agents_to_use = execution_agents
 
             # Execution Tasks 생성
             execution_tasks = generate_execution_tasks_from_domain(
                 domain_classification=analysis.domain_classification,
-                execution_agents=execution_agents
+                execution_agents=execution_agents,
             )
 
             if execution_tasks:
-                logger.info(f"✅ Using {len(execution_tasks)} execution tasks instead of {len(analysis.tasks)} build tasks")
+                logger.info(
+                    f"✅ Using {len(execution_tasks)} execution tasks instead of {len(analysis.tasks)} build tasks"
+                )
                 tasks_to_use = execution_tasks
         else:
             logger.warning("⚠️ Execution agents generation failed, using original build agents")
@@ -495,11 +495,7 @@ def convert_analysis_to_multi_spec(
         project=project,
         agents=agent_specs,
         tasks=task_specs,
-        crew=CrewConfigSpec(
-            process=analysis.workflow_type,
-            verbose=True,
-            memory=True
-        )
+        crew=CrewConfigSpec(process=analysis.workflow_type, verbose=True, memory=True),
     )
 
     # 4. FrontendSpec 생성 (UI 필요한 경우)
@@ -514,33 +510,32 @@ def convert_analysis_to_multi_spec(
 
         # 페이지가 없으면 기본 페이지 추가
         if not pages:
-            pages.append(UIPage(
-                name="main",
-                title="Main Page",
-                description="Main application page",
-                components=[
-                    UIComponent(
-                        component_id="input_text",
-                        component_type=UIComponentType.TEXT_AREA,
-                        label="Input",
-                        description="Enter your input here"
-                    ),
-                    UIComponent(
-                        component_id="submit_button",
-                        component_type=UIComponentType.BUTTON,
-                        label="Submit"
-                    )
-                ]
-            ))
+            pages.append(
+                UIPage(
+                    name="main",
+                    title="Main Page",
+                    description="Main application page",
+                    components=[
+                        UIComponent(
+                            component_id="input_text",
+                            component_type=UIComponentType.TEXT_AREA,
+                            label="Input",
+                            description="Enter your input here",
+                        ),
+                        UIComponent(
+                            component_id="submit_button",
+                            component_type=UIComponentType.BUTTON,
+                            label="Submit",
+                        ),
+                    ],
+                )
+            )
 
         frontend_spec = FrontendSpec(
             framework=FrontendFramework.STREAMLIT,
             pages=pages,
             theme={},
-            api_client={
-                "base_url": "http://localhost:8000",
-                "timeout": "30"
-            }
+            api_client={"base_url": "http://localhost:8000", "timeout": "30"},
         )
 
     # 5. BackendSpec 생성 (Backend 필요한 경우)
@@ -555,25 +550,24 @@ def convert_analysis_to_multi_spec(
 
         # 엔드포인트가 없으면 기본 엔드포인트 추가
         if not endpoints:
-            endpoints.append(APIEndpoint(
-                path="/api/run",
-                method=HTTPMethod.POST,
-                description="Run agent",
-                summary="Execute the agent with provided input",
-                tags=["agent"]
-            ))
+            endpoints.append(
+                APIEndpoint(
+                    path="/api/run",
+                    method=HTTPMethod.POST,
+                    description="Run agent",
+                    summary="Execute the agent with provided input",
+                    tags=["agent"],
+                )
+            )
 
         backend_spec = BackendSpec(
             framework=BackendFramework.FASTAPI,
             api_endpoints=endpoints,
             middlewares=["cors", "logging"],
             dependencies=[],
-            agent_integration={
-                "import_path": "agents.crew",
-                "run_function": "run_crew"
-            },
+            agent_integration={"import_path": "agents.crew", "run_function": "run_crew"},
             database_url="sqlite:///./app.db",
-            use_async=True
+            use_async=True,
         )
 
     # 6. DatabaseSpec 생성 (Database 필요한 경우)
@@ -585,7 +579,7 @@ def convert_analysis_to_multi_spec(
         for table_name in analysis.database_tables:
             # 기본 필드를 가진 간단한 모델 생성
             model = DataModel(
-                model_name=table_name.title().replace('_', ''),
+                model_name=table_name.title().replace("_", ""),
                 table_name=table_name,
                 fields=[
                     DataField(
@@ -593,17 +587,17 @@ def convert_analysis_to_multi_spec(
                         field_type=FieldType.INTEGER,
                         nullable=False,
                         unique=True,
-                        description="Primary key"
+                        description="Primary key",
                     ),
                     DataField(
                         name="created_at",
                         field_type=FieldType.DATETIME,
                         nullable=False,
-                        description="Creation timestamp"
-                    )
+                        description="Creation timestamp",
+                    ),
                 ],
                 relationships=[],
-                indexes=[]
+                indexes=[],
             )
             models.append(model)
 
@@ -611,7 +605,7 @@ def convert_analysis_to_multi_spec(
             db_type=DatabaseType.SQLITE,
             database_url="sqlite:///./app.db",
             models=models,
-            use_alembic=True
+            use_alembic=True,
         )
 
     # 7. ProjectTemplate 결정
@@ -639,7 +633,7 @@ def convert_analysis_to_multi_spec(
         integration_points=[],
         deployment_config=None,
         additional_files={},
-        domain_classification=analysis.domain_classification  # Add domain classification
+        domain_classification=analysis.domain_classification,  # Add domain classification
     )
 
     logger.info("Conversion completed successfully")

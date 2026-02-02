@@ -25,43 +25,43 @@ class Python311Validator:
 
     # Features removed or deprecated in Python 3.11
     DEPRECATED_FEATURES = {
-        r'collections\.Callable': {
-            'replacement': 'collections.abc.Callable',
-            'message': 'collections.Callable removed in Python 3.10+, use collections.abc.Callable',
-            'severity': 'error'
+        r"collections\.Callable": {
+            "replacement": "collections.abc.Callable",
+            "message": "collections.Callable removed in Python 3.10+, use collections.abc.Callable",
+            "severity": "error",
         },
-        r'typing\.io': {
-            'replacement': 'typing.IO',
-            'message': 'typing.io deprecated, use typing.IO',
-            'severity': 'warning'
+        r"typing\.io": {
+            "replacement": "typing.IO",
+            "message": "typing.io deprecated, use typing.IO",
+            "severity": "warning",
         },
-        r'inspect\.getargspec': {
-            'replacement': 'inspect.signature',
-            'message': 'inspect.getargspec removed in Python 3.11, use inspect.signature',
-            'severity': 'error'
+        r"inspect\.getargspec": {
+            "replacement": "inspect.signature",
+            "message": "inspect.getargspec removed in Python 3.11, use inspect.signature",
+            "severity": "error",
         },
-        r'asyncio\.coroutine': {
-            'replacement': 'async def',
-            'message': '@asyncio.coroutine decorator removed, use async def',
-            'severity': 'error'
+        r"asyncio\.coroutine": {
+            "replacement": "async def",
+            "message": "@asyncio.coroutine decorator removed, use async def",
+            "severity": "error",
         },
-        r'loop\.create_task\(coro\(\)\)': {
-            'replacement': 'asyncio.create_task(coro())',
-            'message': 'Deprecated pattern, use asyncio.create_task()',
-            'severity': 'warning'
+        r"loop\.create_task\(coro\(\)\)": {
+            "replacement": "asyncio.create_task(coro())",
+            "message": "Deprecated pattern, use asyncio.create_task()",
+            "severity": "warning",
         },
     }
 
     # Python 3.11 specific features to validate correct usage
     NEW_FEATURES_PATTERNS = {
-        r'except\*': {
-            'name': 'Exception Groups (PEP 654)',
-            'check': 'verify_exception_group_usage'
+        r"except\*": {
+            "name": "Exception Groups (PEP 654)",
+            "check": "verify_exception_group_usage",
         },
-        r'from __future__ import annotations': {
-            'name': 'PEP 563 - Postponed annotation evaluation',
-            'check': 'verify_future_annotations'
-        }
+        r"from __future__ import annotations": {
+            "name": "PEP 563 - Postponed annotation evaluation",
+            "check": "verify_future_annotations",
+        },
     }
 
     def __init__(self):
@@ -86,15 +86,14 @@ class Python311Validator:
 
         # 2. Check deprecated features
         for filepath, content in files.items():
-            if filepath.endswith('.py'):
+            if filepath.endswith(".py"):
                 issues.extend(self._check_deprecated_features(filepath, content))
                 issues.extend(self._check_type_hints(filepath, content))
                 issues.extend(self._check_syntax_compatibility(filepath, content))
                 issues.extend(self._check_encoding(filepath, content))
 
         return ValidationResult(
-            is_valid=len([i for i in issues if i.severity == "error"]) == 0,
-            issues=issues
+            is_valid=len([i for i in issues if i.severity == "error"]) == 0, issues=issues
         )
 
     def _check_python_version(self) -> List[ValidationIssue]:
@@ -102,13 +101,15 @@ class Python311Validator:
         issues = []
 
         if sys.version_info.major != 3 or sys.version_info.minor != 11:
-            issues.append(ValidationIssue(
-                severity="warning",
-                issue_type="python_version",
-                message=f"Framework targets Python 3.11, but running {self.current_python_version}. "
-                        f"Generated code may not be fully compatible.",
-                suggested_fix="Use Python 3.11 environment"
-            ))
+            issues.append(
+                ValidationIssue(
+                    severity="warning",
+                    issue_type="python_version",
+                    message=f"Framework targets Python 3.11, but running {self.current_python_version}. "
+                    f"Generated code may not be fully compatible.",
+                    suggested_fix="Use Python 3.11 environment",
+                )
+            )
 
         return issues
 
@@ -121,16 +122,18 @@ class Python311Validator:
 
             for match in matches:
                 # Calculate line number
-                line_num = content[:match.start()].count('\n') + 1
+                line_num = content[: match.start()].count("\n") + 1
 
-                issues.append(ValidationIssue(
-                    severity=info['severity'],
-                    issue_type="deprecated_feature",
-                    message=info['message'],
-                    file=filepath,
-                    line=line_num,
-                    suggested_fix=info['replacement']
-                ))
+                issues.append(
+                    ValidationIssue(
+                        severity=info["severity"],
+                        issue_type="deprecated_feature",
+                        message=info["message"],
+                        file=filepath,
+                        line=line_num,
+                        suggested_fix=info["replacement"],
+                    )
+                )
 
         return issues
 
@@ -150,15 +153,17 @@ class Python311Validator:
                     if node.returns and self._contains_union_syntax(node.returns):
                         # Verify __future__ import exists if needed
                         if not self._has_future_annotations(tree):
-                            issues.append(ValidationIssue(
-                                severity="info",
-                                issue_type="type_hint_syntax",
-                                message=f"Using | for Union types in {node.name}. "
-                                        f"Consider adding 'from __future__ import annotations' for better compatibility",
-                                file=filepath,
-                                line=node.lineno,
-                                suggested_fix="Add: from __future__ import annotations"
-                            ))
+                            issues.append(
+                                ValidationIssue(
+                                    severity="info",
+                                    issue_type="type_hint_syntax",
+                                    message=f"Using | for Union types in {node.name}. "
+                                    f"Consider adding 'from __future__ import annotations' for better compatibility",
+                                    file=filepath,
+                                    line=node.lineno,
+                                    suggested_fix="Add: from __future__ import annotations",
+                                )
+                            )
 
         except SyntaxError:
             # Syntax errors are handled by syntax validator
@@ -181,9 +186,9 @@ class Python311Validator:
         """Check if module has 'from __future__ import annotations'"""
         for node in ast.walk(tree):
             if isinstance(node, ast.ImportFrom):
-                if node.module == '__future__':
+                if node.module == "__future__":
                     for alias in node.names:
-                        if alias.name == 'annotations':
+                        if alias.name == "annotations":
                             return True
         return False
 
@@ -197,15 +202,17 @@ class Python311Validator:
         matches = re.finditer(fstring_pattern, content)
 
         for match in matches:
-            line_num = content[:match.start()].count('\n') + 1
-            issues.append(ValidationIssue(
-                severity="warning",
-                issue_type="fstring_backslash",
-                message="f-string contains backslash which may cause issues",
-                file=filepath,
-                line=line_num,
-                suggested_fix="Extract backslash to variable or use raw string"
-            ))
+            line_num = content[: match.start()].count("\n") + 1
+            issues.append(
+                ValidationIssue(
+                    severity="warning",
+                    issue_type="fstring_backslash",
+                    message="f-string contains backslash which may cause issues",
+                    file=filepath,
+                    line=line_num,
+                    suggested_fix="Extract backslash to variable or use raw string",
+                )
+            )
 
         return issues
 
@@ -214,20 +221,22 @@ class Python311Validator:
         issues = []
 
         # Check for non-UTF-8 encoding declaration
-        encoding_pattern = r'#.*?coding[:=]\s*([-\w.]+)'
+        encoding_pattern = r"#.*?coding[:=]\s*([-\w.]+)"
         match = re.search(encoding_pattern, content[:200])  # Check first 2 lines
 
         if match:
             encoding = match.group(1).lower()
-            if encoding not in ('utf-8', 'utf8'):
-                issues.append(ValidationIssue(
-                    severity="warning",
-                    issue_type="encoding",
-                    message=f"File uses {encoding} encoding. Python 3.11 defaults to UTF-8",
-                    file=filepath,
-                    line=1,
-                    suggested_fix="Use UTF-8 encoding or remove encoding declaration"
-                ))
+            if encoding not in ("utf-8", "utf8"):
+                issues.append(
+                    ValidationIssue(
+                        severity="warning",
+                        issue_type="encoding",
+                        message=f"File uses {encoding} encoding. Python 3.11 defaults to UTF-8",
+                        file=filepath,
+                        line=1,
+                        suggested_fix="Use UTF-8 encoding or remove encoding declaration",
+                    )
+                )
 
         return issues
 
@@ -246,7 +255,11 @@ class Python311Validator:
         if result.issues:
             lines.append("\nIssues:")
             for issue in result.issues:
-                icon = "❌" if issue.severity == "error" else "⚠️" if issue.severity == "warning" else "ℹ️"
+                icon = (
+                    "❌"
+                    if issue.severity == "error"
+                    else "⚠️" if issue.severity == "warning" else "ℹ️"
+                )
                 location = f"{issue.file}:{issue.line}" if issue.file and issue.line else "general"
                 lines.append(f"  {icon} [{issue.severity.upper()}] {location}")
                 lines.append(f"     {issue.message}")

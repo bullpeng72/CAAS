@@ -5,23 +5,15 @@ Spec-Driven Development 엔진입니다.
 YAML 스펙 파싱, 검증, 생성을 담당합니다.
 """
 
-from typing import Any, Dict, List, Optional
+import logging
 from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 import yaml
 from pydantic import BaseModel, field_validator
 
-import logging
-from caas_framework.utils.security import (
-    safe_yaml_load,
-    validate_project_name,
-    YAMLSecurityError,
-)
-from caas_framework.models import (
-    LLMConfigSpec,
-    AgentSpecModel,
-    TaskSpecModel,
-)
+from caas_framework.models import AgentSpecModel, LLMConfigSpec, TaskSpecModel
+from caas_framework.utils.security import YAMLSecurityError, safe_yaml_load, validate_project_name
 
 logger = logging.getLogger("caas_framework.sdd.engine")
 
@@ -34,12 +26,13 @@ logger = logging.getLogger("caas_framework.sdd.engine")
 
 class CrewConfigSpec(BaseModel):
     """Crew 설정 스펙"""
+
     process: str = "sequential"
     verbose: bool = True
     memory: bool = True
     max_rpm: Optional[int] = None
     share_crew: bool = False
-    
+
     @field_validator("process")
     @classmethod
     def validate_process(cls, v: str) -> str:
@@ -50,6 +43,7 @@ class CrewConfigSpec(BaseModel):
 
 class ProjectSpec(BaseModel):
     """프로젝트 스펙"""
+
     name: str
     description: str
     domain: str
@@ -64,6 +58,7 @@ class ProjectSpec(BaseModel):
 
 class CrewAISpec(BaseModel):
     """CrewAI 전체 스펙"""
+
     version: str = "1.0"
     project: ProjectSpec
     agents: List[AgentSpecModel]
@@ -75,8 +70,10 @@ class CrewAISpec(BaseModel):
 # Validation
 # =============================================================================
 
+
 class ValidationError(BaseModel):
     """검증 오류"""
+
     type: str
     location: str
     message: str
@@ -85,6 +82,7 @@ class ValidationError(BaseModel):
 
 class ValidationResult(BaseModel):
     """검증 결과"""
+
     valid: bool
     errors: List[ValidationError] = []
     warnings: List[str] = []
@@ -93,7 +91,7 @@ class ValidationResult(BaseModel):
 
 class SpecValidator:
     """스펙 검증기"""
-    
+
     def validate(self, spec: CrewAISpec) -> ValidationResult:
         """
         CrewAI 스펙을 검증합니다.
@@ -109,8 +107,9 @@ class SpecValidator:
         suggestions = []
 
         # Tool Registry에서 등록된 도구 가져오기
-        from caas_framework.models.tool_registry import get_enabled_tools_dict, get_all_tools_dict
         from difflib import get_close_matches
+
+        from caas_framework.models.tool_registry import get_all_tools_dict, get_enabled_tools_dict
 
         enabled_tools = set(get_enabled_tools_dict().keys())
         all_tools = set(get_all_tools_dict().keys())
@@ -122,28 +121,34 @@ class SpecValidator:
         # 태스크의 에이전트 참조 검증
         for task in spec.tasks:
             if task.agent not in agent_ids:
-                errors.append(ValidationError(
-                    type="invalid_reference",
-                    location=f"tasks.{task.id}.agent",
-                    message=f"존재하지 않는 에이전트 참조: {task.agent}",
-                ))
+                errors.append(
+                    ValidationError(
+                        type="invalid_reference",
+                        location=f"tasks.{task.id}.agent",
+                        message=f"존재하지 않는 에이전트 참조: {task.agent}",
+                    )
+                )
 
             # 컨텍스트 참조 검증
             for ctx in task.context:
                 if ctx not in task_ids:
-                    errors.append(ValidationError(
-                        type="invalid_reference",
-                        location=f"tasks.{task.id}.context",
-                        message=f"존재하지 않는 태스크 참조: {ctx}",
-                    ))
+                    errors.append(
+                        ValidationError(
+                            type="invalid_reference",
+                            location=f"tasks.{task.id}.context",
+                            message=f"존재하지 않는 태스크 참조: {ctx}",
+                        )
+                    )
 
         # 순환 의존성 검사
         if self._has_circular_dependency(spec.tasks):
-            errors.append(ValidationError(
-                type="circular_dependency",
-                location="tasks",
-                message="태스크 간 순환 의존성이 발견되었습니다.",
-            ))
+            errors.append(
+                ValidationError(
+                    type="circular_dependency",
+                    location="tasks",
+                    message="태스크 간 순환 의존성이 발견되었습니다.",
+                )
+            )
 
         # 에이전트 도구 검증 및 경고
         for agent in spec.agents:
@@ -166,11 +171,13 @@ class SpecValidator:
                                 f"유사한 도구: {', '.join(similar)}"
                             )
 
-                        errors.append(ValidationError(
-                            type="invalid_tool",
-                            location=f"agents.{agent.id}.tools",
-                            message=f"등록되지 않은 도구: {tool}",
-                        ))
+                        errors.append(
+                            ValidationError(
+                                type="invalid_tool",
+                                location=f"agents.{agent.id}.tools",
+                                message=f"등록되지 않은 도구: {tool}",
+                            )
+                        )
 
             # 도구 미할당 경고
             if not agent.tools:
@@ -202,37 +209,38 @@ class SpecValidator:
             warnings=warnings,
             suggestions=suggestions,
         )
-    
+
     def _has_circular_dependency(self, tasks: List[TaskSpecModel]) -> bool:
         """순환 의존성 검사"""
         task_map = {t.id: t.context for t in tasks}
-        
+
         def has_cycle(task_id: str, visited: set, rec_stack: set) -> bool:
             visited.add(task_id)
             rec_stack.add(task_id)
-            
+
             for dep in task_map.get(task_id, []):
                 if dep not in visited:
                     if has_cycle(dep, visited, rec_stack):
                         return True
                 elif dep in rec_stack:
                     return True
-            
+
             rec_stack.remove(task_id)
             return False
-        
+
         visited = set()
         for task_id in task_map:
             if task_id not in visited:
                 if has_cycle(task_id, visited, set()):
                     return True
-        
+
         return False
 
 
 # =============================================================================
 # Parser & Generator
 # =============================================================================
+
 
 class SpecParser:
     """스펙 파서"""
@@ -259,7 +267,7 @@ class SpecParser:
             data = safe_yaml_load(
                 yaml_content,
                 max_size=1_000_000,  # 1MB 제한
-                max_depth=10,         # 10 레벨 최대
+                max_depth=10,  # 10 레벨 최대
             )
             return CrewAISpec(**data)
         except YAMLSecurityError as e:
@@ -271,14 +279,14 @@ class SpecParser:
         except Exception as e:
             self.logger.error(f"스펙 파싱 오류: {e}")
             raise ValueError(f"스펙 파싱 실패: {e}")
-    
+
     def parse_file(self, file_path: Path) -> CrewAISpec:
         """
         YAML 파일을 파싱합니다.
-        
+
         Args:
             file_path: YAML 파일 경로
-        
+
         Returns:
             CrewAISpec: 파싱된 스펙
         """
@@ -295,16 +303,16 @@ class SpecGenerator:
     def generate_yaml(self, spec: CrewAISpec) -> str:
         """
         CrewAI 스펙을 YAML 문자열로 변환합니다.
-        
+
         Args:
             spec: CrewAI 스펙
-        
+
         Returns:
             str: YAML 문자열
         """
         # Pydantic 모델을 딕셔너리로 변환
         data = spec.model_dump(exclude_none=True)
-        
+
         # YAML 헤더 추가
         header = f"""# CrewAI Specification
 # Generated by CAAS - SDD Methodology
@@ -323,13 +331,13 @@ class SpecGenerator:
             sort_keys=False,
             indent=2,
         )
-        
+
         return header + yaml_content
-    
+
     def save_yaml(self, spec: CrewAISpec, file_path: Path) -> None:
         """
         스펙을 YAML 파일로 저장합니다.
-        
+
         Args:
             spec: CrewAI 스펙
             file_path: 저장 경로
@@ -344,35 +352,36 @@ class SpecGenerator:
 # SDD Engine
 # =============================================================================
 
+
 class SDDEngine:
     """
     SDD (Spec-Driven Development) 엔진
-    
+
     스펙 기반 개발 워크플로우:
     1. 스펙 파싱 (YAML → 모델)
     2. 스펙 검증
     3. 스펙 생성/수정
     4. 코드 생성으로 전달
     """
-    
+
     def __init__(self):
         self.logger = logger
         self.parser = SpecParser()
         self.generator = SpecGenerator()
         self.validator = SpecValidator()
-    
+
     def parse(self, yaml_content: str) -> CrewAISpec:
         """YAML을 파싱합니다."""
         return self.parser.parse_yaml(yaml_content)
-    
+
     def validate(self, spec: CrewAISpec) -> ValidationResult:
         """스펙을 검증합니다."""
         return self.validator.validate(spec)
-    
+
     def generate(self, spec: CrewAISpec) -> str:
         """스펙을 YAML로 생성합니다."""
         return self.generator.generate_yaml(spec)
-    
+
     def create_spec_from_analysis(
         self,
         project_name: str,
@@ -405,14 +414,14 @@ class SDDEngine:
             domain=domain,
             core_entities=core_entities,  # Week 3: 추가
         )
-        
+
         # 에이전트 스펙 변환
         agent_specs = []
         for agent in agents:
             llm_config = None
             if "llm_config" in agent and agent["llm_config"]:
                 llm_config = LLMConfigSpec(**agent["llm_config"])
-            
+
             agent_spec = AgentSpecModel(
                 id=agent["id"],
                 role=agent["role"],
@@ -425,7 +434,7 @@ class SDDEngine:
                 allow_delegation=agent.get("allow_delegation", False),
             )
             agent_specs.append(agent_spec)
-        
+
         # 태스크 스펙 변환
         task_specs = []
         for task in tasks:
@@ -438,14 +447,14 @@ class SDDEngine:
                 async_execution=task.get("async_execution", False),
             )
             task_specs.append(task_spec)
-        
+
         # Crew 설정
         crew_config = CrewConfigSpec(
             process=workflow_type,
             verbose=True,
             memory=True,
         )
-        
+
         return CrewAISpec(
             version="1.0",
             project=project,

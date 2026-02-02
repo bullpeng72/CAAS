@@ -5,9 +5,9 @@ Automatically selects the optimal CrewAI Process type (Sequential vs Hierarchica
 based on task dependencies and agent collaboration patterns.
 """
 
-from typing import List, Dict, Set
-from enum import Enum
 import logging
+from enum import Enum
+from typing import Dict, List, Set
 
 from caas_framework.models.specifications import AgentSpecModel, TaskSpecModel
 
@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 
 class ProcessType(str, Enum):
     """CrewAI Process types"""
+
     SEQUENTIAL = "sequential"
     HIERARCHICAL = "hierarchical"
 
@@ -29,7 +30,7 @@ class DependencyAnalysis:
         independent_tasks: List[str],
         max_dependency_depth: int,
         has_circular_deps: bool,
-        complexity_score: float
+        complexity_score: float,
     ):
         self.dependencies = dependencies
         self.independent_tasks = independent_tasks
@@ -46,11 +47,7 @@ class ProcessSelector:
     to select the optimal CrewAI Process type.
     """
 
-    def __init__(
-        self,
-        prefer_hierarchical_threshold: float = 0.5,
-        max_sequential_depth: int = 5
-    ):
+    def __init__(self, prefer_hierarchical_threshold: float = 0.5, max_sequential_depth: int = 5):
         """
         Initialize ProcessSelector.
 
@@ -62,10 +59,7 @@ class ProcessSelector:
         self.max_sequential_depth = max_sequential_depth
 
     def select_process(
-        self,
-        tasks: List[TaskSpecModel],
-        agents: List[AgentSpecModel],
-        verbose: bool = True
+        self, tasks: List[TaskSpecModel], agents: List[AgentSpecModel], verbose: bool = True
     ) -> ProcessType:
         """
         Select the optimal Process type.
@@ -121,7 +115,9 @@ class ProcessSelector:
             logger.info(f"{'='*70}")
             logger.info(f"Total tasks: {len(tasks)}")
             logger.info(f"Total agents: {len(agents)}")
-            logger.info(f"Independent tasks: {len(dep_analysis.independent_tasks)} ({independent_ratio:.1%})")
+            logger.info(
+                f"Independent tasks: {len(dep_analysis.independent_tasks)} ({independent_ratio:.1%})"
+            )
             logger.info(f"Max dependency depth: {dep_analysis.max_dependency_depth}")
             logger.info(f"Complexity score: {dep_analysis.complexity_score:.2f}")
             logger.info(f"Has circular dependencies: {dep_analysis.has_circular_deps}")
@@ -163,10 +159,7 @@ class ProcessSelector:
                         dependencies[task_id].append(other_task.id)
 
         # Find independent tasks
-        independent_tasks = [
-            task_id for task_id, deps in dependencies.items()
-            if not deps
-        ]
+        independent_tasks = [task_id for task_id, deps in dependencies.items() if not deps]
 
         # Calculate max dependency depth
         max_depth = self._calculate_max_depth(dependencies)
@@ -182,7 +175,7 @@ class ProcessSelector:
             independent_tasks=independent_tasks,
             max_dependency_depth=max_depth,
             has_circular_deps=has_circular,
-            complexity_score=complexity
+            complexity_score=complexity,
         )
 
     def _calculate_max_depth(self, dependencies: Dict[str, List[str]]) -> int:
@@ -236,11 +229,7 @@ class ProcessSelector:
 
         return False
 
-    def _calculate_complexity(
-        self,
-        dependencies: Dict[str, List[str]],
-        total_tasks: int
-    ) -> float:
+    def _calculate_complexity(self, dependencies: Dict[str, List[str]], total_tasks: int) -> float:
         """
         Calculate dependency complexity score (0.0-1.0).
 
@@ -266,17 +255,15 @@ class ProcessSelector:
         # Normalize to 0.0-1.0
         # High complexity = many dependencies, high variance, many dependent tasks
         complexity = (
-            (avg_deps / max(total_tasks, 1)) * 0.4 +  # 40% weight on avg deps
-            dependency_ratio * 0.3 +  # 30% weight on dependency ratio
-            (max_deps / max(total_tasks, 1)) * 0.3  # 30% weight on max deps
+            (avg_deps / max(total_tasks, 1)) * 0.4  # 40% weight on avg deps
+            + dependency_ratio * 0.3  # 30% weight on dependency ratio
+            + (max_deps / max(total_tasks, 1)) * 0.3  # 30% weight on max deps
         )
 
         return min(complexity, 1.0)
 
     def get_process_recommendation_summary(
-        self,
-        tasks: List[TaskSpecModel],
-        agents: List[AgentSpecModel]
+        self, tasks: List[TaskSpecModel], agents: List[AgentSpecModel]
     ) -> Dict[str, any]:
         """
         Get detailed recommendation summary.
@@ -292,21 +279,20 @@ class ProcessSelector:
         selected_process = self.select_process(tasks, agents, verbose=False)
 
         return {
-            'selected_process': selected_process.value,
-            'total_tasks': len(tasks),
-            'total_agents': len(agents),
-            'independent_tasks': len(dep_analysis.independent_tasks),
-            'independent_ratio': len(dep_analysis.independent_tasks) / len(tasks) if tasks else 0,
-            'max_dependency_depth': dep_analysis.max_dependency_depth,
-            'complexity_score': dep_analysis.complexity_score,
-            'has_circular_dependencies': dep_analysis.has_circular_deps,
-            'dependencies': dep_analysis.dependencies
+            "selected_process": selected_process.value,
+            "total_tasks": len(tasks),
+            "total_agents": len(agents),
+            "independent_tasks": len(dep_analysis.independent_tasks),
+            "independent_ratio": len(dep_analysis.independent_tasks) / len(tasks) if tasks else 0,
+            "max_dependency_depth": dep_analysis.max_dependency_depth,
+            "complexity_score": dep_analysis.complexity_score,
+            "has_circular_dependencies": dep_analysis.has_circular_deps,
+            "dependencies": dep_analysis.dependencies,
         }
 
 
 def create_process_selector(
-    prefer_hierarchical_threshold: float = 0.5,
-    max_sequential_depth: int = 5
+    prefer_hierarchical_threshold: float = 0.5, max_sequential_depth: int = 5
 ) -> ProcessSelector:
     """
     Factory function to create ProcessSelector.
@@ -320,5 +306,5 @@ def create_process_selector(
     """
     return ProcessSelector(
         prefer_hierarchical_threshold=prefer_hierarchical_threshold,
-        max_sequential_depth=max_sequential_depth
+        max_sequential_depth=max_sequential_depth,
     )

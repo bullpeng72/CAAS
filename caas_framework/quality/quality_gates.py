@@ -6,15 +6,16 @@ Ensures that each phase meets minimum quality standards before proceeding.
 """
 
 import logging
-from typing import Any, Dict, List, Optional
 from dataclasses import dataclass, field
 from enum import Enum
+from typing import Any, Dict, List, Optional
 
 from caas_framework.agents.base import AgentPhase
 
 
 class GateStatus(str, Enum):
     """Quality gate status"""
+
     PASSED = "passed"
     FAILED = "failed"
     WARNING = "warning"
@@ -23,16 +24,18 @@ class GateStatus(str, Enum):
 
 class MetricType(str, Enum):
     """Types of quality metrics"""
-    SCORE = "score"              # Numeric score (0-10)
-    PERCENTAGE = "percentage"    # Percentage (0-100)
-    COUNT = "count"              # Integer count
-    BOOLEAN = "boolean"          # True/False
-    COVERAGE = "coverage"        # Coverage percentage (0-100)
+
+    SCORE = "score"  # Numeric score (0-10)
+    PERCENTAGE = "percentage"  # Percentage (0-100)
+    COUNT = "count"  # Integer count
+    BOOLEAN = "boolean"  # True/False
+    COVERAGE = "coverage"  # Coverage percentage (0-100)
 
 
 @dataclass
 class QualityMetric:
     """A single quality metric with threshold"""
+
     name: str
     metric_type: MetricType
     threshold: float
@@ -59,6 +62,7 @@ class QualityMetric:
 @dataclass
 class GateEvaluation:
     """Result of quality gate evaluation"""
+
     phase: AgentPhase
     status: GateStatus
     metrics: List[QualityMetric]
@@ -74,10 +78,7 @@ class GateEvaluation:
         if self.status == GateStatus.SKIPPED:
             return True
 
-        critical_failures = [
-            m for m in self.metrics
-            if m.critical and not m.passed
-        ]
+        critical_failures = [m for m in self.metrics if m.critical and not m.passed]
         return len(critical_failures) == 0
 
     @property
@@ -106,10 +107,10 @@ class GateEvaluation:
                     "threshold": m.threshold,
                     "actual": m.actual_value,
                     "passed": m.passed,
-                    "critical": m.critical
+                    "critical": m.critical,
                 }
                 for m in self.metrics
-            ]
+            ],
         }
 
 
@@ -125,7 +126,7 @@ class QualityGate:
         phase: AgentPhase,
         metrics: List[QualityMetric],
         min_pass_rate: float = 80.0,  # Minimum % of metrics that must pass
-        logger: Optional[logging.Logger] = None
+        logger: Optional[logging.Logger] = None,
     ):
         """
         Initialize quality gate.
@@ -142,9 +143,7 @@ class QualityGate:
         self.logger = logger or logging.getLogger(__name__)
 
     def evaluate(
-        self,
-        output: Dict[str, Any],
-        context: Optional[Dict[str, Any]] = None
+        self, output: Dict[str, Any], context: Optional[Dict[str, Any]] = None
     ) -> GateEvaluation:
         """
         Evaluate phase output against quality gate.
@@ -177,7 +176,7 @@ class QualityGate:
                 actual_value=actual_value,
                 weight=metric.weight,
                 critical=metric.critical,
-                description=metric.description
+                description=metric.description,
             )
 
             evaluated_metrics.append(evaluated_metric)
@@ -228,7 +227,7 @@ class QualityGate:
             failed_metrics=failed,
             warnings=warnings,
             recommendations=recommendations,
-            overall_score=overall_score
+            overall_score=overall_score,
         )
 
         # Log result
@@ -246,10 +245,7 @@ class QualityGate:
         return evaluation
 
     def _get_metric_value(
-        self,
-        metric: QualityMetric,
-        output: Dict[str, Any],
-        context: Optional[Dict[str, Any]]
+        self, metric: QualityMetric, output: Dict[str, Any], context: Optional[Dict[str, Any]]
     ) -> Optional[float]:
         """Extract metric value from output or context"""
 
@@ -313,10 +309,7 @@ class QualityGate:
         if total_weight == 0:
             return 0.0
 
-        weighted_sum = sum(
-            (m.actual_value or 0.0) * m.weight
-            for m in metrics
-        )
+        weighted_sum = sum((m.actual_value or 0.0) * m.weight for m in metrics)
 
         return weighted_sum / total_weight
 
@@ -332,7 +325,7 @@ class QualityGateSystem:
         self,
         enable_gates: bool = True,
         strict_mode: bool = False,  # If True, block on any failure
-        logger: Optional[logging.Logger] = None
+        logger: Optional[logging.Logger] = None,
     ):
         """
         Initialize quality gate system.
@@ -364,7 +357,7 @@ class QualityGateSystem:
                     threshold=7.0,
                     weight=1.5,
                     critical=True,
-                    description="Requirements must be clear and unambiguous"
+                    description="Requirements must be clear and unambiguous",
                 ),
                 QualityMetric(
                     name="feature_completeness",
@@ -372,7 +365,7 @@ class QualityGateSystem:
                     threshold=7.0,
                     weight=1.5,
                     critical=True,
-                    description="All necessary features identified"
+                    description="All necessary features identified",
                 ),
                 QualityMetric(
                     name="golden_data_alignment",
@@ -380,10 +373,10 @@ class QualityGateSystem:
                     threshold=80.0,
                     weight=2.0,
                     critical=True,
-                    description="Alignment with golden data requirements"
+                    description="Alignment with golden data requirements",
                 ),
             ],
-            min_pass_rate=85.0
+            min_pass_rate=85.0,
         )
 
         # ARCHITECTURE Phase Gate
@@ -396,7 +389,7 @@ class QualityGateSystem:
                     threshold=7.0,
                     weight=1.5,
                     critical=True,
-                    description="Component responsibilities clearly defined"
+                    description="Component responsibilities clearly defined",
                 ),
                 QualityMetric(
                     name="architectural_coherence",
@@ -404,7 +397,7 @@ class QualityGateSystem:
                     threshold=7.0,
                     weight=1.5,
                     critical=True,
-                    description="Components interact logically"
+                    description="Components interact logically",
                 ),
                 QualityMetric(
                     name="scalability_score",
@@ -412,10 +405,10 @@ class QualityGateSystem:
                     threshold=6.0,
                     weight=1.0,
                     critical=False,
-                    description="Architecture supports scaling"
+                    description="Architecture supports scaling",
                 ),
             ],
-            min_pass_rate=80.0
+            min_pass_rate=80.0,
         )
 
         # DESIGN Phase Gate
@@ -428,7 +421,7 @@ class QualityGateSystem:
                     threshold=7.0,
                     weight=2.0,
                     critical=True,
-                    description="Agent roles are clear and non-overlapping"
+                    description="Agent roles are clear and non-overlapping",
                 ),
                 QualityMetric(
                     name="task_completeness",
@@ -436,7 +429,7 @@ class QualityGateSystem:
                     threshold=7.0,
                     weight=2.0,
                     critical=True,
-                    description="All necessary tasks defined"
+                    description="All necessary tasks defined",
                 ),
                 QualityMetric(
                     name="dependency_correctness",
@@ -444,7 +437,7 @@ class QualityGateSystem:
                     threshold=8.0,
                     weight=1.5,
                     critical=True,
-                    description="Task dependencies are logical and acyclic"
+                    description="Task dependencies are logical and acyclic",
                 ),
                 QualityMetric(
                     name="tool_appropriateness",
@@ -452,10 +445,10 @@ class QualityGateSystem:
                     threshold=7.0,
                     weight=1.0,
                     critical=False,
-                    description="Tools appropriate for agent roles"
+                    description="Tools appropriate for agent roles",
                 ),
             ],
-            min_pass_rate=85.0
+            min_pass_rate=85.0,
         )
 
         # DELIVERY Phase Gate
@@ -468,7 +461,7 @@ class QualityGateSystem:
                     threshold=7.0,
                     weight=2.0,
                     critical=True,
-                    description="Code is readable and well-structured"
+                    description="Code is readable and well-structured",
                 ),
                 QualityMetric(
                     name="implementation_completeness",
@@ -476,7 +469,7 @@ class QualityGateSystem:
                     threshold=8.0,
                     weight=2.0,
                     critical=True,
-                    description="All required features implemented"
+                    description="All required features implemented",
                 ),
                 QualityMetric(
                     name="security_score",
@@ -484,7 +477,7 @@ class QualityGateSystem:
                     threshold=8.0,
                     weight=1.5,
                     critical=True,
-                    description="No critical security issues"
+                    description="No critical security issues",
                 ),
                 QualityMetric(
                     name="test_coverage",
@@ -492,10 +485,10 @@ class QualityGateSystem:
                     threshold=70.0,
                     weight=1.0,
                     critical=False,
-                    description="Adequate test coverage"
+                    description="Adequate test coverage",
                 ),
             ],
-            min_pass_rate=80.0
+            min_pass_rate=80.0,
         )
 
         # QUALITY_ASSURANCE Phase Gate
@@ -508,7 +501,7 @@ class QualityGateSystem:
                     threshold=7.0,
                     weight=2.0,
                     critical=True,
-                    description="All critical aspects tested"
+                    description="All critical aspects tested",
                 ),
                 QualityMetric(
                     name="test_correctness",
@@ -516,7 +509,7 @@ class QualityGateSystem:
                     threshold=8.0,
                     weight=1.5,
                     critical=True,
-                    description="Test assertions are correct"
+                    description="Test assertions are correct",
                 ),
                 QualityMetric(
                     name="coverage_percentage",
@@ -524,19 +517,16 @@ class QualityGateSystem:
                     threshold=75.0,
                     weight=1.0,
                     critical=False,
-                    description="Test coverage percentage"
+                    description="Test coverage percentage",
                 ),
             ],
-            min_pass_rate=85.0
+            min_pass_rate=85.0,
         )
 
         return gates
 
     def evaluate_gate(
-        self,
-        phase: AgentPhase,
-        output: Dict[str, Any],
-        context: Optional[Dict[str, Any]] = None
+        self, phase: AgentPhase, output: Dict[str, Any], context: Optional[Dict[str, Any]] = None
     ) -> GateEvaluation:
         """
         Evaluate quality gate for a phase.
@@ -552,20 +542,14 @@ class QualityGateSystem:
         if not self.enable_gates:
             self.logger.info(f"Quality gates disabled, skipping {phase.name} gate")
             return GateEvaluation(
-                phase=phase,
-                status=GateStatus.SKIPPED,
-                metrics=[],
-                overall_score=10.0
+                phase=phase, status=GateStatus.SKIPPED, metrics=[], overall_score=10.0
             )
 
         gate = self.gates.get(phase)
         if not gate:
             self.logger.warning(f"No quality gate defined for {phase.name}")
             return GateEvaluation(
-                phase=phase,
-                status=GateStatus.SKIPPED,
-                metrics=[],
-                overall_score=10.0
+                phase=phase, status=GateStatus.SKIPPED, metrics=[], overall_score=10.0
             )
 
         # Evaluate gate
@@ -573,9 +557,7 @@ class QualityGateSystem:
 
         # Strict mode: any failure blocks
         if self.strict_mode and evaluation.status == GateStatus.FAILED:
-            self.logger.error(
-                f"🚫 Strict mode: blocking {phase.name} due to gate failure"
-            )
+            self.logger.error(f"🚫 Strict mode: blocking {phase.name} due to gate failure")
 
         return evaluation
 
@@ -593,12 +575,9 @@ class QualityGateSystem:
 
 # ==================== Convenience Functions ====================
 
+
 def create_quality_gate_system(
-    enable_gates: bool = True,
-    strict_mode: bool = False
+    enable_gates: bool = True, strict_mode: bool = False
 ) -> QualityGateSystem:
     """Create quality gate system with default gates"""
-    return QualityGateSystem(
-        enable_gates=enable_gates,
-        strict_mode=strict_mode
-    )
+    return QualityGateSystem(enable_gates=enable_gates, strict_mode=strict_mode)

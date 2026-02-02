@@ -4,42 +4,46 @@ BMAD Agent Personality Customization
 에이전트 성격 커스터마이징 (BMAD 방법론 확장)
 """
 
-from typing import Optional, Dict, Any
-from pydantic import BaseModel, Field
-from enum import Enum
-
 import logging
+from enum import Enum
+from typing import Any, Dict, Optional
+
+from pydantic import BaseModel, Field
 
 logger = logging.getLogger("caas_framework.bmad.personality")
 
 
 class PersonalityTone(str, Enum):
     """성격 톤"""
-    PROFESSIONAL = "professional"      # 전문적이고 격식있는
-    FRIENDLY = "friendly"             # 친근하고 접근하기 쉬운
-    TECHNICAL = "technical"           # 기술적이고 정확한
-    CREATIVE = "creative"             # 창의적이고 혁신적인
-    ANALYTICAL = "analytical"         # 분석적이고 논리적인
-    ENTHUSIASTIC = "enthusiastic"     # 열정적이고 긍정적인
+
+    PROFESSIONAL = "professional"  # 전문적이고 격식있는
+    FRIENDLY = "friendly"  # 친근하고 접근하기 쉬운
+    TECHNICAL = "technical"  # 기술적이고 정확한
+    CREATIVE = "creative"  # 창의적이고 혁신적인
+    ANALYTICAL = "analytical"  # 분석적이고 논리적인
+    ENTHUSIASTIC = "enthusiastic"  # 열정적이고 긍정적인
 
 
 class VerbosityLevel(str, Enum):
     """상세도 레벨"""
-    CONCISE = "concise"               # 간결하고 핵심만
-    MODERATE = "moderate"             # 적당한 설명
-    DETAILED = "detailed"             # 상세한 설명
-    VERBOSE = "verbose"               # 매우 자세한 설명
+
+    CONCISE = "concise"  # 간결하고 핵심만
+    MODERATE = "moderate"  # 적당한 설명
+    DETAILED = "detailed"  # 상세한 설명
+    VERBOSE = "verbose"  # 매우 자세한 설명
 
 
 class RiskTolerance(str, Enum):
     """리스크 허용도"""
-    CONSERVATIVE = "conservative"     # 보수적, 안전 우선
-    BALANCED = "balanced"             # 균형잡힌 접근
-    AGGRESSIVE = "aggressive"         # 공격적, 혁신 우선
+
+    CONSERVATIVE = "conservative"  # 보수적, 안전 우선
+    BALANCED = "balanced"  # 균형잡힌 접근
+    AGGRESSIVE = "aggressive"  # 공격적, 혁신 우선
 
 
 class AgentPersonality(BaseModel):
     """에이전트 성격"""
+
     tone: PersonalityTone = PersonalityTone.PROFESSIONAL
     verbosity: VerbosityLevel = VerbosityLevel.MODERATE
     creativity: float = Field(default=0.7, ge=0.0, le=1.0, description="LLM temperature (창의성)")
@@ -53,6 +57,7 @@ class AgentPersonality(BaseModel):
 
 class PersonalityPreset(str, Enum):
     """성격 프리셋"""
+
     RESEARCHER = "researcher"
     ANALYST = "analyst"
     CREATIVE_WRITER = "creative_writer"
@@ -81,7 +86,7 @@ class PersonalityManager:
                 creativity=0.5,  # 낮은 창의성 (정확성 우선)
                 risk_tolerance=RiskTolerance.CONSERVATIVE,
                 formality=0.8,
-                empathy=0.3
+                empathy=0.3,
             ),
             PersonalityPreset.ANALYST: AgentPersonality(
                 tone=PersonalityTone.TECHNICAL,
@@ -89,7 +94,7 @@ class PersonalityManager:
                 creativity=0.6,
                 risk_tolerance=RiskTolerance.CONSERVATIVE,
                 formality=0.9,
-                empathy=0.2
+                empathy=0.2,
             ),
             PersonalityPreset.CREATIVE_WRITER: AgentPersonality(
                 tone=PersonalityTone.CREATIVE,
@@ -97,7 +102,7 @@ class PersonalityManager:
                 creativity=0.9,  # 높은 창의성
                 risk_tolerance=RiskTolerance.AGGRESSIVE,
                 formality=0.4,
-                empathy=0.8
+                empathy=0.8,
             ),
             PersonalityPreset.TECHNICAL_EXPERT: AgentPersonality(
                 tone=PersonalityTone.TECHNICAL,
@@ -105,7 +110,7 @@ class PersonalityManager:
                 creativity=0.4,
                 risk_tolerance=RiskTolerance.CONSERVATIVE,
                 formality=0.8,
-                empathy=0.1
+                empathy=0.1,
             ),
             PersonalityPreset.CUSTOMER_SERVICE: AgentPersonality(
                 tone=PersonalityTone.FRIENDLY,
@@ -113,7 +118,7 @@ class PersonalityManager:
                 creativity=0.6,
                 risk_tolerance=RiskTolerance.BALANCED,
                 formality=0.5,
-                empathy=0.9  # 높은 공감
+                empathy=0.9,  # 높은 공감
             ),
             PersonalityPreset.STARTUP_FOUNDER: AgentPersonality(
                 tone=PersonalityTone.ENTHUSIASTIC,
@@ -121,7 +126,7 @@ class PersonalityManager:
                 creativity=0.8,
                 risk_tolerance=RiskTolerance.AGGRESSIVE,
                 formality=0.3,
-                empathy=0.7
+                empathy=0.7,
             ),
             PersonalityPreset.FINANCE_ADVISOR: AgentPersonality(
                 tone=PersonalityTone.PROFESSIONAL,
@@ -129,7 +134,7 @@ class PersonalityManager:
                 creativity=0.4,
                 risk_tolerance=RiskTolerance.CONSERVATIVE,
                 formality=0.9,
-                empathy=0.6
+                empathy=0.6,
             ),
         }
 
@@ -145,11 +150,7 @@ class PersonalityManager:
         """
         return self.presets.get(preset, AgentPersonality())
 
-    def customize_backstory(
-        self,
-        base_backstory: str,
-        personality: AgentPersonality
-    ) -> str:
+    def customize_backstory(self, base_backstory: str, personality: AgentPersonality) -> str:
         """
         성격에 맞게 백스토리 커스터마이즈
 
@@ -167,40 +168,40 @@ class PersonalityManager:
             PersonalityTone.PROFESSIONAL: [
                 "with a proven track record",
                 "highly experienced",
-                "dedicated professional"
+                "dedicated professional",
             ],
             PersonalityTone.FRIENDLY: [
                 "approachable and collaborative",
                 "team-oriented",
-                "always happy to help"
+                "always happy to help",
             ],
             PersonalityTone.TECHNICAL: [
                 "technically proficient",
                 "detail-oriented",
-                "precision-focused"
+                "precision-focused",
             ],
             PersonalityTone.CREATIVE: [
                 "innovative thinker",
                 "creative problem solver",
-                "outside-the-box approach"
+                "outside-the-box approach",
             ],
             PersonalityTone.ANALYTICAL: [
                 "data-driven decision maker",
                 "methodical analyst",
-                "evidence-based approach"
+                "evidence-based approach",
             ],
             PersonalityTone.ENTHUSIASTIC: [
                 "passionate about",
                 "energetic and motivated",
-                "driven by excitement"
+                "driven by excitement",
             ],
         }
 
         # 상세도에 따른 수정
         if personality.verbosity == VerbosityLevel.CONCISE:
             # 간결하게: 첫 2문장만
-            sentences = base_backstory.split('.')
-            customized = '. '.join(sentences[:2]) + '.'
+            sentences = base_backstory.split(".")
+            customized = ". ".join(sentences[:2]) + "."
         elif personality.verbosity == VerbosityLevel.VERBOSE:
             # 자세하게: 추가 문장
             modifier = tone_modifiers.get(personality.tone, ["experienced"])[0]
@@ -271,9 +272,7 @@ class PersonalityManager:
         return self.get_preset(preset)
 
     def blend_personalities(
-        self,
-        personalities: list[AgentPersonality],
-        weights: Optional[list[float]] = None
+        self, personalities: list[AgentPersonality], weights: Optional[list[float]] = None
     ) -> AgentPersonality:
         """
         여러 성격을 혼합

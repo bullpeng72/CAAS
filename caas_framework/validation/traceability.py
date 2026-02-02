@@ -6,12 +6,13 @@ Requirement Traceability Matrix
 
 import re
 from typing import Any, Dict, List, Optional, Set
+
 from pydantic import BaseModel, Field
 
 from ..models.specifications import (
+    AgentSpecModel,
     ConcretizedRequirement,
     FeatureSpec,
-    AgentSpecModel,
     TaskSpecModel,
 )
 from ..utils import ObjectAccessor, TextNormalizer
@@ -77,16 +78,12 @@ class TraceabilityMatrix:
             self._link_index[key] = []
         self._link_index[key].append(link)
 
-    def get_trace_forward(
-        self, source_type: str, source_id: str
-    ) -> List[TraceabilityLink]:
+    def get_trace_forward(self, source_type: str, source_id: str) -> List[TraceabilityLink]:
         """전방 추적 (Requirement → Code)"""
         key = f"{source_type}:{source_id}"
         return self._link_index.get(key, [])
 
-    def get_trace_backward(
-        self, target_type: str, target_id: str
-    ) -> List[TraceabilityLink]:
+    def get_trace_backward(self, target_type: str, target_id: str) -> List[TraceabilityLink]:
         """후방 추적 (Code → Requirement)"""
         return [
             link
@@ -94,9 +91,7 @@ class TraceabilityMatrix:
             if link.target_type == target_type and link.target_id == target_id
         ]
 
-    def get_full_trace_path(
-        self, source_type: str, source_id: str
-    ) -> List[List[TraceabilityLink]]:
+    def get_full_trace_path(self, source_type: str, source_id: str) -> List[List[TraceabilityLink]]:
         """전체 추적 경로 (모든 경로)"""
         paths = []
         self._find_paths(source_type, source_id, [], paths)
@@ -262,8 +257,8 @@ class TraceabilityManager:
                 link_type="derives_from",
                 metadata={
                     "requirement_text": requirement[:100],  # 요구사항 텍스트 저장
-                    "feature_name": feature_name  # Feature 이름 저장
-                }
+                    "feature_name": feature_name,  # Feature 이름 저장
+                },
             )
 
         # 2. Feature → Task (description 기반 매칭)
@@ -289,8 +284,8 @@ class TraceabilityManager:
                     confidence=confidence,
                     metadata={
                         "feature_name": feature_name,
-                        "task_description": task_description[:100]
-                    }
+                        "task_description": task_description[:100],
+                    },
                 )
 
         # 3. Agent → Task
@@ -312,10 +307,7 @@ class TraceabilityManager:
                 task_agent,
                 "task",
                 task_id,
-                metadata={
-                    "agent_role": agent_role,
-                    "task_description": task_description[:100]
-                }
+                metadata={"agent_role": agent_role, "task_description": task_description[:100]},
             )
 
         # 4. Task → Code (generated_code가 있으면)
@@ -346,14 +338,10 @@ class TraceabilityManager:
             feature_id = ObjectAccessor.get_value(feature, "id", "")
             feature_name = ObjectAccessor.get_value(feature, "name", "")
             feature_description = ObjectAccessor.get_value(feature, "description", "")
-            feature_keywords = self._extract_keywords(
-                f"{feature_name} {feature_description}"
-            )
+            feature_keywords = self._extract_keywords(f"{feature_name} {feature_description}")
 
             # 키워드 매칭 개수
-            match_count = sum(
-                1 for keyword in feature_keywords if keyword in task_text
-            )
+            match_count = sum(1 for keyword in feature_keywords if keyword in task_text)
 
             if match_count > 0:
                 confidence = min(1.0, match_count / max(len(feature_keywords), 1))
@@ -464,11 +452,10 @@ class TraceabilityManager:
             # Create Mermaid-compatible node IDs
             source_node_id = TextNormalizer.sanitize_mermaid_id(
                 f"{link.source_type}_{link.source_id}",
-                allow_korean=False  # ASCII only for node IDs
+                allow_korean=False,  # ASCII only for node IDs
             )
             target_node_id = TextNormalizer.sanitize_mermaid_id(
-                f"{link.target_type}_{link.target_id}",
-                allow_korean=False
+                f"{link.target_type}_{link.target_id}", allow_korean=False
             )
 
             # Skip if sanitized IDs are empty or invalid
@@ -492,8 +479,7 @@ class TraceabilityManager:
                     source_display_name = link.metadata["agent_role"]
 
                 source_label = TextNormalizer.clean_mermaid_label(
-                    f"{link.source_type}: {source_display_name}",
-                    max_length=40
+                    f"{link.source_type}: {source_display_name}", max_length=40
                 )
                 nodes[source_node_id] = source_label or link.source_type
 
@@ -509,8 +495,7 @@ class TraceabilityManager:
                     target_display_name = link.metadata["agent_role"]
 
                 target_label = TextNormalizer.clean_mermaid_label(
-                    f"{link.target_type}: {target_display_name}",
-                    max_length=40
+                    f"{link.target_type}: {target_display_name}", max_length=40
                 )
                 nodes[target_node_id] = target_label or link.target_type
 

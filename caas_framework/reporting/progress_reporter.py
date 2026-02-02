@@ -7,9 +7,9 @@ Provides configurable verbosity levels and rich console output.
 
 import sys
 import time
-from enum import Enum
-from typing import Optional, Dict, Any, List
 from dataclasses import dataclass, field
+from enum import Enum
+from typing import Any, Dict, List, Optional
 
 from caas_framework.reporting.interfaces import VerbosityLevel
 
@@ -17,6 +17,7 @@ try:
     from rich.console import Console
     from rich.panel import Panel
     from rich.table import Table
+
     RICH_AVAILABLE = True
 except ImportError:
     RICH_AVAILABLE = False
@@ -24,6 +25,7 @@ except ImportError:
 
 class PhaseStatus(Enum):
     """Phase execution status"""
+
     PENDING = "pending"
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
@@ -34,6 +36,7 @@ class PhaseStatus(Enum):
 @dataclass
 class PhaseProgress:
     """Progress information for a single phase"""
+
     phase_name: str
     status: PhaseStatus = PhaseStatus.PENDING
     start_time: Optional[float] = None
@@ -62,7 +65,7 @@ class PhaseProgress:
             PhaseStatus.IN_PROGRESS: "🔄",
             PhaseStatus.COMPLETED: "✅",
             PhaseStatus.FAILED: "❌",
-            PhaseStatus.SKIPPED: "⏭️"
+            PhaseStatus.SKIPPED: "⏭️",
         }.get(self.status, "❓")
 
 
@@ -84,10 +87,7 @@ class ProgressReporter:
     """
 
     def __init__(
-        self,
-        verbosity: VerbosityLevel = VerbosityLevel.NORMAL,
-        use_rich: bool = True,
-        file=None
+        self, verbosity: VerbosityLevel = VerbosityLevel.NORMAL, use_rich: bool = True, file=None
     ):
         """
         Initialize progress reporter
@@ -144,10 +144,7 @@ class ProgressReporter:
             print(file=self.file)
 
     def end_workflow(
-        self,
-        success: bool,
-        duration: float,
-        summary: Optional[Dict[str, Any]] = None
+        self, success: bool, duration: float, summary: Optional[Dict[str, Any]] = None
     ) -> None:
         """
         End workflow reporting (Protocol-compatible method).
@@ -200,7 +197,7 @@ class ProgressReporter:
                     PhaseStatus.FAILED: "red",
                     PhaseStatus.IN_PROGRESS: "yellow",
                     PhaseStatus.PENDING: "dim",
-                    PhaseStatus.SKIPPED: "dim"
+                    PhaseStatus.SKIPPED: "dim",
                 }.get(phase.status, "white")
 
                 table.add_row(
@@ -208,7 +205,7 @@ class ProgressReporter:
                     f"[{status_color}]{phase.status_icon} {phase.status.value}[/{status_color}]",
                     duration_str,
                     phase.agent_name or "-",
-                    issues_str
+                    issues_str,
                 )
 
             self.console.print(table)
@@ -220,7 +217,7 @@ class ProgressReporter:
                     f"Duration: {duration:.2f}s\n"
                     f"Phases: {completed}/{len(self.phases)} completed\n"
                     f"Errors: {total_errors}, Warnings: {total_warnings}",
-                    border_style="green"
+                    border_style="green",
                 )
             else:
                 result_panel = Panel(
@@ -228,7 +225,7 @@ class ProgressReporter:
                     f"Duration: {duration:.2f}s\n"
                     f"Phases: {completed}/{len(self.phases)} completed, {failed} failed\n"
                     f"Errors: {total_errors}, Warnings: {total_warnings}",
-                    border_style="red"
+                    border_style="red",
                 )
 
             self.console.print(result_panel)
@@ -241,20 +238,28 @@ class ProgressReporter:
 
             for phase_name, phase in self.phases.items():
                 duration_str = f"{phase.duration:.2f}s" if phase.duration else "N/A"
-                print(f"{phase.status_icon} {phase_name}: {phase.status.value} ({duration_str})", file=self.file)
+                print(
+                    f"{phase.status_icon} {phase_name}: {phase.status.value} ({duration_str})",
+                    file=self.file,
+                )
 
             print("=" * 70, file=self.file)
             icon = "✅" if success else "❌"
             status = "Completed Successfully" if success else "Failed"
             print(f"{icon} {status} (Duration: {duration:.2f}s)", file=self.file)
-            print(f"Phases: {completed}/{len(self.phases)}, Errors: {total_errors}, Warnings: {total_warnings}", file=self.file)
+            print(
+                f"Phases: {completed}/{len(self.phases)}, Errors: {total_errors}, Warnings: {total_warnings}",
+                file=self.file,
+            )
             print("=" * 70, file=self.file)
 
     # ===========================================
     # Phase-level reporting
     # ===========================================
 
-    def start_phase(self, phase_name: str, agent_name: Optional[str] = None, description: Optional[str] = None):
+    def start_phase(
+        self, phase_name: str, agent_name: Optional[str] = None, description: Optional[str] = None
+    ):
         """
         Start a phase
 
@@ -298,7 +303,7 @@ class ProgressReporter:
         success: bool = True,
         duration: Optional[float] = None,
         validation_score: Optional[float] = None,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
     ):
         """
         Complete a phase
@@ -330,10 +335,16 @@ class ProgressReporter:
             status_color = "green" if success else "red"
             icon = "✅" if success else "❌"
 
-            message = f"[{status_color}]{icon} Phase completed in {actual_duration:.2f}s[/{status_color}]"
+            message = (
+                f"[{status_color}]{icon} Phase completed in {actual_duration:.2f}s[/{status_color}]"
+            )
 
             if validation_score is not None:
-                score_color = "green" if validation_score >= 0.9 else "yellow" if validation_score >= 0.7 else "red"
+                score_color = (
+                    "green"
+                    if validation_score >= 0.9
+                    else "yellow" if validation_score >= 0.7 else "red"
+                )
                 message += f" | Validation: [{score_color}]{validation_score:.1%}[/{score_color}]"
 
             self.console.print(f"  {message}")
@@ -402,9 +413,13 @@ class ProgressReporter:
         iteration_str = f" ({iterations} iterations)" if iterations > 1 else ""
 
         if self.use_rich:
-            self.console.print(f"  [green][{agent_name}] ✅ Completed in {duration:.2f}s{iteration_str}[/green]")
+            self.console.print(
+                f"  [green][{agent_name}] ✅ Completed in {duration:.2f}s{iteration_str}[/green]"
+            )
         else:
-            print(f"  [{agent_name}] ✅ Completed in {duration:.2f}s{iteration_str}", file=self.file)
+            print(
+                f"  [{agent_name}] ✅ Completed in {duration:.2f}s{iteration_str}", file=self.file
+            )
 
     def agent_output(self, agent_name: str, output: Dict[str, Any]):
         """
@@ -450,11 +465,15 @@ class ProgressReporter:
             return
 
         if self.use_rich:
-            self.console.print(f"  [yellow][{validator_name}] Validating {item_count} items...[/yellow]")
+            self.console.print(
+                f"  [yellow][{validator_name}] Validating {item_count} items...[/yellow]"
+            )
         else:
             print(f"  [{validator_name}] Validating {item_count} items...", file=self.file)
 
-    def validation_result(self, validator_name: str, passed: bool, issues_count: int, score: Optional[float] = None):
+    def validation_result(
+        self, validator_name: str, passed: bool, issues_count: int, score: Optional[float] = None
+    ):
         """
         Report validation result
 
@@ -484,7 +503,9 @@ class ProgressReporter:
         else:
             print(f"  [{validator_name}] {icon} {message}", file=self.file)
 
-    def feedback_iteration(self, agent_name: str, iteration: int, max_iterations: int, issues_count: int):
+    def feedback_iteration(
+        self, agent_name: str, iteration: int, max_iterations: int, issues_count: int
+    ):
         """
         Report feedback loop iteration
 
@@ -506,7 +527,7 @@ class ProgressReporter:
             print(
                 f"  [{agent_name}] Feedback iteration {iteration}/{max_iterations}: "
                 f"Addressing {issues_count} issues",
-                file=self.file
+                file=self.file,
             )
 
     # ===========================================
@@ -602,10 +623,7 @@ class ProgressReporter:
             self.info(message)
 
     def update_phase_progress(
-        self,
-        phase_name: str,
-        message: str,
-        progress: Optional[float] = None
+        self, phase_name: str, message: str, progress: Optional[float] = None
     ) -> None:
         """
         Update phase progress (Protocol-compatible method).
@@ -623,10 +641,7 @@ class ProgressReporter:
                 print(f"  • {message}{progress_str}", file=self.file)
 
     def log_validation(
-        self,
-        phase_name: str,
-        passed: bool,
-        issues: Optional[List[str]] = None
+        self, phase_name: str, passed: bool, issues: Optional[List[str]] = None
     ) -> None:
         """
         Log validation result (Protocol-compatible method).
@@ -656,10 +671,7 @@ class ProgressReporter:
                             print(f"    • {issue}", file=self.file)
 
     def log_feedback_iteration(
-        self,
-        phase_name: str,
-        iteration: int,
-        total_iterations: int
+        self, phase_name: str, iteration: int, total_iterations: int
     ) -> None:
         """
         Log feedback loop iteration (Protocol-compatible method).
@@ -677,9 +689,8 @@ class ProgressReporter:
                 )
             else:
                 print(
-                    f"  🔄 Feedback iteration {iteration}/{total_iterations} "
-                    f"for {phase_name}",
-                    file=self.file
+                    f"  🔄 Feedback iteration {iteration}/{total_iterations} " f"for {phase_name}",
+                    file=self.file,
                 )
 
     # ===========================================

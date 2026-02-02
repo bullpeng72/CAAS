@@ -5,8 +5,8 @@ Common utilities for generating tools.py files with fallback stub implementation
 This module centralizes tool generation logic to avoid code duplication.
 """
 
-from typing import Union, Dict, Set
 import logging
+from typing import Dict, Set, Union
 
 logger = logging.getLogger(__name__)
 
@@ -30,12 +30,12 @@ def sanitize_tool_name(name: str) -> str:
         'CalculatorTool'
     """
     # Remove special characters and split by underscore or hyphen
-    parts = name.replace('-', '_').split('_')
+    parts = name.replace("-", "_").split("_")
     # Capitalize each part
-    class_name = ''.join(word.capitalize() for word in parts if word)
+    class_name = "".join(word.capitalize() for word in parts if word)
     # Ensure it ends with 'Tool'
-    if not class_name.endswith('Tool'):
-        class_name += 'Tool'
+    if not class_name.endswith("Tool"):
+        class_name += "Tool"
     return class_name
 
 
@@ -44,7 +44,7 @@ def generate_fallback_tools_code(
     include_header: bool = True,
     fallback_warning: bool = False,
     include_helper_functions: bool = True,
-    return_type: str = "str"  # "str" or "dict"
+    return_type: str = "str",  # "str" or "dict"
 ) -> str:
     """
     Generate fallback tools.py code with stub implementations.
@@ -145,19 +145,19 @@ Each tool provides specific capabilities to agents.
 
     # 2. Imports
     if return_type == "dict":
-        imports = '''
+        imports = """
 from crewai.tools import BaseTool
 from typing import Any
 import logging
 
 logger = logging.getLogger(__name__)
-'''
+"""
     else:  # return_type == "str"
-        imports = '''
+        imports = """
 from crewai.tools import BaseTool
 from typing import Type, Any, Optional
 from pydantic import BaseModel, Field
-'''
+"""
     code_parts.append(imports)
 
     # 3. Tool class definitions
@@ -232,7 +232,7 @@ class {class_name}(BaseTool):
     if include_helper_functions:
         # get_all_tools() function
         tool_classes = sorted(sanitized_tools.keys())
-        tool_list_str = ',\n        '.join(f'{cls}()' for cls in tool_classes)
+        tool_list_str = ",\n        ".join(f"{cls}()" for cls in tool_classes)
 
         helper_code = f'''
 # Export all tools
@@ -249,10 +249,10 @@ def get_all_tools():
 
         # Individual tool instances
         for class_name, original_name in sorted(sanitized_tools.items()):
-            code_parts.append(f'{original_name} = {class_name}()\n')
+            code_parts.append(f"{original_name} = {class_name}()\n")
 
     # Join all parts
-    return '\n'.join(code_parts)
+    return "\n".join(code_parts)
 
 
 def extract_tool_names_from_agents(agents: list) -> Set[str]:
@@ -278,9 +278,9 @@ def extract_tool_names_from_agents(agents: list) -> Set[str]:
     for agent in agents:
         # Handle both dict and object (AgentSpecModel)
         if isinstance(agent, dict):
-            tools = agent.get('tools', [])
+            tools = agent.get("tools", [])
         else:
-            tools = getattr(agent, 'tools', [])
+            tools = getattr(agent, "tools", [])
 
         if tools:
             all_tools.update(tools)

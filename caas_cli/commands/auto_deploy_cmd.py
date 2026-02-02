@@ -4,16 +4,17 @@ Auto Deploy Command
 Full automation workflow: requirement → production in one command.
 """
 
-import click
 import subprocess
 import sys
 from pathlib import Path
+
+import click
 from caas_cli.utils import (
-    echo_success,
     echo_error,
     echo_info,
     echo_progress,
-    handle_keyboard_interrupt
+    echo_success,
+    handle_keyboard_interrupt,
 )
 
 
@@ -23,46 +24,21 @@ from caas_cli.utils import (
     "--target",
     type=click.Choice(["docker", "kubernetes", "k8s", "local"]),
     default="docker",
-    help="Deployment target (default: docker)"
+    help="Deployment target (default: docker)",
 )
 @click.option(
     "--output",
     "-o",
     type=click.Path(),
     default="./generated",
-    help="Output directory (default: ./generated)"
+    help="Output directory (default: ./generated)",
 )
-@click.option(
-    "--skip-tests",
-    is_flag=True,
-    help="Skip test execution and code quality checks"
-)
-@click.option(
-    "--skip-docker",
-    is_flag=True,
-    help="Skip Docker build step"
-)
-@click.option(
-    "--verbose",
-    "-v",
-    is_flag=True,
-    help="Show detailed output"
-)
-@click.option(
-    "--dry-run",
-    is_flag=True,
-    help="Show what would be done without executing"
-)
+@click.option("--skip-tests", is_flag=True, help="Skip test execution and code quality checks")
+@click.option("--skip-docker", is_flag=True, help="Skip Docker build step")
+@click.option("--verbose", "-v", is_flag=True, help="Show detailed output")
+@click.option("--dry-run", is_flag=True, help="Show what would be done without executing")
 @handle_keyboard_interrupt
-def auto_deploy(
-    requirement,
-    target,
-    output,
-    skip_tests,
-    skip_docker,
-    verbose,
-    dry_run
-):
+def auto_deploy(requirement, target, output, skip_tests, skip_docker, verbose, dry_run):
     """
     Full automation workflow: requirement to production
 
@@ -239,7 +215,7 @@ def auto_deploy(
         script_paths = [
             Path(__file__).parent.parent.parent / "scripts" / "auto_deploy.sh",
             Path.cwd() / "scripts" / "auto_deploy.sh",
-            Path("/home/fomalhaut/Projects/caas/scripts/auto_deploy.sh")
+            Path("/home/fomalhaut/Projects/caas/scripts/auto_deploy.sh"),
         ]
 
         script_path = None
@@ -272,11 +248,7 @@ def auto_deploy(
             echo_info(f"Executing: {' '.join(cmd)}")
             click.echo()
 
-        result = subprocess.run(
-            cmd,
-            env={**subprocess.os.environ},
-            cwd=str(Path.cwd())
-        )
+        result = subprocess.run(cmd, env={**subprocess.os.environ}, cwd=str(Path.cwd()))
 
         # Check result
         if result.returncode == 0:
@@ -298,6 +270,7 @@ def auto_deploy(
     except Exception as e:
         echo_error(f"Unexpected error: {e}")
         import traceback
+
         if verbose:
             echo_error(traceback.format_exc())
         return 1

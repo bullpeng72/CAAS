@@ -6,21 +6,22 @@ performance and scalability.
 """
 
 import asyncio
-from typing import List, Dict, Any, Callable, Optional
-from dataclasses import dataclass, field
-from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
-from enum import Enum
-import time
 import logging
+import time
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Any, Callable, Dict, List, Optional
 
-from caas_framework.events.events import PhaseEvent, create_phase_event
 from caas_framework.events.event_bus import EventBus, get_global_event_bus
+from caas_framework.events.events import PhaseEvent, create_phase_event
 
 logger = logging.getLogger(__name__)
 
 
 class ExecutionMode(Enum):
     """Execution mode for phases."""
+
     SEQUENTIAL = "sequential"
     PARALLEL = "parallel"
     ASYNC = "async"
@@ -29,6 +30,7 @@ class ExecutionMode(Enum):
 @dataclass
 class PhaseResult:
     """Result of phase execution."""
+
     phase_name: str
     success: bool
     result: Any = None
@@ -40,6 +42,7 @@ class PhaseResult:
 @dataclass
 class PhaseDefinition:
     """Definition of a phase to execute."""
+
     name: str
     executor: Callable
     dependencies: List[str] = field(default_factory=list)
@@ -59,7 +62,7 @@ class AsyncOrchestrator:
         self,
         event_bus: Optional[EventBus] = None,
         max_workers: int = 4,
-        use_processes: bool = False
+        use_processes: bool = False,
     ):
         """
         Initialize async orchestrator.
@@ -79,9 +82,7 @@ class AsyncOrchestrator:
             self.executor = ThreadPoolExecutor(max_workers=max_workers)
 
     async def execute_phase_async(
-        self,
-        phase_def: PhaseDefinition,
-        context: Dict[str, Any]
+        self, phase_def: PhaseDefinition, context: Dict[str, Any]
     ) -> PhaseResult:
         """
         Execute a single phase asynchronously.
@@ -96,18 +97,17 @@ class AsyncOrchestrator:
         start_time = time.time()
 
         # Publish phase started event
-        self.event_bus.publish(create_phase_event(
-            PhaseEvent.PHASE_STARTED,
-            phase_def.name,
-            {'context_keys': list(context.keys())}
-        ))
+        self.event_bus.publish(
+            create_phase_event(
+                PhaseEvent.PHASE_STARTED, phase_def.name, {"context_keys": list(context.keys())}
+            )
+        )
 
         try:
             # Execute with timeout
             if phase_def.timeout:
                 result = await asyncio.wait_for(
-                    self._run_executor(phase_def.executor, context),
-                    timeout=phase_def.timeout
+                    self._run_executor(phase_def.executor, context), timeout=phase_def.timeout
                 )
             else:
                 result = await self._run_executor(phase_def.executor, context)
@@ -115,50 +115,48 @@ class AsyncOrchestrator:
             execution_time = time.time() - start_time
 
             # Publish phase completed event
-            self.event_bus.publish(create_phase_event(
-                PhaseEvent.PHASE_COMPLETED,
-                phase_def.name,
-                {'execution_time': execution_time}
-            ))
+            self.event_bus.publish(
+                create_phase_event(
+                    PhaseEvent.PHASE_COMPLETED, phase_def.name, {"execution_time": execution_time}
+                )
+            )
 
             return PhaseResult(
                 phase_name=phase_def.name,
                 success=True,
                 result=result,
-                execution_time=execution_time
+                execution_time=execution_time,
             )
 
         except asyncio.TimeoutError:
             execution_time = time.time() - start_time
             error = TimeoutError(f"Phase {phase_def.name} timed out after {phase_def.timeout}s")
 
-            self.event_bus.publish(create_phase_event(
-                PhaseEvent.PHASE_FAILED,
-                phase_def.name,
-                {'error': str(error), 'reason': 'timeout'}
-            ))
+            self.event_bus.publish(
+                create_phase_event(
+                    PhaseEvent.PHASE_FAILED,
+                    phase_def.name,
+                    {"error": str(error), "reason": "timeout"},
+                )
+            )
 
             return PhaseResult(
-                phase_name=phase_def.name,
-                success=False,
-                error=error,
-                execution_time=execution_time
+                phase_name=phase_def.name, success=False, error=error, execution_time=execution_time
             )
 
         except Exception as e:
             execution_time = time.time() - start_time
 
-            self.event_bus.publish(create_phase_event(
-                PhaseEvent.PHASE_FAILED,
-                phase_def.name,
-                {'error': str(e), 'error_type': type(e).__name__}
-            ))
+            self.event_bus.publish(
+                create_phase_event(
+                    PhaseEvent.PHASE_FAILED,
+                    phase_def.name,
+                    {"error": str(e), "error_type": type(e).__name__},
+                )
+            )
 
             return PhaseResult(
-                phase_name=phase_def.name,
-                success=False,
-                error=e,
-                execution_time=execution_time
+                phase_name=phase_def.name, success=False, error=e, execution_time=execution_time
             )
 
     async def _run_executor(self, executor: Callable, context: Dict[str, Any]) -> Any:
@@ -171,9 +169,7 @@ class AsyncOrchestrator:
             return await loop.run_in_executor(self.executor, executor, context)
 
     async def execute_parallel(
-        self,
-        phase_defs: List[PhaseDefinition],
-        context: Dict[str, Any]
+        self, phase_defs: List[PhaseDefinition], context: Dict[str, Any]
     ) -> List[PhaseResult]:
         """
         Execute multiple independent phases in parallel.
@@ -187,19 +183,14 @@ class AsyncOrchestrator:
         """
         logger.info(f"Executing {len(phase_defs)} phases in parallel")
 
-        tasks = [
-            self.execute_phase_async(phase_def, context)
-            for phase_def in phase_defs
-        ]
+        tasks = [self.execute_phase_async(phase_def, context) for phase_def in phase_defs]
 
         results = await asyncio.gather(*tasks, return_exceptions=False)
 
         return results
 
     async def execute_with_dependencies(
-        self,
-        phase_defs: List[PhaseDefinition],
-        context: Dict[str, Any]
+        self, phase_defs: List[PhaseDefinition], context: Dict[str, Any]
     ) -> Dict[str, PhaseResult]:
         """
         Execute phases respecting dependencies.
@@ -226,8 +217,7 @@ class AsyncOrchestrator:
             for phase_name in pending:
                 phase_def = phase_map[phase_name]
                 deps_failed = any(
-                    dep in results and not results[dep].success
-                    for dep in phase_def.dependencies
+                    dep in results and not results[dep].success for dep in phase_def.dependencies
                 )
                 if deps_failed:
                     phases_to_skip.append(phase_name)
@@ -241,8 +231,7 @@ class AsyncOrchestrator:
             for phase_name in pending:
                 phase_def = phase_map[phase_name]
                 deps_completed = all(
-                    dep in results and results[dep].success
-                    for dep in phase_def.dependencies
+                    dep in results and results[dep].success for dep in phase_def.dependencies
                 )
 
                 if deps_completed:
@@ -283,9 +272,7 @@ class AsyncOrchestrator:
         return results
 
     async def execute_pipeline(
-        self,
-        phase_defs: List[PhaseDefinition],
-        initial_context: Optional[Dict[str, Any]] = None
+        self, phase_defs: List[PhaseDefinition], initial_context: Optional[Dict[str, Any]] = None
     ) -> Dict[str, PhaseResult]:
         """
         Execute a pipeline of phases.
@@ -315,16 +302,12 @@ class AsyncOrchestrator:
         failed = len(results) - successful
 
         logger.info(
-            f"Pipeline completed in {total_time:.2f}s: "
-            f"{successful} successful, {failed} failed"
+            f"Pipeline completed in {total_time:.2f}s: " f"{successful} successful, {failed} failed"
         )
 
         return results
 
-    def get_execution_summary(
-        self,
-        results: Dict[str, PhaseResult]
-    ) -> Dict[str, Any]:
+    def get_execution_summary(self, results: Dict[str, PhaseResult]) -> Dict[str, Any]:
         """
         Get execution summary.
 
@@ -341,13 +324,13 @@ class AsyncOrchestrator:
         avg_time = total_time / len(results) if results else 0
 
         return {
-            'total_phases': len(results),
-            'successful': len(successful),
-            'failed': len(failed),
-            'success_rate': len(successful) / len(results) if results else 0,
-            'total_execution_time': total_time,
-            'avg_execution_time': avg_time,
-            'failed_phases': [r.phase_name for r in failed]
+            "total_phases": len(results),
+            "successful": len(successful),
+            "failed": len(failed),
+            "success_rate": len(successful) / len(results) if results else 0,
+            "total_execution_time": total_time,
+            "avg_execution_time": avg_time,
+            "failed_phases": [r.phase_name for r in failed],
         }
 
     def shutdown(self):
@@ -359,7 +342,7 @@ def create_phase_definition(
     name: str,
     executor: Callable,
     dependencies: Optional[List[str]] = None,
-    timeout: Optional[float] = None
+    timeout: Optional[float] = None,
 ) -> PhaseDefinition:
     """
     Convenience function to create phase definition.
@@ -374,8 +357,5 @@ def create_phase_definition(
         PhaseDefinition instance
     """
     return PhaseDefinition(
-        name=name,
-        executor=executor,
-        dependencies=dependencies or [],
-        timeout=timeout
+        name=name, executor=executor, dependencies=dependencies or [], timeout=timeout
     )

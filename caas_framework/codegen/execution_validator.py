@@ -7,11 +7,11 @@ Includes AST parsing, type checking with mypy, and dry-run execution.
 
 import ast
 import subprocess
-import tempfile
 import sys
-from typing import Dict, List
+import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Dict, List
 
 from caas_framework.models.validation import ValidationIssue
 
@@ -19,6 +19,7 @@ from caas_framework.models.validation import ValidationIssue
 @dataclass
 class ExecutionValidationResult:
     """Execution validation result"""
+
     is_valid: bool
     is_executable: bool
     issues: List[ValidationIssue] = field(default_factory=list)
@@ -49,7 +50,7 @@ class ExecutionValidator:
         enable_import_check: bool = True,
         enable_type_check: bool = True,
         enable_dry_run: bool = False,  # Disabled by default for safety
-        enable_staged_validation: bool = True  # NEW: Enable staged execution validation
+        enable_staged_validation: bool = True,  # NEW: Enable staged execution validation
     ):
         """
         Initialize validator.
@@ -77,17 +78,10 @@ class ExecutionValidator:
         Returns:
             ExecutionValidationResult: Validation results
         """
-        result = ExecutionValidationResult(
-            is_valid=True,
-            is_executable=True
-        )
+        result = ExecutionValidationResult(is_valid=True, is_executable=True)
 
         # Filter Python files only
-        python_files = {
-            path: content
-            for path, content in files.items()
-            if path.endswith('.py')
-        }
+        python_files = {path: content for path, content in files.items() if path.endswith(".py")}
 
         if not python_files:
             return result
@@ -112,9 +106,7 @@ class ExecutionValidator:
         if self.enable_type_check:
             type_issues = self._check_types(python_files)
             result.issues.extend(type_issues)
-            result.type_check_passed = not any(
-                issue.severity == "error" for issue in type_issues
-            )
+            result.type_check_passed = not any(issue.severity == "error" for issue in type_issues)
 
         # Stage 4: Staged execution validation (NEW)
         # This validates in stages: import → instantiation → basic execution
@@ -130,9 +122,7 @@ class ExecutionValidator:
         if self.enable_dry_run:
             dry_run_issues = self._dry_run(python_files)
             result.issues.extend(dry_run_issues)
-            result.dry_run_passed = not any(
-                issue.severity == "error" for issue in dry_run_issues
-            )
+            result.dry_run_passed = not any(issue.severity == "error" for issue in dry_run_issues)
 
         # Calculate counts
         result.error_count = sum(1 for issue in result.issues if issue.severity == "error")
@@ -141,10 +131,10 @@ class ExecutionValidator:
         # Determine validity
         result.is_valid = result.error_count == 0
         result.is_executable = (
-            result.syntax_check_passed and
-            result.import_check_passed and
-            (result.type_check_passed or not self.enable_type_check) and
-            (result.dry_run_passed or not self.enable_dry_run)
+            result.syntax_check_passed
+            and result.import_check_passed
+            and (result.type_check_passed or not self.enable_type_check)
+            and (result.dry_run_passed or not self.enable_dry_run)
         )
 
         return result
@@ -165,21 +155,25 @@ class ExecutionValidator:
             try:
                 ast.parse(content)
             except SyntaxError as e:
-                issues.append(ValidationIssue(
-                    severity="error",
-                    issue_type="syntax",
-                    message=f"Syntax error: {e.msg}",
-                    file=filepath,
-                    line=e.lineno,
-                    column=e.offset
-                ))
+                issues.append(
+                    ValidationIssue(
+                        severity="error",
+                        issue_type="syntax",
+                        message=f"Syntax error: {e.msg}",
+                        file=filepath,
+                        line=e.lineno,
+                        column=e.offset,
+                    )
+                )
             except Exception as e:
-                issues.append(ValidationIssue(
-                    severity="error",
-                    issue_type="syntax",
-                    message=f"Parse error: {str(e)}",
-                    file=filepath
-                ))
+                issues.append(
+                    ValidationIssue(
+                        severity="error",
+                        issue_type="syntax",
+                        message=f"Parse error: {str(e)}",
+                        file=filepath,
+                    )
+                )
 
         return issues
 
@@ -204,35 +198,41 @@ class ExecutionValidator:
                     if isinstance(node, ast.Import):
                         for alias in node.names:
                             # Try to import (simple check)
-                            module_name = alias.name.split('.')[0]
+                            module_name = alias.name.split(".")[0]
                             if not self._is_stdlib_or_known(module_name):
-                                issues.append(ValidationIssue(
-                                    severity="warning",
-                                    issue_type="import",
-                                    message=f"Import '{alias.name}' may not be available",
-                                    file=filepath,
-                                    line=node.lineno
-                                ))
+                                issues.append(
+                                    ValidationIssue(
+                                        severity="warning",
+                                        issue_type="import",
+                                        message=f"Import '{alias.name}' may not be available",
+                                        file=filepath,
+                                        line=node.lineno,
+                                    )
+                                )
 
                     elif isinstance(node, ast.ImportFrom):
                         if node.module:
-                            module_name = node.module.split('.')[0]
+                            module_name = node.module.split(".")[0]
                             if not self._is_stdlib_or_known(module_name):
-                                issues.append(ValidationIssue(
-                                    severity="warning",
-                                    issue_type="import",
-                                    message=f"Import from '{node.module}' may not be available",
-                                    file=filepath,
-                                    line=node.lineno
-                                ))
+                                issues.append(
+                                    ValidationIssue(
+                                        severity="warning",
+                                        issue_type="import",
+                                        message=f"Import from '{node.module}' may not be available",
+                                        file=filepath,
+                                        line=node.lineno,
+                                    )
+                                )
 
             except Exception as e:
-                issues.append(ValidationIssue(
-                    severity="error",
-                    issue_type="import",
-                    message=f"Failed to check imports: {str(e)}",
-                    file=filepath
-                ))
+                issues.append(
+                    ValidationIssue(
+                        severity="error",
+                        issue_type="import",
+                        message=f"Failed to check imports: {str(e)}",
+                        file=filepath,
+                    )
+                )
 
         return issues
 
@@ -264,48 +264,56 @@ class ExecutionValidator:
                     [sys.executable, "-m", "mypy", "--ignore-missing-imports", str(tmppath)],
                     capture_output=True,
                     text=True,
-                    timeout=30
+                    timeout=30,
                 )
 
                 # Parse mypy output
-                for line in result.stdout.split('\n'):
-                    if ':' in line and ('error:' in line or 'warning:' in line):
-                        parts = line.split(':', 3)
+                for line in result.stdout.split("\n"):
+                    if ":" in line and ("error:" in line or "warning:" in line):
+                        parts = line.split(":", 3)
                         if len(parts) >= 4:
                             filepath = parts[0]
                             lineno = parts[1]
                             severity = "error" if "error:" in line else "warning"
                             message = parts[3].strip()
 
-                            issues.append(ValidationIssue(
-                                severity=severity,
-                                issue_type="type",
-                                message=message,
-                                file=filepath,
-                                line=int(lineno) if lineno.isdigit() else None
-                            ))
+                            issues.append(
+                                ValidationIssue(
+                                    severity=severity,
+                                    issue_type="type",
+                                    message=message,
+                                    file=filepath,
+                                    line=int(lineno) if lineno.isdigit() else None,
+                                )
+                            )
 
             except subprocess.TimeoutExpired:
-                issues.append(ValidationIssue(
-                    severity="error",
-                    issue_type="type",
-                    message="Type checking timed out after 30s",
-                    file="(mypy)"
-                ))
+                issues.append(
+                    ValidationIssue(
+                        severity="error",
+                        issue_type="type",
+                        message="Type checking timed out after 30s",
+                        file="(mypy)",
+                    )
+                )
             except FileNotFoundError:
-                issues.append(ValidationIssue(
-                    severity="warning",
-                    issue_type="type",
-                    message="mypy not installed, skipping type check",
-                    file="(mypy)"
-                ))
+                issues.append(
+                    ValidationIssue(
+                        severity="warning",
+                        issue_type="type",
+                        message="mypy not installed, skipping type check",
+                        file="(mypy)",
+                    )
+                )
             except Exception as e:
-                issues.append(ValidationIssue(
-                    severity="warning",
-                    issue_type="type",
-                    message=f"Type checking failed: {str(e)}",
-                    file="(mypy)"
-                ))
+                issues.append(
+                    ValidationIssue(
+                        severity="warning",
+                        issue_type="type",
+                        message=f"Type checking failed: {str(e)}",
+                        file="(mypy)",
+                    )
+                )
 
         return issues
 
@@ -332,17 +340,19 @@ class ExecutionValidator:
         else:
             # Look for file with if __name__ == "__main__"
             for filepath, content in files.items():
-                if '__name__' in content and '__main__' in content:
+                if "__name__" in content and "__main__" in content:
                     main_file = filepath
                     break
 
         if not main_file:
-            issues.append(ValidationIssue(
-                severity="warning",
-                issue_type="runtime",
-                message="No entry point found for dry-run",
-                file="(dry-run)"
-            ))
+            issues.append(
+                ValidationIssue(
+                    severity="warning",
+                    issue_type="runtime",
+                    message="No entry point found for dry-run",
+                    file="(dry-run)",
+                )
+            )
             return issues
 
         # Execute in temporary directory
@@ -362,48 +372,80 @@ class ExecutionValidator:
                     capture_output=True,
                     text=True,
                     timeout=10,  # 10 second timeout
-                    cwd=tmppath
+                    cwd=tmppath,
                 )
 
                 if result.returncode != 0:
-                    issues.append(ValidationIssue(
-                        severity="error",
-                        issue_type="runtime",
-                        message=f"Execution failed: {result.stderr}",
-                        file=main_file
-                    ))
+                    issues.append(
+                        ValidationIssue(
+                            severity="error",
+                            issue_type="runtime",
+                            message=f"Execution failed: {result.stderr}",
+                            file=main_file,
+                        )
+                    )
 
             except subprocess.TimeoutExpired:
-                issues.append(ValidationIssue(
-                    severity="warning",
-                    issue_type="runtime",
-                    message="Execution timed out (may be waiting for input)",
-                    file=main_file
-                ))
+                issues.append(
+                    ValidationIssue(
+                        severity="warning",
+                        issue_type="runtime",
+                        message="Execution timed out (may be waiting for input)",
+                        file=main_file,
+                    )
+                )
             except Exception as e:
-                issues.append(ValidationIssue(
-                    severity="error",
-                    issue_type="runtime",
-                    message=f"Execution error: {str(e)}",
-                    file=main_file
-                ))
+                issues.append(
+                    ValidationIssue(
+                        severity="error",
+                        issue_type="runtime",
+                        message=f"Execution error: {str(e)}",
+                        file=main_file,
+                    )
+                )
 
         return issues
 
     def _is_stdlib_or_known(self, module_name: str) -> bool:
         """Check if module is stdlib or known third-party"""
         stdlib_modules = {
-            'os', 'sys', 'json', 'time', 'datetime', 'pathlib',
-            'typing', 'dataclasses', 'functools', 'itertools',
-            'collections', 'asyncio', 'logging', 'traceback',
-            're', 'math', 'random', 'uuid', 'copy', 'tempfile',
-            'subprocess', 'shutil', 'glob', 'argparse'
+            "os",
+            "sys",
+            "json",
+            "time",
+            "datetime",
+            "pathlib",
+            "typing",
+            "dataclasses",
+            "functools",
+            "itertools",
+            "collections",
+            "asyncio",
+            "logging",
+            "traceback",
+            "re",
+            "math",
+            "random",
+            "uuid",
+            "copy",
+            "tempfile",
+            "subprocess",
+            "shutil",
+            "glob",
+            "argparse",
         }
 
         known_third_party = {
-            'crewai', 'pydantic', 'fastapi', 'uvicorn',
-            'sqlalchemy', 'alembic', 'pytest', 'requests',
-            'numpy', 'pandas'
+            "crewai",
+            "pydantic",
+            "fastapi",
+            "uvicorn",
+            "sqlalchemy",
+            "alembic",
+            "pytest",
+            "requests",
+            "numpy",
+            "pandas",
         }
 
         return module_name in stdlib_modules or module_name in known_third_party
@@ -437,36 +479,42 @@ class ExecutionValidator:
 
             # Stage 1: Import validation
             import_result = self._test_module_imports(tmppath, files)
-            if not import_result['success']:
-                issues.append(ValidationIssue(
-                    severity="error",
-                    issue_type="import_error",
-                    message=f"Module import failed: {import_result['error']}",
-                    file=import_result.get('file', 'unknown')
-                ))
+            if not import_result["success"]:
+                issues.append(
+                    ValidationIssue(
+                        severity="error",
+                        issue_type="import_error",
+                        message=f"Module import failed: {import_result['error']}",
+                        file=import_result.get("file", "unknown"),
+                    )
+                )
                 return issues  # Cannot proceed if imports fail
 
             # Stage 2: Instantiation validation
             instantiation_result = self._test_instantiation(tmppath)
-            if not instantiation_result['success']:
-                issues.append(ValidationIssue(
-                    severity="error",
-                    issue_type="instantiation_error",
-                    message=f"Instantiation failed: {instantiation_result['error']}",
-                    file=instantiation_result.get('file', 'unknown')
-                ))
+            if not instantiation_result["success"]:
+                issues.append(
+                    ValidationIssue(
+                        severity="error",
+                        issue_type="instantiation_error",
+                        message=f"Instantiation failed: {instantiation_result['error']}",
+                        file=instantiation_result.get("file", "unknown"),
+                    )
+                )
                 # Note: We continue to gather more issues even if instantiation fails
 
             # Stage 3: Basic execution test (CrewAI specific)
             execution_result = self._test_basic_execution(tmppath)
-            if not execution_result['success']:
+            if not execution_result["success"]:
                 # This is a warning, not an error, as it might need actual LLM keys
-                issues.append(ValidationIssue(
-                    severity="warning",
-                    issue_type="execution_warning",
-                    message=f"Basic execution test warning: {execution_result['error']}",
-                    file=execution_result.get('file', 'unknown')
-                ))
+                issues.append(
+                    ValidationIssue(
+                        severity="warning",
+                        issue_type="execution_warning",
+                        message=f"Basic execution test warning: {execution_result['error']}",
+                        file=execution_result.get("file", "unknown"),
+                    )
+                )
 
         return issues
 
@@ -475,9 +523,9 @@ class ExecutionValidator:
 
         # Extract Python module paths
         python_modules = [
-            f.replace('/', '.').replace('.py', '')
+            f.replace("/", ".").replace(".py", "")
             for f in files.keys()
-            if f.endswith('.py') and not f.startswith('tests/')
+            if f.endswith(".py") and not f.startswith("tests/")
         ]
 
         test_script = f"""
@@ -506,36 +554,26 @@ else:
                 capture_output=True,
                 text=True,
                 timeout=15,
-                cwd=tmpdir
+                cwd=tmpdir,
             )
 
             if result.returncode != 0:
                 # Parse error
-                error_lines = result.stdout.split('\n')
+                error_lines = result.stdout.split("\n")
                 error_msg = "Unknown import error"
                 for line in error_lines:
                     if line.startswith("IMPORT_FAILED:"):
                         error_msg = line.replace("IMPORT_FAILED:", "").strip()
                         break
 
-                return {
-                    'success': False,
-                    'error': error_msg,
-                    'stderr': result.stderr
-                }
+                return {"success": False, "error": error_msg, "stderr": result.stderr}
 
-            return {'success': True}
+            return {"success": True}
 
         except subprocess.TimeoutExpired:
-            return {
-                'success': False,
-                'error': 'Import timeout (>15s)'
-            }
+            return {"success": False, "error": "Import timeout (>15s)"}
         except Exception as e:
-            return {
-                'success': False,
-                'error': f'Import test failed: {str(e)}'
-            }
+            return {"success": False, "error": f"Import test failed: {str(e)}"}
 
     def _test_instantiation(self, tmpdir: Path) -> Dict:
         """Test that agents, tasks, and crew can be instantiated"""
@@ -592,36 +630,26 @@ except Exception as e:
                 capture_output=True,
                 text=True,
                 timeout=20,
-                cwd=tmpdir
+                cwd=tmpdir,
             )
 
             if result.returncode != 0:
                 # Extract error message
-                error_lines = result.stdout.split('\n')
+                error_lines = result.stdout.split("\n")
                 error_msg = "Unknown instantiation error"
                 for line in error_lines:
                     if line.startswith("INSTANTIATION_FAILED:"):
                         error_msg = line.replace("INSTANTIATION_FAILED:", "").strip()
                         break
 
-                return {
-                    'success': False,
-                    'error': error_msg,
-                    'stderr': result.stderr
-                }
+                return {"success": False, "error": error_msg, "stderr": result.stderr}
 
-            return {'success': True}
+            return {"success": True}
 
         except subprocess.TimeoutExpired:
-            return {
-                'success': False,
-                'error': 'Instantiation timeout (>20s)'
-            }
+            return {"success": False, "error": "Instantiation timeout (>20s)"}
         except Exception as e:
-            return {
-                'success': False,
-                'error': f'Instantiation test failed: {str(e)}'
-            }
+            return {"success": False, "error": f"Instantiation test failed: {str(e)}"}
 
     def _test_basic_execution(self, tmpdir: Path) -> Dict:
         """Test basic execution (without actual crew.kickoff())"""
@@ -656,21 +684,14 @@ except Exception as e:
                 capture_output=True,
                 text=True,
                 timeout=10,
-                cwd=tmpdir
+                cwd=tmpdir,
             )
 
             if "BASIC_EXECUTION_WARNING:" in result.stdout:
                 warning = result.stdout.split("BASIC_EXECUTION_WARNING:")[1].strip()
-                return {
-                    'success': False,
-                    'error': warning
-                }
+                return {"success": False, "error": warning}
 
-            return {'success': True}
+            return {"success": True}
 
         except Exception as e:
-            return {
-                'success': False,
-                'error': f'Basic execution test failed: {str(e)}'
-            }
-
+            return {"success": False, "error": f"Basic execution test failed: {str(e)}"}

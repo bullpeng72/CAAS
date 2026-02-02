@@ -5,39 +5,45 @@ CrewAI 에이전트 외에 Backend, Frontend, Database 등
 다양한 아티팩트의 스펙을 정의합니다.
 """
 
-from typing import List, Dict, Any, Optional
-from pydantic import BaseModel, Field
 from enum import Enum
+from typing import Any, Dict, List, Optional
 
-from caas_framework.sdd.engine import CrewAISpec, ProjectSpec as BaseProjectSpec
+from pydantic import BaseModel, Field
+
+from caas_framework.sdd.engine import CrewAISpec
+from caas_framework.sdd.engine import ProjectSpec as BaseProjectSpec
 
 
 class ArtifactType(str, Enum):
     """생성할 아티팩트 타입"""
-    AGENT_SYSTEM = "agent_system"     # CrewAI 에이전트
-    BACKEND_API = "backend_api"       # FastAPI/Flask
-    FRONTEND_UI = "frontend_ui"       # Streamlit/Gradio/React
-    DATABASE = "database"             # Schema/Models
-    UTILITY = "utility"               # 헬퍼 함수
-    CONFIG = "config"                 # 설정 파일
-    DEPLOYMENT = "deployment"         # Docker/K8s
+
+    AGENT_SYSTEM = "agent_system"  # CrewAI 에이전트
+    BACKEND_API = "backend_api"  # FastAPI/Flask
+    FRONTEND_UI = "frontend_ui"  # Streamlit/Gradio/React
+    DATABASE = "database"  # Schema/Models
+    UTILITY = "utility"  # 헬퍼 함수
+    CONFIG = "config"  # 설정 파일
+    DEPLOYMENT = "deployment"  # Docker/K8s
 
 
 class ProjectTemplate(str, Enum):
     """프로젝트 템플릿"""
-    AGENT_ONLY = "agent_only"                      # CrewAI만
-    AGENT_WITH_API = "agent_with_api"             # CrewAI + FastAPI
+
+    AGENT_ONLY = "agent_only"  # CrewAI만
+    AGENT_WITH_API = "agent_with_api"  # CrewAI + FastAPI
     AGENT_WITH_STREAMLIT = "agent_with_streamlit"  # CrewAI + Streamlit
-    FULL_STACK = "full_stack"                      # CrewAI + FastAPI + React
-    CHATBOT = "chatbot"                            # CrewAI + Gradio
+    FULL_STACK = "full_stack"  # CrewAI + FastAPI + React
+    CHATBOT = "chatbot"  # CrewAI + Gradio
 
 
 # ============================================================================
 # Backend Specifications
 # ============================================================================
 
+
 class HTTPMethod(str, Enum):
     """HTTP 메서드"""
+
     GET = "GET"
     POST = "POST"
     PUT = "PUT"
@@ -47,6 +53,7 @@ class HTTPMethod(str, Enum):
 
 class APIEndpoint(BaseModel):
     """API 엔드포인트 정의"""
+
     path: str
     method: HTTPMethod
     description: str
@@ -58,6 +65,7 @@ class APIEndpoint(BaseModel):
 
 class BackendFramework(str, Enum):
     """Backend 프레임워크"""
+
     FASTAPI = "fastapi"
     FLASK = "flask"
     DJANGO = "django"
@@ -65,19 +73,15 @@ class BackendFramework(str, Enum):
 
 class BackendSpec(BaseModel):
     """Backend API 스펙"""
+
     framework: BackendFramework = BackendFramework.FASTAPI
     api_endpoints: List[APIEndpoint] = Field(default_factory=list)
-    middlewares: List[str] = Field(
-        default_factory=lambda: ["cors", "logging"]
-    )
+    middlewares: List[str] = Field(default_factory=lambda: ["cors", "logging"])
     dependencies: List[str] = Field(default_factory=list)
 
     # CrewAI 통합
     agent_integration: Dict[str, str] = Field(
-        default_factory=lambda: {
-            "import_path": "agents.crew",
-            "run_function": "run_crew"
-        }
+        default_factory=lambda: {"import_path": "agents.crew", "run_function": "run_crew"}
     )
 
     # Database 연결
@@ -89,8 +93,10 @@ class BackendSpec(BaseModel):
 # Frontend Specifications
 # ============================================================================
 
+
 class FrontendFramework(str, Enum):
     """Frontend 프레임워크"""
+
     STREAMLIT = "streamlit"
     GRADIO = "gradio"
     REACT = "react"
@@ -99,6 +105,7 @@ class FrontendFramework(str, Enum):
 
 class UIComponentType(str, Enum):
     """UI 컴포넌트 타입"""
+
     TEXT_INPUT = "text_input"
     TEXT_AREA = "text_area"
     BUTTON = "button"
@@ -111,6 +118,7 @@ class UIComponentType(str, Enum):
 
 class UIComponent(BaseModel):
     """UI 컴포넌트 정의"""
+
     component_id: str
     component_type: UIComponentType
     label: str
@@ -121,6 +129,7 @@ class UIComponent(BaseModel):
 
 class UIPage(BaseModel):
     """UI 페이지 정의"""
+
     name: str
     title: str
     description: Optional[str] = None
@@ -130,6 +139,7 @@ class UIPage(BaseModel):
 
 class FrontendSpec(BaseModel):
     """Frontend UI 스펙"""
+
     framework: FrontendFramework = FrontendFramework.STREAMLIT
     pages: List[UIPage] = Field(default_factory=list)
     theme: Dict[str, Any] = Field(default_factory=dict)
@@ -137,10 +147,7 @@ class FrontendSpec(BaseModel):
 
     # Backend API 연결
     api_client: Dict[str, str] = Field(
-        default_factory=lambda: {
-            "base_url": "http://localhost:8000",
-            "timeout": "30"
-        }
+        default_factory=lambda: {"base_url": "http://localhost:8000", "timeout": "30"}
     )
 
     # 추가 설정
@@ -152,8 +159,10 @@ class FrontendSpec(BaseModel):
 # Database Specifications
 # ============================================================================
 
+
 class DatabaseType(str, Enum):
     """데이터베이스 타입"""
+
     SQLITE = "sqlite"
     POSTGRESQL = "postgresql"
     MYSQL = "mysql"
@@ -162,6 +171,7 @@ class DatabaseType(str, Enum):
 
 class FieldType(str, Enum):
     """필드 타입"""
+
     STRING = "string"
     INTEGER = "integer"
     FLOAT = "float"
@@ -173,6 +183,7 @@ class FieldType(str, Enum):
 
 class DataField(BaseModel):
     """데이터 필드 정의"""
+
     name: str
     field_type: FieldType
     nullable: bool = False
@@ -184,6 +195,7 @@ class DataField(BaseModel):
 
 class DataModel(BaseModel):
     """데이터 모델 정의"""
+
     model_name: str
     table_name: str
     fields: List[DataField]
@@ -193,6 +205,7 @@ class DataModel(BaseModel):
 
 class DatabaseSpec(BaseModel):
     """Database 스펙"""
+
     db_type: DatabaseType = DatabaseType.SQLITE
     database_url: str = "sqlite:///./app.db"
     models: List[DataModel] = Field(default_factory=list)
@@ -203,8 +216,10 @@ class DatabaseSpec(BaseModel):
 # Integration & Deployment
 # ============================================================================
 
+
 class IntegrationType(str, Enum):
     """통합 타입"""
+
     API_CALL = "api_call"
     EVENT = "event"
     DATABASE = "database"
@@ -213,6 +228,7 @@ class IntegrationType(str, Enum):
 
 class IntegrationPoint(BaseModel):
     """통합 지점 정의"""
+
     from_component: str
     to_component: str
     integration_type: IntegrationType
@@ -222,6 +238,7 @@ class IntegrationPoint(BaseModel):
 
 class DeploymentConfig(BaseModel):
     """배포 설정"""
+
     use_docker: bool = True
     use_docker_compose: bool = True
     use_kubernetes: bool = False
@@ -238,6 +255,7 @@ class DeploymentConfig(BaseModel):
 # Unified Project Specification
 # ============================================================================
 
+
 class MultiProjectSpec(BaseModel):
     """
     통합 프로젝트 스펙
@@ -245,6 +263,7 @@ class MultiProjectSpec(BaseModel):
     CrewAI 에이전트뿐만 아니라 Backend, Frontend, Database 등
     전체 프로젝트 스택의 스펙을 포함합니다.
     """
+
     # 프로젝트 정보
     project: BaseProjectSpec
 
@@ -263,14 +282,12 @@ class MultiProjectSpec(BaseModel):
 
     # 추가 파일
     additional_files: Dict[str, str] = Field(
-        default_factory=dict,
-        description="추가로 생성할 파일들 {파일경로: 내용}"
+        default_factory=dict, description="추가로 생성할 파일들 {파일경로: 내용}"
     )
 
     # Domain Classification (for frontend/backend logic generation)
     domain_classification: Optional[Dict[str, Any]] = Field(
-        default=None,
-        description="Domain classification 결과 (DomainType, confidence, etc.)"
+        default=None, description="Domain classification 결과 (DomainType, confidence, etc.)"
     )
 
     def has_backend(self) -> bool:
@@ -292,15 +309,17 @@ class MultiProjectSpec(BaseModel):
         # CrewAI 기본 의존성 (Python 3.11 필수)
         # 검증된 버전 조합으로 의존성 충돌 방지 (Python 3.11 기준)
         if self.agent_spec:
-            deps.update([
-                "crewai>=1.7.0,<1.8.0",
-                "crewai-tools>=1.7.0,<1.8.0",
-                "langchain>=0.3.20,<0.4.0",
-                "langchain-core>=0.3.70,<0.4.0",
-                "langchain-openai>=0.3.20,<0.4.0",
-                "openai>=1.0.0,<2.0.0",
-                "python-dotenv>=1.0.0",
-            ])
+            deps.update(
+                [
+                    "crewai>=1.7.0,<1.8.0",
+                    "crewai-tools>=1.7.0,<1.8.0",
+                    "langchain>=0.3.20,<0.4.0",
+                    "langchain-core>=0.3.70,<0.4.0",
+                    "langchain-openai>=0.3.20,<0.4.0",
+                    "openai>=1.0.0,<2.0.0",
+                    "python-dotenv>=1.0.0",
+                ]
+            )
 
         # Backend 의존성
         if self.backend_spec:

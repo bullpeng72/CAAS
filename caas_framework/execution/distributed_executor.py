@@ -21,7 +21,7 @@ from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Dict, List, Any, Optional, Set, Callable
+from typing import Any, Callable, Dict, List, Optional, Set
 
 # Setup logging
 logger = logging.getLogger(__name__)
@@ -29,6 +29,7 @@ logger = logging.getLogger(__name__)
 
 class ExecutionStrategy(Enum):
     """Execution strategy for phase processing"""
+
     SEQUENTIAL = "sequential"  # Traditional sequential execution
     PROCESS_POOL = "process_pool"  # CPU-bound parallel execution
     THREAD_POOL = "thread_pool"  # I/O-bound parallel execution
@@ -38,6 +39,7 @@ class ExecutionStrategy(Enum):
 @dataclass
 class PhaseExecutionResult:
     """Result from phase execution"""
+
     phase_id: str
     success: bool
     output: Any
@@ -61,6 +63,7 @@ class DependencyGraph:
 
     Represents phase dependencies as a Directed Acyclic Graph (DAG).
     """
+
     phases: List[str]
     dependencies: Dict[str, List[str]] = field(default_factory=dict)  # phase_id -> [dependency_ids]
 
@@ -141,7 +144,7 @@ class DependencyGraph:
             "max_parallelism": max_parallel,
             "avg_parallelism": avg_parallel,
             "critical_path_length": level,
-            "speedup_potential": len(self.phases) / level if level > 0 else 1.0
+            "speedup_potential": len(self.phases) / level if level > 0 else 1.0,
         }
 
 
@@ -164,7 +167,7 @@ class DistributedPhaseExecutor:
         self,
         strategy: ExecutionStrategy = ExecutionStrategy.AUTO,
         max_workers: Optional[int] = None,
-        enable_monitoring: bool = True
+        enable_monitoring: bool = True,
     ):
         """
         Initialize distributed executor
@@ -190,7 +193,9 @@ class DistributedPhaseExecutor:
         self.total_start_time: Optional[datetime] = None
         self.total_end_time: Optional[datetime] = None
 
-        logger.info(f"DistributedPhaseExecutor initialized: strategy={strategy.value}, workers={self.max_workers}")
+        logger.info(
+            f"DistributedPhaseExecutor initialized: strategy={strategy.value}, workers={self.max_workers}"
+        )
 
     def _get_executor(self):
         """Get or create executor based on strategy"""
@@ -214,7 +219,7 @@ class DistributedPhaseExecutor:
         self,
         dependency_graph: DependencyGraph,
         phase_functions: Dict[str, Callable],
-        phase_inputs: Optional[Dict[str, Any]] = None
+        phase_inputs: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, PhaseExecutionResult]:
         """
         Execute phases in parallel based on dependency graph
@@ -270,7 +275,7 @@ class DistributedPhaseExecutor:
         self,
         dependency_graph: DependencyGraph,
         phase_functions: Dict[str, Callable],
-        phase_inputs: Dict[str, Any]
+        phase_inputs: Dict[str, Any],
     ) -> None:
         """Execute phases sequentially (no parallelism)"""
         logger.info("Executing phases sequentially...")
@@ -287,10 +292,7 @@ class DistributedPhaseExecutor:
 
             # Execute phase
             result = await self._execute_single_phase(
-                phase_id,
-                phase_functions[phase_id],
-                phase_inputs.get(phase_id),
-                dep_outputs
+                phase_id, phase_functions[phase_id], phase_inputs.get(phase_id), dep_outputs
             )
 
             self.results[phase_id] = result
@@ -306,7 +308,7 @@ class DistributedPhaseExecutor:
         self,
         dependency_graph: DependencyGraph,
         phase_functions: Dict[str, Callable],
-        phase_inputs: Dict[str, Any]
+        phase_inputs: Dict[str, Any],
     ) -> None:
         """Execute phases in parallel based on dependencies"""
         logger.info("Executing phases in parallel...")
@@ -320,7 +322,9 @@ class DistributedPhaseExecutor:
 
             if not ready_phases:
                 if len(self.completed) + len(self.failed) < len(dependency_graph.phases):
-                    logger.error("No ready phases but not all completed - possible deadlock or failed dependencies")
+                    logger.error(
+                        "No ready phases but not all completed - possible deadlock or failed dependencies"
+                    )
                 break
 
             logger.info(f"Ready phases: {ready_phases} (parallel batch)")
@@ -342,7 +346,7 @@ class DistributedPhaseExecutor:
                     phase_id,
                     phase_functions[phase_id],
                     phase_inputs.get(phase_id),
-                    dep_outputs
+                    dep_outputs,
                 )
                 tasks.append((phase_id, task))
 
@@ -362,19 +366,12 @@ class DistributedPhaseExecutor:
                 except Exception as e:
                     logger.error(f"❌ Phase {phase_id} execution error: {e}")
                     self.results[phase_id] = PhaseExecutionResult(
-                        phase_id=phase_id,
-                        success=False,
-                        output=None,
-                        error=str(e)
+                        phase_id=phase_id, success=False, output=None, error=str(e)
                     )
                     self.failed.add(phase_id)
 
     def _execute_phase_sync(
-        self,
-        phase_id: str,
-        phase_function: Callable,
-        phase_input: Any,
-        dep_outputs: Dict[str, Any]
+        self, phase_id: str, phase_function: Callable, phase_input: Any, dep_outputs: Dict[str, Any]
     ) -> PhaseExecutionResult:
         """Execute a single phase synchronously (for ProcessPoolExecutor)"""
         import traceback
@@ -387,9 +384,7 @@ class DistributedPhaseExecutor:
                 # Handle async functions
                 loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)
-                output = loop.run_until_complete(
-                    phase_function(phase_input, dep_outputs)
-                )
+                output = loop.run_until_complete(phase_function(phase_input, dep_outputs))
                 loop.close()
             else:
                 # Sync function
@@ -404,7 +399,7 @@ class DistributedPhaseExecutor:
                 output=output,
                 start_time=start_time,
                 end_time=end_time,
-                duration_seconds=duration
+                duration_seconds=duration,
             )
 
         except Exception as e:
@@ -422,15 +417,11 @@ class DistributedPhaseExecutor:
                 error=error_msg,
                 start_time=start_time,
                 end_time=end_time,
-                duration_seconds=duration
+                duration_seconds=duration,
             )
 
     async def _execute_single_phase(
-        self,
-        phase_id: str,
-        phase_function: Callable,
-        phase_input: Any,
-        dep_outputs: Dict[str, Any]
+        self, phase_id: str, phase_function: Callable, phase_input: Any, dep_outputs: Dict[str, Any]
     ) -> PhaseExecutionResult:
         """Execute a single phase asynchronously"""
         start_time = datetime.now()
@@ -450,7 +441,7 @@ class DistributedPhaseExecutor:
                 output=output,
                 start_time=start_time,
                 end_time=end_time,
-                duration_seconds=duration
+                duration_seconds=duration,
             )
 
         except Exception as e:
@@ -464,7 +455,7 @@ class DistributedPhaseExecutor:
                 error=str(e),
                 start_time=start_time,
                 end_time=end_time,
-                duration_seconds=duration
+                duration_seconds=duration,
             )
 
     def _log_execution_summary(self) -> None:
@@ -488,7 +479,9 @@ class DistributedPhaseExecutor:
 
             logger.info(f"Cumulative phase time: {cumulative_duration:.2f}s")
             logger.info(f"Speedup: {cumulative_duration / total_duration:.2f}x")
-            logger.info(f"Efficiency: {(cumulative_duration / total_duration) / self.max_workers:.2%}")
+            logger.info(
+                f"Efficiency: {(cumulative_duration / total_duration) / self.max_workers:.2%}"
+            )
 
         logger.info("=" * 60)
 
@@ -508,17 +501,21 @@ class DistributedPhaseExecutor:
             "total_duration_seconds": total_duration,
             "cumulative_phase_time": cumulative_duration,
             "speedup": cumulative_duration / total_duration if total_duration > 0 else 1.0,
-            "efficiency": (cumulative_duration / total_duration) / self.max_workers if total_duration > 0 else 0.0,
+            "efficiency": (
+                (cumulative_duration / total_duration) / self.max_workers
+                if total_duration > 0
+                else 0.0
+            ),
             "max_workers": self.max_workers,
             "strategy": self.strategy.value,
             "phase_results": {
                 phase_id: {
                     "success": result.success,
                     "duration_ms": result.duration_ms,
-                    "error": result.error
+                    "error": result.error,
                 }
                 for phase_id, result in self.results.items()
-            }
+            },
         }
 
     def close(self) -> None:

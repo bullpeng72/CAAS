@@ -12,19 +12,20 @@ override configuration files.
 
 import os
 from pathlib import Path
-from typing import Any, Dict, Optional, List
+from typing import Any, Dict, List, Optional
+
 import yaml
 from pydantic import ValidationError
 
 from caas_framework.config.settings import (
-    FrameworkConfig,
-    LLMConfig,
-    GraphConfig,
-    VectorDBConfig,
-    ValidationConfig,
     CodeGenerationConfig,
-    WorkflowConfig,
+    FrameworkConfig,
+    GraphConfig,
+    LLMConfig,
     LoggingConfig,
+    ValidationConfig,
+    VectorDBConfig,
+    WorkflowConfig,
 )
 
 
@@ -99,7 +100,7 @@ class ConfigLoader:
         """Load config.yaml if exists"""
         if self.config_path and Path(self.config_path).exists():
             try:
-                with open(self.config_path, 'r', encoding='utf-8') as f:
+                with open(self.config_path, "r", encoding="utf-8") as f:
                     self._config_data = yaml.safe_load(f) or {}
             except Exception as e:
                 print(f"Warning: Failed to load config file {self.config_path}: {e}")
@@ -110,7 +111,7 @@ class ConfigLoader:
         env_key: str,
         config_path: List[str],
         default: Any,
-        type_converter: Optional[callable] = None
+        type_converter: Optional[callable] = None,
     ) -> Any:
         """
         Get value with priority: env > config > default
@@ -163,7 +164,9 @@ class ConfigLoader:
         llm_config = LLMConfig(
             provider=self._get_with_priority("LLM_PROVIDER", ["llm", "provider"], "openai"),
             model=self._get_with_priority("LLM_MODEL", ["llm", "model"], "gpt-4o-mini"),
-            temperature=self._get_with_priority("LLM_TEMPERATURE", ["llm", "temperature"], 0.3, float),
+            temperature=self._get_with_priority(
+                "LLM_TEMPERATURE", ["llm", "temperature"], 0.3, float
+            ),
             max_tokens=self._get_with_priority("LLM_MAX_TOKENS", ["llm", "max_tokens"], 4096, int),
             api_key=os.getenv("OPENAI_API_KEY") or os.getenv("ANTHROPIC_API_KEY"),
             api_base=os.getenv("LLM_API_BASE"),
@@ -191,11 +194,15 @@ class ConfigLoader:
 
         # Build Validation config
         validation_data = self._config_data.get("validation", {})
-        validation_config = ValidationConfig(**validation_data) if validation_data else ValidationConfig()
+        validation_config = (
+            ValidationConfig(**validation_data) if validation_data else ValidationConfig()
+        )
 
         # Build CodeGeneration config
         codegen_data = self._config_data.get("codegen", {})
-        codegen_config = CodeGenerationConfig(**codegen_data) if codegen_data else CodeGenerationConfig()
+        codegen_config = (
+            CodeGenerationConfig(**codegen_data) if codegen_data else CodeGenerationConfig()
+        )
 
         # Build Workflow config
         workflow_data = self._config_data.get("workflow", {})
@@ -207,11 +214,12 @@ class ConfigLoader:
 
         # Build Artifact config
         from caas_framework.config.settings import ArtifactConfig
+
         artifact_enabled = os.getenv("ARTIFACT_GENERATION_ENABLED", "false").lower() == "true"
         artifact_config = ArtifactConfig(
             enabled=artifact_enabled,
             output_format=os.getenv("ARTIFACT_OUTPUT_FORMAT", "markdown"),
-            output_dir=os.getenv("ARTIFACT_OUTPUT_DIR", "./artifacts")
+            output_dir=os.getenv("ARTIFACT_OUTPUT_DIR", "./artifacts"),
         )
 
         # Build complete config
@@ -309,13 +317,13 @@ class ConfigLoader:
                     self._config_data[key] = value
 
             # Write to file
-            with open(self.config_path, 'w', encoding='utf-8') as f:
+            with open(self.config_path, "w", encoding="utf-8") as f:
                 yaml.dump(
                     self._config_data,
                     f,
                     default_flow_style=False,
                     allow_unicode=True,
-                    sort_keys=False
+                    sort_keys=False,
                 )
             return True
         except Exception as e:
@@ -327,7 +335,9 @@ class ConfigLoader:
 _config_loader: Optional[ConfigLoader] = None
 
 
-def get_config_loader(config_path: Optional[str] = None, force_reload: bool = False) -> ConfigLoader:
+def get_config_loader(
+    config_path: Optional[str] = None, force_reload: bool = False
+) -> ConfigLoader:
     """
     Get or create global config loader
 
@@ -403,5 +413,3 @@ class ConfigLoaderCompat:
 ConfigLoader.from_env = ConfigLoaderCompat.from_env
 ConfigLoader.from_file = ConfigLoaderCompat.from_file
 ConfigLoader.from_dict = ConfigLoaderCompat.from_dict
-
-

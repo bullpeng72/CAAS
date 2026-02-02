@@ -7,10 +7,11 @@ Models for agents, tasks, and requirements.
 import re
 import uuid
 from typing import Any, Dict, List, Optional
+
 from pydantic import BaseModel, Field, field_validator, model_validator
 
-
 # ==================== Agent Models ====================
+
 
 class AgentSpecModel(BaseModel):
     """
@@ -18,6 +19,7 @@ class AgentSpecModel(BaseModel):
 
     CrewAI 에이전트 정의
     """
+
     id: str
     role: str
     goal: str
@@ -41,12 +43,14 @@ class AgentSpecModel(BaseModel):
 
 # ==================== Task Models ====================
 
+
 class TaskSpecModel(BaseModel):
     """
     태스크 스펙 모델
 
     CrewAI 태스크 정의
     """
+
     id: str
     description: str
     expected_output: str
@@ -69,8 +73,10 @@ class TaskSpecModel(BaseModel):
 
 # ==================== Golden Data Models ====================
 
+
 class SystemScope(BaseModel):
     """System scope specification"""
+
     project_name: str
     purpose: str
     target_users: List[str] = Field(default_factory=list)
@@ -81,6 +87,7 @@ class SystemScope(BaseModel):
 
 class FeatureSpec(BaseModel):
     """Feature specification from requirements"""
+
     id: str
     name: str
     description: str
@@ -89,13 +96,13 @@ class FeatureSpec(BaseModel):
     functional_requirements: List[str] = Field(default_factory=list)
     user_stories: List[str] = Field(default_factory=list)
 
-    @model_validator(mode='before')
+    @model_validator(mode="before")
     @classmethod
     def convert_strings_to_lists(cls, values: Any) -> Any:
         """Convert string fields to lists if needed"""
         if isinstance(values, dict):
             # Convert string to single-item list for list fields
-            for field_name in ['acceptance_criteria', 'functional_requirements', 'user_stories']:
+            for field_name in ["acceptance_criteria", "functional_requirements", "user_stories"]:
                 if field_name in values and isinstance(values[field_name], str):
                     # If it's a non-empty string, wrap it in a list
                     if values[field_name].strip():
@@ -107,6 +114,7 @@ class FeatureSpec(BaseModel):
 
 class AttributeSpec(BaseModel):
     """Data attribute specification"""
+
     name: str
     type: str
     required: bool = True
@@ -114,58 +122,65 @@ class AttributeSpec(BaseModel):
 
 class RelationshipSpec(BaseModel):
     """Data relationship specification"""
+
     type: str  # one-to-one, one-to-many, many-to-one, many-to-many
     target: str  # Target entity name
 
 
 class DataModel(BaseModel):
     """Data model specification"""
+
     entity_name: str
     description: Optional[str] = None
     attributes: List[AttributeSpec] = Field(default_factory=list)
     relationships: List[RelationshipSpec] = Field(default_factory=list)
     constraints: List[str] = Field(default_factory=list)
 
-    @model_validator(mode='before')
+    @model_validator(mode="before")
     @classmethod
     def convert_attributes_and_relationships(cls, values: Any) -> Any:
         """Convert attributes and relationships from various formats"""
         if isinstance(values, dict):
             # Convert string attributes to AttributeSpec objects
-            if 'attributes' in values and isinstance(values['attributes'], list):
+            if "attributes" in values and isinstance(values["attributes"], list):
                 converted_attrs = []
-                for attr in values['attributes']:
+                for attr in values["attributes"]:
                     if isinstance(attr, str):
                         # Old format: just a string
-                        converted_attrs.append({'name': attr, 'type': 'string', 'required': True})
+                        converted_attrs.append({"name": attr, "type": "string", "required": True})
                     elif isinstance(attr, dict):
                         # New format: already a dict, ensure 'required' is bool
                         attr_copy = attr.copy()
-                        if 'required' in attr_copy:
+                        if "required" in attr_copy:
                             # Convert "true"/"false" strings to boolean
-                            if isinstance(attr_copy['required'], str):
-                                attr_copy['required'] = attr_copy['required'].lower() in ('true', '1', 'yes')
+                            if isinstance(attr_copy["required"], str):
+                                attr_copy["required"] = attr_copy["required"].lower() in (
+                                    "true",
+                                    "1",
+                                    "yes",
+                                )
                         converted_attrs.append(attr_copy)
                     else:
                         converted_attrs.append(attr)
-                values['attributes'] = converted_attrs
+                values["attributes"] = converted_attrs
 
             # Convert string relationships to RelationshipSpec objects
-            if 'relationships' in values and isinstance(values['relationships'], list):
+            if "relationships" in values and isinstance(values["relationships"], list):
                 converted_rels = []
-                for rel in values['relationships']:
+                for rel in values["relationships"]:
                     if isinstance(rel, str):
                         # Old format: just a string
-                        converted_rels.append({'type': 'one-to-many', 'target': rel})
+                        converted_rels.append({"type": "one-to-many", "target": rel})
                     else:
                         converted_rels.append(rel)
-                values['relationships'] = converted_rels
+                values["relationships"] = converted_rels
 
         return values
 
 
 class UIComponent(BaseModel):
     """UI component specification"""
+
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))  # Auto-generate UUID if not provided
     component_type: str
     page_name: str
@@ -175,29 +190,31 @@ class UIComponent(BaseModel):
     interactions: List[str] = Field(default_factory=list)
     related_features: List[str] = Field(default_factory=list)
 
-    @model_validator(mode='before')
+    @model_validator(mode="before")
     @classmethod
     def handle_legacy_fields(cls, values: Any) -> Any:
         """Handle legacy field names and ensure at least description or purpose exists"""
         if isinstance(values, dict):
             # Handle 'component_name' -> 'page_name' mapping
-            if 'component_name' in values and 'page_name' not in values:
-                values['page_name'] = values.pop('component_name')
+            if "component_name" in values and "page_name" not in values:
+                values["page_name"] = values.pop("component_name")
 
             # Handle 'type' -> 'component_type' mapping
-            if 'type' in values and 'component_type' not in values:
-                values['component_type'] = values.pop('type')
+            if "type" in values and "component_type" not in values:
+                values["component_type"] = values.pop("type")
 
             # Normalize data_source: convert list to comma-separated string
-            if 'data_source' in values and isinstance(values['data_source'], list):
-                if values['data_source']:  # Non-empty list
-                    values['data_source'] = ', '.join(str(item) for item in values['data_source'])
+            if "data_source" in values and isinstance(values["data_source"], list):
+                if values["data_source"]:  # Non-empty list
+                    values["data_source"] = ", ".join(str(item) for item in values["data_source"])
                 else:  # Empty list
-                    values['data_source'] = None
+                    values["data_source"] = None
 
             # If neither description nor purpose exists, create a default description
-            if not values.get('description') and not values.get('purpose'):
-                values['description'] = f"{values.get('component_type', 'UI component')} in {values.get('page_name', 'unknown page')}"
+            if not values.get("description") and not values.get("purpose"):
+                values["description"] = (
+                    f"{values.get('component_type', 'UI component')} in {values.get('page_name', 'unknown page')}"
+                )
 
         return values
 
@@ -209,6 +226,7 @@ class NonFunctionalRequirements(BaseModel):
     NOTE: ConcretizedRequirement now uses Dict[str, Any] for NFRs,
     but this class is kept for backward compatibility.
     """
+
     security: Optional[str] = None
     scalability: Optional[str] = None
     performance: Optional[str] = None
@@ -224,17 +242,16 @@ class BoundariesSpec(BaseModel):
     Defines what the generated code can/cannot do for security.
     Based on Addy Osmani's 3-tier boundary system.
     """
+
     always_allowed: List[str] = Field(
         default_factory=list,
-        description="Operations that are always permitted without user approval"
+        description="Operations that are always permitted without user approval",
     )
     ask_first: List[str] = Field(
-        default_factory=list,
-        description="Operations that require user approval before execution"
+        default_factory=list, description="Operations that require user approval before execution"
     )
     never_allowed: List[str] = Field(
-        default_factory=list,
-        description="Operations that are strictly forbidden"
+        default_factory=list, description="Operations that are strictly forbidden"
     )
 
 
@@ -244,6 +261,7 @@ class CommandsSpec(BaseModel):
 
     Defines standard commands for project lifecycle.
     """
+
     install: str = Field(default="pip install -r requirements.txt")
     test: str = Field(default="pytest tests/")
     run: str = Field(default="python main.py")
@@ -259,6 +277,7 @@ class CodeStyleSpec(BaseModel):
 
     Defines coding standards and style guidelines.
     """
+
     formatter: str = Field(default="black")
     line_length: int = Field(default=88)
     use_type_hints: bool = Field(default=True)
@@ -272,6 +291,7 @@ class GitWorkflowSpec(BaseModel):
 
     Defines Git branching and commit conventions.
     """
+
     branch_naming: str = Field(default="feature/{issue-number}-{description}")
     commit_message_format: str = Field(default="<type>(<scope>): <subject>")
     requires_pr: bool = Field(default=True)
@@ -293,6 +313,7 @@ class ConcretizedRequirement(BaseModel):
     5. Git Workflow - Version control conventions
     6. Boundaries - Security boundaries (MOST CRITICAL)
     """
+
     # System scope (contains project_name, description, etc.)
     system_scope: SystemScope
 
@@ -327,7 +348,7 @@ class ConcretizedRequirement(BaseModel):
     # Git workflow conventions
     git_workflow: Optional[GitWorkflowSpec] = None
 
-    @model_validator(mode='before')
+    @model_validator(mode="before")
     @classmethod
     def migrate_legacy_format(cls, values: Any) -> Any:
         """
@@ -339,26 +360,27 @@ class ConcretizedRequirement(BaseModel):
         """
         if isinstance(values, dict):
             # If system_scope doesn't exist but project_name/description do, create system_scope
-            if 'system_scope' not in values:
-                if 'project_name' in values or 'description' in values:
-                    values['system_scope'] = {
-                        'project_name': values.pop('project_name', 'Untitled Project'),
-                        'purpose': values.pop('description', ''),
-                        'target_users': [],
-                        'system_type': 'web_app'
+            if "system_scope" not in values:
+                if "project_name" in values or "description" in values:
+                    values["system_scope"] = {
+                        "project_name": values.pop("project_name", "Untitled Project"),
+                        "purpose": values.pop("description", ""),
+                        "target_users": [],
+                        "system_type": "web_app",
                     }
 
             # Convert NonFunctionalRequirements object to dict if needed
-            if 'non_functional_requirements' in values:
-                nfr = values['non_functional_requirements']
+            if "non_functional_requirements" in values:
+                nfr = values["non_functional_requirements"]
                 # If it's a NonFunctionalRequirements object, convert to dict
-                if not isinstance(nfr, dict) and hasattr(nfr, 'model_dump'):
-                    values['non_functional_requirements'] = nfr.model_dump(exclude_none=True)
-                elif not isinstance(nfr, dict) and hasattr(nfr, '__dict__'):
+                if not isinstance(nfr, dict) and hasattr(nfr, "model_dump"):
+                    values["non_functional_requirements"] = nfr.model_dump(exclude_none=True)
+                elif not isinstance(nfr, dict) and hasattr(nfr, "__dict__"):
                     # Fallback for non-Pydantic objects
-                    values['non_functional_requirements'] = {
-                        k: v for k, v in nfr.__dict__.items()
-                        if not k.startswith('_') and v is not None
+                    values["non_functional_requirements"] = {
+                        k: v
+                        for k, v in nfr.__dict__.items()
+                        if not k.startswith("_") and v is not None
                     }
         return values
 

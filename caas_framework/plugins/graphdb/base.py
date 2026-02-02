@@ -6,6 +6,7 @@ Unified interface for all graph database providers.
 
 from abc import abstractmethod
 from typing import Any, Dict, List, Optional
+
 from pydantic import BaseModel
 
 from caas_framework.plugins.base import Plugin, PluginType
@@ -13,6 +14,7 @@ from caas_framework.plugins.base import Plugin, PluginType
 
 class GraphNode(BaseModel):
     """Graph node format"""
+
     id: str
     labels: List[str]
     properties: Dict[str, Any]
@@ -20,6 +22,7 @@ class GraphNode(BaseModel):
 
 class GraphRelationship(BaseModel):
     """Graph relationship format"""
+
     id: str
     type: str
     start_node_id: str
@@ -29,6 +32,7 @@ class GraphRelationship(BaseModel):
 
 class GraphQueryResult(BaseModel):
     """Graph query result"""
+
     nodes: List[GraphNode]
     relationships: List[GraphRelationship]
     records: List[Dict[str, Any]]
@@ -52,9 +56,7 @@ class GraphDBPlugin(Plugin):
 
     @abstractmethod
     async def execute_query(
-        self,
-        query: str,
-        parameters: Optional[Dict[str, Any]] = None
+        self, query: str, parameters: Optional[Dict[str, Any]] = None
     ) -> GraphQueryResult:
         """
         Execute a query (Cypher, Gremlin, etc.)
@@ -68,11 +70,7 @@ class GraphDBPlugin(Plugin):
         """
 
     @abstractmethod
-    async def create_node(
-        self,
-        labels: List[str],
-        properties: Dict[str, Any]
-    ) -> GraphNode:
+    async def create_node(self, labels: List[str], properties: Dict[str, Any]) -> GraphNode:
         """
         Create a new node
 
@@ -90,7 +88,7 @@ class GraphDBPlugin(Plugin):
         start_node_id: str,
         end_node_id: str,
         relationship_type: str,
-        properties: Optional[Dict[str, Any]] = None
+        properties: Optional[Dict[str, Any]] = None,
     ) -> GraphRelationship:
         """
         Create a relationship between nodes
@@ -110,7 +108,7 @@ class GraphDBPlugin(Plugin):
         self,
         labels: Optional[List[str]] = None,
         properties: Optional[Dict[str, Any]] = None,
-        limit: int = 100
+        limit: int = 100,
     ) -> List[GraphNode]:
         """
         Find nodes by labels and properties
@@ -130,7 +128,7 @@ class GraphDBPlugin(Plugin):
         start_node_id: str,
         end_node_id: str,
         max_depth: int = 5,
-        relationship_types: Optional[List[str]] = None
+        relationship_types: Optional[List[str]] = None,
     ) -> List[Dict[str, Any]]:
         """
         Find paths between two nodes

@@ -6,20 +6,21 @@ Different storage backends for caching:
 - FileCache: Persistent, disk-based
 """
 
-import json
-import pickle
 import hashlib
+import json
 import logging
+import pickle
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Optional
-from pathlib import Path
+from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
-from dataclasses import dataclass, asdict
+from pathlib import Path
+from typing import Any, Dict, Optional
 
 
 @dataclass
 class CacheEntry:
     """Cache entry with metadata"""
+
     key: str
     value: Any
     created_at: datetime
@@ -57,7 +58,7 @@ class CacheBackend(ABC):
         key: str,
         value: Any,
         ttl_seconds: int = 3600,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
     ) -> None:
         """Set cache entry"""
 
@@ -130,7 +131,7 @@ class InMemoryCacheBackend(CacheBackend):
         key: str,
         value: Any,
         ttl_seconds: int = 3600,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
     ) -> None:
         """Set cache entry"""
         # Evict if at max size
@@ -142,7 +143,7 @@ class InMemoryCacheBackend(CacheBackend):
             value=value,
             created_at=datetime.now(),
             ttl_seconds=ttl_seconds,
-            metadata=metadata or {}
+            metadata=metadata or {},
         )
 
         self._cache[key] = entry
@@ -192,7 +193,7 @@ class InMemoryCacheBackend(CacheBackend):
             "hits": self._hits,
             "misses": self._misses,
             "hit_rate": f"{hit_rate:.1f}%",
-            "evictions": self._evictions
+            "evictions": self._evictions,
         }
 
 
@@ -204,12 +205,7 @@ class FileCacheBackend(CacheBackend):
     Survives restarts but slower than in-memory.
     """
 
-    def __init__(
-        self,
-        cache_dir: str = ".cache",
-        max_size_mb: int = 100,
-        use_pickle: bool = True
-    ):
+    def __init__(self, cache_dir: str = ".cache", max_size_mb: int = 100, use_pickle: bool = True):
         """
         Initialize file cache.
 
@@ -245,17 +241,17 @@ class FileCacheBackend(CacheBackend):
         try:
             # Load entry
             if self.use_pickle:
-                with open(file_path, 'rb') as f:
+                with open(file_path, "rb") as f:
                     entry = pickle.load(f)
             else:
-                with open(file_path, 'r') as f:
+                with open(file_path, "r") as f:
                     data = json.load(f)
                     entry = CacheEntry(
-                        key=data['key'],
-                        value=data['value'],
-                        created_at=datetime.fromisoformat(data['created_at']),
-                        ttl_seconds=data['ttl_seconds'],
-                        metadata=data['metadata']
+                        key=data["key"],
+                        value=data["value"],
+                        created_at=datetime.fromisoformat(data["created_at"]),
+                        ttl_seconds=data["ttl_seconds"],
+                        metadata=data["metadata"],
                     )
 
             # Check expiration
@@ -277,7 +273,7 @@ class FileCacheBackend(CacheBackend):
         key: str,
         value: Any,
         ttl_seconds: int = 3600,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
     ) -> None:
         """Set cache entry"""
         entry = CacheEntry(
@@ -285,7 +281,7 @@ class FileCacheBackend(CacheBackend):
             value=value,
             created_at=datetime.now(),
             ttl_seconds=ttl_seconds,
-            metadata=metadata or {}
+            metadata=metadata or {},
         )
 
         file_path = self._get_file_path(key)
@@ -293,16 +289,16 @@ class FileCacheBackend(CacheBackend):
         try:
             # Save entry
             if self.use_pickle:
-                with open(file_path, 'wb') as f:
+                with open(file_path, "wb") as f:
                     pickle.dump(entry, f)
             else:
-                with open(file_path, 'w') as f:
+                with open(file_path, "w") as f:
                     data = {
-                        'key': entry.key,
-                        'value': entry.value,
-                        'created_at': entry.created_at.isoformat(),
-                        'ttl_seconds': entry.ttl_seconds,
-                        'metadata': entry.metadata
+                        "key": entry.key,
+                        "value": entry.value,
+                        "created_at": entry.created_at.isoformat(),
+                        "ttl_seconds": entry.ttl_seconds,
+                        "metadata": entry.metadata,
                     }
                     json.dump(data, f, indent=2)
 
@@ -335,16 +331,13 @@ class FileCacheBackend(CacheBackend):
     async def _cleanup_if_needed(self) -> None:
         """Cleanup old entries if cache size exceeds limit"""
         # Calculate total size
-        total_size_mb = sum(
-            f.stat().st_size for f in self.cache_dir.glob("*.cache")
-        ) / (1024 * 1024)
+        total_size_mb = sum(f.stat().st_size for f in self.cache_dir.glob("*.cache")) / (
+            1024 * 1024
+        )
 
         if total_size_mb > self.max_size_mb:
             # Delete oldest files until under limit
-            files = sorted(
-                self.cache_dir.glob("*.cache"),
-                key=lambda f: f.stat().st_mtime
-            )
+            files = sorted(self.cache_dir.glob("*.cache"), key=lambda f: f.stat().st_mtime)
 
             for file_path in files:
                 file_path.unlink()
@@ -361,9 +354,9 @@ class FileCacheBackend(CacheBackend):
         hit_rate = (self._hits / total_requests * 100) if total_requests > 0 else 0.0
 
         # Calculate cache size
-        cache_size_mb = sum(
-            f.stat().st_size for f in self.cache_dir.glob("*.cache")
-        ) / (1024 * 1024)
+        cache_size_mb = sum(f.stat().st_size for f in self.cache_dir.glob("*.cache")) / (
+            1024 * 1024
+        )
 
         file_count = len(list(self.cache_dir.glob("*.cache")))
 
@@ -375,5 +368,5 @@ class FileCacheBackend(CacheBackend):
             "file_count": file_count,
             "hits": self._hits,
             "misses": self._misses,
-            "hit_rate": f"{hit_rate:.1f}%"
+            "hit_rate": f"{hit_rate:.1f}%",
         }

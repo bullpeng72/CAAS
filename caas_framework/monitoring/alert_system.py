@@ -5,14 +5,15 @@ Monitor metrics and trigger alerts on anomalies.
 """
 
 import logging
-from typing import Dict, List, Optional, Any, Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
+from typing import Any, Callable, Dict, List, Optional
 
 
 class AlertSeverity(str, Enum):
     """Alert severity levels"""
+
     INFO = "info"
     WARNING = "warning"
     ERROR = "error"
@@ -22,6 +23,7 @@ class AlertSeverity(str, Enum):
 @dataclass
 class Alert:
     """Alert notification"""
+
     timestamp: datetime
     severity: AlertSeverity
     title: str
@@ -41,13 +43,14 @@ class Alert:
             "metric_name": self.metric_name,
             "metric_value": self.metric_value,
             "threshold": self.threshold,
-            "metadata": self.metadata
+            "metadata": self.metadata,
         }
 
 
 @dataclass
 class AlertRule:
     """Alert rule configuration"""
+
     name: str
     metric_name: str
     condition: Callable[[Any], bool]  # Function that returns True to trigger alert
@@ -72,7 +75,7 @@ class AlertSystem:
     def __init__(
         self,
         alert_callback: Optional[Callable[[Alert], None]] = None,
-        logger: Optional[logging.Logger] = None
+        logger: Optional[logging.Logger] = None,
     ):
         """
         Initialize alert system.
@@ -98,12 +101,7 @@ class AlertSystem:
             del self.rules[name]
             self.logger.info(f"🔇 Alert rule removed: {name}")
 
-    def check_metric(
-        self,
-        metric_name: str,
-        value: Any,
-        metadata: Optional[Dict[str, Any]] = None
-    ):
+    def check_metric(self, metric_name: str, value: Any, metadata: Optional[Dict[str, Any]] = None):
         """
         Check metric against all rules.
 
@@ -130,12 +128,7 @@ class AlertSystem:
             except Exception as e:
                 self.logger.error(f"Error checking rule {rule.name}: {e}")
 
-    def _trigger_alert(
-        self,
-        rule: AlertRule,
-        value: Any,
-        metadata: Dict[str, Any]
-    ):
+    def _trigger_alert(self, rule: AlertRule, value: Any, metadata: Dict[str, Any]):
         """Trigger an alert"""
         alert = Alert(
             timestamp=datetime.now(),
@@ -145,7 +138,7 @@ class AlertSystem:
             metric_name=rule.metric_name,
             metric_value=value,
             threshold=rule.metadata.get("threshold"),
-            metadata=metadata
+            metadata=metadata,
         )
 
         self.alerts.append(alert)
@@ -156,12 +149,11 @@ class AlertSystem:
             AlertSeverity.INFO: "ℹ️",
             AlertSeverity.WARNING: "⚠️",
             AlertSeverity.ERROR: "❌",
-            AlertSeverity.CRITICAL: "🚨"
+            AlertSeverity.CRITICAL: "🚨",
         }[rule.severity]
 
         self.logger.warning(
-            f"{emoji} ALERT [{rule.severity.value.upper()}] {rule.name}: "
-            f"{alert.message}"
+            f"{emoji} ALERT [{rule.severity.value.upper()}] {rule.name}: " f"{alert.message}"
         )
 
         # Call callback
@@ -182,9 +174,7 @@ class AlertSystem:
         return elapsed < cooldown_seconds
 
     def get_recent_alerts(
-        self,
-        severity: Optional[AlertSeverity] = None,
-        count: int = 10
+        self, severity: Optional[AlertSeverity] = None, count: int = 10
     ) -> List[Alert]:
         """
         Get recent alerts.
@@ -212,7 +202,7 @@ class AlertSystem:
             AlertSeverity.INFO: 0,
             AlertSeverity.WARNING: 0,
             AlertSeverity.ERROR: 0,
-            AlertSeverity.CRITICAL: 0
+            AlertSeverity.CRITICAL: 0,
         }
 
         for alert in self.alerts:
@@ -220,10 +210,8 @@ class AlertSystem:
 
         return {
             "total_alerts": len(self.alerts),
-            "by_severity": {
-                k.value: v for k, v in by_severity.items()
-            },
-            "active_rules": len([r for r in self.rules.values() if r.enabled])
+            "by_severity": {k.value: v for k, v in by_severity.items()},
+            "active_rules": len([r for r in self.rules.values() if r.enabled]),
         }
 
     def clear_alerts(self):
@@ -241,7 +229,7 @@ def create_cost_alert_rule(budget_usd: float) -> AlertRule:
         condition=lambda cost: cost > budget_usd,
         severity=AlertSeverity.WARNING,
         message_template=f"Budget exceeded: ${{value:.2f}} > ${budget_usd}",
-        metadata={"threshold": budget_usd}
+        metadata={"threshold": budget_usd},
     )
 
 
@@ -253,7 +241,7 @@ def create_quality_alert_rule(min_score: float = 6.0) -> AlertRule:
         condition=lambda score: score < min_score,
         severity=AlertSeverity.WARNING,
         message_template=f"Low quality score: {{value:.1f}} < {min_score}",
-        metadata={"threshold": min_score}
+        metadata={"threshold": min_score},
     )
 
 
@@ -265,5 +253,5 @@ def create_cache_miss_alert_rule(max_miss_rate: float = 80.0) -> AlertRule:
         condition=lambda rate: rate > max_miss_rate,
         severity=AlertSeverity.INFO,
         message_template=f"High cache miss rate: {{value:.1f}}% > {max_miss_rate}%",
-        metadata={"threshold": max_miss_rate}
+        metadata={"threshold": max_miss_rate},
     )

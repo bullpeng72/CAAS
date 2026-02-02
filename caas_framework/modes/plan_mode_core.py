@@ -5,16 +5,12 @@ Contains the core approval gate logic without any UI dependencies.
 Works with any ReviewHandler implementation (CLI, Streamlit, VSCode, etc.).
 """
 
-from typing import Optional, Dict, Any, List
-from dataclasses import dataclass
 import logging
+from dataclasses import dataclass
+from typing import Any, Dict, List, Optional
 
 from caas_framework.agents.base import AgentPhase
-from caas_framework.modes.interfaces import (
-    ReviewHandler,
-    ApprovalDecision,
-    NullReviewHandler
-)
+from caas_framework.modes.interfaces import ApprovalDecision, NullReviewHandler, ReviewHandler
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +22,7 @@ class ApprovalGate:
 
     Pauses execution and requests user review before proceeding.
     """
+
     phase: AgentPhase
     phase_name: str
     description: str
@@ -53,11 +50,7 @@ class PlanModeCore:
     This core class is UI-independent and works with any ReviewHandler implementation.
     """
 
-    def __init__(
-        self,
-        review_handler: Optional[ReviewHandler] = None,
-        auto_approve: bool = False
-    ):
+    def __init__(self, review_handler: Optional[ReviewHandler] = None, auto_approve: bool = False):
         """
         Initialize Plan Mode Core.
 
@@ -70,11 +63,7 @@ class PlanModeCore:
         self.approval_history: List[ApprovalGate] = []
 
     def request_approval(
-        self,
-        phase: AgentPhase,
-        phase_name: str,
-        description: str,
-        output: Dict[str, Any]
+        self, phase: AgentPhase, phase_name: str, description: str, output: Dict[str, Any]
     ) -> ApprovalGate:
         """
         Request user approval for phase output.
@@ -97,7 +86,7 @@ class PlanModeCore:
                 phase_name=phase_name,
                 description=description,
                 output=output,
-                decision=ApprovalDecision.APPROVE
+                decision=ApprovalDecision.APPROVE,
             )
             self.approval_history.append(gate)
             logger.info(f"Auto-approved {phase_name}")
@@ -105,15 +94,11 @@ class PlanModeCore:
 
         # Display phase output via review handler
         self.review_handler.display_phase_output(
-            phase_name=phase_name,
-            description=description,
-            output=output
+            phase_name=phase_name, description=description, output=output
         )
 
         # Request decision from user
-        decision = self.review_handler.request_decision(
-            phase_name=phase_name
-        )
+        decision = self.review_handler.request_decision(phase_name=phase_name)
 
         # Handle edit request
         edited_output = None
@@ -121,8 +106,7 @@ class PlanModeCore:
 
         if decision == ApprovalDecision.EDIT:
             edited_output, feedback = self.review_handler.request_feedback(
-                phase_name=phase_name,
-                current_output=output
+                phase_name=phase_name, current_output=output
             )
             # After edit, consider it approved
             decision = ApprovalDecision.APPROVE
@@ -136,7 +120,7 @@ class PlanModeCore:
             output=output,
             decision=decision,
             feedback=feedback,
-            edited_output=edited_output
+            edited_output=edited_output,
         )
 
         self.approval_history.append(gate)
@@ -169,10 +153,10 @@ class PlanModeCore:
                     "phase": g.phase_name,
                     "decision": g.decision.value if g.decision else "none",
                     "had_edits": g.edited_output is not None,
-                    "feedback": g.feedback if g.feedback else None
+                    "feedback": g.feedback if g.feedback else None,
                 }
                 for g in self.approval_history
-            ]
+            ],
         }
 
     def display_summary(self):

@@ -4,10 +4,11 @@ Error Handler - 에러 처리 통합
 Context manager를 통한 일관된 에러 처리
 """
 
-import streamlit as st
-from typing import Optional, Callable, Any, Type, List
-from contextlib import contextmanager
 import traceback
+from contextlib import contextmanager
+from typing import Any, Callable, List, Optional, Type
+
+import streamlit as st
 import yaml
 from pydantic import ValidationError
 
@@ -18,6 +19,7 @@ logger = get_logger("utils.error_handler")
 
 class ErrorSeverity:
     """에러 심각도"""
+
     INFO = "info"
     WARNING = "warning"
     ERROR = "error"
@@ -38,7 +40,7 @@ class ErrorHandler:
         log_error: bool = True,
         raise_on_error: bool = False,
         fallback_value: Optional[Any] = None,
-        severity: str = ErrorSeverity.ERROR
+        severity: str = ErrorSeverity.ERROR,
     ):
         """
         에러 핸들러 초기화
@@ -77,8 +79,7 @@ class ErrorHandler:
         # 로깅
         if self.log_error:
             logger.error(
-                f"❌ [{self.operation_name}] 오류: {exc_val}",
-                exc_info=(exc_type, exc_val, exc_tb)
+                f"❌ [{self.operation_name}] 오류: {exc_val}", exc_info=(exc_type, exc_val, exc_tb)
             )
 
         # UI 표시
@@ -176,7 +177,7 @@ class ErrorHandler:
             ErrorSeverity.INFO: st.info,
             ErrorSeverity.WARNING: st.warning,
             ErrorSeverity.ERROR: st.error,
-            ErrorSeverity.CRITICAL: st.error
+            ErrorSeverity.CRITICAL: st.error,
         }.get(self.severity, st.error)
 
         error_func(f"**{self.operation_name} 실패**")
@@ -210,6 +211,7 @@ class ErrorHandler:
 
 # Context manager 편의 함수들
 
+
 @contextmanager
 def handle_operation(
     operation_name: str,
@@ -217,7 +219,7 @@ def handle_operation(
     log_error: bool = True,
     raise_on_error: bool = False,
     fallback_value: Optional[Any] = None,
-    severity: str = ErrorSeverity.ERROR
+    severity: str = ErrorSeverity.ERROR,
 ):
     """
     작업 에러 처리 context manager
@@ -237,12 +239,7 @@ def handle_operation(
         ```
     """
     handler = ErrorHandler(
-        operation_name,
-        show_ui_error,
-        log_error,
-        raise_on_error,
-        fallback_value,
-        severity
+        operation_name, show_ui_error, log_error, raise_on_error, fallback_value, severity
     )
 
     with handler:
@@ -264,10 +261,7 @@ def handle_validation(operation_name: str = "데이터 검증"):
         ```
     """
     with handle_operation(
-        operation_name,
-        show_ui_error=True,
-        log_error=True,
-        raise_on_error=False
+        operation_name, show_ui_error=True, log_error=True, raise_on_error=False
     ) as handler:
         yield handler
 
@@ -288,10 +282,7 @@ def handle_file_operation(operation_name: str = "파일 작업"):
         ```
     """
     with handle_operation(
-        operation_name,
-        show_ui_error=True,
-        log_error=True,
-        raise_on_error=False
+        operation_name, show_ui_error=True, log_error=True, raise_on_error=False
     ) as handler:
         yield handler
 
@@ -315,7 +306,7 @@ def handle_api_call(operation_name: str = "API 호출"):
         show_ui_error=True,
         log_error=True,
         raise_on_error=False,
-        severity=ErrorSeverity.WARNING
+        severity=ErrorSeverity.WARNING,
     ) as handler:
         yield handler
 
@@ -326,7 +317,7 @@ def safe_execute(
     fallback_value: Optional[Any] = None,
     show_ui_error: bool = True,
     *args,
-    **kwargs
+    **kwargs,
 ) -> Any:
     """
     안전한 함수 실행 (에러 처리 포함)
@@ -353,9 +344,7 @@ def safe_execute(
         ```
     """
     with handle_operation(
-        operation_name,
-        show_ui_error=show_ui_error,
-        fallback_value=fallback_value
+        operation_name, show_ui_error=show_ui_error, fallback_value=fallback_value
     ) as handler:
         result = func(*args, **kwargs)
         return result
@@ -391,11 +380,9 @@ class BatchErrorHandler:
             item: 실패한 항목 이름
             error: 발생한 예외
         """
-        self.errors.append({
-            "item": item,
-            "error_type": type(error).__name__,
-            "error_message": str(error)
-        })
+        self.errors.append(
+            {"item": item, "error_type": type(error).__name__, "error_message": str(error)}
+        )
 
         logger.error(f"❌ [{self.operation_name}] {item} 실패: {error}")
 
@@ -469,9 +456,12 @@ def with_error_handling(operation_name: str):
             pass
         ```
     """
+
     def decorator(func: Callable) -> Callable:
         def wrapper(*args, **kwargs):
             with handle_operation(operation_name):
                 return func(*args, **kwargs)
+
         return wrapper
+
     return decorator

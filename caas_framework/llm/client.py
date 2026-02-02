@@ -6,8 +6,8 @@ Unified client for managing various LLM providers (OpenAI, Anthropic, Ollama).
 
 import logging
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, Union
 from enum import Enum
+from typing import Any, Dict, List, Optional, Union
 
 from pydantic import BaseModel, Field
 
@@ -17,8 +17,9 @@ ChatOpenAI = None
 BaseChatModel = object
 
 try:
-    from langchain_openai import ChatOpenAI
     from langchain_core.language_models.chat_models import BaseChatModel
+    from langchain_openai import ChatOpenAI
+
     LANGCHAIN_AVAILABLE = True
 except ImportError as e:
     # SECURITY: Log dependency issues for debugging
@@ -27,7 +28,7 @@ except ImportError as e:
         "Install with: pip install langchain-openai langchain-core"
     )
 
-from caas_framework.config import get_settings, get_api_key
+from caas_framework.config import get_api_key, get_settings
 
 logger = logging.getLogger("caas_framework.llm.client")
 
@@ -54,6 +55,7 @@ def mask_secret(secret: str, visible_chars: int = 4) -> str:
 
 class LLMProvider(str, Enum):
     """Supported LLM providers"""
+
     OPENAI = "openai"
     ANTHROPIC = "anthropic"
     OLLAMA = "ollama"
@@ -61,6 +63,7 @@ class LLMProvider(str, Enum):
 
 class LLMConfig(BaseModel):
     """LLM configuration model"""
+
     provider: LLMProvider = LLMProvider.OPENAI
     model: str = "gpt-4-turbo-preview"
     temperature: float = Field(default=0.3, ge=0.0, le=2.0)
@@ -73,6 +76,7 @@ class LLMConfig(BaseModel):
 
 class LLMResponse(BaseModel):
     """LLM response model"""
+
     content: str
     model: str
     provider: str
@@ -84,11 +88,7 @@ class BaseLLMClient(ABC):
     """Base class for LLM clients"""
 
     @abstractmethod
-    def chat(
-        self,
-        messages: List[Dict[str, str]],
-        **kwargs
-    ) -> LLMResponse:
+    def chat(self, messages: List[Dict[str, str]], **kwargs) -> LLMResponse:
         """Perform chat completion"""
 
     @abstractmethod
@@ -108,18 +108,13 @@ class OpenAIClient(BaseLLMClient):
         # SECURITY: Get API key from SecretManager
         self._api_key = get_api_key("OPENAI_API_KEY")
         if not self._api_key:
-            raise ValueError(
-                "OPENAI_API_KEY not set. "
-                "Please set OPENAI_API_KEY in .env file."
-            )
+            raise ValueError("OPENAI_API_KEY not set. " "Please set OPENAI_API_KEY in .env file.")
         # SECURITY: Only log masked version
-        logger.info(f"OpenAI client initialized: model={self.config.model}, key={mask_secret(self._api_key)}")
+        logger.info(
+            f"OpenAI client initialized: model={self.config.model}, key={mask_secret(self._api_key)}"
+        )
 
-    def chat(
-        self,
-        messages: List[Dict[str, str]],
-        **kwargs
-    ) -> LLMResponse:
+    def chat(self, messages: List[Dict[str, str]], **kwargs) -> LLMResponse:
         """Perform OpenAI chat completion"""
         from openai import OpenAI
 
@@ -148,7 +143,9 @@ class OpenAIClient(BaseLLMClient):
     def get_langchain_llm(self):
         """Return LangChain ChatOpenAI object"""
         if not LANGCHAIN_AVAILABLE:
-            raise ImportError("langchain not installed. pip install langchain-openai langchain-core")
+            raise ImportError(
+                "langchain not installed. pip install langchain-openai langchain-core"
+            )
         return ChatOpenAI(
             api_key=self._api_key,
             model=self.config.model,
@@ -170,17 +167,14 @@ class AnthropicClient(BaseLLMClient):
         self._api_key = get_api_key("ANTHROPIC_API_KEY")
         if not self._api_key:
             raise ValueError(
-                "ANTHROPIC_API_KEY not set. "
-                "Please set ANTHROPIC_API_KEY in .env file."
+                "ANTHROPIC_API_KEY not set. " "Please set ANTHROPIC_API_KEY in .env file."
             )
         # SECURITY: Only log masked version
-        logger.info(f"Anthropic client initialized: model={self.config.model}, key={mask_secret(self._api_key)}")
+        logger.info(
+            f"Anthropic client initialized: model={self.config.model}, key={mask_secret(self._api_key)}"
+        )
 
-    def chat(
-        self,
-        messages: List[Dict[str, str]],
-        **kwargs
-    ) -> LLMResponse:
+    def chat(self, messages: List[Dict[str, str]], **kwargs) -> LLMResponse:
         """Perform Anthropic chat completion"""
         from anthropic import Anthropic
 
@@ -238,11 +232,7 @@ class OllamaClient(BaseLLMClient):
         self._base_url = self.settings.llm.ollama_base_url
         logger.info(f"Ollama client initialized: model={self.config.model}")
 
-    def chat(
-        self,
-        messages: List[Dict[str, str]],
-        **kwargs
-    ) -> LLMResponse:
+    def chat(self, messages: List[Dict[str, str]], **kwargs) -> LLMResponse:
         """Perform Ollama chat completion"""
         import httpx
 
@@ -329,10 +319,7 @@ class LLMClientFactory:
 
 
 # Convenience functions
-def get_llm_client(
-    provider: Optional[str] = None,
-    **kwargs
-) -> BaseLLMClient:
+def get_llm_client(provider: Optional[str] = None, **kwargs) -> BaseLLMClient:
     """
     Get LLM client
 
@@ -347,10 +334,7 @@ def get_llm_client(
     return LLMClientFactory.create(provider, config)
 
 
-def get_langchain_llm(
-    provider: Optional[str] = None,
-    **kwargs
-) -> BaseChatModel:
+def get_langchain_llm(provider: Optional[str] = None, **kwargs) -> BaseChatModel:
     """
     Get LangChain-compatible LLM
 

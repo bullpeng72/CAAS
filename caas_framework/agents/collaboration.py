@@ -5,52 +5,40 @@ Orchestrates collaboration between expert agents with feedback loops.
 Implements the collaboration pattern from the framework enhancement proposal.
 """
 
-from typing import Any, Dict, List, Optional
-from dataclasses import dataclass, field
-from datetime import datetime
 import asyncio
 import logging
 import os
+from dataclasses import dataclass, field
+from datetime import datetime
+from typing import Any, Dict, List, Optional
 
-from caas_framework.agents.base import (
-    BaseExpertAgent,
-    AgentPhase,
-    AgentWorkResult,
-    ValidationIssue
-)
-from caas_framework.agents.registry import get_agent_registry, create_agent
-from caas_framework.models.specifications import ConcretizedRequirement
-from caas_framework.plugins.llm.base import LLMPlugin
-from caas_framework.validation.orchestrator import ValidationOrchestrator
-from caas_framework.validation.llm_judge import LLMJudge, EvaluationResult
-from caas_framework.models.validation import GoldenValidationReport
-from caas_framework.reporting import (
-    ProgressReporterProtocol,
-    ProgressReporter,
-    VerbosityLevel
-)
+from caas_framework.agents.base import AgentPhase, AgentWorkResult, BaseExpertAgent, ValidationIssue
+from caas_framework.agents.registry import create_agent, get_agent_registry
 from caas_framework.events import (
-    get_global_event_bus,
+    Event,
     EventBus,
     PhaseEvent,
-    Event,
-    create_phase_event
+    create_phase_event,
+    get_global_event_bus,
 )
 from caas_framework.execution.distributed_executor import (
+    DependencyGraph,
     DistributedPhaseExecutor,
     ExecutionStrategy,
-    DependencyGraph
 )
-from caas_framework.quality.quality_gates import (
-    QualityGateSystem,
-    GateEvaluation
-)
+from caas_framework.models.specifications import ConcretizedRequirement
+from caas_framework.models.validation import GoldenValidationReport
 from caas_framework.patterns.producer_critic import (
-    ProducerCriticPattern,
     CriticAgent,
     CriticRole,
-    ProducerCriticResult
+    ProducerCriticPattern,
+    ProducerCriticResult,
 )
+from caas_framework.plugins.llm.base import LLMPlugin
+from caas_framework.quality.quality_gates import GateEvaluation, QualityGateSystem
+from caas_framework.reporting import ProgressReporter, ProgressReporterProtocol, VerbosityLevel
+from caas_framework.validation.llm_judge import EvaluationResult, LLMJudge
+from caas_framework.validation.orchestrator import ValidationOrchestrator
 
 
 @dataclass
@@ -60,6 +48,7 @@ class CollaborationContext:
 
     Stores outputs from each phase and validation results.
     """
+
     golden_data: ConcretizedRequirement
     requirement: str
 
@@ -96,7 +85,7 @@ class CollaborationContext:
             AgentPhase.ARCHITECTURE,
             AgentPhase.DESIGN,
             AgentPhase.DELIVERY,
-            AgentPhase.QUALITY_ASSURANCE
+            AgentPhase.QUALITY_ASSURANCE,
         ]
 
         for phase in phase_order:
@@ -118,6 +107,7 @@ class CollaborationContext:
 @dataclass
 class CollaborationResult:
     """Result of expert agent collaboration."""
+
     success: bool
     context: CollaborationContext
     total_duration: float
@@ -142,7 +132,7 @@ class SafeFeedbackLoop:
         max_retries: int = 2,
         timeout_per_retry: int = 60,  # seconds
         logger: Optional[logging.Logger] = None,
-        llm_judge: Optional[LLMJudge] = None
+        llm_judge: Optional[LLMJudge] = None,
     ) -> None:
         self.max_retries: int = max_retries
         self.timeout_per_retry: int = timeout_per_retry
@@ -155,7 +145,7 @@ class SafeFeedbackLoop:
         initial_output: Dict[str, Any],
         validator,
         phase: AgentPhase,
-        context: Optional[Dict[str, Any]] = None
+        context: Optional[Dict[str, Any]] = None,
     ) -> tuple[Dict[str, Any], Optional[EvaluationResult]]:
         """
         Run feedback loop with timeout and retry protection.
@@ -179,13 +169,11 @@ class SafeFeedbackLoop:
 
         # Use RetryStrategy for validation and refinement
         success, result, _ = await RetryStrategy.execute_with_retry(
-            func=lambda: self._validate_and_refine_once(
-                agent, output, validator, phase, context
-            ),
+            func=lambda: self._validate_and_refine_once(agent, output, validator, phase, context),
             max_retries=self.max_retries,
             timeout_per_retry=self.timeout_per_retry,
             operation_name=f"{phase.name} feedback loop",
-            logger_instance=self.logger
+            logger_instance=self.logger,
         )
 
         if success:
@@ -205,7 +193,7 @@ class SafeFeedbackLoop:
         output: Dict[str, Any],
         validator,
         phase: AgentPhase,
-        context: Optional[Dict[str, Any]]
+        context: Optional[Dict[str, Any]],
     ) -> tuple[Dict[str, Any], Optional[EvaluationResult]]:
         """
         Single iteration of validate + refine.
@@ -233,7 +221,7 @@ class SafeFeedbackLoop:
             self._validate_output(validator, output, phase),
             timeout=self.timeout_per_retry,
             operation_name=f"{phase.name} validation",
-            logger_instance=self.logger
+            logger_instance=self.logger,
         )
 
         if not val_success:
@@ -243,14 +231,10 @@ class SafeFeedbackLoop:
         llm_evaluation = None
         if self.llm_judge:
             llm_success, llm_eval, llm_error = await TimeoutManager.execute_with_timeout(
-                self.llm_judge.evaluate_quality(
-                    output=output,
-                    phase=phase,
-                    context=context
-                ),
+                self.llm_judge.evaluate_quality(output=output, phase=phase, context=context),
                 timeout=self.timeout_per_retry,
                 operation_name=f"{phase.name} LLM Judge",
-                logger_instance=self.logger
+                logger_instance=self.logger,
             )
 
             if llm_success:
@@ -288,14 +272,11 @@ class SafeFeedbackLoop:
         # 5. Refinement with timeout
         ref_success, refined_result, ref_error = await TimeoutManager.execute_with_timeout(
             agent.refine(
-                original_output=output,
-                validation_issues=issues,
-                context=context,
-                max_iterations=1
+                original_output=output, validation_issues=issues, context=context, max_iterations=1
             ),
             timeout=self.timeout_per_retry,
             operation_name=f"{phase.name} refinement",
-            logger_instance=self.logger
+            logger_instance=self.logger,
         )
 
         if not ref_success:
@@ -319,7 +300,7 @@ class SafeFeedbackLoop:
                 tasks=tasks_list,
                 validate_golden=True,
                 validate_ontology=True,
-                validate_dependencies=True
+                validate_dependencies=True,
             )
 
             # Handle both sync and async validators
@@ -358,7 +339,7 @@ class SafeFeedbackLoop:
         phase: AgentPhase,
         output: Dict[str, Any],
         context: Optional[Dict[str, Any]] = None,
-        llm_evaluation: Optional[EvaluationResult] = None
+        llm_evaluation: Optional[EvaluationResult] = None,
     ) -> Optional[GateEvaluation]:
         """
         Evaluate quality gate for a phase.
@@ -380,15 +361,49 @@ class SafeFeedbackLoop:
         # Enhance context with LLM Judge metrics
         enhanced_context = context.copy() if context else {}
         if llm_evaluation:
+            # Map LLM Judge dimensions to quality gate metric names
+            dimension_scores = {
+                dim.dimension.value: dim.score for dim in llm_evaluation.dimension_scores
+            }
+
+            # Add phase-specific metric mappings
+            if phase == AgentPhase.ARCHITECTURE:
+                # Map LLM Judge dimensions to Architecture gate metrics
+                enhanced_context["component_clarity"] = dimension_scores.get(
+                    "clarity", llm_evaluation.overall_score
+                )
+                enhanced_context["architectural_coherence"] = dimension_scores.get(
+                    "coherence", llm_evaluation.overall_score
+                )
+                enhanced_context["scalability_score"] = dimension_scores.get(
+                    "appropriateness", llm_evaluation.overall_score
+                )
+            elif phase == AgentPhase.DESIGN:
+                # Map for Design gate metrics
+                enhanced_context["agent_role_clarity"] = dimension_scores.get(
+                    "clarity", llm_evaluation.overall_score
+                )
+                enhanced_context["task_coverage"] = dimension_scores.get(
+                    "completeness", llm_evaluation.overall_score
+                )
+                enhanced_context["dependency_correctness"] = dimension_scores.get(
+                    "correctness", llm_evaluation.overall_score
+                )
+            elif phase == AgentPhase.DISCOVERY:
+                # Map for Discovery gate metrics
+                enhanced_context["requirement_clarity"] = dimension_scores.get(
+                    "clarity", llm_evaluation.overall_score
+                )
+                enhanced_context["feature_completeness"] = dimension_scores.get(
+                    "completeness", llm_evaluation.overall_score
+                )
+
             enhanced_context["llm_judge"] = {
                 "overall_score": llm_evaluation.overall_score,
                 "approved": llm_evaluation.approved,
-                "dimension_scores": {
-                    dim.dimension.value: dim.score
-                    for dim in llm_evaluation.dimension_scores
-                },
+                "dimension_scores": dimension_scores,
                 "critical_issues_count": len(llm_evaluation.critical_issues),
-                "warnings_count": len(llm_evaluation.warnings)
+                "warnings_count": len(llm_evaluation.warnings),
             }
 
         # Evaluate gate with timeout to prevent hanging
@@ -398,12 +413,14 @@ class SafeFeedbackLoop:
                     self.quality_gate_system.evaluate_gate,
                     phase=phase,
                     output=output,
-                    context=enhanced_context
+                    context=enhanced_context,
                 ),
-                timeout=30.0  # 30 second timeout
+                timeout=30.0,  # 30 second timeout
             )
         except asyncio.TimeoutError:
-            self.reporter.warning(f"⚠️ Quality gate evaluation timed out for {phase.name}, proceeding without validation")
+            self.reporter.warning(
+                f"⚠️ Quality gate evaluation timed out for {phase.name}, proceeding without validation"
+            )
             return None
         except Exception as e:
             self.reporter.error(f"❌ Quality gate evaluation failed for {phase.name}: {str(e)}")
@@ -411,7 +428,9 @@ class SafeFeedbackLoop:
 
         # Log results (including LLM Judge score if available)
         if gate_evaluation.can_proceed:
-            llm_score_str = f", LLM score: {llm_evaluation.overall_score:.1f}/10.0" if llm_evaluation else ""
+            llm_score_str = (
+                f", LLM score: {llm_evaluation.overall_score:.1f}/10.0" if llm_evaluation else ""
+            )
             self.reporter.success(
                 f"✅ Quality gate passed for {phase.name} "
                 f"({gate_evaluation.pass_rate:.1f}% metrics passing{llm_score_str})"
@@ -429,18 +448,20 @@ class SafeFeedbackLoop:
             "gate_status": gate_evaluation.status.value,
             "can_proceed": gate_evaluation.can_proceed,
             "pass_rate": gate_evaluation.pass_rate,
-            "failed_metrics": gate_evaluation.failed_metrics
+            "failed_metrics": gate_evaluation.failed_metrics,
         }
         if llm_evaluation:
             event_data["llm_judge_score"] = llm_evaluation.overall_score
             event_data["llm_judge_approved"] = llm_evaluation.approved
 
-        self.event_bus.publish(Event(
-            type=PhaseEvent.VALIDATION_COMPLETED,
-            phase=phase.name,
-            data=event_data,
-            timestamp=datetime.now().timestamp()
-        ))
+        self.event_bus.publish(
+            Event(
+                type=PhaseEvent.VALIDATION_COMPLETED,
+                phase=phase.name,
+                data=event_data,
+                timestamp=datetime.now().timestamp(),
+            )
+        )
 
         return gate_evaluation
 
@@ -449,7 +470,7 @@ class SafeFeedbackLoop:
         phase: AgentPhase,
         output: Dict[str, Any],
         context: Optional[Dict[str, Any]] = None,
-        llm_evaluation: Optional[EvaluationResult] = None
+        llm_evaluation: Optional[EvaluationResult] = None,
     ) -> Optional[GateEvaluation]:
         """
         Safe wrapper for _evaluate_quality_gate with enhanced error handling.
@@ -468,21 +489,18 @@ class SafeFeedbackLoop:
         """
         try:
             # Check if quality gate system is available
-            if not hasattr(self, 'quality_gate_system') or not self.quality_gate_system:
-                self.reporter.warning(f"⚠️ Quality gate system not available for {phase.name}, skipping validation")
+            if not hasattr(self, "quality_gate_system") or not self.quality_gate_system:
+                self.reporter.warning(
+                    f"⚠️ Quality gate system not available for {phase.name}, skipping validation"
+                )
                 return None
 
             # Call the main evaluation method
             return await self._evaluate_quality_gate(
-                phase=phase,
-                output=output,
-                context=context,
-                llm_evaluation=llm_evaluation
+                phase=phase, output=output, context=context, llm_evaluation=llm_evaluation
             )
         except AttributeError as e:
-            self.reporter.warning(
-                f"⚠️ Quality gate evaluation skipped for {phase.name}: {str(e)}"
-            )
+            self.reporter.warning(f"⚠️ Quality gate evaluation skipped for {phase.name}: {str(e)}")
             return None
         except Exception as e:
             self.reporter.error(
@@ -516,11 +534,11 @@ class ExpertAgentCollaboration:
         max_feedback_loops: int = 3,
         enable_validation: bool = True,
         progress_reporter: Optional[ProgressReporterProtocol] = None,
-        plan_mode: Optional['PlanMode'] = None,
+        plan_mode: Optional["PlanMode"] = None,
         event_bus: Optional[EventBus] = None,
         enable_distributed: bool = False,
         max_workers: Optional[int] = None,
-        enable_critic_pattern: bool = False
+        enable_critic_pattern: bool = False,
     ):
         """
         Initialize collaboration orchestrator.
@@ -551,11 +569,11 @@ class ExpertAgentCollaboration:
         self.distributed_executor: Optional[DistributedPhaseExecutor] = None
         if enable_distributed:
             self.distributed_executor = DistributedPhaseExecutor(
-                strategy=ExecutionStrategy.AUTO,
-                max_workers=max_workers,
-                enable_monitoring=True
+                strategy=ExecutionStrategy.AUTO, max_workers=max_workers, enable_monitoring=True
             )
-            self.reporter.info(f"🚀 Distributed execution enabled with {max_workers or 'auto'} workers")
+            self.reporter.info(
+                f"🚀 Distributed execution enabled with {max_workers or 'auto'} workers"
+            )
 
         # Progress reporting (UI-independent Protocol)
         self.reporter = progress_reporter or ProgressReporter(verbosity=VerbosityLevel.NORMAL)
@@ -566,30 +584,20 @@ class ExpertAgentCollaboration:
 
         self.agents: Dict[str, BaseExpertAgent] = {
             "requirement_analyst": create_agent(
-                phase=AgentPhase.DISCOVERY,
-                llm_plugin=llm_plugin,
-                golden_data=golden_data
+                phase=AgentPhase.DISCOVERY, llm_plugin=llm_plugin, golden_data=golden_data
             ),
             "system_architect": create_agent(
-                phase=AgentPhase.ARCHITECTURE,
-                llm_plugin=llm_plugin,
-                golden_data=golden_data
+                phase=AgentPhase.ARCHITECTURE, llm_plugin=llm_plugin, golden_data=golden_data
             ),
             "agent_designer": create_agent(
-                phase=AgentPhase.DESIGN,
-                llm_plugin=llm_plugin,
-                golden_data=golden_data
+                phase=AgentPhase.DESIGN, llm_plugin=llm_plugin, golden_data=golden_data
             ),
             "code_generator": create_agent(
-                phase=AgentPhase.DELIVERY,
-                llm_plugin=llm_plugin,
-                golden_data=golden_data
+                phase=AgentPhase.DELIVERY, llm_plugin=llm_plugin, golden_data=golden_data
             ),
             "qa_specialist": create_agent(
-                phase=AgentPhase.QUALITY_ASSURANCE,
-                llm_plugin=llm_plugin,
-                golden_data=golden_data
-            )
+                phase=AgentPhase.QUALITY_ASSURANCE, llm_plugin=llm_plugin, golden_data=golden_data
+            ),
         }
 
         # Log registry info
@@ -611,19 +619,19 @@ class ExpertAgentCollaboration:
         if enable_validation and not disable_llm_judge:
             # Phase-specific thresholds for quality evaluation
             phase_thresholds = {
-                AgentPhase.DISCOVERY: 6.5,          # Lower threshold (exploratory)
-                AgentPhase.ARCHITECTURE: 7.0,       # Standard threshold
-                AgentPhase.DESIGN: 7.5,             # Higher threshold (critical phase)
-                AgentPhase.DEVELOPMENT: 7.0,        # Standard threshold
-                AgentPhase.DELIVERY: 8.0,           # Highest threshold (production code)
-                AgentPhase.QUALITY_ASSURANCE: 7.0   # Standard threshold
+                AgentPhase.DISCOVERY: 6.5,  # Lower threshold (exploratory)
+                AgentPhase.ARCHITECTURE: 7.0,  # Standard threshold
+                AgentPhase.DESIGN: 7.5,  # Higher threshold (critical phase)
+                AgentPhase.DEVELOPMENT: 7.0,  # Standard threshold
+                AgentPhase.DELIVERY: 8.0,  # Highest threshold (production code)
+                AgentPhase.QUALITY_ASSURANCE: 7.0,  # Standard threshold
             }
 
             llm_judge = LLMJudge(
                 llm_plugin=llm_plugin,
                 approval_threshold=7.0,  # Default threshold
                 phase_thresholds=phase_thresholds,  # Phase-specific overrides
-                logger=logging.getLogger(__name__)
+                logger=logging.getLogger(__name__),
             )
 
         # Safe feedback loop (with timeout protection and LLM Judge)
@@ -631,7 +639,7 @@ class ExpertAgentCollaboration:
             max_retries=max_feedback_loops,
             timeout_per_retry=60,  # 60 seconds per retry
             logger=logging.getLogger(__name__),
-            llm_judge=llm_judge  # Add LLM Judge for semantic quality evaluation
+            llm_judge=llm_judge,  # Add LLM Judge for semantic quality evaluation
         )
 
         # Quality Gate System (validates exit criteria for each phase)
@@ -640,7 +648,7 @@ class ExpertAgentCollaboration:
             self.quality_gate_system = QualityGateSystem(
                 enable_gates=True,
                 strict_mode=False,  # Allow warnings, block only on critical failures
-                logger=logging.getLogger(__name__)
+                logger=logging.getLogger(__name__),
             )
             self.reporter.info("🚪 Quality Gate System enabled")
 
@@ -654,7 +662,7 @@ class ExpertAgentCollaboration:
             self.producer_critic_pattern = ProducerCriticPattern(
                 max_iterations=3,  # Max 3 refinement iterations
                 timeout_per_iteration=120,  # 2 minutes per iteration
-                logger=logging.getLogger(__name__)
+                logger=logging.getLogger(__name__),
             )
 
             # Initialize critic agent with general role
@@ -662,7 +670,7 @@ class ExpertAgentCollaboration:
                 llm_plugin=llm_plugin,
                 role=CriticRole.GENERAL_CRITIC,
                 approval_threshold=7.0,  # Require 7.0/10.0 for approval
-                logger=logging.getLogger(__name__)
+                logger=logging.getLogger(__name__),
             )
 
             self.reporter.info("🔍 Producer-Critic pattern enabled for Design and Delivery phases")
@@ -687,9 +695,7 @@ class ExpertAgentCollaboration:
         start_time = datetime.now()
 
         context = CollaborationContext(
-            golden_data=self.golden_data,
-            requirement=requirement,
-            start_time=start_time
+            golden_data=self.golden_data, requirement=requirement, start_time=start_time
         )
 
         errors = []
@@ -701,20 +707,27 @@ class ExpertAgentCollaboration:
                 self.reporter.info("🚀 Executing Discovery and Architecture phases in parallel")
 
                 # Publish phase started events
-                self.event_bus.publish(create_phase_event(
-                    PhaseEvent.PHASE_STARTED,
-                    "Discovery",
-                    {"requirement": requirement, "agent": "RequirementAnalyst", "parallel": True}
-                ))
-                self.event_bus.publish(create_phase_event(
-                    PhaseEvent.PHASE_STARTED,
-                    "Architecture",
-                    {"agent": "SystemArchitect", "parallel": True}
-                ))
+                self.event_bus.publish(
+                    create_phase_event(
+                        PhaseEvent.PHASE_STARTED,
+                        "Discovery",
+                        {
+                            "requirement": requirement,
+                            "agent": "RequirementAnalyst",
+                            "parallel": True,
+                        },
+                    )
+                )
+                self.event_bus.publish(
+                    create_phase_event(
+                        PhaseEvent.PHASE_STARTED,
+                        "Architecture",
+                        {"agent": "SystemArchitect", "parallel": True},
+                    )
+                )
 
                 req_result, arch_result = await self._execute_parallel_discovery_architecture(
-                    context=context,
-                    requirement=requirement
+                    context=context, requirement=requirement
                 )
             else:
                 # Sequential execution (original flow)
@@ -722,20 +735,22 @@ class ExpertAgentCollaboration:
                 self.reporter.start_phase(
                     phase_name="Phase 1: Discovery",
                     agent_name="RequirementAnalyst",
-                    description="Analyzing requirements and extracting key features"
+                    description="Analyzing requirements and extracting key features",
                 )
 
                 # Publish phase started event
-                self.event_bus.publish(create_phase_event(
-                    PhaseEvent.PHASE_STARTED,
-                    "Discovery",
-                    {"requirement": requirement, "agent": "RequirementAnalyst"}
-                ))
+                self.event_bus.publish(
+                    create_phase_event(
+                        PhaseEvent.PHASE_STARTED,
+                        "Discovery",
+                        {"requirement": requirement, "agent": "RequirementAnalyst"},
+                    )
+                )
 
                 req_result = await self._execute_phase_with_feedback(
                     agent=self.agents["requirement_analyst"],
                     context=context,
-                    phase=AgentPhase.DISCOVERY
+                    phase=AgentPhase.DISCOVERY,
                 )
 
             if req_result.success:
@@ -743,25 +758,29 @@ class ExpertAgentCollaboration:
                 context.phases_completed.append(AgentPhase.DISCOVERY)
                 context.add_agent_result("requirement_analyst", req_result)
                 self.reporter.complete_phase(
-                    phase_name="Phase 1: Discovery",
-                    duration=req_result.duration,
-                    success=True
+                    phase_name="Phase 1: Discovery", duration=req_result.duration, success=True
                 )
 
                 # Publish phase completed event
-                self.event_bus.publish(create_phase_event(
-                    PhaseEvent.PHASE_COMPLETED,
-                    "Discovery",
-                    {"duration": req_result.duration, "success": True}
-                ))
+                self.event_bus.publish(
+                    create_phase_event(
+                        PhaseEvent.PHASE_COMPLETED,
+                        "Discovery",
+                        {"duration": req_result.duration, "success": True},
+                    )
+                )
 
                 # QUALITY GATE: Discovery Phase
                 # v1.1.0: Quality gate REACTIVATED with timeout protection
                 gate_evaluation = await self._evaluate_quality_gate_safe(
                     phase=AgentPhase.DISCOVERY,
                     output={"requirement_analysis": context.requirement_analysis},
-                    context={"golden_data": context.golden_data.model_dump() if context.golden_data else {}},
-                    llm_evaluation=None
+                    context={
+                        "golden_data": (
+                            context.golden_data.model_dump() if context.golden_data else {}
+                        )
+                    },
+                    llm_evaluation=None,
                 )
 
                 # Check if can proceed
@@ -778,7 +797,9 @@ class ExpertAgentCollaboration:
                     # Return early with failure
                     end_time = datetime.now()
                     duration = (end_time - start_time).total_seconds()
-                    agent_summaries = {name: agent.get_work_summary() for name, agent in self.agents.items()}
+                    agent_summaries = {
+                        name: agent.get_work_summary() for name, agent in self.agents.items()
+                    }
 
                     return CollaborationResult(
                         requirement_analysis=req_result.output,
@@ -786,7 +807,7 @@ class ExpertAgentCollaboration:
                         success=False,
                         errors=errors,
                         total_duration=duration,
-                        agent_summaries=agent_summaries
+                        agent_summaries=agent_summaries,
                     )
 
                 self.reporter.info("🔧 DEBUG: Quality gate passed, checking plan mode approval...")
@@ -795,11 +816,12 @@ class ExpertAgentCollaboration:
                 if self.plan_mode:
                     self.reporter.info("🔧 DEBUG: Plan mode is enabled, requesting approval...")
                     from caas_framework.modes.plan_mode import ApprovalDecision
+
                     gate = self.plan_mode.request_approval(
                         phase=AgentPhase.DISCOVERY,
                         phase_name="Phase 1: Discovery",
                         description="Review analyzed requirements and extracted features",
-                        output=req_result.output
+                        output=req_result.output,
                     )
 
                     if gate.decision == ApprovalDecision.REJECT:
@@ -810,7 +832,9 @@ class ExpertAgentCollaboration:
                         # Return early with failure
                         end_time = datetime.now()
                         duration = (end_time - start_time).total_seconds()
-                        agent_summaries = {name: agent.get_work_summary() for name, agent in self.agents.items()}
+                        agent_summaries = {
+                            name: agent.get_work_summary() for name, agent in self.agents.items()
+                        }
 
                         return CollaborationResult(
                             success=False,
@@ -819,29 +843,33 @@ class ExpertAgentCollaboration:
                             phases_completed=context.phases_completed,
                             feedback_loops_executed=context.feedback_loops_executed,
                             errors=errors,
-                            agent_summaries=agent_summaries
+                            agent_summaries=agent_summaries,
                         )
 
             else:
                 errors.extend(req_result.errors)
                 self.reporter.complete_phase(
-                    phase_name="Phase 1: Discovery",
-                    duration=req_result.duration,
-                    success=False
+                    phase_name="Phase 1: Discovery", duration=req_result.duration, success=False
                 )
 
                 # Publish phase failed event
-                self.event_bus.publish(create_phase_event(
-                    PhaseEvent.PHASE_FAILED,
-                    "Discovery",
-                    {"errors": req_result.errors, "duration": req_result.duration}
-                ))
+                self.event_bus.publish(
+                    create_phase_event(
+                        PhaseEvent.PHASE_FAILED,
+                        "Discovery",
+                        {"errors": req_result.errors, "duration": req_result.duration},
+                    )
+                )
 
                 # Return early if Discovery failed - cannot proceed without requirements
-                self.reporter.error("❌ Cannot proceed to Architecture without successful Discovery")
+                self.reporter.error(
+                    "❌ Cannot proceed to Architecture without successful Discovery"
+                )
                 end_time = datetime.now()
                 duration = (end_time - start_time).total_seconds()
-                agent_summaries = {name: agent.get_work_summary() for name, agent in self.agents.items()}
+                agent_summaries = {
+                    name: agent.get_work_summary() for name, agent in self.agents.items()
+                }
 
                 return CollaborationResult(
                     success=False,
@@ -850,38 +878,43 @@ class ExpertAgentCollaboration:
                     phases_completed=context.phases_completed,
                     feedback_loops_executed=context.feedback_loops_executed,
                     errors=errors,
-                    agent_summaries=agent_summaries
+                    agent_summaries=agent_summaries,
                 )
 
             self.reporter.info("🔧 DEBUG: Passed all Discovery checks, proceeding to Phase 2...")
             # Phase 2: Architecture (System Design)
             # Note: If distributed execution is enabled, arch_result already set above
-            self.reporter.info(f"🔧 DEBUG: Starting Phase 2 Architecture (distributed={self.enable_distributed}, executor={self.distributed_executor is not None})")
+            self.reporter.info(
+                f"🔧 DEBUG: Starting Phase 2 Architecture (distributed={self.enable_distributed}, executor={self.distributed_executor is not None})"
+            )
 
             if not (self.enable_distributed and self.distributed_executor):
                 self.reporter.start_phase(
                     phase_name="Phase 2: Architecture",
                     agent_name="SystemArchitect",
-                    description="Designing system architecture and components"
+                    description="Designing system architecture and components",
                 )
 
                 # Publish phase started event
-                self.event_bus.publish(create_phase_event(
-                    PhaseEvent.PHASE_STARTED,
-                    "Architecture",
-                    {"agent": "SystemArchitect"}
-                ))
+                self.event_bus.publish(
+                    create_phase_event(
+                        PhaseEvent.PHASE_STARTED, "Architecture", {"agent": "SystemArchitect"}
+                    )
+                )
 
                 try:
                     arch_result = await self._execute_phase_with_feedback(
                         agent=self.agents["system_architect"],
                         context=context,
-                        phase=AgentPhase.ARCHITECTURE
+                        phase=AgentPhase.ARCHITECTURE,
                     )
-                    self.reporter.info(f"🔧 DEBUG: Architecture phase completed successfully={arch_result.success}")
+                    self.reporter.info(
+                        f"🔧 DEBUG: Architecture phase completed successfully={arch_result.success}"
+                    )
                 except Exception as e:
                     self.reporter.error(f"❌ Architecture phase failed with exception: {str(e)}")
                     import traceback
+
                     self.reporter.error(f"Traceback: {traceback.format_exc()}")
                     raise
 
@@ -890,25 +923,29 @@ class ExpertAgentCollaboration:
                 context.phases_completed.append(AgentPhase.ARCHITECTURE)
                 context.add_agent_result("system_architect", arch_result)
                 self.reporter.complete_phase(
-                    phase_name="Phase 2: Architecture",
-                    duration=arch_result.duration,
-                    success=True
+                    phase_name="Phase 2: Architecture", duration=arch_result.duration, success=True
                 )
 
                 # Publish phase completed event
-                self.event_bus.publish(create_phase_event(
-                    PhaseEvent.PHASE_COMPLETED,
-                    "Architecture",
-                    {"duration": arch_result.duration, "success": True}
-                ))
+                self.event_bus.publish(
+                    create_phase_event(
+                        PhaseEvent.PHASE_COMPLETED,
+                        "Architecture",
+                        {"duration": arch_result.duration, "success": True},
+                    )
+                )
 
                 # QUALITY GATE: Architecture Phase
                 # v1.1.0: Quality gate REACTIVATED with timeout protection
                 gate_evaluation = await self._evaluate_quality_gate_safe(
                     phase=AgentPhase.ARCHITECTURE,
                     output={"architecture_design": context.architecture_design},
-                    context={"golden_data": context.golden_data.model_dump() if context.golden_data else {}},
-                    llm_evaluation=None
+                    context={
+                        "golden_data": (
+                            context.golden_data.model_dump() if context.golden_data else {}
+                        )
+                    },
+                    llm_evaluation=None,
                 )
 
                 # Check if can proceed
@@ -925,7 +962,9 @@ class ExpertAgentCollaboration:
                     # Return early with failure
                     end_time = datetime.now()
                     duration = (end_time - start_time).total_seconds()
-                    agent_summaries = {name: agent.get_work_summary() for name, agent in self.agents.items()}
+                    agent_summaries = {
+                        name: agent.get_work_summary() for name, agent in self.agents.items()
+                    }
 
                     return CollaborationResult(
                         requirement_analysis=req_result.output if req_result.success else None,
@@ -934,42 +973,38 @@ class ExpertAgentCollaboration:
                         success=False,
                         errors=errors,
                         total_duration=duration,
-                        agent_summaries=agent_summaries
+                        agent_summaries=agent_summaries,
                     )
 
             else:
                 errors.extend(arch_result.errors)
                 self.reporter.complete_phase(
-                    phase_name="Phase 2: Architecture",
-                    duration=arch_result.duration,
-                    success=False
+                    phase_name="Phase 2: Architecture", duration=arch_result.duration, success=False
                 )
 
                 # Publish phase failed event
-                self.event_bus.publish(create_phase_event(
-                    PhaseEvent.PHASE_FAILED,
-                    "Architecture",
-                    {"errors": arch_result.errors, "duration": arch_result.duration}
-                ))
+                self.event_bus.publish(
+                    create_phase_event(
+                        PhaseEvent.PHASE_FAILED,
+                        "Architecture",
+                        {"errors": arch_result.errors, "duration": arch_result.duration},
+                    )
+                )
 
             # Phase 3: Design (Agent/Task Design)
             self.reporter.start_phase(
                 phase_name="Phase 3: Design",
                 agent_name="AgentDesigner",
-                description="Designing agents and tasks"
+                description="Designing agents and tasks",
             )
 
             # Publish phase started event
-            self.event_bus.publish(create_phase_event(
-                PhaseEvent.PHASE_STARTED,
-                "Design",
-                {"agent": "AgentDesigner"}
-            ))
+            self.event_bus.publish(
+                create_phase_event(PhaseEvent.PHASE_STARTED, "Design", {"agent": "AgentDesigner"})
+            )
 
             design_result = await self._execute_phase_with_feedback(
-                agent=self.agents["agent_designer"],
-                context=context,
-                phase=AgentPhase.DESIGN
+                agent=self.agents["agent_designer"], context=context, phase=AgentPhase.DESIGN
             )
 
             if design_result.success:
@@ -977,25 +1012,29 @@ class ExpertAgentCollaboration:
                 context.phases_completed.append(AgentPhase.DESIGN)
                 context.add_agent_result("agent_designer", design_result)
                 self.reporter.complete_phase(
-                    phase_name="Phase 3: Design",
-                    duration=design_result.duration,
-                    success=True
+                    phase_name="Phase 3: Design", duration=design_result.duration, success=True
                 )
 
                 # Publish phase completed event
-                self.event_bus.publish(create_phase_event(
-                    PhaseEvent.PHASE_COMPLETED,
-                    "Design",
-                    {"duration": design_result.duration, "success": True}
-                ))
+                self.event_bus.publish(
+                    create_phase_event(
+                        PhaseEvent.PHASE_COMPLETED,
+                        "Design",
+                        {"duration": design_result.duration, "success": True},
+                    )
+                )
 
                 # QUALITY GATE: Design Phase
                 # v1.1.0: Quality gate REACTIVATED with timeout protection
                 gate_evaluation = await self._evaluate_quality_gate_safe(
                     phase=AgentPhase.DESIGN,
                     output={"agent_task_design": context.agent_task_design},
-                    context={"golden_data": context.golden_data.model_dump() if context.golden_data else {}},
-                    llm_evaluation=None
+                    context={
+                        "golden_data": (
+                            context.golden_data.model_dump() if context.golden_data else {}
+                        )
+                    },
+                    llm_evaluation=None,
                 )
 
                 # Check if can proceed
@@ -1012,7 +1051,9 @@ class ExpertAgentCollaboration:
                     # Return early with failure
                     end_time = datetime.now()
                     duration = (end_time - start_time).total_seconds()
-                    agent_summaries = {name: agent.get_work_summary() for name, agent in self.agents.items()}
+                    agent_summaries = {
+                        name: agent.get_work_summary() for name, agent in self.agents.items()
+                    }
 
                     return CollaborationResult(
                         requirement_analysis=req_result.output if req_result.success else None,
@@ -1022,17 +1063,18 @@ class ExpertAgentCollaboration:
                         success=False,
                         errors=errors,
                         total_duration=duration,
-                        agent_summaries=agent_summaries
+                        agent_summaries=agent_summaries,
                     )
 
                 # APPROVAL GATE 2: Design Review
                 if self.plan_mode:
                     from caas_framework.modes.plan_mode import ApprovalDecision
+
                     gate = self.plan_mode.request_approval(
                         phase=AgentPhase.DESIGN,
                         phase_name="Phase 3: Design",
                         description="Review agent and task design before code generation",
-                        output=design_result.output
+                        output=design_result.output,
                     )
 
                     if gate.decision == ApprovalDecision.REJECT:
@@ -1043,7 +1085,9 @@ class ExpertAgentCollaboration:
                         # Return early with failure
                         end_time = datetime.now()
                         duration = (end_time - start_time).total_seconds()
-                        agent_summaries = {name: agent.get_work_summary() for name, agent in self.agents.items()}
+                        agent_summaries = {
+                            name: agent.get_work_summary() for name, agent in self.agents.items()
+                        }
 
                         return CollaborationResult(
                             success=False,
@@ -1052,43 +1096,39 @@ class ExpertAgentCollaboration:
                             phases_completed=context.phases_completed,
                             feedback_loops_executed=context.feedback_loops_executed,
                             errors=errors,
-                            agent_summaries=agent_summaries
+                            agent_summaries=agent_summaries,
                         )
 
             else:
                 self.reporter.error(f"Design phase failed: {design_result.errors}")
                 errors.extend(design_result.errors)
                 self.reporter.complete_phase(
-                    phase_name="Phase 3: Design",
-                    duration=design_result.duration,
-                    success=False
+                    phase_name="Phase 3: Design", duration=design_result.duration, success=False
                 )
 
                 # Publish phase failed event
-                self.event_bus.publish(create_phase_event(
-                    PhaseEvent.PHASE_FAILED,
-                    "Design",
-                    {"errors": design_result.errors, "duration": design_result.duration}
-                ))
+                self.event_bus.publish(
+                    create_phase_event(
+                        PhaseEvent.PHASE_FAILED,
+                        "Design",
+                        {"errors": design_result.errors, "duration": design_result.duration},
+                    )
+                )
 
             # Phase 4: Delivery (Code Generation)
             self.reporter.start_phase(
                 phase_name="Phase 4: Delivery",
                 agent_name="CodeGenerator",
-                description="Generating production-ready code"
+                description="Generating production-ready code",
             )
 
             # Publish phase started event
-            self.event_bus.publish(create_phase_event(
-                PhaseEvent.PHASE_STARTED,
-                "Delivery",
-                {"agent": "CodeGenerator"}
-            ))
+            self.event_bus.publish(
+                create_phase_event(PhaseEvent.PHASE_STARTED, "Delivery", {"agent": "CodeGenerator"})
+            )
 
             code_result = await self._execute_phase_with_feedback(
-                agent=self.agents["code_generator"],
-                context=context,
-                phase=AgentPhase.DELIVERY
+                agent=self.agents["code_generator"], context=context, phase=AgentPhase.DELIVERY
             )
 
             if code_result.success:
@@ -1096,25 +1136,29 @@ class ExpertAgentCollaboration:
                 context.phases_completed.append(AgentPhase.DELIVERY)
                 context.add_agent_result("code_generator", code_result)
                 self.reporter.complete_phase(
-                    phase_name="Phase 4: Delivery",
-                    duration=code_result.duration,
-                    success=True
+                    phase_name="Phase 4: Delivery", duration=code_result.duration, success=True
                 )
 
                 # Publish phase completed event
-                self.event_bus.publish(create_phase_event(
-                    PhaseEvent.PHASE_COMPLETED,
-                    "Delivery",
-                    {"duration": code_result.duration, "success": True}
-                ))
+                self.event_bus.publish(
+                    create_phase_event(
+                        PhaseEvent.PHASE_COMPLETED,
+                        "Delivery",
+                        {"duration": code_result.duration, "success": True},
+                    )
+                )
 
                 # QUALITY GATE: Delivery Phase
                 # v1.1.0: Quality gate REACTIVATED with timeout protection
                 gate_evaluation = await self._evaluate_quality_gate_safe(
                     phase=AgentPhase.DELIVERY,
                     output={"code_artifacts": context.code_artifacts},
-                    context={"golden_data": context.golden_data.model_dump() if context.golden_data else {}},
-                    llm_evaluation=None
+                    context={
+                        "golden_data": (
+                            context.golden_data.model_dump() if context.golden_data else {}
+                        )
+                    },
+                    llm_evaluation=None,
                 )
 
                 # Check if can proceed
@@ -1131,7 +1175,9 @@ class ExpertAgentCollaboration:
                     # Return early with failure
                     end_time = datetime.now()
                     duration = (end_time - start_time).total_seconds()
-                    agent_summaries = {name: agent.get_work_summary() for name, agent in self.agents.items()}
+                    agent_summaries = {
+                        name: agent.get_work_summary() for name, agent in self.agents.items()
+                    }
 
                     return CollaborationResult(
                         requirement_analysis=req_result.output if req_result.success else None,
@@ -1142,17 +1188,18 @@ class ExpertAgentCollaboration:
                         success=False,
                         errors=errors,
                         total_duration=duration,
-                        agent_summaries=agent_summaries
+                        agent_summaries=agent_summaries,
                     )
 
                 # APPROVAL GATE 3: Code Review
                 if self.plan_mode:
                     from caas_framework.modes.plan_mode import ApprovalDecision
+
                     gate = self.plan_mode.request_approval(
                         phase=AgentPhase.DELIVERY,
                         phase_name="Phase 4: Code Generation",
                         description="Review generated code before final validation",
-                        output=code_result.output
+                        output=code_result.output,
                     )
 
                     if gate.decision == ApprovalDecision.REJECT:
@@ -1163,7 +1210,9 @@ class ExpertAgentCollaboration:
                         # Return early with failure
                         end_time = datetime.now()
                         duration = (end_time - start_time).total_seconds()
-                        agent_summaries = {name: agent.get_work_summary() for name, agent in self.agents.items()}
+                        agent_summaries = {
+                            name: agent.get_work_summary() for name, agent in self.agents.items()
+                        }
 
                         return CollaborationResult(
                             success=False,
@@ -1172,28 +1221,26 @@ class ExpertAgentCollaboration:
                             phases_completed=context.phases_completed,
                             feedback_loops_executed=context.feedback_loops_executed,
                             errors=errors,
-                            agent_summaries=agent_summaries
+                            agent_summaries=agent_summaries,
                         )
 
             else:
                 errors.extend(code_result.errors)
                 self.reporter.complete_phase(
-                    phase_name="Phase 4: Delivery",
-                    duration=code_result.duration,
-                    success=False
+                    phase_name="Phase 4: Delivery", duration=code_result.duration, success=False
                 )
 
             # Phase 5: Quality Assurance
             self.reporter.start_phase(
                 phase_name="Phase 5: Quality Assurance",
                 agent_name="QASpecialist",
-                description="Validating and testing generated code"
+                description="Validating and testing generated code",
             )
 
             qa_result = await self._execute_phase_with_feedback(
                 agent=self.agents["qa_specialist"],
                 context=context,
-                phase=AgentPhase.QUALITY_ASSURANCE
+                phase=AgentPhase.QUALITY_ASSURANCE,
             )
 
             if qa_result.success:
@@ -1203,14 +1250,14 @@ class ExpertAgentCollaboration:
                 self.reporter.complete_phase(
                     phase_name="Phase 5: Quality Assurance",
                     duration=qa_result.duration,
-                    success=True
+                    success=True,
                 )
             else:
                 errors.extend(qa_result.errors)
                 self.reporter.complete_phase(
                     phase_name="Phase 5: Quality Assurance",
                     duration=qa_result.duration,
-                    success=False
+                    success=False,
                 )
 
         except Exception as e:
@@ -1221,10 +1268,7 @@ class ExpertAgentCollaboration:
         duration = (end_time - start_time).total_seconds()
 
         # Gather agent summaries
-        agent_summaries = {
-            name: agent.get_work_summary()
-            for name, agent in self.agents.items()
-        }
+        agent_summaries = {name: agent.get_work_summary() for name, agent in self.agents.items()}
 
         result = CollaborationResult(
             success=len(errors) == 0,
@@ -1233,7 +1277,7 @@ class ExpertAgentCollaboration:
             phases_completed=context.phases_completed,
             feedback_loops_executed=context.feedback_loops_executed,
             errors=errors,
-            agent_summaries=agent_summaries
+            agent_summaries=agent_summaries,
         )
 
         return result
@@ -1243,7 +1287,7 @@ class ExpertAgentCollaboration:
         phase: AgentPhase,
         output: Dict[str, Any],
         context: Optional[Dict[str, Any]] = None,
-        llm_evaluation: Optional[EvaluationResult] = None
+        llm_evaluation: Optional[EvaluationResult] = None,
     ) -> Optional[GateEvaluation]:
         """
         Evaluate quality gate for a phase.
@@ -1265,15 +1309,49 @@ class ExpertAgentCollaboration:
         # Enhance context with LLM Judge metrics
         enhanced_context = context.copy() if context else {}
         if llm_evaluation:
+            # Map LLM Judge dimensions to quality gate metric names
+            dimension_scores = {
+                dim.dimension.value: dim.score for dim in llm_evaluation.dimension_scores
+            }
+
+            # Add phase-specific metric mappings
+            if phase == AgentPhase.ARCHITECTURE:
+                # Map LLM Judge dimensions to Architecture gate metrics
+                enhanced_context["component_clarity"] = dimension_scores.get(
+                    "clarity", llm_evaluation.overall_score
+                )
+                enhanced_context["architectural_coherence"] = dimension_scores.get(
+                    "coherence", llm_evaluation.overall_score
+                )
+                enhanced_context["scalability_score"] = dimension_scores.get(
+                    "appropriateness", llm_evaluation.overall_score
+                )
+            elif phase == AgentPhase.DESIGN:
+                # Map for Design gate metrics
+                enhanced_context["agent_role_clarity"] = dimension_scores.get(
+                    "clarity", llm_evaluation.overall_score
+                )
+                enhanced_context["task_coverage"] = dimension_scores.get(
+                    "completeness", llm_evaluation.overall_score
+                )
+                enhanced_context["dependency_correctness"] = dimension_scores.get(
+                    "correctness", llm_evaluation.overall_score
+                )
+            elif phase == AgentPhase.DISCOVERY:
+                # Map for Discovery gate metrics
+                enhanced_context["requirement_clarity"] = dimension_scores.get(
+                    "clarity", llm_evaluation.overall_score
+                )
+                enhanced_context["feature_completeness"] = dimension_scores.get(
+                    "completeness", llm_evaluation.overall_score
+                )
+
             enhanced_context["llm_judge"] = {
                 "overall_score": llm_evaluation.overall_score,
                 "approved": llm_evaluation.approved,
-                "dimension_scores": {
-                    dim.dimension.value: dim.score
-                    for dim in llm_evaluation.dimension_scores
-                },
+                "dimension_scores": dimension_scores,
                 "critical_issues_count": len(llm_evaluation.critical_issues),
-                "warnings_count": len(llm_evaluation.warnings)
+                "warnings_count": len(llm_evaluation.warnings),
             }
 
         # Evaluate gate with timeout to prevent hanging
@@ -1283,9 +1361,9 @@ class ExpertAgentCollaboration:
                     self.quality_gate_system.evaluate_gate,
                     phase=phase,
                     output=output,
-                    context=enhanced_context
+                    context=enhanced_context,
                 ),
-                timeout=30.0  # 30 second timeout
+                timeout=30.0,  # 30 second timeout
             )
         except asyncio.TimeoutError:
             self.reporter.warning(
@@ -1298,7 +1376,9 @@ class ExpertAgentCollaboration:
 
         # Log results (including LLM Judge score if available)
         if gate_evaluation.can_proceed:
-            llm_score_str = f", LLM score: {llm_evaluation.overall_score:.1f}/10.0" if llm_evaluation else ""
+            llm_score_str = (
+                f", LLM score: {llm_evaluation.overall_score:.1f}/10.0" if llm_evaluation else ""
+            )
             self.reporter.success(
                 f"✅ Quality gate passed for {phase.name} "
                 f"({gate_evaluation.pass_rate:.1f}% metrics passing{llm_score_str})"
@@ -1318,7 +1398,7 @@ class ExpertAgentCollaboration:
         phase: AgentPhase,
         output: Dict[str, Any],
         context: Optional[Dict[str, Any]] = None,
-        llm_evaluation: Optional[EvaluationResult] = None
+        llm_evaluation: Optional[EvaluationResult] = None,
     ) -> Optional[GateEvaluation]:
         """
         Safe wrapper for quality gate evaluation with enhanced error handling.
@@ -1352,7 +1432,7 @@ class ExpertAgentCollaboration:
                     failed_metrics=[],
                     warnings=["Quality gate system not available"],
                     recommendations=["Enable quality gate system for validation"],
-                    overall_score=100.0
+                    overall_score=100.0,
                 )
 
             # Call the quality gate system
@@ -1362,7 +1442,7 @@ class ExpertAgentCollaboration:
                     "overall_score": llm_evaluation.overall_score,
                     "approved": llm_evaluation.approved,
                     "critical_issues_count": len(llm_evaluation.critical_issues),
-                    "warnings_count": len(llm_evaluation.warnings)
+                    "warnings_count": len(llm_evaluation.warnings),
                 }
 
             # Evaluate with timeout
@@ -1371,9 +1451,9 @@ class ExpertAgentCollaboration:
                     self.quality_gate_system.evaluate_gate,
                     phase=phase,
                     output=output,
-                    context=enhanced_context
+                    context=enhanced_context,
                 ),
-                timeout=30.0
+                timeout=30.0,
             )
 
             # ✅ CRITICAL FIX: Always allow workflow to continue, even if gate fails
@@ -1389,15 +1469,18 @@ class ExpertAgentCollaboration:
                 for metric in gate_evaluation.metrics:
                     # Create new metric with critical=False
                     from caas_framework.quality.quality_gates import QualityMetric
-                    modified_metrics.append(QualityMetric(
-                        name=metric.name,
-                        description=metric.description,
-                        threshold=metric.threshold,
-                        value=metric.value,
-                        passed=metric.passed,
-                        critical=False,  # Force to non-critical
-                        metric_type=metric.metric_type
-                    ))
+
+                    modified_metrics.append(
+                        QualityMetric(
+                            name=metric.name,
+                            description=metric.description,
+                            threshold=metric.threshold,
+                            value=metric.value,
+                            passed=metric.passed,
+                            critical=False,  # Force to non-critical
+                            metric_type=metric.metric_type,
+                        )
+                    )
 
                 return GateEvaluation(
                     phase=phase,
@@ -1405,9 +1488,10 @@ class ExpertAgentCollaboration:
                     metrics=modified_metrics,  # Use modified metrics
                     passed_metrics=gate_evaluation.passed_metrics,
                     failed_metrics=gate_evaluation.failed_metrics,
-                    warnings=gate_evaluation.warnings + ["Quality gate failed but workflow allowed to continue"],
+                    warnings=gate_evaluation.warnings
+                    + ["Quality gate failed but workflow allowed to continue"],
                     recommendations=gate_evaluation.recommendations,
-                    overall_score=gate_evaluation.overall_score
+                    overall_score=gate_evaluation.overall_score,
                 )
             else:
                 self.reporter.success(
@@ -1429,7 +1513,7 @@ class ExpertAgentCollaboration:
                 failed_metrics=[],
                 warnings=[f"Quality gate evaluation timed out"],
                 recommendations=["Check quality gate configuration"],
-                overall_score=100.0
+                overall_score=100.0,
             )
         except AttributeError as e:
             self.reporter.warning(
@@ -1444,7 +1528,7 @@ class ExpertAgentCollaboration:
                 failed_metrics=[],
                 warnings=[f"Quality gate evaluation error: {str(e)}"],
                 recommendations=["Check quality gate system configuration"],
-                overall_score=100.0
+                overall_score=100.0,
             )
         except Exception as e:
             self.reporter.error(
@@ -1459,14 +1543,11 @@ class ExpertAgentCollaboration:
                 failed_metrics=[],
                 warnings=[f"Unexpected error: {str(e)}"],
                 recommendations=["Check logs for details"],
-                overall_score=100.0
+                overall_score=100.0,
             )
 
     async def _execute_phase_with_feedback(
-        self,
-        agent: BaseExpertAgent,
-        context: CollaborationContext,
-        phase: AgentPhase
+        self, agent: BaseExpertAgent, context: CollaborationContext, phase: AgentPhase
     ) -> AgentWorkResult:
         """
         Execute a phase with feedback loop.
@@ -1495,12 +1576,11 @@ class ExpertAgentCollaboration:
             "workflow_metadata": {
                 "phases_completed": [p.value for p in context.phases_completed],
                 "feedback_loops_executed": context.feedback_loops_executed,
-                "start_time": context.start_time.isoformat() if context.start_time else None
+                "start_time": context.start_time.isoformat() if context.start_time else None,
             },
             "validation_history": {
-                phase.value: result
-                for phase, result in context.validation_results.items()
-            }
+                phase.value: result for phase, result in context.validation_results.items()
+            },
         }
 
         # Initial work
@@ -1508,7 +1588,7 @@ class ExpertAgentCollaboration:
         result = await agent.work(
             requirement=context.requirement,
             context=agent_context,
-            previous_outputs=previous_outputs
+            previous_outputs=previous_outputs,
         )
 
         if not result.success:
@@ -1516,9 +1596,7 @@ class ExpertAgentCollaboration:
             return result
 
         self.reporter.agent_completed(
-            agent_name=agent.agent_name,
-            duration=result.duration,
-            iterations=1
+            agent_name=agent.agent_name, duration=result.duration, iterations=1
         )
 
         # ✅ Safe Feedback Loop with Timeout Protection - NOW ENABLED FOR ALL PHASES
@@ -1531,8 +1609,7 @@ class ExpertAgentCollaboration:
                 # Start validation with phase-appropriate message
                 validation_context = self._get_validation_context(phase, phase_output)
                 self.reporter.validation_start(
-                    validation_context["name"],
-                    validation_context["item_count"]
+                    validation_context["name"], validation_context["item_count"]
                 )
 
                 try:
@@ -1542,7 +1619,7 @@ class ExpertAgentCollaboration:
                         initial_output=phase_output,
                         validator=self.validator,
                         phase=phase,
-                        context=agent_context
+                        context=agent_context,
                     )
 
                     # Update result with refined output
@@ -1550,14 +1627,18 @@ class ExpertAgentCollaboration:
                         # Refinement occurred
                         context.feedback_loops_executed += 1
                         result.output = refined_output
-                        self.reporter.info(f"✅ {phase.name} refined successfully via safe feedback loop")
+                        self.reporter.info(
+                            f"✅ {phase.name} refined successfully via safe feedback loop"
+                        )
                     else:
-                        self.reporter.info(f"✅ {phase.name} passed validation (no refinement needed)")
+                        self.reporter.info(
+                            f"✅ {phase.name} passed validation (no refinement needed)"
+                        )
 
                     self.reporter.validation_result(
                         validator_name=f"{phase.name} Validator (Safe Feedback Loop)",
                         passed=True,
-                        issues_count=0
+                        issues_count=0,
                     )
 
                     # ✅ NEW: Evaluate quality gate with LLM Judge integration
@@ -1565,14 +1646,14 @@ class ExpertAgentCollaboration:
                         phase=phase,
                         output=refined_output,
                         context=agent_context,
-                        llm_evaluation=llm_evaluation
+                        llm_evaluation=llm_evaluation,
                     )
 
                     # Store gate evaluation in context
                     if gate_evaluation:
                         context.validation_results[phase] = {
                             "gate_evaluation": gate_evaluation,
-                            "llm_evaluation": llm_evaluation
+                            "llm_evaluation": llm_evaluation,
                         }
 
                 except Exception as e:
@@ -1584,22 +1665,26 @@ class ExpertAgentCollaboration:
         # ✅ OPTIONAL: Producer-Critic Pattern (additional quality layer via peer review)
         # Applies LLM-based critique after feedback loop for semantic quality evaluation
         # Only runs if explicitly enabled (disabled by default for performance)
-        if (self.enable_critic_pattern and
-            self.producer_critic_pattern and
-            self.critic_agent and
-            phase in [AgentPhase.DESIGN, AgentPhase.DELIVERY]):
+        if (
+            self.enable_critic_pattern
+            and self.producer_critic_pattern
+            and self.critic_agent
+            and phase in [AgentPhase.DESIGN, AgentPhase.DELIVERY]
+        ):
 
             self.reporter.info(f"🔍 Applying Producer-Critic review for {phase.name}...")
 
             try:
                 # Execute Producer-Critic collaboration
-                critic_result: ProducerCriticResult = await self.producer_critic_pattern.produce_with_critique(
-                    producer=agent,
-                    critic=self.critic_agent,
-                    requirement=context.requirement,
-                    phase=phase,
-                    context=agent_context,
-                    previous_outputs=context.get_previous_outputs(phase)
+                critic_result: ProducerCriticResult = (
+                    await self.producer_critic_pattern.produce_with_critique(
+                        producer=agent,
+                        critic=self.critic_agent,
+                        requirement=context.requirement,
+                        phase=phase,
+                        context=agent_context,
+                        previous_outputs=context.get_previous_outputs(phase),
+                    )
                 )
 
                 # Update result if critic approved and refinement occurred
@@ -1615,18 +1700,22 @@ class ExpertAgentCollaboration:
                         )
 
                         # Publish critic event
-                        self.event_bus.publish(Event(
-                            type="critic.approved",
-                            phase=phase.name,
-                            data={
-                                "iterations": critic_result.iterations,
-                                "final_score": critic_result.reviews[-1].overall_score,
-                                "improvement": critic_result.improvement_trajectory
-                            },
-                            timestamp=datetime.now().timestamp()
-                        ))
+                        self.event_bus.publish(
+                            Event(
+                                type="critic.approved",
+                                phase=phase.name,
+                                data={
+                                    "iterations": critic_result.iterations,
+                                    "final_score": critic_result.reviews[-1].overall_score,
+                                    "improvement": critic_result.improvement_trajectory,
+                                },
+                                timestamp=datetime.now().timestamp(),
+                            )
+                        )
                     else:
-                        self.reporter.info(f"✅ Critic approved on first iteration (no refinement needed)")
+                        self.reporter.info(
+                            f"✅ Critic approved on first iteration (no refinement needed)"
+                        )
                 else:
                     self.reporter.warning(
                         f"⚠️ Critic did not approve after {critic_result.iterations} iterations "
@@ -1641,11 +1730,7 @@ class ExpertAgentCollaboration:
 
         return result
 
-    def _get_validation_context(
-        self,
-        phase: AgentPhase,
-        output: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _get_validation_context(self, phase: AgentPhase, output: Dict[str, Any]) -> Dict[str, Any]:
         """
         Get validation context for different phases.
 
@@ -1658,7 +1743,7 @@ class ExpertAgentCollaboration:
             requirements = output.get("functional_requirements", [])
             return {
                 "name": "Requirements Validation",
-                "item_count": len(requirements) if isinstance(requirements, list) else 1
+                "item_count": len(requirements) if isinstance(requirements, list) else 1,
             }
 
         elif phase == AgentPhase.ARCHITECTURE:
@@ -1666,43 +1751,33 @@ class ExpertAgentCollaboration:
             components = output.get("components", [])
             return {
                 "name": "Architecture Validation",
-                "item_count": len(components) if isinstance(components, list) else 1
+                "item_count": len(components) if isinstance(components, list) else 1,
             }
 
         elif phase == AgentPhase.DESIGN:
             # Count agents and tasks
             agents_list = output.get("agents", [])
             tasks_list = output.get("tasks", [])
-            return {
-                "name": "Design Validation",
-                "item_count": len(agents_list) + len(tasks_list)
-            }
+            return {"name": "Design Validation", "item_count": len(agents_list) + len(tasks_list)}
 
         elif phase == AgentPhase.DEVELOPMENT:
             # Count specifications
-            return {
-                "name": "Specification Validation",
-                "item_count": 1
-            }
+            return {"name": "Specification Validation", "item_count": 1}
 
         elif phase == AgentPhase.DELIVERY:
             # Count generated files
             files = output.get("files", {})
             return {
                 "name": "Code Validation",
-                "item_count": len(files) if isinstance(files, dict) else 1
+                "item_count": len(files) if isinstance(files, dict) else 1,
             }
 
         else:
             # Generic validation
-            return {
-                "name": f"{phase.name} Validation",
-                "item_count": 1
-            }
+            return {"name": f"{phase.name} Validation", "item_count": 1}
 
     def _extract_validation_issues(
-        self,
-        validation_report: GoldenValidationReport
+        self, validation_report: GoldenValidationReport
     ) -> List[ValidationIssue]:
         """
         Extract validation issues from report.
@@ -1717,33 +1792,39 @@ class ExpertAgentCollaboration:
 
         # Missing items (e.g., features, tasks, components from Golden Data)
         for missing_item in validation_report.missing_items:
-            issues.append(ValidationIssue(
-                issue_type=f"missing_{missing_item.item_type}",
-                severity=missing_item.severity,
-                message=f"{missing_item.item_type.capitalize()} '{missing_item.item_name}' from Golden Data is missing: {missing_item.description}",
-                field=f"{missing_item.item_type}s",
-                suggested_fix=f"Add {missing_item.item_type} '{missing_item.item_name}' to implement: {missing_item.description}"
-            ))
+            issues.append(
+                ValidationIssue(
+                    issue_type=f"missing_{missing_item.item_type}",
+                    severity=missing_item.severity,
+                    message=f"{missing_item.item_type.capitalize()} '{missing_item.item_name}' from Golden Data is missing: {missing_item.description}",
+                    field=f"{missing_item.item_type}s",
+                    suggested_fix=f"Add {missing_item.item_type} '{missing_item.item_name}' to implement: {missing_item.description}",
+                )
+            )
 
         # Extra items (hallucinations - not in Golden Data)
         for extra_item in validation_report.extra_items:
-            issues.append(ValidationIssue(
-                issue_type=f"extra_{extra_item.item_type}",
-                severity=extra_item.severity,
-                message=f"{extra_item.item_type.capitalize()} '{extra_item.item_name}' is not in Golden Data: {extra_item.description}",
-                field=f"{extra_item.item_type}s.{extra_item.item_id}",
-                suggested_fix=f"Remove or align {extra_item.item_type} '{extra_item.item_name}' with Golden Data requirements"
-            ))
+            issues.append(
+                ValidationIssue(
+                    issue_type=f"extra_{extra_item.item_type}",
+                    severity=extra_item.severity,
+                    message=f"{extra_item.item_type.capitalize()} '{extra_item.item_name}' is not in Golden Data: {extra_item.description}",
+                    field=f"{extra_item.item_type}s.{extra_item.item_id}",
+                    suggested_fix=f"Remove or align {extra_item.item_type} '{extra_item.item_name}' with Golden Data requirements",
+                )
+            )
 
         # Mismatched items (exist but don't match expected values)
         for mismatched_item in validation_report.mismatched_items:
-            issues.append(ValidationIssue(
-                issue_type=f"mismatched_{mismatched_item.item_type}",
-                severity=mismatched_item.severity,
-                message=f"{mismatched_item.item_type.capitalize()} '{mismatched_item.item_name}' mismatch: {mismatched_item.description}. Expected: {mismatched_item.expected}, Got: {mismatched_item.actual}",
-                field=f"{mismatched_item.item_type}s.{mismatched_item.item_id}",
-                suggested_fix=f"Update {mismatched_item.item_type} '{mismatched_item.item_name}' to match expected value: {mismatched_item.expected}"
-            ))
+            issues.append(
+                ValidationIssue(
+                    issue_type=f"mismatched_{mismatched_item.item_type}",
+                    severity=mismatched_item.severity,
+                    message=f"{mismatched_item.item_type.capitalize()} '{mismatched_item.item_name}' mismatch: {mismatched_item.description}. Expected: {mismatched_item.expected}, Got: {mismatched_item.actual}",
+                    field=f"{mismatched_item.item_type}s.{mismatched_item.item_id}",
+                    suggested_fix=f"Update {mismatched_item.item_type} '{mismatched_item.item_name}' to match expected value: {mismatched_item.expected}",
+                )
+            )
 
         return issues
 
@@ -1769,14 +1850,12 @@ class ExpertAgentCollaboration:
                 "architecture_design": bool(result.context.architecture_design),
                 "agent_task_design": bool(result.context.agent_task_design),
                 "code_artifacts": bool(result.context.code_artifacts),
-                "qa_report": bool(result.context.qa_report)
-            }
+                "qa_report": bool(result.context.qa_report),
+            },
         }
 
     async def _execute_parallel_discovery_architecture(
-        self,
-        context: CollaborationContext,
-        requirement: str
+        self, context: CollaborationContext, requirement: str
     ) -> tuple[AgentWorkResult, AgentWorkResult]:
         """
         Execute Discovery and Architecture phases in parallel using distributed execution.
@@ -1798,12 +1877,12 @@ class ExpertAgentCollaboration:
             discovery_result = await self._execute_phase_with_feedback(
                 agent=self.agents["requirement_analyst"],
                 context=context,
-                phase=AgentPhase.DISCOVERY
+                phase=AgentPhase.DISCOVERY,
             )
             architecture_result = await self._execute_phase_with_feedback(
                 agent=self.agents["system_architect"],
                 context=context,
-                phase=AgentPhase.ARCHITECTURE
+                phase=AgentPhase.ARCHITECTURE,
             )
             return (discovery_result, architecture_result)
 
@@ -1813,6 +1892,7 @@ class ExpertAgentCollaboration:
         def execute_discovery(phase_input: Any, dep_outputs: Dict[str, Any]) -> AgentWorkResult:
             """Execute Discovery phase"""
             import asyncio
+
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             try:
@@ -1820,7 +1900,7 @@ class ExpertAgentCollaboration:
                     self._execute_phase_with_feedback(
                         agent=self.agents["requirement_analyst"],
                         context=context,
-                        phase=AgentPhase.DISCOVERY
+                        phase=AgentPhase.DISCOVERY,
                     )
                 )
                 return result
@@ -1830,6 +1910,7 @@ class ExpertAgentCollaboration:
         def execute_architecture(phase_input: Any, dep_outputs: Dict[str, Any]) -> AgentWorkResult:
             """Execute Architecture phase"""
             import asyncio
+
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             try:
@@ -1837,7 +1918,7 @@ class ExpertAgentCollaboration:
                     self._execute_phase_with_feedback(
                         agent=self.agents["system_architect"],
                         context=context,
-                        phase=AgentPhase.ARCHITECTURE
+                        phase=AgentPhase.ARCHITECTURE,
                     )
                 )
                 return result
@@ -1847,24 +1928,23 @@ class ExpertAgentCollaboration:
         # Create dependency graph (no dependencies for these two)
         dependency_graph = DependencyGraph(
             phases=["discovery", "architecture"],
-            dependencies={}  # No dependencies - both can run in parallel
+            dependencies={},  # No dependencies - both can run in parallel
         )
 
         # Execute phases in parallel
-        phase_functions = {
-            "discovery": execute_discovery,
-            "architecture": execute_architecture
-        }
+        phase_functions = {"discovery": execute_discovery, "architecture": execute_architecture}
 
         results = await self.distributed_executor.execute_phases(
             dependency_graph=dependency_graph,
             phase_functions=phase_functions,
-            phase_inputs={"discovery": None, "architecture": None}
+            phase_inputs={"discovery": None, "architecture": None},
         )
 
         # Extract results
         discovery_result = results["discovery"].output if results["discovery"].success else None
-        architecture_result = results["architecture"].output if results["architecture"].success else None
+        architecture_result = (
+            results["architecture"].output if results["architecture"].success else None
+        )
 
         # Check for errors
         if not results["discovery"].success:
@@ -1872,7 +1952,7 @@ class ExpertAgentCollaboration:
                 success=False,
                 output=None,
                 errors=[results["discovery"].error or "Discovery phase failed"],
-                duration=results["discovery"].duration_seconds
+                duration=results["discovery"].duration_seconds,
             )
         else:
             discovery_result = results["discovery"].output
@@ -1882,14 +1962,16 @@ class ExpertAgentCollaboration:
                 success=False,
                 output=None,
                 errors=[results["architecture"].error or "Architecture phase failed"],
-                duration=results["architecture"].duration_seconds
+                duration=results["architecture"].duration_seconds,
             )
         else:
             architecture_result = results["architecture"].output
 
         # Log performance improvement
         total_sequential_time = discovery_result.duration + architecture_result.duration
-        actual_time = max(results["discovery"].duration_seconds, results["architecture"].duration_seconds)
+        actual_time = max(
+            results["discovery"].duration_seconds, results["architecture"].duration_seconds
+        )
         speedup = total_sequential_time / actual_time if actual_time > 0 else 1.0
 
         self.reporter.success(

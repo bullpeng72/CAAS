@@ -9,10 +9,11 @@ import json
 from enum import Enum
 from pathlib import Path
 from typing import Dict, List, Optional
+
 from pydantic import BaseModel, Field
 
 from ..models.specifications import ConcretizedRequirement
-from ..utils import ObjectAccessor, JsonExtractor, LLMHelper
+from ..utils import JsonExtractor, LLMHelper, ObjectAccessor
 
 
 class GapType(str, Enum):
@@ -35,9 +36,7 @@ class RequirementGap(BaseModel):
 
     gap_type: GapType
     description: str
-    severity: str = Field(
-        ..., description="Severity level: critical, high, medium, low"
-    )
+    severity: str = Field(..., description="Severity level: critical, high, medium, low")
     suggestions: List[str] = Field(default_factory=list)
     auto_fixable: bool = False
     related_feature_id: Optional[str] = None
@@ -53,9 +52,7 @@ class GapAnalysisResult(BaseModel):
     low_gaps: int
     auto_fixable_gaps: int
     gaps: List[RequirementGap]
-    completeness_score: float = Field(
-        ..., description="0.0 ~ 1.0, higher is better"
-    )
+    completeness_score: float = Field(..., description="0.0 ~ 1.0, higher is better")
 
 
 class RequirementGapAnalyzer:
@@ -68,9 +65,7 @@ class RequirementGapAnalyzer:
             domain_checklists_path: 도메인 체크리스트 경로
         """
         self.llm = llm_client
-        self.domain_checklists = self._load_domain_checklists(
-            domain_checklists_path
-        )
+        self.domain_checklists = self._load_domain_checklists(domain_checklists_path)
         self._cache = {}  # 갭 분석 결과 캐시
 
     def analyze_gaps(
@@ -148,15 +143,13 @@ class RequirementGapAnalyzer:
         content = f"{requirement}_{concretized.model_dump_json()}"
         return hashlib.md5(content.encode()).hexdigest()
 
-    def _check_nfr_gaps(
-        self, concretized: ConcretizedRequirement
-    ) -> List[RequirementGap]:
+    def _check_nfr_gaps(self, concretized: ConcretizedRequirement) -> List[RequirementGap]:
         """비기능 요구사항 갭 체크"""
         gaps = []
         nfr = concretized.non_functional_requirements
 
         # 보안 요구사항
-        if not ObjectAccessor.get_value(nfr, 'security'):
+        if not ObjectAccessor.get_value(nfr, "security"):
             gaps.append(
                 RequirementGap(
                     gap_type=GapType.MISSING_SECURITY,
@@ -173,7 +166,7 @@ class RequirementGapAnalyzer:
             )
 
         # 성능 요구사항
-        if not ObjectAccessor.get_value(nfr,'performance'):
+        if not ObjectAccessor.get_value(nfr, "performance"):
             gaps.append(
                 RequirementGap(
                     gap_type=GapType.MISSING_PERFORMANCE,
@@ -189,7 +182,7 @@ class RequirementGapAnalyzer:
             )
 
         # 확장성
-        if not ObjectAccessor.get_value(nfr,'scalability'):
+        if not ObjectAccessor.get_value(nfr, "scalability"):
             gaps.append(
                 RequirementGap(
                     gap_type=GapType.MISSING_NFR,
@@ -204,7 +197,7 @@ class RequirementGapAnalyzer:
             )
 
         # 신뢰성
-        if not ObjectAccessor.get_value(nfr,'reliability'):
+        if not ObjectAccessor.get_value(nfr, "reliability"):
             gaps.append(
                 RequirementGap(
                     gap_type=GapType.MISSING_NFR,
@@ -221,9 +214,7 @@ class RequirementGapAnalyzer:
 
         return gaps
 
-    def _check_data_model_gaps(
-        self, concretized: ConcretizedRequirement
-    ) -> List[RequirementGap]:
+    def _check_data_model_gaps(self, concretized: ConcretizedRequirement) -> List[RequirementGap]:
         """데이터 모델 갭 체크"""
         gaps = []
 
@@ -251,18 +242,14 @@ class RequirementGapAnalyzer:
                             gap_type=GapType.MISSING_DATA_MODEL,
                             description=f"데이터 모델 '{dm.entity_name}'의 속성이 정의되지 않았습니다",
                             severity="high",
-                            suggestions=[
-                                f"{dm.entity_name}은(는) 어떤 정보를 가지고 있나요?"
-                            ],
+                            suggestions=[f"{dm.entity_name}은(는) 어떤 정보를 가지고 있나요?"],
                             auto_fixable=True,
                         )
                     )
 
         return gaps
 
-    def _check_ui_gaps(
-        self, concretized: ConcretizedRequirement
-    ) -> List[RequirementGap]:
+    def _check_ui_gaps(self, concretized: ConcretizedRequirement) -> List[RequirementGap]:
         """UI 갭 체크"""
         gaps = []
 
@@ -403,9 +390,7 @@ class RequirementGapAnalyzer:
         ]
         return any(term in text for term in ambiguous_terms)
 
-    def _has_requirement(
-        self, concretized: ConcretizedRequirement, item: Dict
-    ) -> bool:
+    def _has_requirement(self, concretized: ConcretizedRequirement, item: Dict) -> bool:
         """특정 요구사항이 있는지 확인"""
         keywords = item.get("keywords", [])
 
@@ -476,7 +461,7 @@ class RequirementGapAnalyzer:
             "HEALTHCARE": 3,
             "E_COMMERCE": 2,
             "CHATBOT": 2,
-            "DATA_PIPELINE": 2
+            "DATA_PIPELINE": 2,
         }
         domain_score = complex_domains.get(spec.domain, 1)
         score += domain_score
@@ -484,17 +469,22 @@ class RequirementGapAnalyzer:
         # 5. NFR 정의 여부 (복잡도 감소 요인)
         nfr = spec.non_functional_requirements
 
-        nfr_defined = sum([
-            1 for key in ['security', 'performance', 'scalability', 'reliability']
-            if ObjectAccessor.get_value(nfr,key)
-        ])
+        nfr_defined = sum(
+            [
+                1
+                for key in ["security", "performance", "scalability", "reliability"]
+                if ObjectAccessor.get_value(nfr, key)
+            ]
+        )
         # NFR이 잘 정의되어 있으면 상대적으로 간단 (복잡도 감소)
         if nfr_defined >= 3:
             score -= 1
 
         return max(1, min(score, 10))
 
-    def _compute_result(self, gaps: List[RequirementGap], spec: Optional[ConcretizedRequirement] = None) -> GapAnalysisResult:
+    def _compute_result(
+        self, gaps: List[RequirementGap], spec: Optional[ConcretizedRequirement] = None
+    ) -> GapAnalysisResult:
         """
         갭 분석 결과 계산 (복잡도 기반 가중치 적용)
 
@@ -541,9 +531,7 @@ class RequirementGapAnalyzer:
             completeness_score=completeness_score,
         )
 
-    def _load_domain_checklists(
-        self, checklists_path: Optional[Path]
-    ) -> Dict[str, List[Dict]]:
+    def _load_domain_checklists(self, checklists_path: Optional[Path]) -> Dict[str, List[Dict]]:
         """도메인별 체크리스트 로드"""
         if checklists_path and checklists_path.exists():
             with open(checklists_path, "r", encoding="utf-8") as f:
@@ -698,7 +686,7 @@ class RequirementGapAnalyzer:
                         severity=gap_data.get("severity", "medium"),
                         suggestions=gap_data.get("suggestions", []),
                         auto_fixable=gap_data.get("auto_fixable", False),
-                        related_feature_id=gap_data.get("related_feature_id")
+                        related_feature_id=gap_data.get("related_feature_id"),
                     )
                     llm_gaps.append(gap)
                 except Exception as e:

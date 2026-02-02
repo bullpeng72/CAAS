@@ -5,8 +5,8 @@ Eliminates duplicate prompt building logic across 6 agents.
 Provides standardized prompt structure for consistency and maintainability.
 """
 
-from typing import Dict, Any, List, Optional
 import json
+from typing import Any, Dict, List, Optional
 
 
 class PromptBuildingMixin:
@@ -33,7 +33,7 @@ class PromptBuildingMixin:
         context: Optional[Dict[str, Any]] = None,
         examples: Optional[List[Dict]] = None,
         constraints: Optional[List[str]] = None,
-        guidelines: Optional[List[str]] = None
+        guidelines: Optional[List[str]] = None,
     ) -> str:
         """
         Build standardized prompt with consistent structure.
@@ -152,12 +152,7 @@ You are a **{role}**.
         # Short text
         return f"## {formatted_key}\n\n{value}\n\n"
 
-    def add_golden_data_context(
-        self,
-        prompt: str,
-        golden_data,
-        max_features: int = 10
-    ) -> str:
+    def add_golden_data_context(self, prompt: str, golden_data, max_features: int = 10) -> str:
         """
         Add Golden Data context to existing prompt.
 
@@ -181,18 +176,20 @@ You are a **{role}**.
         golden_context = "\n# Golden Data Reference\n\n"
         golden_context += f"**Domain**: {golden_data.domain}\n\n"
 
-        if hasattr(golden_data, 'subdomain') and golden_data.subdomain:
+        if hasattr(golden_data, "subdomain") and golden_data.subdomain:
             golden_context += f"**Subdomain**: {golden_data.subdomain}\n\n"
 
-        if hasattr(golden_data, 'features') and golden_data.features:
+        if hasattr(golden_data, "features") and golden_data.features:
             golden_context += f"**Key Features** ({len(golden_data.features)} total):\n\n"
             for i, feature in enumerate(golden_data.features[:max_features], 1):
-                feature_name = feature.name if hasattr(feature, 'name') else str(feature)
-                feature_desc = feature.description if hasattr(feature, 'description') else ""
+                feature_name = feature.name if hasattr(feature, "name") else str(feature)
+                feature_desc = feature.description if hasattr(feature, "description") else ""
                 golden_context += f"{i}. **{feature_name}**: {feature_desc}\n"
 
             if len(golden_data.features) > max_features:
-                golden_context += f"\n... and {len(golden_data.features) - max_features} more features.\n"
+                golden_context += (
+                    f"\n... and {len(golden_data.features) - max_features} more features.\n"
+                )
 
             golden_context += "\n"
 
@@ -203,7 +200,15 @@ You are a **{role}**.
                 # Find end of task description (next # heading)
                 task_parts = parts[1].split("\n# ", 1)
                 if len(task_parts) == 2:
-                    return parts[0] + "# Task\n" + task_parts[0] + "\n" + golden_context + "\n# " + task_parts[1]
+                    return (
+                        parts[0]
+                        + "# Task\n"
+                        + task_parts[0]
+                        + "\n"
+                        + golden_context
+                        + "\n# "
+                        + task_parts[1]
+                    )
                 else:
                     return parts[0] + "# Task\n" + task_parts[0] + "\n" + golden_context
 
@@ -211,10 +216,7 @@ You are a **{role}**.
         return prompt + "\n" + golden_context
 
     def add_previous_outputs_context(
-        self,
-        prompt: str,
-        previous_outputs: Dict[str, Any],
-        max_outputs: int = 3
+        self, prompt: str, previous_outputs: Dict[str, Any], max_outputs: int = 3
     ) -> str:
         """
         Add previous phase outputs to prompt.
@@ -239,7 +241,7 @@ You are a **{role}**.
         prev_context += "Use these outputs from previous phases as context:\n\n"
 
         for i, (phase, output) in enumerate(list(previous_outputs.items())[:max_outputs], 1):
-            phase_name = phase.value if hasattr(phase, 'value') else str(phase)
+            phase_name = phase.value if hasattr(phase, "value") else str(phase)
             prev_context += f"## Phase: {phase_name}\n\n"
 
             if isinstance(output, dict):
@@ -250,7 +252,9 @@ You are a **{role}**.
                 prev_context += f"{str(output)[:500]}...\n\n"
 
         if len(previous_outputs) > max_outputs:
-            prev_context += f"\n... and {len(previous_outputs) - max_outputs} more outputs available.\n\n"
+            prev_context += (
+                f"\n... and {len(previous_outputs) - max_outputs} more outputs available.\n\n"
+            )
 
         # Insert after Context section or before Output Format
         if "# Context\n" in prompt:
@@ -272,7 +276,7 @@ You are a **{role}**.
         original_output: Dict[str, Any],
         validation_issues: List[Any],
         context: Optional[Dict[str, Any]] = None,
-        max_issues: int = 20
+        max_issues: int = 20,
     ) -> str:
         """
         Build prompt for refinement/improvement based on validation feedback.
@@ -313,12 +317,15 @@ Improve and refine the following output based on validation feedback.
         # Add issues (using ValidationIssueFactory formatting if available)
         try:
             from caas_framework.validation.issue_factory import ValidationIssueFactory
-            prompt += ValidationIssueFactory.format_for_agent(validation_issues, max_issues=max_issues)
+
+            prompt += ValidationIssueFactory.format_for_agent(
+                validation_issues, max_issues=max_issues
+            )
         except ImportError:
             # Fallback: simple formatting
             prompt += "The following issues were found:\n\n"
             for i, issue in enumerate(validation_issues[:max_issues], 1):
-                message = issue.message if hasattr(issue, 'message') else str(issue)
+                message = issue.message if hasattr(issue, "message") else str(issue)
                 prompt += f"{i}. {message}\n"
 
         prompt += """
@@ -356,7 +363,7 @@ class AgentPromptBuilder(PromptBuildingMixin):
         requirement: str,
         golden_data=None,
         previous_outputs: Optional[Dict] = None,
-        max_agents: int = 10
+        max_agents: int = 10,
     ) -> str:
         """
         Build prompt for agent design phase.
@@ -380,15 +387,15 @@ class AgentPromptBuilder(PromptBuildingMixin):
                 "agents": "List of agent specifications (id, role, goal, backstory, tools, etc.)",
                 "tasks": "List of task specifications (id, description, agent, dependencies, etc.)",
                 "workflow_type": "Workflow type (sequential, hierarchical, etc.)",
-                "agent_collaboration_pattern": "How agents collaborate"
+                "agent_collaboration_pattern": "How agents collaborate",
             },
             guidelines=[
                 f"Design {max_agents} agents or fewer for efficiency",
                 "Each agent should have a distinct, well-defined role",
                 "Tasks should be clear and actionable",
                 "Ensure proper task dependencies",
-                "Assign appropriate tools to each agent"
-            ]
+                "Assign appropriate tools to each agent",
+            ],
         )
 
         if golden_data:
@@ -400,10 +407,7 @@ class AgentPromptBuilder(PromptBuildingMixin):
         return prompt
 
     def build_code_generation_prompt(
-        self,
-        agent_design: Dict[str, Any],
-        architecture: Dict[str, Any],
-        requirement: str
+        self, agent_design: Dict[str, Any], architecture: Dict[str, Any], requirement: str
     ) -> str:
         """
         Build prompt for code generation phase.
@@ -423,28 +427,28 @@ class AgentPromptBuilder(PromptBuildingMixin):
                 "requirement": requirement,
                 "agents": agent_design.get("agents", []),
                 "tasks": agent_design.get("tasks", []),
-                "architecture": architecture
+                "architecture": architecture,
             },
             output_format={
                 "files": "Dictionary of filename -> code content",
                 "dependencies": "List of required Python packages",
                 "environment_variables": "Required environment variables",
-                "setup_instructions": "Setup and installation instructions"
+                "setup_instructions": "Setup and installation instructions",
             },
             constraints=[
                 "Use CrewAI framework (crewai>=0.65.0)",
                 "Follow Python 3.11+ best practices",
                 "Include proper error handling",
                 "Add docstrings to all functions/classes",
-                "Use type hints where appropriate"
+                "Use type hints where appropriate",
             ],
             guidelines=[
                 "Generate main.py, agents.py, tasks.py, tools.py at minimum",
                 "Include requirements.txt and .env.example",
                 "Add README.md with usage instructions",
                 "Ensure code is executable without modifications",
-                "Use environment variables for sensitive data"
-            ]
+                "Use environment variables for sensitive data",
+            ],
         )
 
         return prompt

@@ -5,29 +5,31 @@ High-level orchestrator for managing BMAD workflows with state persistence,
 checkpoints, and session management.
 """
 
-from enum import Enum
-from typing import Dict, Any, List, Optional
 from dataclasses import dataclass, field
 from datetime import datetime
+from enum import Enum
+from typing import Any, Dict, List, Optional
 
-from caas_framework.workflow.state_manager import StateManager, Checkpoint
-from caas_framework.workflow.persistence import PersistenceBackend, FilePersistenceBackend
-from caas_framework.session.manager import SessionManager, Session
+from caas_framework.session.manager import Session, SessionManager
+from caas_framework.workflow.persistence import FilePersistenceBackend, PersistenceBackend
+from caas_framework.workflow.state_manager import Checkpoint, StateManager
 
 
 class WorkflowPhase(str, Enum):
     """BMAD workflow phases"""
+
     CONCRETIZATION = "concretization"  # Phase 0
-    DISCOVERY = "discovery"             # Phase 1
-    ARCHITECTURE = "architecture"       # Phase 2
-    DESIGN = "design"                   # Phase 3
-    DEVELOPMENT = "development"         # Phase 4
-    DELIVERY = "delivery"               # Phase 5
+    DISCOVERY = "discovery"  # Phase 1
+    ARCHITECTURE = "architecture"  # Phase 2
+    DESIGN = "design"  # Phase 3
+    DEVELOPMENT = "development"  # Phase 4
+    DELIVERY = "delivery"  # Phase 5
 
 
 @dataclass
 class WorkflowResult:
     """Workflow execution result"""
+
     success: bool
     session_id: str
     workflow_id: str
@@ -59,7 +61,7 @@ class WorkflowOrchestrator:
         session_manager: Optional[SessionManager] = None,
         persistence_backend: Optional[PersistenceBackend] = None,
         auto_checkpoint: bool = True,
-        checkpoint_every_phase: bool = True
+        checkpoint_every_phase: bool = True,
     ):
         """
         Initialize orchestrator.
@@ -85,7 +87,7 @@ class WorkflowOrchestrator:
         workflow_id: str,
         initial_state: Optional[Dict[str, Any]] = None,
         session_name: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
     ) -> Session:
         """
         Start a new workflow execution.
@@ -104,19 +106,21 @@ class WorkflowOrchestrator:
             workflow_id=workflow_id,
             name=session_name,
             description=f"Workflow: {workflow_id}",
-            metadata=metadata or {}
+            metadata=metadata or {},
         )
 
         # Initialize state
         state = initial_state or {}
-        state.update({
-            "workflow_id": workflow_id,
-            "session_id": session.session_id,
-            "start_time": datetime.utcnow().isoformat(),
-            "current_phase": None,
-            "phases_completed": [],
-            "errors": []
-        })
+        state.update(
+            {
+                "workflow_id": workflow_id,
+                "session_id": session.session_id,
+                "start_time": datetime.utcnow().isoformat(),
+                "current_phase": None,
+                "phases_completed": [],
+                "errors": [],
+            }
+        )
 
         self.state_manager.set_state(session.session_id, state)
 
@@ -127,7 +131,7 @@ class WorkflowOrchestrator:
                 workflow_id=workflow_id,
                 phase="init",
                 state=state,
-                metadata={"event": "workflow_start"}
+                metadata={"event": "workflow_start"},
             )
             self.session_manager.add_checkpoint(session.session_id, checkpoint_id)
 
@@ -138,7 +142,7 @@ class WorkflowOrchestrator:
         session_id: str,
         phase: WorkflowPhase,
         phase_function: Any,  # Callable that executes the phase
-        phase_inputs: Optional[Dict[str, Any]] = None
+        phase_inputs: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """
         Execute a workflow phase with automatic checkpointing.
@@ -178,7 +182,7 @@ class WorkflowOrchestrator:
                     workflow_id=state["workflow_id"],
                     phase=phase.value,
                     state=state,
-                    metadata={"phase_result": "success"}
+                    metadata={"phase_result": "success"},
                 )
                 self.session_manager.add_checkpoint(session_id, checkpoint_id)
 
@@ -197,17 +201,13 @@ class WorkflowOrchestrator:
                     workflow_id=state["workflow_id"],
                     phase=phase.value,
                     state=state,
-                    metadata={"phase_result": "error", "error": error_msg}
+                    metadata={"phase_result": "error", "error": error_msg},
                 )
                 self.session_manager.add_checkpoint(session_id, checkpoint_id)
 
             raise
 
-    async def complete_workflow(
-        self,
-        session_id: str,
-        success: bool = True
-    ) -> WorkflowResult:
+    async def complete_workflow(self, session_id: str, success: bool = True) -> WorkflowResult:
         """
         Complete a workflow execution.
 
@@ -236,7 +236,7 @@ class WorkflowOrchestrator:
                 workflow_id=state["workflow_id"],
                 phase="complete",
                 state=state,
-                metadata={"event": "workflow_complete", "success": success}
+                metadata={"event": "workflow_complete", "success": success},
             )
             self.session_manager.add_checkpoint(session_id, checkpoint_id)
 
@@ -255,7 +255,7 @@ class WorkflowOrchestrator:
             errors=state.get("errors", []),
             start_time=start_time,
             end_time=end_time,
-            duration=duration
+            duration=duration,
         )
 
         return result
@@ -266,7 +266,7 @@ class WorkflowOrchestrator:
         self,
         session_id: str,
         checkpoint_name: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
     ) -> str:
         """
         Create a manual checkpoint.
@@ -295,7 +295,7 @@ class WorkflowOrchestrator:
             workflow_id=workflow_id,
             phase=state.get("current_phase", "unknown"),
             state=state,
-            metadata=checkpoint_metadata
+            metadata=checkpoint_metadata,
         )
 
         self.session_manager.add_checkpoint(session_id, checkpoint_id)
@@ -303,9 +303,7 @@ class WorkflowOrchestrator:
         return checkpoint_id
 
     def list_checkpoints(
-        self,
-        session_id: Optional[str] = None,
-        workflow_id: Optional[str] = None
+        self, session_id: Optional[str] = None, workflow_id: Optional[str] = None
     ) -> List[Checkpoint]:
         """List checkpoints"""
         return self.state_manager.list_checkpoints(session_id, workflow_id)
@@ -313,9 +311,7 @@ class WorkflowOrchestrator:
     # ========== Resume & Rollback ==========
 
     async def resume_from_checkpoint(
-        self,
-        checkpoint_id: str,
-        create_new_session: bool = False
+        self, checkpoint_id: str, create_new_session: bool = False
     ) -> Session:
         """
         Resume workflow from a checkpoint.
@@ -336,10 +332,7 @@ class WorkflowOrchestrator:
             session = self.session_manager.create_session(
                 workflow_id=checkpoint.workflow_id,
                 name=f"Resumed from {checkpoint.checkpoint_id}",
-                metadata={
-                    "resumed_from": checkpoint_id,
-                    "original_session": checkpoint.session_id
-                }
+                metadata={"resumed_from": checkpoint_id, "original_session": checkpoint.session_id},
             )
 
             # Copy state to new session
@@ -360,11 +353,7 @@ class WorkflowOrchestrator:
 
         return session
 
-    def rollback_to_checkpoint(
-        self,
-        session_id: str,
-        checkpoint_id: str
-    ) -> Dict[str, Any]:
+    def rollback_to_checkpoint(self, session_id: str, checkpoint_id: str) -> Dict[str, Any]:
         """
         Rollback session to a previous checkpoint.
 
@@ -387,8 +376,7 @@ class WorkflowOrchestrator:
 
         # Update session phase
         self.session_manager.set_session_phase(
-            session_id,
-            restored_state.get("current_phase", "unknown")
+            session_id, restored_state.get("current_phase", "unknown")
         )
 
         return restored_state
@@ -406,6 +394,7 @@ class WorkflowOrchestrator:
     def get_active_workflows(self) -> List[Session]:
         """Get all active workflow sessions"""
         from caas_framework.session.manager import SessionStatus
+
         return self.session_manager.list_sessions(status=SessionStatus.ACTIVE)
 
     def switch_to_workflow(self, session_id: str) -> Optional[Session]:
@@ -457,5 +446,5 @@ class WorkflowOrchestrator:
             "total_phases": total_phases,
             "progress_percentage": progress_percentage,
             "errors": len(state.get("errors", [])),
-            "checkpoints": len(session.checkpoint_ids)
+            "checkpoints": len(session.checkpoint_ids),
         }

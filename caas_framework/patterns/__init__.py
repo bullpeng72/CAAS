@@ -5,12 +5,12 @@ Implements common AI agent collaboration patterns for enhanced quality and relia
 """
 
 from caas_framework.patterns.producer_critic import (
-    ProducerCriticPattern,
     CriticAgent,
-    CriticRole,
     CriticReview,
+    CriticRole,
+    ProducerCriticPattern,
     ProducerCriticResult,
-    collaborate_with_critic
+    collaborate_with_critic,
 )
 
 __all__ = [

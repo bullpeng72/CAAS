@@ -24,19 +24,19 @@ Features:
 """
 
 from datetime import datetime
-from typing import Dict, List, Any
+from typing import Any, Dict, List
 
 # Import from caas_framework.models (unified location)
 from caas_framework.models import (
-    ConcretizedRequirement,
     AgentSpecModel,
-    TaskSpecModel,
+    ArchitectureDesign,
+    ComplianceStatus,
+    ConcretizedRequirement,
+    ExtraItem,
     GoldenValidationReport,
     MissingItem,
-    ExtraItem,
-    ComplianceStatus,
     RequirementAnalysis,
-    ArchitectureDesign,
+    TaskSpecModel,
 )
 from caas_framework.utils.logger import get_logger
 
@@ -67,8 +67,7 @@ class GoldenDataValidator:
         logger.info(f"🎯 Golden Data Validator initialized with {feature_count} features")
 
     def validate_discovery(
-        self,
-        requirement_analysis: RequirementAnalysis
+        self, requirement_analysis: RequirementAnalysis
     ) -> GoldenValidationReport:
         """
         Discovery Phase 검증
@@ -100,25 +99,29 @@ class GoldenDataValidator:
         for feature_name in golden_feature_names:
             if feature_name not in output_task_names:
                 feature = golden_features_dict[feature_name]
-                missing_items.append(MissingItem(
-                    item_type="feature",
-                    item_id=feature.id,
-                    item_name=feature.name,
-                    description=f"Feature '{feature.name}' from Golden Data is missing in Discovery output",
-                    severity="high" if feature.priority in ["high", "critical"] else "medium"
-                ))
+                missing_items.append(
+                    MissingItem(
+                        item_type="feature",
+                        item_id=feature.id,
+                        item_name=feature.name,
+                        description=f"Feature '{feature.name}' from Golden Data is missing in Discovery output",
+                        severity="high" if feature.priority in ["high", "critical"] else "medium",
+                    )
+                )
 
         # Extra Items (Hallucination)
         for task_name in output_task_names:
             if task_name not in golden_feature_names:
                 task = output_tasks_dict[task_name]
-                extra_items.append(ExtraItem(
-                    item_type="feature",
-                    item_id="",
-                    item_name=task.name,
-                    description=f"Task '{task.name}' in Discovery output not found in Golden Data (possible hallucination)",
-                    severity="low"
-                ))
+                extra_items.append(
+                    ExtraItem(
+                        item_type="feature",
+                        item_id="",
+                        item_name=task.name,
+                        description=f"Task '{task.name}' in Discovery output not found in Golden Data (possible hallucination)",
+                        severity="low",
+                    )
+                )
 
         # 2. Data Model Coverage (if applicable)
         if self.golden_data.data_models:
@@ -131,13 +134,15 @@ class GoldenDataValidator:
 
             for entity_name in golden_entities:
                 if entity_name not in output_entities:
-                    missing_items.append(MissingItem(
-                        item_type="data_model",
-                        item_id=entity_name,
-                        item_name=entity_name,
-                        description=f"Data model '{entity_name}' from Golden Data is missing",
-                        severity="medium"
-                    ))
+                    missing_items.append(
+                        MissingItem(
+                            item_type="data_model",
+                            item_id=entity_name,
+                            item_name=entity_name,
+                            description=f"Data model '{entity_name}' from Golden Data is missing",
+                            severity="medium",
+                        )
+                    )
 
         # 3. Calculate Coverage Score (null-safe)
         data_models = self.golden_data.data_models if self.golden_data.data_models else []
@@ -183,12 +188,11 @@ class GoldenDataValidator:
             compliance_status=compliance_status,
             needs_fixing=needs_fixing,
             recommendations=recommendations,
-            timestamp=datetime.now().isoformat()
+            timestamp=datetime.now().isoformat(),
         )
 
     def validate_architecture(
-        self,
-        architecture_design: ArchitectureDesign
+        self, architecture_design: ArchitectureDesign
     ) -> GoldenValidationReport:
         """
         Architecture Phase 검증
@@ -217,16 +221,20 @@ class GoldenDataValidator:
         for feature_name, feature in golden_features.items():
             if feature.priority in ["high", "critical"]:
                 # Component 이름에 feature 이름이 포함되어 있는지 확인 (유연한 매칭)
-                found = any(feature_name in comp_name for comp_name in architecture_components.keys())
+                found = any(
+                    feature_name in comp_name for comp_name in architecture_components.keys()
+                )
 
                 if not found:
-                    missing_items.append(MissingItem(
-                        item_type="component",
-                        item_id=feature.id,
-                        item_name=feature.name,
-                        description=f"High-priority feature '{feature.name}' not reflected in architecture components",
-                        severity="high"
-                    ))
+                    missing_items.append(
+                        MissingItem(
+                            item_type="component",
+                            item_id=feature.id,
+                            item_name=feature.name,
+                            description=f"High-priority feature '{feature.name}' not reflected in architecture components",
+                            severity="high",
+                        )
+                    )
 
         # 2. Data Flow Coverage (null-safe)
         # Golden Data의 Data Models가 Architecture의 data flows에 반영되어야 함
@@ -241,34 +249,40 @@ class GoldenDataValidator:
 
             for entity_name in golden_entities:
                 if entity_name not in data_flow_entities:
-                    missing_items.append(MissingItem(
-                        item_type="data_flow",
-                        item_id=entity_name,
-                        item_name=entity_name,
-                        description=f"Data model '{entity_name}' not reflected in architecture data flows",
-                        severity="medium"
-                    ))
+                    missing_items.append(
+                        MissingItem(
+                            item_type="data_flow",
+                            item_id=entity_name,
+                            item_name=entity_name,
+                            description=f"Data model '{entity_name}' not reflected in architecture data flows",
+                            severity="medium",
+                        )
+                    )
 
         # 3. NFR Alignment
         golden_nfr = self.golden_data.non_functional_requirements
 
         if golden_nfr.security and not architecture_design.security_strategy:
-            missing_items.append(MissingItem(
-                item_type="nfr",
-                item_id="security",
-                item_name="Security Strategy",
-                description="Golden Data specifies security requirements but architecture has no security strategy",
-                severity="high"
-            ))
+            missing_items.append(
+                MissingItem(
+                    item_type="nfr",
+                    item_id="security",
+                    item_name="Security Strategy",
+                    description="Golden Data specifies security requirements but architecture has no security strategy",
+                    severity="high",
+                )
+            )
 
         if golden_nfr.scalability and not architecture_design.scalability_strategy:
-            missing_items.append(MissingItem(
-                item_type="nfr",
-                item_id="scalability",
-                item_name="Scalability Strategy",
-                description="Golden Data specifies scalability requirements but architecture has no scalability strategy",
-                severity="medium"
-            ))
+            missing_items.append(
+                MissingItem(
+                    item_type="nfr",
+                    item_id="scalability",
+                    item_name="Scalability Strategy",
+                    description="Golden Data specifies scalability requirements but architecture has no scalability strategy",
+                    severity="medium",
+                )
+            )
 
         # 4. Calculate Coverage Score (null-safe)
         total_checks = len(golden_features) + len(data_models) + 2  # +2 for NFRs
@@ -311,13 +325,11 @@ class GoldenDataValidator:
             compliance_status=compliance_status,
             needs_fixing=needs_fixing,
             recommendations=recommendations,
-            timestamp=datetime.now().isoformat()
+            timestamp=datetime.now().isoformat(),
         )
 
     def validate_design(
-        self,
-        agent_specs: List[AgentSpecModel],
-        task_specs: List[TaskSpecModel]
+        self, agent_specs: List[AgentSpecModel], task_specs: List[TaskSpecModel]
     ) -> GoldenValidationReport:
         """
         Design Phase 검증
@@ -346,19 +358,20 @@ class GoldenDataValidator:
         for feature_name, feature in golden_features.items():
             # Task description에 feature 이름이 포함되어 있는지 확인
             found = any(
-                feature_name in task.description.lower() or
-                feature_name in task.id.lower()
+                feature_name in task.description.lower() or feature_name in task.id.lower()
                 for task in task_specs
             )
 
             if not found:
-                missing_items.append(MissingItem(
-                    item_type="task",
-                    item_id=feature.id,
-                    item_name=feature.name,
-                    description=f"No task found for feature '{feature.name}'",
-                    severity="high" if feature.priority in ["high", "critical"] else "medium"
-                ))
+                missing_items.append(
+                    MissingItem(
+                        item_type="task",
+                        item_id=feature.id,
+                        item_name=feature.name,
+                        description=f"No task found for feature '{feature.name}'",
+                        severity="high" if feature.priority in ["high", "critical"] else "medium",
+                    )
+                )
 
         # 2. UI Component Coverage (null-safe)
         ui_components = self.golden_data.ui_components if self.golden_data.ui_components else []
@@ -367,22 +380,30 @@ class GoldenDataValidator:
 
             # Task descriptions에서 UI 관련 키워드 확인
             ui_related_tasks = [
-                task for task in task_specs
-                if any(keyword in task.description.lower() for keyword in ["ui", "interface", "page", "form", "display"])
+                task
+                for task in task_specs
+                if any(
+                    keyword in task.description.lower()
+                    for keyword in ["ui", "interface", "page", "form", "display"]
+                )
             ]
 
             if len(ui_components) > 0 and len(ui_related_tasks) == 0:
-                missing_items.append(MissingItem(
-                    item_type="ui_task",
-                    item_id="ui_components",
-                    item_name="UI Implementation Tasks",
-                    description=f"Golden Data has {len(ui_components)} UI components but no UI-related tasks found",
-                    severity="high"
-                ))
+                missing_items.append(
+                    MissingItem(
+                        item_type="ui_task",
+                        item_id="ui_components",
+                        item_name="UI Implementation Tasks",
+                        description=f"Golden Data has {len(ui_components)} UI components but no UI-related tasks found",
+                        severity="high",
+                    )
+                )
 
         # 3. Calculate Coverage Score (null-safe)
         total_golden_items = len(features)
-        missing_count = len([item for item in missing_items if item.item_type in ["task", "ui_task"]])
+        missing_count = len(
+            [item for item in missing_items if item.item_type in ["task", "ui_task"]]
+        )
 
         if total_golden_items > 0:
             coverage_score = max(0.0, 1.0 - (missing_count / total_golden_items))
@@ -421,13 +442,10 @@ class GoldenDataValidator:
             compliance_status=compliance_status,
             needs_fixing=needs_fixing,
             recommendations=recommendations,
-            timestamp=datetime.now().isoformat()
+            timestamp=datetime.now().isoformat(),
         )
 
-    def validate_code(
-        self,
-        generated_spec: Dict[str, Any]
-    ) -> GoldenValidationReport:
+    def validate_code(self, generated_spec: Dict[str, Any]) -> GoldenValidationReport:
         """
         Development Phase 검증
 
@@ -462,13 +480,15 @@ class GoldenDataValidator:
             found = any(feature_name in desc for desc in spec_task_descriptions)
 
             if not found:
-                missing_items.append(MissingItem(
-                    item_type="task_implementation",
-                    item_id=feature.id,
-                    item_name=feature.name,
-                    description=f"Feature '{feature.name}' not implemented in generated code",
-                    severity="critical" if feature.priority in ["high", "critical"] else "high"
-                ))
+                missing_items.append(
+                    MissingItem(
+                        item_type="task_implementation",
+                        item_id=feature.id,
+                        item_name=feature.name,
+                        description=f"Feature '{feature.name}' not implemented in generated code",
+                        severity="critical" if feature.priority in ["high", "critical"] else "high",
+                    )
+                )
 
         # 3. Calculate Coverage Score (null-safe)
         total_golden_items = len(features)
@@ -511,13 +531,10 @@ class GoldenDataValidator:
             compliance_status=compliance_status,
             needs_fixing=needs_fixing,
             recommendations=recommendations,
-            timestamp=datetime.now().isoformat()
+            timestamp=datetime.now().isoformat(),
         )
 
-    def generate_summary_report(
-        self,
-        validation_reports: List[GoldenValidationReport]
-    ) -> str:
+    def generate_summary_report(self, validation_reports: List[GoldenValidationReport]) -> str:
         """
         검증 결과 요약 리포트 생성
 

@@ -5,7 +5,8 @@ Unified interface for all LLM providers.
 """
 
 from abc import abstractmethod
-from typing import Any, Dict, List, Optional, AsyncIterator
+from typing import Any, AsyncIterator, Dict, List, Optional
+
 from pydantic import BaseModel
 
 from caas_framework.plugins.base import Plugin, PluginType
@@ -13,12 +14,14 @@ from caas_framework.plugins.base import Plugin, PluginType
 
 class LLMMessage(BaseModel):
     """LLM message format"""
+
     role: str  # "system", "user", "assistant"
     content: str
 
 
 class LLMResponse(BaseModel):
     """LLM response format"""
+
     content: str
     model: str
     usage: Optional[Dict[str, int]] = None
@@ -49,7 +52,7 @@ class LLMPlugin(Plugin):
         temperature: Optional[float] = None,
         max_tokens: Optional[int] = None,
         response_format: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ) -> LLMResponse:
         """
         Async LLM call
@@ -70,7 +73,7 @@ class LLMPlugin(Plugin):
         messages: List[LLMMessage],
         temperature: Optional[float] = None,
         max_tokens: Optional[int] = None,
-        **kwargs
+        **kwargs,
     ) -> LLMResponse:
         """
         Sync LLM call (convenience wrapper)
@@ -85,12 +88,10 @@ class LLMPlugin(Plugin):
             LLMResponse
         """
         import asyncio
+
         return asyncio.run(
             self.ainvoke(
-                messages=messages,
-                temperature=temperature,
-                max_tokens=max_tokens,
-                **kwargs
+                messages=messages, temperature=temperature, max_tokens=max_tokens, **kwargs
             )
         )
 
@@ -100,7 +101,7 @@ class LLMPlugin(Plugin):
         messages: List[LLMMessage],
         temperature: Optional[float] = None,
         max_tokens: Optional[int] = None,
-        **kwargs
+        **kwargs,
     ) -> AsyncIterator[str]:
         """
         Streaming LLM call
@@ -124,8 +125,7 @@ class LLMPlugin(Plugin):
         """
         try:
             response = await self.ainvoke(
-                messages=[LLMMessage(role="user", content="test")],
-                max_tokens=5
+                messages=[LLMMessage(role="user", content="test")], max_tokens=5
             )
             return bool(response.content)
         except Exception:

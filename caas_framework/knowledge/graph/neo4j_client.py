@@ -4,21 +4,22 @@ CAAS Neo4j Client
 Knowledge Graph를 위한 Neo4j 데이터베이스 클라이언트입니다.
 """
 
-from typing import Any, Dict, List, Optional
 from contextlib import contextmanager
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel
 
 # 선택적 의존성
 try:
-    from neo4j import GraphDatabase, Driver, Session
+    from neo4j import Driver, GraphDatabase, Session
+
     NEO4J_AVAILABLE = True
 except ImportError as e:
     # SECURITY: 의존성 누락을 로깅하여 디버깅 용이하게 함
     import logging
+
     logging.getLogger("knowledge.neo4j").warning(
-        f"Neo4j 드라이버를 사용할 수 없습니다: {e}. "
-        "설치하려면: pip install neo4j"
+        f"Neo4j 드라이버를 사용할 수 없습니다: {e}. " "설치하려면: pip install neo4j"
     )
     GraphDatabase = None
     Driver = None
@@ -26,7 +27,7 @@ except ImportError as e:
     NEO4J_AVAILABLE = False
 
 from caas_framework.config.settings import get_settings
-from caas_framework.utils.logger import get_logger, LoggerMixin
+from caas_framework.utils.logger import LoggerMixin, get_logger
 from caas_framework.utils.security import (
     sanitize_neo4j_label,
     sanitize_neo4j_property_key,
@@ -39,6 +40,7 @@ logger = get_logger("knowledge.neo4j")
 
 class Neo4jConfig(BaseModel):
     """Neo4j 연결 설정"""
+
     uri: str = "bolt://localhost:7687"
     user: str = "neo4j"
     password: str = "password"
@@ -48,10 +50,10 @@ class Neo4jConfig(BaseModel):
 class Neo4jClient(LoggerMixin):
     """
     Neo4j 데이터베이스 클라이언트
-    
+
     Knowledge Graph 저장 및 조회를 담당합니다.
     """
-    
+
     def __init__(self, config: Optional[Neo4jConfig] = None):
         if config:
             self.config = config
@@ -66,7 +68,7 @@ class Neo4jClient(LoggerMixin):
             except Exception:
                 self.config = Neo4jConfig()
         self._driver = None
-    
+
     @property
     def driver(self):
         """Neo4j 드라이버를 반환합니다."""
@@ -78,13 +80,13 @@ class Neo4jClient(LoggerMixin):
                 auth=(self.config.user, self.config.password),
             )
         return self._driver
-    
+
     def close(self):
         """연결을 종료합니다."""
         if self._driver:
             self._driver.close()
             self._driver = None
-    
+
     @contextmanager
     def session(self):
         """세션 컨텍스트 매니저"""
@@ -93,7 +95,7 @@ class Neo4jClient(LoggerMixin):
             yield session
         finally:
             session.close()
-    
+
     def verify_connectivity(self) -> bool:
         """연결 상태를 확인합니다."""
         if not NEO4J_AVAILABLE:
@@ -106,26 +108,24 @@ class Neo4jClient(LoggerMixin):
         except Exception as e:
             self.logger.error(f"Neo4j 연결 실패: {e}")
             return False
-    
+
     def run_query(
-        self, 
-        query: str, 
-        parameters: Optional[Dict[str, Any]] = None
+        self, query: str, parameters: Optional[Dict[str, Any]] = None
     ) -> List[Dict[str, Any]]:
         """
         Cypher 쿼리를 실행합니다.
-        
+
         Args:
             query: Cypher 쿼리
             parameters: 쿼리 파라미터
-        
+
         Returns:
             List[Dict]: 쿼리 결과
         """
         with self.session() as session:
             result = session.run(query, parameters or {})
             return [record.data() for record in result]
-    
+
     def create_node(
         self,
         label: str,
@@ -155,7 +155,7 @@ class Neo4jClient(LoggerMixin):
         query = f"CREATE (n:{safe_label} $props) RETURN n"
         result = self.run_query(query, {"props": properties})
         return result[0] if result else {}
-    
+
     def create_relationship(
         self,
         from_label: str,
@@ -199,13 +199,16 @@ class Neo4jClient(LoggerMixin):
         CREATE (a)-[r:{safe_rel_type} $props]->(b)
         RETURN r
         """
-        result = self.run_query(query, {
-            "from_id": from_id,
-            "to_id": to_id,
-            "props": properties or {},
-        })
+        result = self.run_query(
+            query,
+            {
+                "from_id": from_id,
+                "to_id": to_id,
+                "props": properties or {},
+            },
+        )
         return len(result) > 0
-    
+
     def find_nodes(
         self,
         label: str,
@@ -254,7 +257,7 @@ class Neo4jClient(LoggerMixin):
         LIMIT {safe_limit}
         """
         return self.run_query(query, params)
-    
+
     def get_neighbors(
         self,
         label: str,
@@ -312,6 +315,7 @@ class Neo4jClient(LoggerMixin):
 # Knowledge Graph Schema Setup
 # =============================================================================
 
+
 def setup_schema(client: Neo4jClient):
     """
     Knowledge Graph 스키마를 설정합니다.
@@ -321,13 +325,10 @@ def setup_schema(client: Neo4jClient):
         # Agent 노드 인덱스
         "CREATE INDEX agent_id IF NOT EXISTS FOR (n:Agent) ON (n.id)",
         "CREATE INDEX agent_role IF NOT EXISTS FOR (n:Agent) ON (n.role)",
-
         # Task 노드 인덱스
         "CREATE INDEX task_id IF NOT EXISTS FOR (n:Task) ON (n.id)",
-
         # Tool 노드 인덱스
         "CREATE INDEX tool_id IF NOT EXISTS FOR (n:Tool) ON (n.id)",
-
         # Pattern 노드 인덱스 및 제약조건
         "CREATE INDEX pattern_id IF NOT EXISTS FOR (n:Pattern) ON (n.id)",
         "CREATE INDEX pattern_name IF NOT EXISTS FOR (n:Pattern) ON (n.name)",
@@ -335,25 +336,22 @@ def setup_schema(client: Neo4jClient):
         "CREATE INDEX pattern_latest IF NOT EXISTS FOR (n:Pattern) ON (n.latest)",
         # Pattern 유니크 제약조건 (id + version)
         "CREATE CONSTRAINT pattern_id_version_unique IF NOT EXISTS FOR (n:Pattern) REQUIRE (n.id, n.version) IS UNIQUE",
-
         # Domain 노드 인덱스
         "CREATE INDEX domain_id IF NOT EXISTS FOR (n:Domain) ON (n.id)",
-
         # Template 노드 인덱스
         "CREATE INDEX template_id IF NOT EXISTS FOR (n:Template) ON (n.id)",
-
         # CodeTemplate 노드 인덱스 및 제약조건 (새로운 노드 타입)
         "CREATE INDEX code_template_id IF NOT EXISTS FOR (n:CodeTemplate) ON (n.id)",
         "CREATE INDEX code_template_language IF NOT EXISTS FOR (n:CodeTemplate) ON (n.language)",
         "CREATE CONSTRAINT code_template_id_unique IF NOT EXISTS FOR (n:CodeTemplate) REQUIRE n.id IS UNIQUE",
     ]
-    
+
     for query in schema_queries:
         try:
             client.run_query(query)
         except Exception as e:
             logger.warning(f"스키마 설정 경고: {e}")
-    
+
     logger.info("Knowledge Graph 스키마 설정 완료")
 
 
@@ -371,10 +369,10 @@ def seed_initial_data(client: Neo4jClient):
         {"id": "marketing", "name": "Marketing", "description": "Marketing and advertising"},
         {"id": "research", "name": "Research", "description": "Research and analysis"},
     ]
-    
+
     for domain in domains:
         client.create_node("Domain", domain)
-    
+
     # 기본 도구
     tools = [
         {"id": "web_search", "name": "Web Search", "type": "builtin"},
@@ -383,10 +381,10 @@ def seed_initial_data(client: Neo4jClient):
         {"id": "code_interpreter", "name": "Code Interpreter", "type": "builtin"},
         {"id": "scrape_website", "name": "Website Scraper", "type": "builtin"},
     ]
-    
+
     for tool in tools:
         client.create_node("Tool", tool)
-    
+
     # 기본 패턴
     patterns = [
         {
@@ -408,8 +406,8 @@ def seed_initial_data(client: Neo4jClient):
             "use_case": "Blog posts, articles, documentation",
         },
     ]
-    
+
     for pattern in patterns:
         client.create_node("Pattern", pattern)
-    
+
     logger.info("초기 데이터 시딩 완료")

@@ -4,20 +4,21 @@ CAAS Agent Factory
 CrewAI 에이전트를 생성하고 관리합니다.
 """
 
-from typing import Dict, List, Optional, Set
+import logging
 from datetime import datetime
+from typing import Dict, List, Optional, Set
 
 from pydantic import BaseModel
 
-import logging
-from caas_framework.sdd import AgentSpecModel
 from caas_framework.factory.base_factory import BaseFactory
+from caas_framework.sdd import AgentSpecModel
 
 logger = logging.getLogger("caas_framework.factory.agent")
 
 
 class AgentDefinition(BaseModel):
     """에이전트 정의 (코드 생성용)"""
+
     id: str
     role: str
     goal: str
@@ -48,15 +49,16 @@ class AgentFactory(BaseFactory[AgentSpecModel, AgentDefinition]):
 
         # Use dynamic tool registry for all tool lookups
         from caas_framework.models.tool_registry import DynamicToolRegistry
+
         self.tool_registry = DynamicToolRegistry
-    
+
     def create_definition(self, spec: AgentSpecModel) -> AgentDefinition:
         """
         AgentSpec에서 AgentDefinition을 생성합니다.
-        
+
         Args:
             spec: 에이전트 스펙
-        
+
         Returns:
             AgentDefinition: 에이전트 정의
         """
@@ -66,7 +68,7 @@ class AgentFactory(BaseFactory[AgentSpecModel, AgentDefinition]):
         if spec.llm:
             llm_model = spec.llm.model
             llm_temperature = spec.llm.temperature
-        
+
         return AgentDefinition(
             id=spec.id,
             role=spec.role,
@@ -81,7 +83,7 @@ class AgentFactory(BaseFactory[AgentSpecModel, AgentDefinition]):
             max_iter=spec.max_iter,
             max_rpm=spec.max_rpm,
         )
-    
+
     def _map_tool_to_class(self, tool_name: str) -> str:
         """
         도구 이름을 클래스 경로로 매핑 (동적 레지스트리 사용)
@@ -98,7 +100,9 @@ class AgentFactory(BaseFactory[AgentSpecModel, AgentDefinition]):
         # 레지스트리에 없으면 tool_name을 그대로 사용 (커스텀 도구)
         if tool_class is None:
             tool_class = tool_name
-            self.logger.debug(f"도구 '{tool_name}'을 레지스트리에서 찾지 못했습니다. 커스텀 도구로 처리: {tool_class}")
+            self.logger.debug(
+                f"도구 '{tool_name}'을 레지스트리에서 찾지 못했습니다. 커스텀 도구로 처리: {tool_class}"
+            )
 
         return tool_class
 
@@ -120,7 +124,7 @@ class AgentFactory(BaseFactory[AgentSpecModel, AgentDefinition]):
             tools_code.append(f"    {tool_class}()")
 
         tools_str = ",\n".join(tools_code) if tools_code else "    # No tools assigned"
-        
+
         code = f'''
 {definition.id} = Agent(
     role="{definition.role}",
@@ -151,7 +155,7 @@ class AgentFactory(BaseFactory[AgentSpecModel, AgentDefinition]):
         self,
         definitions: List[AgentDefinition],
         project_info: Optional[Dict[str, str]] = None,
-        use_error_handling: bool = True
+        use_error_handling: bool = True,
     ) -> str:
         """
         모든 에이전트의 코드를 생성합니다.
@@ -181,7 +185,7 @@ class AgentFactory(BaseFactory[AgentSpecModel, AgentDefinition]):
         Returns:
             bool: CrewAI 기본 도구이면 True, 커스텀 도구이면 False
         """
-        from caas_app.codegen.tool_generator import is_custom_tool
+        from caas_framework.codegen.tool_generator import is_custom_tool
 
         # is_custom_tool의 반대값 반환
         return not is_custom_tool(tool_name)
@@ -207,9 +211,7 @@ class AgentFactory(BaseFactory[AgentSpecModel, AgentDefinition]):
         return used_tools
 
     def _generate_from_template(
-        self,
-        definitions: List[AgentDefinition],
-        project_info: Optional[Dict[str, str]] = None
+        self, definitions: List[AgentDefinition], project_info: Optional[Dict[str, str]] = None
     ) -> str:
         """템플릿 기반 코드 생성 (에러 핸들링 포함)"""
         # Load template
@@ -219,7 +221,7 @@ class AgentFactory(BaseFactory[AgentSpecModel, AgentDefinition]):
         project = project_info or {
             "name": "Generated Agents",
             "description": "AI Agent System",
-            "domain": "general"
+            "domain": "general",
         }
 
         # Convert definitions to template format
@@ -235,12 +237,12 @@ class AgentFactory(BaseFactory[AgentSpecModel, AgentDefinition]):
                     "model": defn.llm_model,
                     "temperature": defn.llm_temperature,
                     "max_retries": 3,
-                    "timeout": 60
+                    "timeout": 60,
                 },
                 "verbose": defn.verbose,
                 "memory": defn.memory,
                 "allow_delegation": defn.allow_delegation,
-                "max_iter": defn.max_iter
+                "max_iter": defn.max_iter,
             }
             agents_context.append(agent_data)
 
@@ -268,7 +270,7 @@ class AgentFactory(BaseFactory[AgentSpecModel, AgentDefinition]):
             "agents": agents_context,
             "tools": tools,
             "tool_mapping": tool_mapping,  # P0 FIX: Add tool mapping
-            "generated_at": datetime.now().isoformat()
+            "generated_at": datetime.now().isoformat(),
         }
 
         return template.render(**context)

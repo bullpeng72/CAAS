@@ -5,12 +5,13 @@ All plugins (LLM, Vector DB, Graph DB) inherit from Plugin base class.
 """
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, Type
 from enum import Enum
+from typing import Any, Dict, List, Optional, Type
 
 
 class PluginType(str, Enum):
     """Plugin types"""
+
     LLM = "llm"
     VECTORDB = "vectordb"
     GRAPHDB = "graphdb"
@@ -89,10 +90,7 @@ class PluginRegistry:
         self._plugins[plugin.name] = plugin
 
     async def initialize_plugin(
-        self,
-        name: str,
-        plugin_type: PluginType,
-        config: Dict[str, Any]
+        self, name: str, plugin_type: PluginType, config: Dict[str, Any]
     ) -> Plugin:
         """
         Initialize a plugin by name
@@ -125,10 +123,7 @@ class PluginRegistry:
 
     def get_plugins_by_type(self, plugin_type: PluginType) -> List[Plugin]:
         """Get all plugins of a specific type"""
-        return [
-            plugin for plugin in self._plugins.values()
-            if plugin.plugin_type == plugin_type
-        ]
+        return [plugin for plugin in self._plugins.values() if plugin.plugin_type == plugin_type]
 
     async def close_all(self) -> None:
         """Close all plugins"""
@@ -142,7 +137,9 @@ class PluginRegistry:
         return list(self._plugin_classes.keys())
 
     def __repr__(self) -> str:
-        return f"<PluginRegistry(plugins={len(self._plugins)}, classes={len(self._plugin_classes)})>"
+        return (
+            f"<PluginRegistry(plugins={len(self._plugins)}, classes={len(self._plugin_classes)})>"
+        )
 
 
 # Global registry

@@ -4,11 +4,12 @@ BMAD Scale-Adaptive Intelligence
 프로젝트 복잡도에 따라 워크플로우 자동 조정
 """
 
-from typing import List, Dict, Any, Optional
-from pydantic import BaseModel, Field
-from enum import Enum
-
 import logging
+from enum import Enum
+from typing import Any, Dict, List, Optional
+
+from pydantic import BaseModel, Field
+
 from caas_framework.bmad.code_analyzer import AnalysisResult
 
 logger = logging.getLogger("caas_framework.bmad.adaptive")
@@ -16,13 +17,15 @@ logger = logging.getLogger("caas_framework.bmad.adaptive")
 
 class ProjectScale(str, Enum):
     """프로젝트 규모"""
-    QUICK_FIX = "quick_fix"          # < 5분: 버그 수정, 간단한 변경
-    STANDARD = "standard"            # < 15분: 일반 프로젝트
-    ENTERPRISE = "enterprise"        # < 30분: 엔터프라이즈, 컴플라이언스
+
+    QUICK_FIX = "quick_fix"  # < 5분: 버그 수정, 간단한 변경
+    STANDARD = "standard"  # < 15분: 일반 프로젝트
+    ENTERPRISE = "enterprise"  # < 30분: 엔터프라이즈, 컴플라이언스
 
 
 class AdaptiveWorkflowConfig(BaseModel):
     """적응형 워크플로우 설정"""
+
     scale: ProjectScale
     skip_phases: List[str] = Field(default_factory=list)
     max_iterations: int = 15
@@ -49,9 +52,9 @@ class ScaleAdaptiveEngine:
 
         # 복잡도 기준
         self.complexity_thresholds = {
-            ProjectScale.QUICK_FIX: 3,     # 복잡도 3 이하
-            ProjectScale.STANDARD: 7,      # 복잡도 7 이하
-            ProjectScale.ENTERPRISE: 10,   # 복잡도 8 이상
+            ProjectScale.QUICK_FIX: 3,  # 복잡도 3 이하
+            ProjectScale.STANDARD: 7,  # 복잡도 7 이하
+            ProjectScale.ENTERPRISE: 10,  # 복잡도 8 이상
         }
 
         # 기능 개수 기준
@@ -77,14 +80,18 @@ class ScaleAdaptiveEngine:
         self.logger.info(f"규모 분석: complexity={complexity}, features={feature_count}")
 
         # Quick Fix: 복잡도 ≤ 3, 기능 1-2개
-        if complexity <= self.complexity_thresholds[ProjectScale.QUICK_FIX] and \
-           feature_count <= self.feature_thresholds[ProjectScale.QUICK_FIX]:
+        if (
+            complexity <= self.complexity_thresholds[ProjectScale.QUICK_FIX]
+            and feature_count <= self.feature_thresholds[ProjectScale.QUICK_FIX]
+        ):
             scale = ProjectScale.QUICK_FIX
             self.logger.info("규모 판정: QUICK_FIX (< 5분)")
 
         # Enterprise: 복잡도 ≥ 8 또는 기능 10개 이상
-        elif complexity >= self.complexity_thresholds[ProjectScale.ENTERPRISE] or \
-             feature_count >= self.feature_thresholds[ProjectScale.ENTERPRISE]:
+        elif (
+            complexity >= self.complexity_thresholds[ProjectScale.ENTERPRISE]
+            or feature_count >= self.feature_thresholds[ProjectScale.ENTERPRISE]
+        ):
             scale = ProjectScale.ENTERPRISE
             self.logger.info("규모 판정: ENTERPRISE (< 30분)")
 
@@ -96,9 +103,7 @@ class ScaleAdaptiveEngine:
         return scale
 
     def create_workflow_config(
-        self,
-        scale: ProjectScale,
-        custom_overrides: Optional[Dict[str, Any]] = None
+        self, scale: ProjectScale, custom_overrides: Optional[Dict[str, Any]] = None
     ) -> AdaptiveWorkflowConfig:
         """
         규모별 워크플로우 설정 생성
@@ -117,27 +122,27 @@ class ScaleAdaptiveEngine:
                 scale=scale,
                 skip_phases=[],  # 모든 단계 실행하되 간소화
                 max_iterations=5,
-                require_tests=False,     # 테스트 선택적
-                require_docs=False,      # 문서 생략
+                require_tests=False,  # 테스트 선택적
+                require_docs=False,  # 문서 생략
                 require_security_audit=False,
                 parallel_execution=False,
-                enable_sharding=False,   # 샤딩 불필요
+                enable_sharding=False,  # 샤딩 불필요
                 enable_reflection=True,  # 간단한 반성만
-                quality_threshold=0.6,   # 낮은 품질 기준
+                quality_threshold=0.6,  # 낮은 품질 기준
             )
 
         elif scale == ProjectScale.ENTERPRISE:
             config = AdaptiveWorkflowConfig(
                 scale=scale,
-                skip_phases=[],          # 모든 단계 필수
+                skip_phases=[],  # 모든 단계 필수
                 max_iterations=30,
                 require_tests=True,
                 require_docs=True,
                 require_security_audit=True,  # 보안 감사 필수
-                parallel_execution=True,       # 병렬 실행
-                enable_sharding=True,          # 샤딩 활성화
+                parallel_execution=True,  # 병렬 실행
+                enable_sharding=True,  # 샤딩 활성화
                 enable_reflection=True,
-                quality_threshold=0.8,         # 높은 품질 기준
+                quality_threshold=0.8,  # 높은 품질 기준
             )
 
         else:  # STANDARD
@@ -179,29 +184,25 @@ class ScaleAdaptiveEngine:
                 "min_minutes": 2,
                 "max_minutes": 5,
                 "avg_minutes": 3,
-                "description": "간단한 버그 수정 또는 변경"
+                "description": "간단한 버그 수정 또는 변경",
             },
             ProjectScale.STANDARD: {
                 "min_minutes": 5,
                 "max_minutes": 15,
                 "avg_minutes": 10,
-                "description": "일반적인 프로젝트 또는 기능 개발"
+                "description": "일반적인 프로젝트 또는 기능 개발",
             },
             ProjectScale.ENTERPRISE: {
                 "min_minutes": 15,
                 "max_minutes": 30,
                 "avg_minutes": 22,
-                "description": "엔터프라이즈급 프로젝트 (보안, 컴플라이언스 포함)"
-            }
+                "description": "엔터프라이즈급 프로젝트 (보안, 컴플라이언스 포함)",
+            },
         }
 
         return duration_map.get(scale, duration_map[ProjectScale.STANDARD])
 
-    def recommend_optimizations(
-        self,
-        scale: ProjectScale,
-        analysis: AnalysisResult
-    ) -> List[str]:
+    def recommend_optimizations(self, scale: ProjectScale, analysis: AnalysisResult) -> List[str]:
         """
         규모별 최적화 권장사항 제공
 
@@ -224,7 +225,9 @@ class ScaleAdaptiveEngine:
             recommendations.append("병렬 실행으로 처리 시간을 단축합니다.")
 
             if len(analysis.features) > 15:
-                recommendations.append(f"{len(analysis.features)}개 기능이 감지됨. 스프린트 단위로 분할을 권장합니다.")
+                recommendations.append(
+                    f"{len(analysis.features)}개 기능이 감지됨. 스프린트 단위로 분할을 권장합니다."
+                )
 
         else:  # STANDARD
             recommendations.append("표준 워크플로우를 사용합니다.")
@@ -236,6 +239,8 @@ class ScaleAdaptiveEngine:
 
         # 제약사항 기반 권장사항
         if analysis.constraints:
-            recommendations.append(f"{len(analysis.constraints)}개 제약사항이 있으므로 검증을 강화합니다.")
+            recommendations.append(
+                f"{len(analysis.constraints)}개 제약사항이 있으므로 검증을 강화합니다."
+            )
 
         return recommendations

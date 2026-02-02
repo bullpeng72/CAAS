@@ -18,57 +18,53 @@ All new code should use:
     from caas_framework.config import get_config
 """
 
-# Import from unified module (NEW - Single Source of Truth)
-from caas_framework.config.unified import (
-    # Main config class
-    CaaSConfig,
-
-    # Primary entry points
-    get_config,
-    reload_config,
-
-    # Helper functions
-    get_api_key,
-    set_subprocess_env,
-
-    # Backward compatibility aliases
-    Settings,
-    get_settings,
-    FrameworkConfig,
-    load_config,
-)
-
 # OLD imports (DEPRECATED - kept for backward compatibility only)
 # These will be removed in version 3.0
 import warnings
 
+# Import from unified module (NEW - Single Source of Truth)
+from caas_framework.config.unified import (  # Main config class; Primary entry points; Helper functions; Backward compatibility aliases
+    CaaSConfig,
+    FrameworkConfig,
+    Settings,
+    get_api_key,
+    get_config,
+    get_settings,
+    load_config,
+    reload_config,
+    set_subprocess_env,
+)
+
 try:
     from caas_framework.config.loader import ConfigLoader as _OldConfigLoader
+
     # Issue deprecation warning when old loader is imported
     warnings.warn(
         "ConfigLoader from caas_framework.config.loader is deprecated. "
         "Use 'from caas_framework.config import get_config' instead.",
         DeprecationWarning,
-        stacklevel=2
+        stacklevel=2,
     )
     ConfigLoader = _OldConfigLoader
 except ImportError:
     # Old loader might be removed, use unified
-    ConfigLoader = type('ConfigLoader', (), {
-        'from_env': classmethod(lambda cls: get_config()),
-        'from_file': classmethod(lambda cls, path: get_config(config_file=path)),
-    })
+    ConfigLoader = type(
+        "ConfigLoader",
+        (),
+        {
+            "from_env": classmethod(lambda cls: get_config()),
+            "from_file": classmethod(lambda cls, path: get_config(config_file=path)),
+        },
+    )
 
 __all__ = [
     # PRIMARY INTERFACE (use this!)
     "CaaSConfig",
     "get_config",
     "reload_config",
-
     # Helpers
     "get_api_key",
     "set_subprocess_env",
-
     # BACKWARD COMPATIBILITY (deprecated in v2.0, will be removed in v3.0)
     "Settings",
     "get_settings",

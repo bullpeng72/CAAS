@@ -4,28 +4,26 @@ Generate Command
 Generate CrewAI agents from requirements - Uses caas_framework directly
 """
 
-import click
 import asyncio
+import os
 import time
 from pathlib import Path
+
+import click
 from caas_cli.utils import (
-    echo_success,
     echo_error,
     echo_info,
     echo_progress,
+    echo_success,
     echo_warning,
-    handle_keyboard_interrupt
+    handle_keyboard_interrupt,
 )
 
 # Load .env file for API keys
 from dotenv import load_dotenv
-import os
 
 # Try to load .env from current directory or project root
-env_paths = [
-    Path.cwd() / ".env",
-    Path(__file__).parent.parent.parent / ".env"
-]
+env_paths = [Path.cwd() / ".env", Path(__file__).parent.parent.parent / ".env"]
 for env_path in env_paths:
     if env_path.exists():
         load_dotenv(env_path)
@@ -38,51 +36,49 @@ for env_path in env_paths:
     "--domain",
     "-d",
     type=str,
-    help="Domain hint for better code generation (FINANCE, HEALTHCARE, E_COMMERCE, TASK_MANAGEMENT, DATA_ANALYSIS, etc.)"
+    help="Domain hint for better code generation (FINANCE, HEALTHCARE, E_COMMERCE, TASK_MANAGEMENT, DATA_ANALYSIS, etc.)",
 )
 @click.option(
     "--deployment",
     type=click.Choice(["docker", "kubernetes", "serverless"]),
     default="docker",
-    help="Deployment target - generates corresponding config files (default: docker)"
+    help="Deployment target - generates corresponding config files (default: docker)",
 )
 @click.option(
     "--output",
     "-o",
     type=click.Path(),
     default="./generated",
-    help="Output directory for generated code (default: ./generated)"
+    help="Output directory for generated code (default: ./generated)",
 )
 @click.option(
     "--no-validation",
     is_flag=True,
-    help="Disable all validation (syntax, traceability, completeness) - faster but risky"
+    help="Disable all validation (syntax, traceability, completeness) - faster but risky",
 )
 @click.option(
-    "--no-auto-fix",
-    is_flag=True,
-    help="Disable automatic error fixing - will fail fast on errors"
+    "--no-auto-fix", is_flag=True, help="Disable automatic error fixing - will fail fast on errors"
 )
 @click.option(
     "--golden-data",
     "-g",
     type=click.Path(exists=True),
-    help="[Phase 0] Use pre-existing Golden Data JSON file (skip requirement analysis)"
+    help="[Phase 0] Use pre-existing Golden Data JSON file (skip requirement analysis)",
 )
 @click.option(
     "--no-traceability",
     is_flag=True,
-    help="[Phase 2] Disable traceability tracking (requirement → agent → task mapping)"
+    help="[Phase 2] Disable traceability tracking (requirement → agent → task mapping)",
 )
 @click.option(
     "--no-completeness",
     is_flag=True,
-    help="[Phase 3] Disable completeness validation (ensures all requirements are implemented)"
+    help="[Phase 3] Disable completeness validation (ensures all requirements are implemented)",
 )
 @click.option(
     "--gap-filling",
     is_flag=True,
-    help="[Phase 0] Enable automatic gap filling for missing features"
+    help="[Phase 0] Enable automatic gap filling for missing features",
 )
 @click.option(
     "--workflow-type",
@@ -93,12 +89,12 @@ for env_path in env_paths:
     \b
     • sequential: Linear execution (simple workflows, 2-3 agents)
     • hierarchical: Manager-based delegation (complex workflows, 5+ agents, FINANCE/HEALTHCARE domains)
-    • auto: Automatic selection based on complexity (recommended)"""
+    • auto: Automatic selection based on complexity (recommended)""",
 )
 @click.option(
     "--plan-mode",
     is_flag=True,
-    help="[Phase 3] Enable Plan Mode - interactive approval gates for each phase (Discovery, Design, Code)"
+    help="[Phase 3] Enable Plan Mode - interactive approval gates for each phase (Discovery, Design, Code)",
 )
 @click.option(
     "--verbosity",
@@ -111,17 +107,15 @@ for env_path in env_paths:
     • minimal: Phase start/complete only
     • normal: Standard progress updates (default)
     • verbose: Detailed progress with validation results
-    • debug: Full diagnostic output with internal events"""
+    • debug: Full diagnostic output with internal events""",
 )
 @click.option(
     "--distributed",
     is_flag=True,
-    help="Enable distributed parallel execution for large projects (30-50%% speedup)"
+    help="Enable distributed parallel execution for large projects (30-50%% speedup)",
 )
 @click.option(
-    "--workers",
-    type=int,
-    help="Number of workers for distributed execution (default: CPU count)"
+    "--workers", type=int, help="Number of workers for distributed execution (default: CPU count)"
 )
 @handle_keyboard_interrupt
 def generate(
@@ -139,7 +133,7 @@ def generate(
     plan_mode,
     verbosity,
     distributed,
-    workers
+    workers,
 ):
     """
     \b
@@ -292,7 +286,7 @@ def generate(
                 # Handle list of objects
                 serialized_list = []
                 for item in value:
-                    if hasattr(item, 'model_dump'):
+                    if hasattr(item, "model_dump"):
                         # Pydantic BaseModel (e.g., FeatureSpec, FeatureImplementation)
                         serialized_list.append(item.model_dump())
                     elif is_dataclass(item) and not isinstance(item, type):
@@ -302,7 +296,7 @@ def generate(
                         # Primitive type
                         serialized_list.append(item)
                 result[field.name] = serialized_list
-            elif hasattr(value, 'model_dump'):
+            elif hasattr(value, "model_dump"):
                 # Single Pydantic object
                 result[field.name] = value.model_dump()
             elif is_dataclass(value) and not isinstance(value, type):
@@ -318,7 +312,7 @@ def generate(
     golden_data_dict = None
     if golden_data:
         try:
-            with open(golden_data, 'r', encoding='utf-8') as f:
+            with open(golden_data, "r", encoding="utf-8") as f:
                 golden_data_dict = json.load(f)
             echo_info(f"Loaded Golden Data from: {golden_data}")
         except Exception as e:
@@ -326,12 +320,14 @@ def generate(
             return
 
     # Show configuration
-    click.echo("""
+    click.echo(
+        """
 ╔══════════════════════════════════════════════════════════════╗
 ║                  CAAS Code Generation                        ║
 ║            (Using caas_framework directly)                   ║
 ╚══════════════════════════════════════════════════════════════╝
-""")
+"""
+    )
 
     echo_info(f"Requirement: {requirement}")
     if domain:
@@ -361,19 +357,13 @@ def generate(
         config = load_config()
 
         # Override validation settings from CLI flags
-        config.validation = ValidationConfig(
-            enabled=not no_validation,
-            auto_fix=not no_auto_fix
-        )
+        config.validation = ValidationConfig(enabled=not no_validation, auto_fix=not no_auto_fix)
 
         # Run generation
         async def run_generation():
             echo_progress("Initializing framework...")
 
-            framework = CrewAIFramework(
-                llm_provider="openai",
-                config=config
-            )
+            framework = CrewAIFramework(llm_provider="openai", config=config)
 
             await framework.initialize()
             echo_success("Framework initialized")
@@ -382,6 +372,7 @@ def generate(
 
             # Create progress tracker for Rich UI
             from caas_cli.progress_tracker import SimpleProgressReporter
+
             progress_tracker = SimpleProgressReporter()
 
             echo_progress("Generating code...")
@@ -407,7 +398,7 @@ def generate(
                     verbosity=verbosity,
                     distributed=distributed,
                     max_workers=workers,
-                    progress_reporter=progress_tracker
+                    progress_reporter=progress_tracker,
                 )
 
             generation_time = time.time() - start_time
@@ -427,7 +418,9 @@ def generate(
             # Show summary
             click.echo()
             click.echo(click.style("Summary:", bold=True))
-            click.echo(f"  Phases completed:  {', '.join([p.value for p in result.phases_completed])}")
+            click.echo(
+                f"  Phases completed:  {', '.join([p.value for p in result.phases_completed])}"
+            )
 
             # Phase 1: Features
             if result.golden_data and result.golden_data.features:
@@ -496,11 +489,12 @@ def generate(
                     # Convert content to string if it's a dict
                     if isinstance(content, dict):
                         import json
+
                         content = json.dumps(content, indent=2, ensure_ascii=False)
                     elif not isinstance(content, str):
                         content = str(content)
 
-                    with open(file_full_path, 'w', encoding='utf-8') as f:
+                    with open(file_full_path, "w", encoding="utf-8") as f:
                         f.write(content)
 
                 echo_success(f"Code saved to: {output}")
@@ -509,18 +503,22 @@ def generate(
                 # Display boundaries violations
                 if result.boundaries_violations:
                     click.echo()
-                    echo_warning(f"⚠️  Security Boundary Violations Detected: {len(result.boundaries_violations)}")
+                    echo_warning(
+                        f"⚠️  Security Boundary Violations Detected: {len(result.boundaries_violations)}"
+                    )
                     for violation in result.boundaries_violations:
                         click.echo(f"  ❌ {violation}")
                     click.echo()
-                    echo_info("💡 Review the generated code and ensure these violations are acceptable.")
+                    echo_info(
+                        "💡 Review the generated code and ensure these violations are acceptable."
+                    )
                     click.echo()
 
                 # Display quality evaluation
                 if result.quality_evaluation:
                     quality = result.quality_evaluation
-                    score = quality.get('overall_score', 0)
-                    if quality.get('passed', False):
+                    score = quality.get("overall_score", 0)
+                    if quality.get("passed", False):
                         echo_success(f"✅ Quality Score: {score:.1f}/10")
                     else:
                         echo_warning(f"⚠️  Quality Score: {score:.1f}/10 (Below threshold)")
@@ -539,7 +537,9 @@ def generate(
                         if total_issues == 0:
                             echo_success("🔒 Security scan: No issues found")
                         else:
-                            echo_success(f"🔒 Security scan: {total_issues} low-priority issues ({low}L, {medium}M)")
+                            echo_success(
+                                f"🔒 Security scan: {total_issues} low-priority issues ({low}L, {medium}M)"
+                            )
                     else:
                         echo_warning(f"⚠️  Security scan: {total_issues} issues found")
                         if critical > 0:
@@ -553,12 +553,16 @@ def generate(
 
                         # Show first 3 critical/high issues
                         issues = security.get("issues", [])
-                        critical_high = [i for i in issues if i.get("severity") in ("critical", "high")]
+                        critical_high = [
+                            i for i in issues if i.get("severity") in ("critical", "high")
+                        ]
                         if critical_high:
                             click.echo()
                             echo_warning("  Top security issues:")
                             for issue in critical_high[:3]:
-                                severity_emoji = "🔴" if issue.get("severity") == "critical" else "🟠"
+                                severity_emoji = (
+                                    "🔴" if issue.get("severity") == "critical" else "🟠"
+                                )
                                 file_path = issue.get("file_path", "unknown")
                                 line = issue.get("line_number", "?")
                                 location = f"{file_path}:{line}"
@@ -566,7 +570,9 @@ def generate(
                                 click.echo(f"    {severity_emoji} [{location}] {text}")
 
                             if len(critical_high) > 3:
-                                click.echo(f"    ... and {len(critical_high) - 3} more critical/high issues")
+                                click.echo(
+                                    f"    ... and {len(critical_high) - 3} more critical/high issues"
+                                )
 
                     click.echo()
 
@@ -580,11 +586,15 @@ def generate(
 
                             if validation.get("is_valid"):
                                 if warning_count > 0 or info_count > 0:
-                                    echo_success(f"✅ Code quality checks passed ({warning_count} warnings, {info_count} info)")
+                                    echo_success(
+                                        f"✅ Code quality checks passed ({warning_count} warnings, {info_count} info)"
+                                    )
                                 else:
                                     echo_success("✅ Code quality checks passed")
                             else:
-                                echo_warning(f"⚠️  Code quality issues: {error_count} errors, {warning_count} warnings")
+                                echo_warning(
+                                    f"⚠️  Code quality issues: {error_count} errors, {warning_count} warnings"
+                                )
 
                                 # Display first 5 errors/warnings
                                 issues = validation.get("issues", [])
@@ -592,7 +602,9 @@ def generate(
                                 warnings = [i for i in issues if i.get("severity") == "warning"]
 
                                 for error in errors[:3]:
-                                    file_loc = f"{error.get('file', 'unknown')}:{error.get('line', '?')}"
+                                    file_loc = (
+                                        f"{error.get('file', 'unknown')}:{error.get('line', '?')}"
+                                    )
                                     click.echo(f"  ❌ [{file_loc}] {error.get('message', '')}")
 
                                 if len(errors) > 3:
@@ -618,7 +630,7 @@ def generate(
             if result.golden_data:
                 golden_file = output_path / "golden_data.json"
                 try:
-                    with open(golden_file, 'w', encoding='utf-8') as f:
+                    with open(golden_file, "w", encoding="utf-8") as f:
                         json.dump(result.golden_data.model_dump(), f, indent=2, ensure_ascii=False)
                     artifacts_saved.append("golden_data.json (Phase 0)")
                 except Exception as e:
@@ -628,7 +640,7 @@ def generate(
             if result.requirement_analysis:
                 req_file = output_path / "requirement_analysis.json"
                 try:
-                    with open(req_file, 'w', encoding='utf-8') as f:
+                    with open(req_file, "w", encoding="utf-8") as f:
                         json.dump(result.requirement_analysis, f, indent=2, ensure_ascii=False)
                     artifacts_saved.append("requirement_analysis.json (Phase 0)")
                 except Exception as e:
@@ -639,7 +651,7 @@ def generate(
                 agents_file = output_path / "agents.json"
                 try:
                     agents_data = [agent.model_dump() for agent in result.agent_specs]
-                    with open(agents_file, 'w', encoding='utf-8') as f:
+                    with open(agents_file, "w", encoding="utf-8") as f:
                         json.dump(agents_data, f, indent=2, ensure_ascii=False)
                     artifacts_saved.append("agents.json (Phase 1)")
                 except Exception as e:
@@ -650,7 +662,7 @@ def generate(
                 tasks_file = output_path / "tasks.json"
                 try:
                     tasks_data = [task.model_dump() for task in result.task_specs]
-                    with open(tasks_file, 'w', encoding='utf-8') as f:
+                    with open(tasks_file, "w", encoding="utf-8") as f:
                         json.dump(tasks_data, f, indent=2, ensure_ascii=False)
                     artifacts_saved.append("tasks.json (Phase 1)")
                 except Exception as e:
@@ -660,7 +672,7 @@ def generate(
             if result.architecture_design:
                 arch_file = output_path / "architecture.json"
                 try:
-                    with open(arch_file, 'w', encoding='utf-8') as f:
+                    with open(arch_file, "w", encoding="utf-8") as f:
                         json.dump(result.architecture_design, f, indent=2, ensure_ascii=False)
                     artifacts_saved.append("architecture.json (Phase 2)")
                 except Exception as e:
@@ -670,7 +682,7 @@ def generate(
             if result.traceability_report:
                 trace_file = output_path / "traceability_report.md"
                 try:
-                    with open(trace_file, 'w', encoding='utf-8') as f:
+                    with open(trace_file, "w", encoding="utf-8") as f:
                         f.write(result.traceability_report)
                     artifacts_saved.append("traceability_report.md (Phase 2)")
                 except Exception as e:
@@ -680,9 +692,14 @@ def generate(
             if result.traceability_matrix:
                 matrix_file = output_path / "traceability_matrix.json"
                 try:
-                    with open(matrix_file, 'w', encoding='utf-8') as f:
+                    with open(matrix_file, "w", encoding="utf-8") as f:
                         # TraceabilityMatrix uses export_to_dict() method
-                        json.dump(result.traceability_matrix.export_to_dict(), f, indent=2, ensure_ascii=False)
+                        json.dump(
+                            result.traceability_matrix.export_to_dict(),
+                            f,
+                            indent=2,
+                            ensure_ascii=False,
+                        )
                     artifacts_saved.append("traceability_matrix.json (Phase 2)")
                 except Exception as e:
                     echo_warning(f"Failed to save traceability_matrix.json: {e}")
@@ -691,9 +708,11 @@ def generate(
             if result.completeness_report:
                 comp_file = output_path / "completeness_report.json"
                 try:
-                    with open(comp_file, 'w', encoding='utf-8') as f:
+                    with open(comp_file, "w", encoding="utf-8") as f:
                         # CompletenessReport contains nested Pydantic models
-                        serialized_report = serialize_completeness_report(result.completeness_report)
+                        serialized_report = serialize_completeness_report(
+                            result.completeness_report
+                        )
                         json.dump(serialized_report, f, indent=2, ensure_ascii=False)
                     artifacts_saved.append("completeness_report.json (Phase 3)")
                 except Exception as e:
@@ -703,7 +722,7 @@ def generate(
             if result.completeness_text_report:
                 comp_text_file = output_path / "completeness_report.md"
                 try:
-                    with open(comp_text_file, 'w', encoding='utf-8') as f:
+                    with open(comp_text_file, "w", encoding="utf-8") as f:
                         f.write(result.completeness_text_report)
                     artifacts_saved.append("completeness_report.md (Phase 3)")
                 except Exception as e:
@@ -713,7 +732,7 @@ def generate(
             if result.validation_reports:
                 validation_file = output_path / "validation_reports.json"
                 try:
-                    with open(validation_file, 'w', encoding='utf-8') as f:
+                    with open(validation_file, "w", encoding="utf-8") as f:
                         json.dump(result.validation_reports, f, indent=2, ensure_ascii=False)
                     artifacts_saved.append("validation_reports.json (Quality)")
                 except Exception as e:
@@ -723,7 +742,7 @@ def generate(
             if result.security_report:
                 security_file = output_path / "security_report.json"
                 try:
-                    with open(security_file, 'w', encoding='utf-8') as f:
+                    with open(security_file, "w", encoding="utf-8") as f:
                         json.dump(result.security_report, f, indent=2, ensure_ascii=False)
                     artifacts_saved.append("security_report.json (Security)")
                 except Exception as e:
@@ -741,7 +760,7 @@ def generate(
             if result.spec_yaml and not result.generated_code:
                 spec_file = output_path / "crew_spec.yaml"
                 try:
-                    with open(spec_file, 'w', encoding='utf-8') as f:
+                    with open(spec_file, "w", encoding="utf-8") as f:
                         f.write(result.spec_yaml)
                     echo_success(f"Spec YAML saved to: {spec_file}")
                 except Exception as e:
@@ -759,7 +778,9 @@ def generate(
             else:
                 click.echo(f"  2. Review BMAD artifacts (*.json, *.md)")
                 click.echo(f"  3. Use artifacts for code generation:")
-                click.echo(f"     caas codegen --component all --agents {output}/agents.json --tasks {output}/tasks.json")
+                click.echo(
+                    f"     caas codegen --component all --agents {output}/agents.json --tasks {output}/tasks.json"
+                )
 
         else:
             echo_error("Generation failed!")
@@ -775,4 +796,5 @@ def generate(
     except Exception as e:
         echo_error(f"Error: {e}")
         import traceback
+
         echo_error(traceback.format_exc())

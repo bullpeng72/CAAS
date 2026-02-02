@@ -4,23 +4,24 @@ Interactive Requirement Guide
 Provides interactive guidance for users to write better requirements.
 """
 
-from typing import Optional, List
+from typing import List, Optional
 
 from caas_framework.examples.requirement_examples import (
-    RequirementExample,
-    Domain,
+    REQUIREMENT_EXAMPLES,
     Complexity,
+    Domain,
+    RequirementExample,
+    get_examples_by_complexity,
+    get_examples_by_domain,
     search_examples,
     suggest_examples,
-    get_examples_by_domain,
-    get_examples_by_complexity,
-    REQUIREMENT_EXAMPLES
 )
 
 try:
     from rich.console import Console
-    from rich.table import Table
     from rich.panel import Panel
+    from rich.table import Table
+
     RICH_AVAILABLE = True
 except ImportError:
     RICH_AVAILABLE = False
@@ -55,7 +56,7 @@ class InteractiveGuide:
                 "Get inspired by example requirements across different domains and complexity levels.\n"
                 "Learn how to write clear, comprehensive project specifications.",
                 title="📝 Welcome to CAAS",
-                border_style="cyan"
+                border_style="cyan",
             )
             self.console.print(welcome)
         else:
@@ -123,7 +124,9 @@ class InteractiveGuide:
             return None
 
         if self.use_rich:
-            self.console.print(f"\n[bold]{domain.value.replace('_', ' ').title()} Examples:[/bold]\n")
+            self.console.print(
+                f"\n[bold]{domain.value.replace('_', ' ').title()} Examples:[/bold]\n"
+            )
 
             table = Table(show_header=True)
             table.add_column("#", style="cyan", width=4)
@@ -132,12 +135,7 @@ class InteractiveGuide:
             table.add_column("Features", justify="right")
 
             for i, ex in enumerate(examples, 1):
-                table.add_row(
-                    str(i),
-                    ex.title,
-                    ex.complexity.value,
-                    str(len(ex.key_features))
-                )
+                table.add_row(str(i), ex.title, ex.complexity.value, str(len(ex.key_features)))
 
             self.console.print(table)
         else:
@@ -181,17 +179,12 @@ class InteractiveGuide:
             complexities = [
                 (Complexity.SIMPLE, "Quick projects, learning, prototypes"),
                 (Complexity.MODERATE, "Production apps with moderate features"),
-                (Complexity.COMPLEX, "Enterprise systems, critical applications")
+                (Complexity.COMPLEX, "Enterprise systems, critical applications"),
             ]
 
             for i, (complexity, desc) in enumerate(complexities, 1):
                 examples = get_examples_by_complexity(complexity)
-                table.add_row(
-                    str(i),
-                    complexity.value.title(),
-                    str(len(examples)),
-                    desc
-                )
+                table.add_row(str(i), complexity.value.title(), str(len(examples)), desc)
 
             self.console.print(table)
         else:
@@ -207,11 +200,7 @@ class InteractiveGuide:
         if not choice:
             return None
 
-        complexity_map = {
-            "1": Complexity.SIMPLE,
-            "2": Complexity.MODERATE,
-            "3": Complexity.COMPLEX
-        }
+        complexity_map = {"1": Complexity.SIMPLE, "2": Complexity.MODERATE, "3": Complexity.COMPLEX}
 
         if choice in complexity_map:
             selected_complexity = complexity_map[choice]
@@ -283,7 +272,9 @@ class InteractiveGuide:
             return None
 
         if self.use_rich:
-            self.console.print(f"\n[bold]Search results for '{keyword}':[/bold] ({len(results)} found)\n")
+            self.console.print(
+                f"\n[bold]Search results for '{keyword}':[/bold] ({len(results)} found)\n"
+            )
 
             table = Table(show_header=True)
             table.add_column("#", style="cyan", width=4)
@@ -293,10 +284,7 @@ class InteractiveGuide:
 
             for i, ex in enumerate(results, 1):
                 table.add_row(
-                    str(i),
-                    ex.title,
-                    ex.domain.value.replace("_", " ").title(),
-                    ex.complexity.value
+                    str(i), ex.title, ex.domain.value.replace("_", " ").title(), ex.complexity.value
                 )
 
             self.console.print(table)
@@ -329,7 +317,7 @@ class InteractiveGuide:
                 f"[bold cyan]{example.title}[/bold cyan]\n\n"
                 f"[yellow]Domain:[/yellow] {example.domain.value.replace('_', ' ').title()}\n"
                 f"[yellow]Complexity:[/yellow] {example.complexity.value.title()}",
-                border_style="cyan"
+                border_style="cyan",
             )
             self.console.print("\n")
             self.console.print(title_panel)
@@ -339,9 +327,7 @@ class InteractiveGuide:
 
             # Requirement
             req_panel = Panel(
-                example.requirement_text,
-                title="Example Requirement",
-                border_style="green"
+                example.requirement_text, title="Example Requirement", border_style="green"
             )
             self.console.print(req_panel)
 
@@ -442,6 +428,7 @@ class InteractiveGuide:
 
             elif choice == "4":
                 import random
+
                 example = random.choice(REQUIREMENT_EXAMPLES)
                 self.show_example(example)
 

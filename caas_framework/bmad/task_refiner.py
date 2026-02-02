@@ -9,10 +9,11 @@ Task Description Refiner
 - 도메인별 Task 패턴 적용
 """
 
-from typing import List, Optional
-from caas_framework.models.domain_types import DomainType
-from caas_framework.bmad.models import TaskMapping
 import logging
+from typing import List, Optional
+
+from caas_framework.bmad.models import TaskMapping
+from caas_framework.models.domain_types import DomainType
 
 logger = logging.getLogger("caas_framework.bmad.task_refiner")
 
@@ -32,7 +33,6 @@ class TaskRefiner:
         "만들": "create",
         "등록": "create",
         "작성": "create",
-
         # Read
         "조회": "read",
         "확인": "read",
@@ -40,13 +40,11 @@ class TaskRefiner:
         "검색": "read",
         "조사": "read",
         "찾": "read",
-
         # Update
         "수정": "update",
         "변경": "update",
         "업데이트": "update",
         "편집": "update",
-
         # Delete
         "삭제": "delete",
         "제거": "delete",
@@ -60,7 +58,6 @@ class TaskRefiner:
         "make": "create",
         "register": "create",
         "insert": "create",
-
         "get": "read",
         "read": "read",
         "view": "read",
@@ -68,12 +65,10 @@ class TaskRefiner:
         "search": "read",
         "find": "read",
         "retrieve": "read",
-
         "edit": "update",
         "modify": "update",
         "change": "update",
         "update": "update",
-
         "remove": "delete",
         "delete": "delete",
         "drop": "delete",
@@ -83,10 +78,7 @@ class TaskRefiner:
         pass
 
     def refine_task(
-        self,
-        task: TaskMapping,
-        domain_type: DomainType,
-        entities: List[str]
+        self, task: TaskMapping, domain_type: DomainType, entities: List[str]
     ) -> TaskMapping:
         """
         Task description을 실행 가능한 형태로 정제
@@ -114,17 +106,11 @@ class TaskRefiner:
 
         # 도메인별 정제 패턴 적용
         if domain_type == DomainType.TASK_MANAGEMENT:
-            return self._refine_task_management(
-                task, detected_operation, detected_entity
-            )
+            return self._refine_task_management(task, detected_operation, detected_entity)
         elif domain_type == DomainType.E_COMMERCE:
-            return self._refine_e_commerce(
-                task, detected_operation, detected_entity
-            )
+            return self._refine_e_commerce(task, detected_operation, detected_entity)
         elif domain_type == DomainType.DASHBOARD:
-            return self._refine_dashboard(
-                task, detected_operation, detected_entity
-            )
+            return self._refine_dashboard(task, detected_operation, detected_entity)
         elif domain_type == DomainType.CONVERSATIONAL_AI:
             return self._refine_conversational_ai(task)
         elif domain_type == DomainType.DATA_ANALYSIS:
@@ -159,10 +145,7 @@ class TaskRefiner:
         return None
 
     def _refine_task_management(
-        self,
-        task: TaskMapping,
-        operation: Optional[str],
-        entity: Optional[str]
+        self, task: TaskMapping, operation: Optional[str], entity: Optional[str]
     ) -> TaskMapping:
         """Task Management 도메인 특화 정제"""
 
@@ -216,10 +199,7 @@ class TaskRefiner:
         return task
 
     def _refine_e_commerce(
-        self,
-        task: TaskMapping,
-        operation: Optional[str],
-        entity: Optional[str]
+        self, task: TaskMapping, operation: Optional[str], entity: Optional[str]
     ) -> TaskMapping:
         """E-commerce 도메인 특화 정제"""
 
@@ -264,10 +244,7 @@ class TaskRefiner:
         return task
 
     def _refine_dashboard(
-        self,
-        task: TaskMapping,
-        operation: Optional[str],
-        entity: Optional[str]
+        self, task: TaskMapping, operation: Optional[str], entity: Optional[str]
     ) -> TaskMapping:
         """Dashboard 도메인 특화 정제"""
 
@@ -341,12 +318,7 @@ class TaskRefiner:
 
         return task
 
-    def _refine_generic(
-        self,
-        task: TaskMapping,
-        operation: str,
-        entity: str
-    ) -> TaskMapping:
+    def _refine_generic(self, task: TaskMapping, operation: str, entity: str) -> TaskMapping:
         """범용 정제 (도메인 특화가 없는 경우)"""
 
         operation_templates = {

@@ -4,13 +4,14 @@ Task Validator
 Validates task definitions and detects common mistakes.
 """
 
-from typing import List, Dict, Any, Optional
 from dataclasses import dataclass
+from typing import Any, Dict, List, Optional
 
 
 @dataclass
 class TaskValidationIssue:
     """Task validation issue"""
+
     task_id: str
     severity: str  # "error", "warning", "info"
     issue_type: str
@@ -40,8 +41,16 @@ class TaskValidator:
         issues = []
 
         input_keywords = [
-            "입력", "input", "받", "receive", "collect", "get from user",
-            "사용자로부터", "from user", "키워드를 입력", "텍스트 입력"
+            "입력",
+            "input",
+            "받",
+            "receive",
+            "collect",
+            "get from user",
+            "사용자로부터",
+            "from user",
+            "키워드를 입력",
+            "텍스트 입력",
         ]
 
         for task in tasks:
@@ -53,22 +62,23 @@ class TaskValidator:
             has_input_keyword = any(keyword in description for keyword in input_keywords)
 
             if has_input_keyword and human_input:
-                issues.append(TaskValidationIssue(
-                    task_id=task_id,
-                    severity="error",
-                    issue_type="human_input_misuse",
-                    message=f"Task '{task_id}' description mentions user input collection, "
-                           f"but human_input=True is for feedback, not input collection.",
-                    suggestion="Use crew.kickoff(inputs={...}) to pass user input, or remove "
-                              "the 'input collection' part from task description."
-                ))
+                issues.append(
+                    TaskValidationIssue(
+                        task_id=task_id,
+                        severity="error",
+                        issue_type="human_input_misuse",
+                        message=f"Task '{task_id}' description mentions user input collection, "
+                        f"but human_input=True is for feedback, not input collection.",
+                        suggestion="Use crew.kickoff(inputs={...}) to pass user input, or remove "
+                        "the 'input collection' part from task description.",
+                    )
+                )
 
         return issues
 
     @staticmethod
     def validate_task_agent_tool_alignment(
-        tasks: List[Dict[str, Any]],
-        agents: List[Dict[str, Any]]
+        tasks: List[Dict[str, Any]], agents: List[Dict[str, Any]]
     ) -> List[TaskValidationIssue]:
         """
         Validate that agents have tools needed for their tasks.
@@ -101,30 +111,45 @@ class TaskValidator:
             tools = agent_tools.get(agent_id, [])
 
             # Check for search tasks without search tools
-            search_keywords = ["검색", "search", "찾", "find", "조회", "lookup", "웹", "web", "인터넷", "internet"]
+            search_keywords = [
+                "검색",
+                "search",
+                "찾",
+                "find",
+                "조회",
+                "lookup",
+                "웹",
+                "web",
+                "인터넷",
+                "internet",
+            ]
             needs_search = any(keyword in description for keyword in search_keywords)
 
             if needs_search and not any("search" in str(tool).lower() for tool in tools):
-                issues.append(TaskValidationIssue(
-                    task_id=task_id,
-                    severity="warning",
-                    issue_type="missing_search_tool",
-                    message=f"Task '{task_id}' requires search but agent '{agent_id}' has no search tools.",
-                    suggestion="Add 'web_search' or 'scrape_website' to agent tools."
-                ))
+                issues.append(
+                    TaskValidationIssue(
+                        task_id=task_id,
+                        severity="warning",
+                        issue_type="missing_search_tool",
+                        message=f"Task '{task_id}' requires search but agent '{agent_id}' has no search tools.",
+                        suggestion="Add 'web_search' or 'scrape_website' to agent tools.",
+                    )
+                )
 
             # Check for file tasks without file tools
             file_keywords = ["파일", "file", "저장", "save", "쓰", "write", "기록", "record"]
             needs_file = any(keyword in description for keyword in file_keywords)
 
             if needs_file and not any("file" in str(tool).lower() for tool in tools):
-                issues.append(TaskValidationIssue(
-                    task_id=task_id,
-                    severity="warning",
-                    issue_type="missing_file_tool",
-                    message=f"Task '{task_id}' requires file operations but agent '{agent_id}' has no file tools.",
-                    suggestion="Add 'file_write' or 'code_interpreter' to agent tools."
-                ))
+                issues.append(
+                    TaskValidationIssue(
+                        task_id=task_id,
+                        severity="warning",
+                        issue_type="missing_file_tool",
+                        message=f"Task '{task_id}' requires file operations but agent '{agent_id}' has no file tools.",
+                        suggestion="Add 'file_write' or 'code_interpreter' to agent tools.",
+                    )
+                )
 
         return issues
 
@@ -154,9 +179,7 @@ class TaskValidator:
 
     @classmethod
     def validate_all(
-        cls,
-        tasks: List[Dict[str, Any]],
-        agents: List[Dict[str, Any]]
+        cls, tasks: List[Dict[str, Any]], agents: List[Dict[str, Any]]
     ) -> List[TaskValidationIssue]:
         """
         Run all validations.

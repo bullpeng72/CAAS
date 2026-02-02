@@ -6,15 +6,17 @@ Migrated from app/models/schemas.py for framework independence.
 """
 
 import re
-from typing import Any, Dict, List, Optional
 from enum import Enum
-from pydantic import BaseModel, Field, field_validator, model_validator
+from typing import Any, Dict, List, Optional
 
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 # ==================== Enums ====================
 
+
 class WorkflowType(str, Enum):
     """워크플로우 타입"""
+
     SEQUENTIAL = "sequential"
     HIERARCHICAL = "hierarchical"
     PARALLEL = "parallel"
@@ -22,6 +24,7 @@ class WorkflowType(str, Enum):
 
 class ProjectTemplate(str, Enum):
     """프로젝트 템플릿 타입"""
+
     AGENT_ONLY = "agent_only"
     AGENT_WITH_STREAMLIT = "agent_with_streamlit"
     FULL_STACK = "full_stack"
@@ -30,6 +33,7 @@ class ProjectTemplate(str, Enum):
 
 class HTTPMethod(str, Enum):
     """HTTP 메서드"""
+
     GET = "GET"
     POST = "POST"
     PUT = "PUT"
@@ -39,8 +43,10 @@ class HTTPMethod(str, Enum):
 
 # ==================== LLM Configuration ====================
 
+
 class LLMConfigSpec(BaseModel):
     """LLM 설정 스펙"""
+
     model: str = "gpt-4o"
     temperature: float = Field(default=0.3, ge=0.0, le=2.0)
     max_tokens: Optional[int] = Field(default=None, ge=1)
@@ -50,8 +56,10 @@ class LLMConfigSpec(BaseModel):
 
 # ==================== Requirement Models ====================
 
+
 class AgentRequirement(BaseModel):
     """에이전트 요구사항 모델 (분석 단계)"""
+
     role: str
     goal: str
     skills: List[str]
@@ -60,6 +68,7 @@ class AgentRequirement(BaseModel):
 
 class TaskRequirement(BaseModel):
     """태스크 요구사항 모델 (분석 단계)"""
+
     name: str
     description: str
     assigned_agent: str
@@ -69,8 +78,10 @@ class TaskRequirement(BaseModel):
 
 # ==================== UI Models ====================
 
+
 class UIComponentRequirement(BaseModel):
     """UI 컴포넌트 요구사항"""
+
     component_type: str  # text_input, button, table, chart, etc.
     label: str
     description: Optional[str] = None
@@ -78,6 +89,7 @@ class UIComponentRequirement(BaseModel):
 
 class UIPageRequirement(BaseModel):
     """UI 페이지 요구사항"""
+
     name: str
     title: str
     description: Optional[str] = None
@@ -86,8 +98,10 @@ class UIPageRequirement(BaseModel):
 
 # ==================== Backend API Models ====================
 
+
 class BackendAPIRequirement(BaseModel):
     """Backend API 요구사항"""
+
     path: str
     method: HTTPMethod = HTTPMethod.GET
     description: str
@@ -107,21 +121,37 @@ class BackendAPIRequirement(BaseModel):
 
 # ==================== Quality Metrics ====================
 
+
 class QualityMetrics(BaseModel):
     """
     요구사항 분석 품질 메트릭
 
     분석 결과의 품질을 다양한 측면에서 평가
     """
-    completeness_score: float = Field(default=0.7, ge=0.0, le=1.0, description="요구사항 완전성 (모든 필요 정보 포함)")
-    clarity_score: float = Field(default=0.7, ge=0.0, le=1.0, description="요구사항 명확성 (모호함 없음)")
-    consistency_score: float = Field(default=0.7, ge=0.0, le=1.0, description="요구사항 일관성 (상충 없음)")
-    feasibility_score: float = Field(default=0.7, ge=0.0, le=1.0, description="실현 가능성 (구현 가능)")
-    complexity_score: int = Field(default=5, ge=1, le=10, description="복잡도 (1=매우 단순, 10=매우 복잡)")
-    confidence_score: float = Field(default=0.7, ge=0.0, le=1.0, description="분석 신뢰도 (분석 품질)")
+
+    completeness_score: float = Field(
+        default=0.7, ge=0.0, le=1.0, description="요구사항 완전성 (모든 필요 정보 포함)"
+    )
+    clarity_score: float = Field(
+        default=0.7, ge=0.0, le=1.0, description="요구사항 명확성 (모호함 없음)"
+    )
+    consistency_score: float = Field(
+        default=0.7, ge=0.0, le=1.0, description="요구사항 일관성 (상충 없음)"
+    )
+    feasibility_score: float = Field(
+        default=0.7, ge=0.0, le=1.0, description="실현 가능성 (구현 가능)"
+    )
+    complexity_score: int = Field(
+        default=5, ge=1, le=10, description="복잡도 (1=매우 단순, 10=매우 복잡)"
+    )
+    confidence_score: float = Field(
+        default=0.7, ge=0.0, le=1.0, description="분석 신뢰도 (분석 품질)"
+    )
 
     # 전체 품질 점수 (자동 계산)
-    overall_quality: Optional[float] = Field(default=None, ge=0.0, le=1.0, description="전체 품질 점수")
+    overall_quality: Optional[float] = Field(
+        default=None, ge=0.0, le=1.0, description="전체 품질 점수"
+    )
 
     # 품질 이슈 및 개선 제안
     quality_issues: List[str] = Field(default=[], description="발견된 품질 이슈")
@@ -140,16 +170,16 @@ class QualityMetrics(BaseModel):
             "consistency": 0.15,
             "feasibility": 0.20,
             "complexity": 0.10,
-            "confidence": 0.10
+            "confidence": 0.10,
         }
 
         overall = (
-            self.completeness_score * weights["completeness"] +
-            self.clarity_score * weights["clarity"] +
-            self.consistency_score * weights["consistency"] +
-            self.feasibility_score * weights["feasibility"] +
-            normalized_complexity * weights["complexity"] +
-            self.confidence_score * weights["confidence"]
+            self.completeness_score * weights["completeness"]
+            + self.clarity_score * weights["clarity"]
+            + self.consistency_score * weights["consistency"]
+            + self.feasibility_score * weights["feasibility"]
+            + normalized_complexity * weights["complexity"]
+            + self.confidence_score * weights["confidence"]
         )
 
         return round(overall, 3)
@@ -157,12 +187,14 @@ class QualityMetrics(BaseModel):
 
 # ==================== Requirement Analysis ====================
 
+
 class RequirementAnalysis(BaseModel):
     """
     요구사항 분석 결과 모델 (통합 버전)
 
     자연어 요구사항 분석 결과를 표현
     """
+
     domain: str
     subdomain: Optional[str] = None
     summary: str
@@ -201,13 +233,20 @@ class RequirementAnalysis(BaseModel):
         """
         # 1. Completeness Score: 필수 필드가 모두 채워졌는지
         completeness = 0.0
-        if self.domain: completeness += 0.15
-        if self.summary: completeness += 0.15
-        if len(self.agents) > 0: completeness += 0.20
-        if len(self.tasks) > 0: completeness += 0.20
-        if len(self.suggested_tools) > 0: completeness += 0.10
-        if len(self.constraints) > 0: completeness += 0.10
-        if len(self.success_criteria) > 0: completeness += 0.10
+        if self.domain:
+            completeness += 0.15
+        if self.summary:
+            completeness += 0.15
+        if len(self.agents) > 0:
+            completeness += 0.20
+        if len(self.tasks) > 0:
+            completeness += 0.20
+        if len(self.suggested_tools) > 0:
+            completeness += 0.10
+        if len(self.constraints) > 0:
+            completeness += 0.10
+        if len(self.success_criteria) > 0:
+            completeness += 0.10
 
         # 2. Clarity Score: 설명이 충분히 상세한지
         clarity = 0.0
@@ -252,11 +291,15 @@ class RequirementAnalysis(BaseModel):
 
         if completeness < 0.7:
             quality_issues.append("요구사항 정보가 불완전합니다.")
-            improvement_suggestions.append("도메인, 에이전트, 태스크, 제약사항 등을 더 상세히 작성하세요.")
+            improvement_suggestions.append(
+                "도메인, 에이전트, 태스크, 제약사항 등을 더 상세히 작성하세요."
+            )
 
         if clarity < 0.6:
             quality_issues.append("요구사항 설명이 불명확합니다.")
-            improvement_suggestions.append("각 에이전트와 태스크의 목적과 설명을 더 구체적으로 작성하세요.")
+            improvement_suggestions.append(
+                "각 에이전트와 태스크의 목적과 설명을 더 구체적으로 작성하세요."
+            )
 
         if consistency < 0.8:
             quality_issues.append("Agent와 Task 할당이 일관되지 않습니다.")
@@ -264,7 +307,9 @@ class RequirementAnalysis(BaseModel):
 
         if feasibility < 0.7:
             quality_issues.append("프로젝트 범위가 비현실적입니다.")
-            improvement_suggestions.append("Agent와 Task 수를 적절하게 조정하세요 (권장: Agent 2-5개, Task 3-15개).")
+            improvement_suggestions.append(
+                "Agent와 Task 수를 적절하게 조정하세요 (권장: Agent 2-5개, Task 3-15개)."
+            )
 
         metrics = QualityMetrics(
             completeness_score=round(completeness, 3),
@@ -274,7 +319,7 @@ class RequirementAnalysis(BaseModel):
             complexity_score=complexity,
             confidence_score=round(confidence, 3),
             quality_issues=quality_issues,
-            improvement_suggestions=improvement_suggestions
+            improvement_suggestions=improvement_suggestions,
         )
 
         # Overall quality 계산
@@ -285,8 +330,10 @@ class RequirementAnalysis(BaseModel):
 
 # ==================== Architecture Design Models ====================
 
+
 class ArchitecturalPattern(str, Enum):
     """아키텍처 패턴"""
+
     LAYERED = "layered"
     MICROSERVICES = "microservices"
     EVENT_DRIVEN = "event_driven"
@@ -297,6 +344,7 @@ class ArchitecturalPattern(str, Enum):
 
 class ComponentType(str, Enum):
     """컴포넌트 타입"""
+
     AGENT = "agent"
     SERVICE = "service"
     DATABASE = "database"
@@ -308,6 +356,7 @@ class ComponentType(str, Enum):
 
 class ComponentSpec(BaseModel):
     """컴포넌트 사양"""
+
     id: str
     name: str
     type: ComponentType
@@ -330,6 +379,7 @@ class ComponentSpec(BaseModel):
 
 class DataFlow(BaseModel):
     """데이터 흐름"""
+
     from_component: str
     to_component: str
     data_type: str
@@ -341,6 +391,7 @@ class DataFlow(BaseModel):
 
 class TechnologyStack(BaseModel):
     """기술 스택"""
+
     category: str  # framework, library, tool, infrastructure
     name: str
     version: Optional[str] = None
@@ -356,6 +407,7 @@ class ArchitectureDesign(BaseModel):
     System Architect Agent의 출력 모델
     RequirementAnalysis를 기반으로 시스템 아키텍처를 설계
     """
+
     # 기본 정보
     project_name: str
     description: str

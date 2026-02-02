@@ -6,11 +6,7 @@ Supported providers:
 - Qdrant (qdrant.py)
 """
 
-from caas_framework.plugins.vectordb.base import (
-    VectorDBPlugin,
-    VectorDocument,
-    VectorSearchResult
-)
+from caas_framework.plugins.vectordb.base import VectorDBPlugin, VectorDocument, VectorSearchResult
 
 # Import plugins to register them
 try:

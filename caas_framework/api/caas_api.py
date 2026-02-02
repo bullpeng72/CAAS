@@ -5,16 +5,16 @@ UI-independent API interface for CLI, Streamlit, VSCode Extension, and other UIs
 Provides a high-level interface to the CAAS framework with event-driven architecture.
 """
 
-from typing import Optional, Dict, Any, List, Callable
-from dataclasses import dataclass, field
 import logging
+from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any, Callable, Dict, List, Optional
 
+from caas_framework.agents.base import AgentPhase
 from caas_framework.agents.collaboration import ExpertAgentCollaboration
+from caas_framework.events.event_bus import EventBus
 from caas_framework.models.specifications import ConcretizedRequirement
 from caas_framework.plugins.llm.base import LLMPlugin
-from caas_framework.events.event_bus import EventBus
-from caas_framework.agents.base import AgentPhase
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +26,7 @@ class GenerationConfig:
 
     Controls all aspects of code generation behavior.
     """
+
     # LLM Configuration
     llm_provider: str = "openai"
     llm_model: str = "gpt-4"
@@ -63,6 +64,7 @@ class GenerationResult:
 
     UI-independent result format that all UIs can consume.
     """
+
     success: bool
     files: Dict[str, str] = field(default_factory=dict)
     metadata: Dict[str, Any] = field(default_factory=dict)
@@ -115,7 +117,7 @@ class CAAS_API:
         llm_plugin: Optional[LLMPlugin] = None,
         plan_mode: Optional[Any] = None,
         progress_reporter: Optional[Any] = None,
-        event_bus: Optional[EventBus] = None
+        event_bus: Optional[EventBus] = None,
     ):
         """
         Initialize CAAS API.
@@ -143,9 +145,7 @@ class CAAS_API:
         logger.info(f"CAAS_API initialized with config: {config}")
 
     async def generate(
-        self,
-        requirement: str,
-        golden_data: Optional[ConcretizedRequirement] = None
+        self, requirement: str, golden_data: Optional[ConcretizedRequirement] = None
     ) -> GenerationResult:
         """
         Generate code from natural language requirement.
@@ -187,16 +187,13 @@ class CAAS_API:
 
         except Exception as e:
             logger.error(f"Generation failed: {str(e)}", exc_info=True)
-            return GenerationResult(
-                success=False,
-                errors=[str(e)]
-            )
+            return GenerationResult(success=False, errors=[str(e)])
 
     async def generate_from_design(
         self,
         agents: List[Dict[str, Any]],
         tasks: List[Dict[str, Any]],
-        workflow_type: str = "sequential"
+        workflow_type: str = "sequential",
     ) -> GenerationResult:
         """
         Generate code from agent/task design.
@@ -215,10 +212,11 @@ class CAAS_API:
 
         try:
             # Import here to avoid circular dependency
-            import sys
             import importlib
-            if 'caas_framework.agents.code_generator' in sys.modules:
-                importlib.reload(sys.modules['caas_framework.agents.code_generator'])
+            import sys
+
+            if "caas_framework.agents.code_generator" in sys.modules:
+                importlib.reload(sys.modules["caas_framework.agents.code_generator"])
             from caas_framework.agents.code_generator import CodeGeneratorAgent
 
             # Create code generator
@@ -232,9 +230,9 @@ class CAAS_API:
                     AgentPhase.DESIGN: {
                         "agents": agents,
                         "tasks": tasks,
-                        "workflow_type": workflow_type
+                        "workflow_type": workflow_type,
                     }
-                }
+                },
             )
 
             # Format result
@@ -245,30 +243,25 @@ class CAAS_API:
                     "duration": result.duration,
                     "agents_count": len(agents),
                     "tasks_count": len(tasks),
-                    "workflow_type": workflow_type
+                    "workflow_type": workflow_type,
                 },
-                errors=result.errors
+                errors=result.errors,
             )
 
             # Save files
             if self.config.output_dir and generation_result.files:
                 await self._save_files(generation_result.files, self.config.output_dir)
 
-            logger.info(f"Code generation from design {'succeeded' if result.success else 'failed'}")
+            logger.info(
+                f"Code generation from design {'succeeded' if result.success else 'failed'}"
+            )
             return generation_result
 
         except Exception as e:
             logger.error(f"Generation from design failed: {str(e)}", exc_info=True)
-            return GenerationResult(
-                success=False,
-                errors=[str(e)]
-            )
+            return GenerationResult(success=False, errors=[str(e)])
 
-    def subscribe_event(
-        self,
-        event_type: str,
-        callback: Callable[[Any], None]
-    ):
+    def subscribe_event(self, event_type: str, callback: Callable[[Any], None]):
         """
         Subscribe to framework events.
 
@@ -292,11 +285,7 @@ class CAAS_API:
         # The actual event publishing will be handled by the collaboration layer
         logger.debug(f"Subscribed to event: {event_type}")
 
-    def unsubscribe_event(
-        self,
-        event_type: str,
-        callback: Callable[[Any], None]
-    ):
+    def unsubscribe_event(self, event_type: str, callback: Callable[[Any], None]):
         """
         Unsubscribe from framework events.
 
@@ -329,15 +318,12 @@ class CAAS_API:
             return OpenAIPlugin(
                 api_key=self.config.llm_api_key,
                 model=self.config.llm_model,
-                temperature=self.config.llm_temperature
+                temperature=self.config.llm_temperature,
             )
         else:
             raise ValueError(f"Unsupported LLM provider: {self.config.llm_provider}")
 
-    async def _generate_golden_data(
-        self,
-        requirement: str
-    ) -> ConcretizedRequirement:
+    async def _generate_golden_data(self, requirement: str) -> ConcretizedRequirement:
         """
         Auto-generate Golden Data from requirement.
 
@@ -358,8 +344,7 @@ class CAAS_API:
         return golden_data
 
     def _create_collaboration(
-        self,
-        golden_data: ConcretizedRequirement
+        self, golden_data: ConcretizedRequirement
     ) -> ExpertAgentCollaboration:
         """
         Create ExpertAgentCollaboration instance.
@@ -378,7 +363,7 @@ class CAAS_API:
             "minimal": VerbosityLevel.MINIMAL,
             "normal": VerbosityLevel.NORMAL,
             "verbose": VerbosityLevel.VERBOSE,
-            "debug": VerbosityLevel.DEBUG
+            "debug": VerbosityLevel.DEBUG,
         }
         verbosity = verbosity_map.get(self.config.verbosity, VerbosityLevel.NORMAL)
 
@@ -386,6 +371,7 @@ class CAAS_API:
         progress_reporter = self.progress_reporter
         if not progress_reporter:
             from caas_framework.reporting import ProgressReporter
+
             progress_reporter = ProgressReporter(verbosity=verbosity)
 
         # Create collaboration
@@ -395,15 +381,12 @@ class CAAS_API:
             max_feedback_loops=self.config.max_feedback_loops,
             enable_validation=self.config.enable_validation,
             progress_reporter=progress_reporter,
-            plan_mode=self.plan_mode
+            plan_mode=self.plan_mode,
         )
 
         return collaboration
 
-    def _format_result(
-        self,
-        collab_result: Any
-    ) -> GenerationResult:
+    def _format_result(self, collab_result: Any) -> GenerationResult:
         """
         Format collaboration result to GenerationResult.
 
@@ -415,29 +398,30 @@ class CAAS_API:
         """
         # Extract files from code artifacts
         files = {}
-        if hasattr(collab_result.context, 'code_artifacts') and collab_result.context.code_artifacts:
-            files = collab_result.context.code_artifacts.get('files', {})
+        if (
+            hasattr(collab_result.context, "code_artifacts")
+            and collab_result.context.code_artifacts
+        ):
+            files = collab_result.context.code_artifacts.get("files", {})
 
         # Extract metadata
         metadata = {
             "duration": collab_result.total_duration,
             "phases_completed": [p.value for p in collab_result.phases_completed],
             "feedback_loops_executed": collab_result.feedback_loops_executed,
-            "agents_used": list(collab_result.agent_summaries.keys()) if collab_result.agent_summaries else []
+            "agents_used": (
+                list(collab_result.agent_summaries.keys()) if collab_result.agent_summaries else []
+            ),
         }
 
         return GenerationResult(
             success=collab_result.success,
             files=files,
             metadata=metadata,
-            errors=collab_result.errors
+            errors=collab_result.errors,
         )
 
-    async def _save_files(
-        self,
-        files: Dict[str, str],
-        output_dir: str
-    ):
+    async def _save_files(self, files: Dict[str, str], output_dir: str):
         """
         Save generated files to disk.
 

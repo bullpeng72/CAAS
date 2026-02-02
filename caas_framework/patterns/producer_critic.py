@@ -7,24 +7,20 @@ and a Critic agent reviews it, providing feedback for iterative improvement.
 This pattern ensures high-quality outputs through peer review and refinement.
 """
 
+import asyncio
 import logging
-from typing import Any, Dict, List, Optional
 from dataclasses import dataclass, field
 from enum import Enum
-import asyncio
+from typing import Any, Dict, List, Optional
 
-from caas_framework.agents.base import (
-    BaseExpertAgent,
-    AgentPhase,
-    AgentWorkResult,
-    ValidationIssue
-)
-from caas_framework.validation.llm_judge import LLMJudge, EvaluationResult
+from caas_framework.agents.base import AgentPhase, AgentWorkResult, BaseExpertAgent, ValidationIssue
 from caas_framework.plugins.llm.base import LLMPlugin
+from caas_framework.validation.llm_judge import EvaluationResult, LLMJudge
 
 
 class CriticRole(str, Enum):
     """Critic agent specialization roles"""
+
     DESIGN_REVIEWER = "design_reviewer"
     CODE_REVIEWER = "code_reviewer"
     ARCHITECTURE_REVIEWER = "architecture_reviewer"
@@ -35,6 +31,7 @@ class CriticRole(str, Enum):
 @dataclass
 class CriticReview:
     """Result of critic's review"""
+
     approved: bool
     overall_score: float  # 0.0 to 10.0
     strengths: List[str] = field(default_factory=list)
@@ -57,13 +54,14 @@ class CriticReview:
             "weaknesses": self.weaknesses,
             "suggestions": self.suggestions,
             "critical_issues": self.critical_issues,
-            "feedback": self.feedback
+            "feedback": self.feedback,
         }
 
 
 @dataclass
 class ProducerCriticResult:
     """Result of Producer-Critic collaboration"""
+
     final_output: Dict[str, Any]
     iterations: int
     reviews: List[CriticReview]
@@ -92,7 +90,7 @@ class CriticAgent:
         llm_plugin: LLMPlugin,
         role: CriticRole = CriticRole.GENERAL_CRITIC,
         approval_threshold: float = 7.0,
-        logger: Optional[logging.Logger] = None
+        logger: Optional[logging.Logger] = None,
     ):
         """
         Initialize Critic Agent.
@@ -110,16 +108,11 @@ class CriticAgent:
 
         # Use LLM Judge for evaluation
         self.judge = LLMJudge(
-            llm_plugin=llm_plugin,
-            approval_threshold=approval_threshold,
-            logger=logger
+            llm_plugin=llm_plugin, approval_threshold=approval_threshold, logger=logger
         )
 
     async def review(
-        self,
-        output: Dict[str, Any],
-        phase: AgentPhase,
-        context: Optional[Dict[str, Any]] = None
+        self, output: Dict[str, Any], phase: AgentPhase, context: Optional[Dict[str, Any]] = None
     ) -> CriticReview:
         """
         Review producer's output and provide critique.
@@ -137,18 +130,14 @@ class CriticAgent:
         try:
             # Use LLM Judge for evaluation
             evaluation = await self.judge.evaluate_quality(
-                output=output,
-                phase=phase,
-                context=context
+                output=output, phase=phase, context=context
             )
 
             # Convert LLM evaluation to CriticReview
             review = self._convert_evaluation_to_review(evaluation)
 
             if review.approved:
-                self.logger.info(
-                    f"✅ Critic approved (score: {review.overall_score:.1f}/10.0)"
-                )
+                self.logger.info(f"✅ Critic approved (score: {review.overall_score:.1f}/10.0)")
             else:
                 self.logger.warning(
                     f"❌ Critic requests revision (score: {review.overall_score:.1f}/10.0, "
@@ -164,13 +153,10 @@ class CriticAgent:
                 approved=False,
                 overall_score=0.0,
                 critical_issues=[f"Review error: {str(e)}"],
-                feedback="Review failed due to error"
+                feedback="Review failed due to error",
             )
 
-    def _convert_evaluation_to_review(
-        self,
-        evaluation: EvaluationResult
-    ) -> CriticReview:
+    def _convert_evaluation_to_review(self, evaluation: EvaluationResult) -> CriticReview:
         """Convert LLM Judge evaluation to CriticReview"""
 
         # Extract strengths (high scores)
@@ -180,9 +166,7 @@ class CriticAgent:
 
         for dim_score in evaluation.dimension_scores:
             if dim_score.score >= 8.0:
-                strengths.append(
-                    f"{dim_score.dimension.value.capitalize()}: {dim_score.reasoning}"
-                )
+                strengths.append(f"{dim_score.dimension.value.capitalize()}: {dim_score.reasoning}")
             elif dim_score.score < 7.0:
                 weaknesses.append(
                     f"{dim_score.dimension.value.capitalize()}: {dim_score.reasoning}"
@@ -199,7 +183,7 @@ class CriticAgent:
             weaknesses=weaknesses,
             suggestions=suggestions,
             critical_issues=evaluation.critical_issues,
-            feedback=evaluation.feedback
+            feedback=evaluation.feedback,
         )
 
 
@@ -220,7 +204,7 @@ class ProducerCriticPattern:
         self,
         max_iterations: int = 3,
         timeout_per_iteration: int = 120,  # 2 minutes per iteration
-        logger: Optional[logging.Logger] = None
+        logger: Optional[logging.Logger] = None,
     ):
         """
         Initialize Producer-Critic Pattern.
@@ -241,7 +225,7 @@ class ProducerCriticPattern:
         requirement: str,
         phase: AgentPhase,
         context: Optional[Dict[str, Any]] = None,
-        previous_outputs: Optional[Dict[AgentPhase, Any]] = None
+        previous_outputs: Optional[Dict[AgentPhase, Any]] = None,
     ) -> ProducerCriticResult:
         """
         Execute Producer-Critic collaboration.
@@ -265,6 +249,7 @@ class ProducerCriticPattern:
             ProducerCriticResult with final output and review history
         """
         import time
+
         start_time = time.time()
 
         reviews: List[CriticReview] = []
@@ -286,9 +271,9 @@ class ProducerCriticPattern:
                         producer.work(
                             requirement=requirement,
                             context=context,
-                            previous_outputs=previous_outputs or {}
+                            previous_outputs=previous_outputs or {},
                         ),
-                        timeout=self.timeout_per_iteration
+                        timeout=self.timeout_per_iteration,
                     )
                 else:
                     # Refinement based on critique
@@ -305,9 +290,9 @@ class ProducerCriticPattern:
                             original_output=output,
                             validation_issues=validation_issues,
                             context=context,
-                            max_iterations=1
+                            max_iterations=1,
                         ),
-                        timeout=self.timeout_per_iteration
+                        timeout=self.timeout_per_iteration,
                     )
 
                 # Check if production succeeded
@@ -324,9 +309,9 @@ class ProducerCriticPattern:
                     critic.review(
                         output=output,
                         phase=phase,
-                        context={"requirement": requirement, **(context or {})}
+                        context={"requirement": requirement, **(context or {})},
                     ),
-                    timeout=self.timeout_per_iteration
+                    timeout=self.timeout_per_iteration,
                 )
 
                 reviews.append(review)
@@ -348,8 +333,7 @@ class ProducerCriticPattern:
 
             except asyncio.TimeoutError:
                 self.logger.error(
-                    f"⏱️ Iteration {iteration + 1} timed out "
-                    f"after {self.timeout_per_iteration}s"
+                    f"⏱️ Iteration {iteration + 1} timed out " f"after {self.timeout_per_iteration}s"
                 )
                 break
 
@@ -369,7 +353,7 @@ class ProducerCriticPattern:
             reviews=reviews,
             success=success,
             producer_work_results=work_results,
-            total_duration=total_duration
+            total_duration=total_duration,
         )
 
         # Log summary
@@ -386,45 +370,43 @@ class ProducerCriticPattern:
 
         return result
 
-    def _convert_review_to_issues(
-        self,
-        review: CriticReview
-    ) -> List[ValidationIssue]:
+    def _convert_review_to_issues(self, review: CriticReview) -> List[ValidationIssue]:
         """Convert critic review to validation issues for refinement"""
         issues = []
 
         # Add critical issues
         for critical in review.critical_issues:
-            issues.append(ValidationIssue(
-                issue_type="critical",
-                severity="high",
-                message=critical,
-                field="overall"
-            ))
+            issues.append(
+                ValidationIssue(
+                    issue_type="critical", severity="high", message=critical, field="overall"
+                )
+            )
 
         # Add weaknesses
         for weakness in review.weaknesses:
-            issues.append(ValidationIssue(
-                issue_type="weakness",
-                severity="medium",
-                message=weakness,
-                field="quality"
-            ))
+            issues.append(
+                ValidationIssue(
+                    issue_type="weakness", severity="medium", message=weakness, field="quality"
+                )
+            )
 
         # Add suggestions
         for suggestion in review.suggestions:
-            issues.append(ValidationIssue(
-                issue_type="suggestion",
-                severity="low",
-                message=suggestion,
-                field="improvement",
-                suggested_fix=suggestion
-            ))
+            issues.append(
+                ValidationIssue(
+                    issue_type="suggestion",
+                    severity="low",
+                    message=suggestion,
+                    field="improvement",
+                    suggested_fix=suggestion,
+                )
+            )
 
         return issues
 
 
 # ==================== Convenience Functions ====================
+
 
 async def collaborate_with_critic(
     producer: BaseExpertAgent,
@@ -434,7 +416,7 @@ async def collaborate_with_critic(
     context: Optional[Dict[str, Any]] = None,
     previous_outputs: Optional[Dict[AgentPhase, Any]] = None,
     max_iterations: int = 3,
-    approval_threshold: float = 7.0
+    approval_threshold: float = 7.0,
 ) -> ProducerCriticResult:
     """
     Convenience function for Producer-Critic collaboration.
@@ -454,16 +436,11 @@ async def collaborate_with_critic(
     """
     # Create critic agent
     critic = CriticAgent(
-        llm_plugin=critic_llm,
-        role=CriticRole.GENERAL_CRITIC,
-        approval_threshold=approval_threshold
+        llm_plugin=critic_llm, role=CriticRole.GENERAL_CRITIC, approval_threshold=approval_threshold
     )
 
     # Create pattern orchestrator
-    pattern = ProducerCriticPattern(
-        max_iterations=max_iterations,
-        timeout_per_iteration=120
-    )
+    pattern = ProducerCriticPattern(max_iterations=max_iterations, timeout_per_iteration=120)
 
     # Execute collaboration
     return await pattern.produce_with_critique(
@@ -472,5 +449,5 @@ async def collaborate_with_critic(
         requirement=requirement,
         phase=phase,
         context=context,
-        previous_outputs=previous_outputs
+        previous_outputs=previous_outputs,
     )

@@ -6,12 +6,12 @@ Manage plugins
 
 import click
 from caas_cli.utils import (
-    echo_success,
     echo_error,
     echo_info,
+    echo_success,
     echo_warning,
     handle_keyboard_interrupt,
-    print_table
+    print_table,
 )
 
 
@@ -27,14 +27,9 @@ def plugins():
     "-t",
     type=click.Choice(["llm", "tool", "storage", "all"]),
     default="all",
-    help="Filter plugins by type (default: all)"
+    help="Filter plugins by type (default: all)",
 )
-@click.option(
-    "--verbose",
-    "-v",
-    is_flag=True,
-    help="Show detailed plugin information"
-)
+@click.option("--verbose", "-v", is_flag=True, help="Show detailed plugin information")
 @handle_keyboard_interrupt
 def list_plugins(type, verbose):
     """
@@ -117,12 +112,7 @@ def list_plugins(type, verbose):
 
 @plugins.command()
 @click.argument("plugin_name")
-@click.option(
-    "--verbose",
-    "-v",
-    is_flag=True,
-    help="Show detailed health check results"
-)
+@click.option("--verbose", "-v", is_flag=True, help="Show detailed health check results")
 @handle_keyboard_interrupt
 async def status(plugin_name, verbose):
     """
@@ -189,18 +179,14 @@ async def status(plugin_name, verbose):
         echo_error(f"Failed to check plugin status: {e}")
         if verbose:
             import traceback
+
             echo_error(traceback.format_exc())
         return 1
 
 
 @plugins.command()
 @click.argument("plugin_name")
-@click.option(
-    "--verbose",
-    "-v",
-    is_flag=True,
-    help="Show detailed plugin information"
-)
+@click.option("--verbose", "-v", is_flag=True, help="Show detailed plugin information")
 @handle_keyboard_interrupt
 def info(plugin_name, verbose):
     """
@@ -335,18 +321,8 @@ def disable(plugin_name):
 
 @plugins.command()
 @click.argument("plugin_name")
-@click.option(
-    "--key",
-    "-k",
-    required=True,
-    help="Configuration key"
-)
-@click.option(
-    "--value",
-    "-v",
-    required=True,
-    help="Configuration value"
-)
+@click.option("--key", "-k", required=True, help="Configuration key")
+@click.option("--value", "-v", required=True, help="Configuration value")
 @handle_keyboard_interrupt
 def configure(plugin_name, key, value):
     """

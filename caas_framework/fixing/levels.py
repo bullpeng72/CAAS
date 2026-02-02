@@ -4,8 +4,8 @@
 Individual fixers for each level of the fixing hierarchy.
 """
 
-from typing import Any, Dict, List, Tuple
 from abc import ABC, abstractmethod
+from typing import Any, Dict, List, Tuple
 
 
 class BaseFixer(ABC):
@@ -47,7 +47,7 @@ class TemplateFixer(BaseFixer):
                 "context": [],
                 "async_execution": False,
                 "output_file": None,
-                "human_input": False
+                "human_input": False,
             },
             "missing_agent": {
                 "id": "agent_{index}",
@@ -58,13 +58,13 @@ class TemplateFixer(BaseFixer):
                 "verbose": True,
                 "memory": True,
                 "allow_delegation": False,
-                "max_iter": 15
-            }
+                "max_iter": 15,
+            },
         }
 
     def can_fix(self, issue: Any) -> bool:
         """Check if issue matches a template"""
-        if hasattr(issue, 'item_type'):
+        if hasattr(issue, "item_type"):
             return issue.item_type in ["task", "feature", "agent"]
         return False
 
@@ -90,14 +90,14 @@ class RuleFixer(BaseFixer):
         return [
             {
                 "name": "high_priority_agent",
-                "condition": lambda issue: hasattr(issue, 'severity') and issue.severity == "high",
-                "action": "create_specialized_agent"
+                "condition": lambda issue: hasattr(issue, "severity") and issue.severity == "high",
+                "action": "create_specialized_agent",
             },
             {
                 "name": "circular_dependency",
                 "condition": lambda issue: "circular" in str(issue).lower(),
-                "action": "remove_circular_reference"
-            }
+                "action": "remove_circular_reference",
+            },
         ]
 
     def can_fix(self, issue: Any) -> bool:
@@ -150,7 +150,7 @@ Provide a JSON fix.
         try:
             response = await self.llm_plugin.ainvoke(
                 messages=[{"role": "user", "content": prompt}],
-                response_format={"type": "json_object"}
+                response_format={"type": "json_object"},
             )
 
             # Parse and apply fix

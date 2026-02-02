@@ -7,14 +7,10 @@ Supports:
 - Metadata filtering
 """
 
-from typing import Any, Dict, List, Optional
 import os
+from typing import Any, Dict, List, Optional
 
-from caas_framework.plugins.vectordb.base import (
-    VectorDBPlugin,
-    VectorDocument,
-    VectorSearchResult
-)
+from caas_framework.plugins.vectordb.base import VectorDBPlugin, VectorDocument, VectorSearchResult
 
 
 class PineconePlugin(VectorDBPlugin):
@@ -48,8 +44,7 @@ class PineconePlugin(VectorDBPlugin):
 
         except ImportError:
             raise ImportError(
-                "Pinecone package not installed. "
-                "Install with: pip install pinecone-client"
+                "Pinecone package not installed. " "Install with: pip install pinecone-client"
             )
 
     async def create_index(self) -> bool:
@@ -61,12 +56,7 @@ class PineconePlugin(VectorDBPlugin):
                 name=self.index_name,
                 dimension=self.dimension,
                 metric=self.metric,
-                spec={
-                    "serverless": {
-                        "cloud": self.cloud,
-                        "region": self.region
-                    }
-                }
+                spec={"serverless": {"cloud": self.cloud, "region": self.region}},
             )
             return True
         return False
@@ -89,13 +79,11 @@ class PineconePlugin(VectorDBPlugin):
             "total_vector_count": stats.total_vector_count,
             "dimension": stats.dimension,
             "index_fullness": stats.index_fullness,
-            "namespaces": stats.namespaces
+            "namespaces": stats.namespaces,
         }
 
     async def upsert(
-        self,
-        documents: List[VectorDocument],
-        namespace: Optional[str] = None
+        self, documents: List[VectorDocument], namespace: Optional[str] = None
     ) -> Dict[str, Any]:
         """Upsert vectors into Pinecone"""
         if not self._initialized:
@@ -104,28 +92,25 @@ class PineconePlugin(VectorDBPlugin):
         # Convert to Pinecone format
         vectors = []
         for doc in documents:
-            vectors.append({
-                "id": doc.id,
-                "values": doc.embedding,
-                "metadata": {
-                    "text": doc.text,
-                    **(doc.metadata or {})
+            vectors.append(
+                {
+                    "id": doc.id,
+                    "values": doc.embedding,
+                    "metadata": {"text": doc.text, **(doc.metadata or {})},
                 }
-            })
+            )
 
         # Upsert
         result = self._index.upsert(vectors=vectors, namespace=namespace or "")
 
-        return {
-            "upserted_count": result.upserted_count
-        }
+        return {"upserted_count": result.upserted_count}
 
     async def search(
         self,
         query_embedding: List[float],
         top_k: int = 10,
         filter: Optional[Dict[str, Any]] = None,
-        namespace: Optional[str] = None
+        namespace: Optional[str] = None,
     ) -> List[VectorSearchResult]:
         """Search for similar vectors in Pinecone"""
         if not self._initialized:
@@ -137,26 +122,24 @@ class PineconePlugin(VectorDBPlugin):
             top_k=top_k,
             filter=filter,
             namespace=namespace or "",
-            include_metadata=True
+            include_metadata=True,
         )
 
         # Convert to VectorSearchResult
         search_results = []
         for match in results.matches:
-            search_results.append(VectorSearchResult(
-                id=match.id,
-                score=match.score,
-                text=match.metadata.get("text", ""),
-                metadata={k: v for k, v in match.metadata.items() if k != "text"}
-            ))
+            search_results.append(
+                VectorSearchResult(
+                    id=match.id,
+                    score=match.score,
+                    text=match.metadata.get("text", ""),
+                    metadata={k: v for k, v in match.metadata.items() if k != "text"},
+                )
+            )
 
         return search_results
 
-    async def delete(
-        self,
-        ids: List[str],
-        namespace: Optional[str] = None
-    ) -> Dict[str, Any]:
+    async def delete(self, ids: List[str], namespace: Optional[str] = None) -> Dict[str, Any]:
         """Delete vectors by ID"""
         if not self._initialized:
             await self.initialize()
@@ -165,11 +148,7 @@ class PineconePlugin(VectorDBPlugin):
 
         return {"deleted_ids": ids}
 
-    async def get(
-        self,
-        ids: List[str],
-        namespace: Optional[str] = None
-    ) -> List[VectorDocument]:
+    async def get(self, ids: List[str], namespace: Optional[str] = None) -> List[VectorDocument]:
         """Retrieve vectors by ID"""
         if not self._initialized:
             await self.initialize()
@@ -178,12 +157,14 @@ class PineconePlugin(VectorDBPlugin):
 
         documents = []
         for vector_id, vector_data in result.vectors.items():
-            documents.append(VectorDocument(
-                id=vector_id,
-                text=vector_data.metadata.get("text", ""),
-                embedding=vector_data.values,
-                metadata={k: v for k, v in vector_data.metadata.items() if k != "text"}
-            ))
+            documents.append(
+                VectorDocument(
+                    id=vector_id,
+                    text=vector_data.metadata.get("text", ""),
+                    embedding=vector_data.values,
+                    metadata={k: v for k, v in vector_data.metadata.items() if k != "text"},
+                )
+            )
 
         return documents
 

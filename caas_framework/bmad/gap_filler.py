@@ -4,18 +4,17 @@ Gap Filler
 Phase 3: Automatically generate code for unimplemented features
 """
 
-from typing import Dict, List, Tuple
-from dataclasses import dataclass, field
 import logging
+from dataclasses import dataclass, field
+from typing import Dict, List, Tuple
 
+from caas_framework.bmad.code_analyzer import FileAnalysis
+from caas_framework.bmad.completeness_validator import CompletenessReport
+from caas_framework.bmad.semantic_mapper import SemanticMapper
+from caas_framework.config.settings import LLMConstants
 from caas_framework.models.specifications import FeatureSpec
 from caas_framework.plugins.llm.base import LLMPlugin
-from caas_framework.bmad.code_analyzer import FileAnalysis
-from caas_framework.bmad.semantic_mapper import SemanticMapper
-from caas_framework.bmad.completeness_validator import CompletenessReport
-from caas_framework.utils import ResponseParser, PromptBuilder
-from caas_framework.config.settings import LLMConstants
-
+from caas_framework.utils import PromptBuilder, ResponseParser
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +22,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class GeneratedCode:
     """Generated code for a feature"""
+
     feature_id: str
     feature_name: str
     target_file: str
@@ -34,6 +34,7 @@ class GeneratedCode:
 @dataclass
 class GapFillingResult:
     """Result of gap filling process"""
+
     generated_codes: List[GeneratedCode] = field(default_factory=list)
     updated_files: Dict[str, str] = field(default_factory=list)  # file_path → new content
     features_filled: List[str] = field(default_factory=list)  # feature IDs
@@ -73,7 +74,7 @@ class GapFiller:
         completeness_report: CompletenessReport,
         existing_code: Dict[str, str],
         code_analyses: Dict[str, FileAnalysis],
-        max_features: int = 5
+        max_features: int = 5,
     ) -> GapFillingResult:
         """
         Fill implementation gaps
@@ -87,26 +88,27 @@ class GapFiller:
         Returns:
             GapFillingResult with generated code
         """
-        self.logger.info(f"Starting gap filling for {len(completeness_report.unimplemented_features)} features")
+        self.logger.info(
+            f"Starting gap filling for {len(completeness_report.unimplemented_features)} features"
+        )
 
         result = GapFillingResult()
 
         # Prioritize features to implement
         features_to_implement = self._prioritize_features(
-            completeness_report.unimplemented_features,
-            max_features
+            completeness_report.unimplemented_features, max_features
         )
 
-        self.logger.info(f"Selected {len(features_to_implement)} high-priority features to implement")
+        self.logger.info(
+            f"Selected {len(features_to_implement)} high-priority features to implement"
+        )
 
         # Generate code for each feature
         for feature in features_to_implement:
             try:
                 self.logger.info(f"Generating code for: {feature.name} ({feature.id})")
 
-                generated = await self._generate_feature_code(
-                    feature, existing_code, code_analyses
-                )
+                generated = await self._generate_feature_code(feature, existing_code, code_analyses)
 
                 result.generated_codes.append(generated)
                 result.features_filled.append(feature.id)
@@ -132,9 +134,7 @@ class GapFiller:
         return result
 
     def _prioritize_features(
-        self,
-        features: List[FeatureSpec],
-        max_features: int
+        self, features: List[FeatureSpec], max_features: int
     ) -> List[FeatureSpec]:
         """
         Prioritize features to implement
@@ -147,12 +147,9 @@ class GapFiller:
             Prioritized list of features
         """
         # Sort by priority
-        priority_order = {'critical': 0, 'high': 1, 'medium': 2, 'low': 3}
+        priority_order = {"critical": 0, "high": 1, "medium": 2, "low": 3}
 
-        sorted_features = sorted(
-            features,
-            key=lambda f: priority_order.get(f.priority.lower(), 3)
-        )
+        sorted_features = sorted(features, key=lambda f: priority_order.get(f.priority.lower(), 3))
 
         return sorted_features[:max_features]
 
@@ -160,7 +157,7 @@ class GapFiller:
         self,
         feature: FeatureSpec,
         existing_code: Dict[str, str],
-        code_analyses: Dict[str, FileAnalysis]
+        code_analyses: Dict[str, FileAnalysis],
     ) -> GeneratedCode:
         """
         Generate code for a single feature
@@ -184,9 +181,7 @@ class GapFiller:
         context = self._build_code_context(target_file, existing_code, code_analyses)
 
         # Step 3: Generate code using LLM
-        code_snippet, explanation = await self._generate_code_snippet(
-            feature, target_file, context
-        )
+        code_snippet, explanation = await self._generate_code_snippet(feature, target_file, context)
 
         # Step 4: Determine insertion point
         insertion_point = "append"  # Simple strategy: append to end
@@ -197,14 +192,14 @@ class GapFiller:
             target_file=target_file,
             code_snippet=code_snippet,
             insertion_point=insertion_point,
-            explanation=explanation
+            explanation=explanation,
         )
 
     def _build_code_context(
         self,
         target_file: str,
         existing_code: Dict[str, str],
-        code_analyses: Dict[str, FileAnalysis]
+        code_analyses: Dict[str, FileAnalysis],
     ) -> str:
         """Build code context for LLM"""
         context_lines = []
@@ -225,13 +220,10 @@ class GapFiller:
             if analysis.imports:
                 context_lines.append(f"- Imports: {', '.join(analysis.imports[:5])}")
 
-        return '\n'.join(context_lines)
+        return "\n".join(context_lines)
 
     async def _generate_code_snippet(
-        self,
-        feature: FeatureSpec,
-        target_file: str,
-        context: str
+        self, feature: FeatureSpec, target_file: str, context: str
     ) -> Tuple[str, str]:
         """
         Generate code snippet for feature
@@ -244,10 +236,10 @@ class GapFiller:
         Returns:
             Tuple of (code_snippet, explanation)
         """
-        prompt = PromptBuilder(
-            f"generate code for feature '{feature.name}'"
-        ).add_task(
-            f"""You are an expert Python developer. Generate code to implement the following feature.
+        prompt = (
+            PromptBuilder(f"generate code for feature '{feature.name}'")
+            .add_task(
+                f"""You are an expert Python developer. Generate code to implement the following feature.
 
 Feature to implement:
 - Name: {feature.name}
@@ -266,49 +258,51 @@ Requirements:
 
 Generate ONLY the new code to add (function, class, or code block).
 Do NOT include the entire file - just the new code snippet."""
-        ).add_context(
-            "Existing Code Context",
-            context
-        ).add_output_format(
-            {
-                "code_snippet": "def new_function():\n    \"\"\"Docstring\"\"\"\n    # Implementation\n    pass",
-                "explanation": "This function implements X by doing Y"
-            },
-            "Return the code snippet in JSON format:"
-        ).add_guidelines([
-            "Generate complete, working code",
-            "Include type hints if appropriate",
-            "Add error handling",
-            "Write clear docstrings",
-            "Match existing code style",
-            "Keep it simple and focused",
-            "Return only valid JSON"
-        ]).build()
+            )
+            .add_context("Existing Code Context", context)
+            .add_output_format(
+                {
+                    "code_snippet": 'def new_function():\n    """Docstring"""\n    # Implementation\n    pass',
+                    "explanation": "This function implements X by doing Y",
+                },
+                "Return the code snippet in JSON format:",
+            )
+            .add_guidelines(
+                [
+                    "Generate complete, working code",
+                    "Include type hints if appropriate",
+                    "Add error handling",
+                    "Write clear docstrings",
+                    "Match existing code style",
+                    "Keep it simple and focused",
+                    "Return only valid JSON",
+                ]
+            )
+            .build()
+        )
 
         response = await self.llm.ainvoke(
             messages=[{"role": "user", "content": prompt}],
             response_format=LLMConstants.RESPONSE_FORMAT_JSON,
-            temperature=LLMConstants.TEMPERATURE_BALANCED
+            temperature=LLMConstants.TEMPERATURE_BALANCED,
         )
 
         result = ResponseParser.parse_structured_response(
             response,
-            expected_fields=['code_snippet', 'explanation'],
+            expected_fields=["code_snippet", "explanation"],
             fallback_factory=lambda: {
                 "code_snippet": f"# TODO: Implement {feature.name}\npass",
-                "explanation": f"Placeholder for {feature.name}"
-            }
+                "explanation": f"Placeholder for {feature.name}",
+            },
         )
 
-        code_snippet = result.get('code_snippet', '# TODO: Implement feature\npass')
-        explanation = result.get('explanation', 'Generated code for feature')
+        code_snippet = result.get("code_snippet", "# TODO: Implement feature\npass")
+        explanation = result.get("explanation", "Generated code for feature")
 
         return code_snippet, explanation
 
     def _merge_code_into_files(
-        self,
-        existing_code: Dict[str, str],
-        generated_codes: List[GeneratedCode]
+        self, existing_code: Dict[str, str], generated_codes: List[GeneratedCode]
     ) -> Dict[str, str]:
         """
         Merge generated code into existing files
@@ -343,11 +337,7 @@ Do NOT include the entire file - just the new code snippet."""
 
         return updated_files
 
-    def _append_code_to_file(
-        self,
-        current_content: str,
-        codes: List[GeneratedCode]
-    ) -> str:
+    def _append_code_to_file(self, current_content: str, codes: List[GeneratedCode]) -> str:
         """Append generated code to existing file"""
         lines = [current_content]
 
@@ -359,22 +349,18 @@ Do NOT include the entire file - just the new code snippet."""
             lines.append(gen_code.code_snippet)
             lines.append("")
 
-        return '\n'.join(lines)
+        return "\n".join(lines)
 
-    def _create_new_file(
-        self,
-        file_path: str,
-        codes: List[GeneratedCode]
-    ) -> str:
+    def _create_new_file(self, file_path: str, codes: List[GeneratedCode]) -> str:
         """Create new file with generated code"""
         lines = [
             '"""',
-            f'Auto-generated file: {file_path}',
-            'Generated by CAAS Framework - Gap Filler',
+            f"Auto-generated file: {file_path}",
+            "Generated by CAAS Framework - Gap Filler",
             '"""',
-            '',
-            'from crewai import Agent, Task, Crew',
-            ''
+            "",
+            "from crewai import Agent, Task, Crew",
+            "",
         ]
 
         for gen_code in codes:
@@ -383,4 +369,4 @@ Do NOT include the entire file - just the new code snippet."""
             lines.append(gen_code.code_snippet)
             lines.append("")
 
-        return '\n'.join(lines)
+        return "\n".join(lines)

@@ -7,13 +7,14 @@ Golden Data-based automatic fixing with 3-level strategy:
 3. LLM-based fixing
 """
 
-from typing import Any, Dict, List, Optional, Union
 from dataclasses import dataclass
+from typing import Any, Dict, List, Optional, Union
+
 from pydantic import BaseModel
 
 from caas_framework.models.specifications import (
-    ConcretizedRequirement,
     AgentSpecModel,
+    ConcretizedRequirement,
     TaskSpecModel,
 )
 from caas_framework.models.validation import GoldenValidationReport
@@ -36,6 +37,7 @@ def _to_model(item: Union[Dict, BaseModel], model_class) -> BaseModel:
 @dataclass
 class FixResult:
     """Auto-fix result"""
+
     success: bool
     fixed_output: Any
     fixes_applied: List[str]
@@ -55,11 +57,7 @@ class AutoFixer:
     3. LLM-based: Use LLM for complex, context-dependent fixes
     """
 
-    def __init__(
-        self,
-        golden_data: ConcretizedRequirement,
-        llm_plugin=None
-    ):
+    def __init__(self, golden_data: ConcretizedRequirement, llm_plugin=None):
         """
         Args:
             golden_data: Golden Data as fixing baseline
@@ -73,7 +71,7 @@ class AutoFixer:
         agent_specs: List[Union[Dict, AgentSpecModel]],
         task_specs: List[Union[Dict, TaskSpecModel]],
         validation_report: GoldenValidationReport,
-        max_iterations: int = 3
+        max_iterations: int = 3,
     ) -> FixResult:
         """
         Fix Design Phase automatically.
@@ -96,7 +94,7 @@ class AutoFixer:
                 success=True,
                 fixed_output={"agents": agents_dict, "tasks": tasks_dict},
                 fixes_applied=[],
-                errors=[]
+                errors=[],
             )
 
         fixes_applied = []
@@ -107,9 +105,7 @@ class AutoFixer:
         for iteration in range(max_iterations):
             # Level 1: Template-based fixes
             agents_dict, tasks_dict, template_fixes, template_errors = self._apply_template_fixes(
-                agents_dict,
-                tasks_dict,
-                validation_report
+                agents_dict, tasks_dict, validation_report
             )
             fixes_applied.extend(template_fixes)
             errors.extend(template_errors)
@@ -118,9 +114,7 @@ class AutoFixer:
 
             # Level 2: Rule-based fixes
             agents_dict, tasks_dict, rule_fixes, rule_errors = self._apply_rule_fixes(
-                agents_dict,
-                tasks_dict,
-                validation_report
+                agents_dict, tasks_dict, validation_report
             )
             fixes_applied.extend(rule_fixes)
             errors.extend(rule_errors)
@@ -130,9 +124,7 @@ class AutoFixer:
             # Level 3: LLM-based fixes (if available and previous levels didn't fix everything)
             if self.llm_plugin and validation_report.needs_fixing:
                 agents_dict, tasks_dict, llm_fixes, llm_errors = await self._apply_llm_fixes(
-                    agents_dict,
-                    tasks_dict,
-                    validation_report
+                    agents_dict, tasks_dict, validation_report
                 )
                 fixes_applied.extend(llm_fixes)
                 errors.extend(llm_errors)
@@ -150,14 +142,11 @@ class AutoFixer:
             fixed_output={"agents": agents_dict, "tasks": tasks_dict},
             fixes_applied=fixes_applied,
             errors=errors,
-            fix_level_used=fix_level
+            fix_level_used=fix_level,
         )
 
     def _apply_template_fixes(
-        self,
-        agents: List[Dict],
-        tasks: List[Dict],
-        validation_report: GoldenValidationReport
+        self, agents: List[Dict], tasks: List[Dict], validation_report: GoldenValidationReport
     ) -> tuple[List[Dict], List[Dict], List[str], List[str]]:
         """
         Level 1: Apply template-based fixes.
@@ -174,9 +163,12 @@ class AutoFixer:
                 try:
                     # Find Golden Data feature
                     golden_feature = next(
-                        (f for f in self.golden_data.features
-                         if f.id == missing_item.item_id or f.name == missing_item.item_name),
-                        None
+                        (
+                            f
+                            for f in self.golden_data.features
+                            if f.id == missing_item.item_id or f.name == missing_item.item_name
+                        ),
+                        None,
                     )
 
                     if golden_feature:
@@ -202,7 +194,7 @@ class AutoFixer:
                                 "verbose": True,
                                 "memory": True,
                                 "allow_delegation": False,
-                                "max_iter": 15
+                                "max_iter": 15,
                             }
                             agents.append(default_agent)
                             assigned_agent = "agent_default"
@@ -217,7 +209,7 @@ class AutoFixer:
                             "context": [],
                             "async_execution": False,
                             "output_file": None,
-                            "human_input": False
+                            "human_input": False,
                         }
 
                         tasks.append(new_task)
@@ -231,10 +223,7 @@ class AutoFixer:
         return agents, tasks, fixes_applied, errors
 
     def _apply_rule_fixes(
-        self,
-        agents: List[Dict],
-        tasks: List[Dict],
-        validation_report: GoldenValidationReport
+        self, agents: List[Dict], tasks: List[Dict], validation_report: GoldenValidationReport
     ) -> tuple[List[Dict], List[Dict], List[str], List[str]]:
         """
         Level 2: Apply rule-based fixes.
@@ -247,8 +236,7 @@ class AutoFixer:
 
         # Rule: If high-priority features are missing, create specialized agents
         high_priority_missing = [
-            item for item in validation_report.missing_items
-            if item.severity == "high"
+            item for item in validation_report.missing_items if item.severity == "high"
         ]
 
         if high_priority_missing and len(agents) < 3:
@@ -267,7 +255,7 @@ class AutoFixer:
                             "verbose": True,
                             "memory": True,
                             "allow_delegation": False,
-                            "max_iter": 15
+                            "max_iter": 15,
                         }
                         agents.append(new_agent)
                         fixes_applied.append(
@@ -279,10 +267,7 @@ class AutoFixer:
         return agents, tasks, fixes_applied, errors
 
     async def _apply_llm_fixes(
-        self,
-        agents: List[Dict],
-        tasks: List[Dict],
-        validation_report: GoldenValidationReport
+        self, agents: List[Dict], tasks: List[Dict], validation_report: GoldenValidationReport
     ) -> tuple[List[Dict], List[Dict], List[str], List[str]]:
         """
         Level 3: Apply LLM-based fixes.
@@ -298,7 +283,8 @@ class AutoFixer:
 
         # LLM-based fix for complex missing items
         complex_missing = [
-            item for item in validation_report.missing_items
+            item
+            for item in validation_report.missing_items
             if item.severity in ["high", "critical"]
         ]
 
@@ -309,9 +295,12 @@ class AutoFixer:
                 for item in complex_missing:
                     # Find corresponding feature in Golden Data
                     feature = next(
-                        (f for f in self.golden_data.features
-                         if f.id == item.item_id or f.name == item.item_name),
-                        None
+                        (
+                            f
+                            for f in self.golden_data.features
+                            if f.id == item.item_id or f.name == item.item_name
+                        ),
+                        None,
                     )
                     if feature:
                         missing_features.append(feature.model_dump())
@@ -370,19 +359,23 @@ Return ONLY valid JSON, no additional text."""
                 response = await self.llm_plugin.ainvoke(
                     messages=[{"role": "user", "content": prompt}],
                     response_format={"type": "json_object"},
-                    temperature=0.3
+                    temperature=0.3,
                 )
 
                 # Parse response
                 import json
-                response_text = response.get("content", "") if isinstance(response, dict) else str(response)
+
+                response_text = (
+                    response.get("content", "") if isinstance(response, dict) else str(response)
+                )
 
                 try:
                     llm_output = json.loads(response_text)
                 except json.JSONDecodeError:
                     # Try to extract JSON from markdown
                     import re
-                    json_match = re.search(r'```json\s*(.*?)\s*```', response_text, re.DOTALL)
+
+                    json_match = re.search(r"```json\s*(.*?)\s*```", response_text, re.DOTALL)
                     if json_match:
                         llm_output = json.loads(json_match.group(1))
                     else:
@@ -406,7 +399,7 @@ Return ONLY valid JSON, no additional text."""
                             "verbose": True,
                             "memory": True,
                             "allow_delegation": False,
-                            "max_iter": 15
+                            "max_iter": 15,
                         }
                         agents.append(agent)
                         fixes_applied.append(f"✅ Added agent '{new_agent['id']}' (LLM-based)")
@@ -419,11 +412,13 @@ Return ONLY valid JSON, no additional text."""
                             "id": new_task["id"],
                             "description": new_task.get("description", ""),
                             "expected_output": new_task.get("expected_output", ""),
-                            "agent": new_task.get("agent", agents[0]["id"] if agents else "agent_1"),
+                            "agent": new_task.get(
+                                "agent", agents[0]["id"] if agents else "agent_1"
+                            ),
                             "context": new_task.get("context", []),
                             "async_execution": False,
                             "output_file": None,
-                            "human_input": False
+                            "human_input": False,
                         }
                         tasks.append(task)
                         fixes_applied.append(f"✅ Added task '{new_task['id']}' (LLM-based)")
@@ -437,9 +432,7 @@ Return ONLY valid JSON, no additional text."""
         return agents, tasks, fixes_applied, errors
 
     def fix_code(
-        self,
-        generated_spec: Dict[str, Any],
-        validation_report: GoldenValidationReport
+        self, generated_spec: Dict[str, Any], validation_report: GoldenValidationReport
     ) -> FixResult:
         """
         Fix Development Phase (code generation).
@@ -452,12 +445,7 @@ Return ONLY valid JSON, no additional text."""
             FixResult: Fix results
         """
         if not validation_report.needs_fixing:
-            return FixResult(
-                success=True,
-                fixed_output=generated_spec,
-                fixes_applied=[],
-                errors=[]
-            )
+            return FixResult(success=True, fixed_output=generated_spec, fixes_applied=[], errors=[])
 
         # Code-level fixes require regeneration - log for now
         fixes_applied = []
@@ -465,14 +453,12 @@ Return ONLY valid JSON, no additional text."""
 
         for missing_item in validation_report.missing_items:
             if missing_item.item_type == "task_implementation":
-                fixes_applied.append(
-                    f"⚠️ Code regeneration needed for: {missing_item.item_name}"
-                )
+                fixes_applied.append(f"⚠️ Code regeneration needed for: {missing_item.item_name}")
 
         return FixResult(
             success=True,
             fixed_output=generated_spec,
             fixes_applied=fixes_applied,
             errors=errors,
-            fix_level_used="rule"
+            fix_level_used="rule",
         )

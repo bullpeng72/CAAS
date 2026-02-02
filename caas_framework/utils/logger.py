@@ -14,6 +14,7 @@ from typing import Optional
 try:
     from rich.console import Console
     from rich.logging import RichHandler
+
     RICH_AVAILABLE = True
     console = Console()
 except ImportError:
@@ -64,8 +65,7 @@ def setup_logger(
         # Basic stream handler (fallback)
         handler = logging.StreamHandler(sys.stdout)
         formatter = logging.Formatter(
-            "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S"
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
         )
 
     handler.setLevel(getattr(logging, log_level.upper()))
@@ -77,9 +77,7 @@ def setup_logger(
         log_file.parent.mkdir(parents=True, exist_ok=True)
         file_handler = logging.FileHandler(log_file, encoding="utf-8")
         file_handler.setLevel(getattr(logging, log_level.upper()))
-        file_formatter = logging.Formatter(
-            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-        )
+        file_formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
         file_handler.setFormatter(file_formatter)
         logger.addHandler(file_handler)
 
@@ -101,6 +99,7 @@ def get_logger(name: str) -> logging.Logger:
 
 # Default logger instance (lazy initialization)
 _default_logger = None
+
 
 def get_default_logger() -> logging.Logger:
     """Get default framework logger (lazy initialization)"""

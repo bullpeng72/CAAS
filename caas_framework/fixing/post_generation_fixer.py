@@ -4,11 +4,11 @@ Post-Generation Fixer
 Automatically validates and fixes generated code after generation.
 """
 
-from typing import Dict, List, Any, Tuple
 import logging
+from typing import Any, Dict, List, Tuple
 
-from caas_framework.validation.task_validator import TaskValidator
 from caas_framework.fixing.tool_fixer import ToolFixer
+from caas_framework.validation.task_validator import TaskValidator
 
 logger = logging.getLogger(__name__)
 
@@ -22,9 +22,7 @@ class PostGenerationFixer:
 
     @classmethod
     def fix_design(
-        cls,
-        design: Dict[str, Any],
-        verbose: bool = True
+        cls, design: Dict[str, Any], verbose: bool = True
     ) -> Tuple[Dict[str, Any], List[str]]:
         """
         Validate and fix agent/task design.
@@ -44,6 +42,7 @@ class PostGenerationFixer:
 
         # Convert Pydantic models to dicts if needed
         from caas_framework.utils import ObjectAccessor
+
         agents_dict = ObjectAccessor.to_dict_list(agents)
         tasks_dict = ObjectAccessor.to_dict_list(tasks)
 
@@ -63,9 +62,7 @@ class PostGenerationFixer:
                     if task.get("id") == issue.task_id:
                         # Set human_input to False
                         task["human_input"] = False
-                        fixes_applied.append(
-                            f"Set human_input=False for task {issue.task_id}"
-                        )
+                        fixes_applied.append(f"Set human_input=False for task {issue.task_id}")
 
         # 3. Fix missing tools
         agents_dict = ToolFixer.fix_agents_tools(agents_dict, tasks_dict)
@@ -80,7 +77,7 @@ class PostGenerationFixer:
 
         # 4. Update design
         # Convert dicts back to models if needed
-        if agents and hasattr(agents[0], 'model_dump'):
+        if agents and hasattr(agents[0], "model_dump"):
             # Were Pydantic models, convert back
             from caas_framework.models.specifications import AgentSpecModel, TaskSpecModel
 

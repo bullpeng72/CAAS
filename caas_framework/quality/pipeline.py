@@ -5,17 +5,18 @@ Automated verification of generated code quality.
 Checks syntax, imports, and code style.
 """
 
-from typing import Dict, List, Optional, Any
-from dataclasses import dataclass, field
-from enum import Enum
 import ast
-import sys
 import logging
+import sys
+from dataclasses import dataclass, field
 from datetime import datetime
+from enum import Enum
+from typing import Any, Dict, List, Optional
 
 
 class CheckStatus(Enum):
     """Status of a quality check."""
+
     PASSED = "passed"
     FAILED = "failed"
     WARNING = "warning"
@@ -25,6 +26,7 @@ class CheckStatus(Enum):
 @dataclass
 class CheckResult:
     """Result of a single quality check."""
+
     name: str
     status: CheckStatus
     errors: List[str] = field(default_factory=list)
@@ -36,6 +38,7 @@ class CheckResult:
 @dataclass
 class QualityReport:
     """Overall quality report for generated code."""
+
     checks: List[CheckResult]
     overall_passed: bool
     timestamp: datetime
@@ -59,10 +62,10 @@ class QualityReport:
                     "status": check.status.value,
                     "errors": check.errors,
                     "warnings": check.warnings,
-                    "duration": check.duration
+                    "duration": check.duration,
                 }
                 for check in self.checks
-            ]
+            ],
         }
 
 
@@ -95,25 +98,22 @@ class SyntaxCheck(QualityCheck):
     def check(self, files: Dict[str, str]) -> CheckResult:
         """Check syntax of all Python files."""
         import time
+
         start_time = time.time()
 
         errors = []
         warnings = []
 
         for filename, content in files.items():
-            if not filename.endswith('.py'):
+            if not filename.endswith(".py"):
                 continue
 
             try:
                 ast.parse(content)
             except SyntaxError as e:
-                errors.append(
-                    f"{filename}:{e.lineno}:{e.offset}: {e.msg}"
-                )
+                errors.append(f"{filename}:{e.lineno}:{e.offset}: {e.msg}")
             except Exception as e:
-                warnings.append(
-                    f"{filename}: Unexpected error during parsing: {str(e)}"
-                )
+                warnings.append(f"{filename}: Unexpected error during parsing: {str(e)}")
 
         duration = time.time() - start_time
 
@@ -125,7 +125,7 @@ class SyntaxCheck(QualityCheck):
             errors=errors,
             warnings=warnings,
             duration=duration,
-            details={"files_checked": len([f for f in files if f.endswith('.py')])}
+            details={"files_checked": len([f for f in files if f.endswith(".py")])},
         )
 
 
@@ -138,13 +138,14 @@ class ImportCheck(QualityCheck):
     def check(self, files: Dict[str, str]) -> CheckResult:
         """Check imports in all Python files."""
         import time
+
         start_time = time.time()
 
         errors = []
         warnings = []
 
         for filename, content in files.items():
-            if not filename.endswith('.py'):
+            if not filename.endswith(".py"):
                 continue
 
             try:
@@ -163,37 +164,27 @@ class ImportCheck(QualityCheck):
                 # Skip files with syntax errors (already caught by SyntaxCheck)
                 continue
             except Exception as e:
-                warnings.append(
-                    f"{filename}: Error checking imports: {str(e)}"
-                )
+                warnings.append(f"{filename}: Error checking imports: {str(e)}")
 
         duration = time.time() - start_time
 
         status = CheckStatus.PASSED if len(errors) == 0 else CheckStatus.FAILED
 
         return CheckResult(
-            name=self.name,
-            status=status,
-            errors=errors,
-            warnings=warnings,
-            duration=duration
+            name=self.name, status=status, errors=errors, warnings=warnings, duration=duration
         )
 
     def _check_module(
-        self,
-        module_name: str,
-        filename: str,
-        errors: List[str],
-        warnings: List[str]
+        self, module_name: str, filename: str, errors: List[str], warnings: List[str]
     ) -> None:
         """Check if a module can be imported."""
 
         # Skip checking generated modules (they don't exist yet)
-        if module_name in ['agents', 'tasks', 'main']:
+        if module_name in ["agents", "tasks", "main"]:
             return
 
         # Known problematic modules (skip for now)
-        skip_modules = {'crewai', 'langchain', 'dotenv'}
+        skip_modules = {"crewai", "langchain", "dotenv"}
         if any(module_name.startswith(skip) for skip in skip_modules):
             # These are expected dependencies
             return
@@ -204,19 +195,29 @@ class ImportCheck(QualityCheck):
 
         # Check standard library modules
         stdlib_modules = {
-            'os', 'sys', 'json', 're', 'time', 'datetime',
-            'collections', 'itertools', 'functools', 'typing',
-            'pathlib', 'logging', 'unittest', 'asyncio'
+            "os",
+            "sys",
+            "json",
+            "re",
+            "time",
+            "datetime",
+            "collections",
+            "itertools",
+            "functools",
+            "typing",
+            "pathlib",
+            "logging",
+            "unittest",
+            "asyncio",
         }
 
-        if module_name.split('.')[0] in stdlib_modules:
+        if module_name.split(".")[0] in stdlib_modules:
             return
 
         # If not in stdlib, it's likely a third-party dependency
         # We'll warn but not fail
         warnings.append(
-            f"{filename}: Third-party module '{module_name}' "
-            f"(ensure it's in requirements.txt)"
+            f"{filename}: Third-party module '{module_name}' " f"(ensure it's in requirements.txt)"
         )
 
 
@@ -229,37 +230,36 @@ class CodeStyleCheck(QualityCheck):
     def check(self, files: Dict[str, str]) -> CheckResult:
         """Check code style in all Python files."""
         import time
+
         start_time = time.time()
 
         errors = []
         warnings = []
 
         for filename, content in files.items():
-            if not filename.endswith('.py'):
+            if not filename.endswith(".py"):
                 continue
 
-            lines = content.split('\n')
+            lines = content.split("\n")
 
             # Check line length (warn if > 120 chars)
             for i, line in enumerate(lines, 1):
                 if len(line) > 120:
-                    warnings.append(
-                        f"{filename}:{i}: Line too long ({len(line)} > 120 chars)"
-                    )
+                    warnings.append(f"{filename}:{i}: Line too long ({len(line)} > 120 chars)")
 
             # Check for common style issues
-            if 'import *' in content:
-                warnings.append(
-                    f"{filename}: Wildcard import detected (avoid 'from x import *')"
-                )
+            if "import *" in content:
+                warnings.append(f"{filename}: Wildcard import detected (avoid 'from x import *')")
 
             # Check for proper spacing around operators (basic check)
             for i, line in enumerate(lines, 1):
                 stripped = line.strip()
-                if stripped and not stripped.startswith('#'):
+                if stripped and not stripped.startswith("#"):
                     # Check for spacing around '='
-                    if '=' in stripped and not any(op in stripped for op in ['==', '!=', '<=', '>=', '=>']):
-                        parts = stripped.split('=')
+                    if "=" in stripped and not any(
+                        op in stripped for op in ["==", "!=", "<=", ">=", "=>"]
+                    ):
+                        parts = stripped.split("=")
                         if len(parts) == 2:
                             # Simple check: should have space before and after '='
                             # (This is a simplified check, not comprehensive)
@@ -271,11 +271,7 @@ class CodeStyleCheck(QualityCheck):
         status = CheckStatus.PASSED if len(warnings) < 10 else CheckStatus.WARNING
 
         return CheckResult(
-            name=self.name,
-            status=status,
-            errors=errors,
-            warnings=warnings,
-            duration=duration
+            name=self.name, status=status, errors=errors, warnings=warnings, duration=duration
         )
 
 
@@ -290,10 +286,7 @@ class CodeQualityPipeline:
     """
 
     def __init__(
-        self,
-        enable_syntax: bool = True,
-        enable_imports: bool = True,
-        enable_style: bool = True
+        self, enable_syntax: bool = True, enable_imports: bool = True, enable_style: bool = True
     ):
         """
         Initialize quality pipeline.
@@ -327,6 +320,7 @@ class CodeQualityPipeline:
             QualityReport with all check results
         """
         import time
+
         start_time = time.time()
 
         results = []
@@ -344,25 +338,22 @@ class CodeQualityPipeline:
                         f"⚠️ {check.name} passed with warnings: {len(result.warnings)}"
                     )
                 else:
-                    self.logger.error(
-                        f"❌ {check.name} failed: {len(result.errors)} errors"
-                    )
+                    self.logger.error(f"❌ {check.name} failed: {len(result.errors)} errors")
 
             except Exception as e:
                 self.logger.exception(f"Error running {check.name}: {e}")
-                results.append(CheckResult(
-                    name=check.name,
-                    status=CheckStatus.FAILED,
-                    errors=[f"Check failed with exception: {str(e)}"]
-                ))
+                results.append(
+                    CheckResult(
+                        name=check.name,
+                        status=CheckStatus.FAILED,
+                        errors=[f"Check failed with exception: {str(e)}"],
+                    )
+                )
 
         total_duration = time.time() - start_time
 
         # Calculate overall status
-        overall_passed = all(
-            r.status in [CheckStatus.PASSED, CheckStatus.WARNING]
-            for r in results
-        )
+        overall_passed = all(r.status in [CheckStatus.PASSED, CheckStatus.WARNING] for r in results)
 
         total_errors = sum(len(r.errors) for r in results)
         total_warnings = sum(len(r.warnings) for r in results)
@@ -374,7 +365,7 @@ class CodeQualityPipeline:
             total_duration=total_duration,
             files_checked=len(files),
             total_errors=total_errors,
-            total_warnings=total_warnings
+            total_warnings=total_warnings,
         )
 
         return report
@@ -395,7 +386,11 @@ class CodeQualityPipeline:
 
         print("\n📋 Check Results:")
         for check in report.checks:
-            status_icon = "✅" if check.status == CheckStatus.PASSED else "⚠️" if check.status == CheckStatus.WARNING else "❌"
+            status_icon = (
+                "✅"
+                if check.status == CheckStatus.PASSED
+                else "⚠️" if check.status == CheckStatus.WARNING else "❌"
+            )
             print(f"\n  {status_icon} {check.name} ({check.duration:.2f}s)")
 
             if check.errors:

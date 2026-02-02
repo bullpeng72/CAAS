@@ -5,12 +5,13 @@ Usage Analytics
 """
 
 import json
-from typing import Dict, Any, List, Optional
-from datetime import datetime, timedelta
-from pathlib import Path
-from pydantic import BaseModel, Field
 from collections import defaultdict
+from datetime import datetime, timedelta
 from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+from pydantic import BaseModel, Field
 
 from caas_framework.utils.logger import get_logger
 
@@ -19,8 +20,10 @@ logger = get_logger("usage_analytics")
 
 # ========== Models ==========
 
+
 class EventType(str, Enum):
     """이벤트 타입"""
+
     SESSION_START = "session_start"
     SESSION_END = "session_end"
     PHASE_START = "phase_start"
@@ -34,6 +37,7 @@ class EventType(str, Enum):
 
 class UsageEvent(BaseModel):
     """사용 이벤트"""
+
     event_id: str
     timestamp: datetime
     event_type: EventType
@@ -56,6 +60,7 @@ class UsageEvent(BaseModel):
 
 class SessionAnalytics(BaseModel):
     """세션 분석 결과"""
+
     session_id: str
     user_id: Optional[str] = None
 
@@ -86,6 +91,7 @@ class SessionAnalytics(BaseModel):
 
 class DomainStats(BaseModel):
     """도메인별 통계"""
+
     domain: str
     usage_count: int
     success_count: int
@@ -97,6 +103,7 @@ class DomainStats(BaseModel):
 
 class TemplateStats(BaseModel):
     """템플릿별 통계"""
+
     template: str
     usage_count: int
     success_count: int
@@ -107,6 +114,7 @@ class TemplateStats(BaseModel):
 
 class TrendData(BaseModel):
     """트렌드 데이터"""
+
     date: str  # YYYY-MM-DD
     sessions: int
     successes: int
@@ -117,6 +125,7 @@ class TrendData(BaseModel):
 
 class AnalyticsReport(BaseModel):
     """분석 리포트"""
+
     generated_at: datetime
     period_start: datetime
     period_end: datetime
@@ -151,6 +160,7 @@ class AnalyticsReport(BaseModel):
 
 
 # ========== Usage Analytics ==========
+
 
 class UsageAnalytics:
     """
@@ -256,13 +266,15 @@ class UsageAnalytics:
         events = self._filter_events_by_date(start_date, end_date)
 
         # 도메인별로 집계
-        domain_data = defaultdict(lambda: {
-            "total": 0,
-            "success": 0,
-            "failure": 0,
-            "durations": [],
-            "costs": [],
-        })
+        domain_data = defaultdict(
+            lambda: {
+                "total": 0,
+                "success": 0,
+                "failure": 0,
+                "durations": [],
+                "costs": [],
+            }
+        )
 
         for event in events:
             if event.domain:
@@ -283,15 +295,19 @@ class UsageAnalytics:
             if data["total"] == 0:
                 continue
 
-            stats.append(DomainStats(
-                domain=domain,
-                usage_count=data["total"],
-                success_count=data["success"],
-                failure_count=data["failure"],
-                success_rate=data["success"] / data["total"] * 100,
-                avg_duration_minutes=sum(data["durations"]) / len(data["durations"]) if data["durations"] else 0,
-                total_cost=sum(data["costs"]),
-            ))
+            stats.append(
+                DomainStats(
+                    domain=domain,
+                    usage_count=data["total"],
+                    success_count=data["success"],
+                    failure_count=data["failure"],
+                    success_rate=data["success"] / data["total"] * 100,
+                    avg_duration_minutes=(
+                        sum(data["durations"]) / len(data["durations"]) if data["durations"] else 0
+                    ),
+                    total_cost=sum(data["costs"]),
+                )
+            )
 
         # 사용 횟수 내림차순 정렬
         stats.sort(key=lambda s: s.usage_count, reverse=True)
@@ -315,12 +331,14 @@ class UsageAnalytics:
         events = self._filter_events_by_date(start_date, end_date)
 
         # 템플릿별로 집계
-        template_data = defaultdict(lambda: {
-            "total": 0,
-            "success": 0,
-            "failure": 0,
-            "tokens": [],
-        })
+        template_data = defaultdict(
+            lambda: {
+                "total": 0,
+                "success": 0,
+                "failure": 0,
+                "tokens": [],
+            }
+        )
 
         for event in events:
             if event.template:
@@ -339,14 +357,16 @@ class UsageAnalytics:
             if data["total"] == 0:
                 continue
 
-            stats.append(TemplateStats(
-                template=template,
-                usage_count=data["total"],
-                success_count=data["success"],
-                failure_count=data["failure"],
-                success_rate=data["success"] / data["total"] * 100,
-                avg_tokens=sum(data["tokens"]) / len(data["tokens"]) if data["tokens"] else 0,
-            ))
+            stats.append(
+                TemplateStats(
+                    template=template,
+                    usage_count=data["total"],
+                    success_count=data["success"],
+                    failure_count=data["failure"],
+                    success_rate=data["success"] / data["total"] * 100,
+                    avg_tokens=sum(data["tokens"]) / len(data["tokens"]) if data["tokens"] else 0,
+                )
+            )
 
         # 사용 횟수 내림차순 정렬
         stats.sort(key=lambda s: s.usage_count, reverse=True)
@@ -371,13 +391,15 @@ class UsageAnalytics:
         events = self._filter_events_by_date(start_date, end_date)
 
         # 날짜별로 집계
-        daily_data = defaultdict(lambda: {
-            "sessions": set(),
-            "successes": 0,
-            "failures": 0,
-            "tokens": 0,
-            "cost": 0.0,
-        })
+        daily_data = defaultdict(
+            lambda: {
+                "sessions": set(),
+                "successes": 0,
+                "failures": 0,
+                "tokens": 0,
+                "cost": 0.0,
+            }
+        )
 
         for event in events:
             date_key = event.timestamp.strftime("%Y-%m-%d")
@@ -399,22 +421,27 @@ class UsageAnalytics:
         current_date = start_date
         while current_date <= end_date:
             date_key = current_date.strftime("%Y-%m-%d")
-            data = daily_data.get(date_key, {
-                "sessions": set(),
-                "successes": 0,
-                "failures": 0,
-                "tokens": 0,
-                "cost": 0.0,
-            })
+            data = daily_data.get(
+                date_key,
+                {
+                    "sessions": set(),
+                    "successes": 0,
+                    "failures": 0,
+                    "tokens": 0,
+                    "cost": 0.0,
+                },
+            )
 
-            trends.append(TrendData(
-                date=date_key,
-                sessions=len(data["sessions"]),
-                successes=data["successes"],
-                failures=data["failures"],
-                total_tokens=data["tokens"],
-                total_cost=data["cost"],
-            ))
+            trends.append(
+                TrendData(
+                    date=date_key,
+                    sessions=len(data["sessions"]),
+                    successes=data["successes"],
+                    failures=data["failures"],
+                    total_tokens=data["tokens"],
+                    total_cost=data["cost"],
+                )
+            )
 
             current_date += timedelta(days=1)
 
@@ -459,8 +486,16 @@ class UsageAnalytics:
         avg_cost = total_cost / total_sessions if total_sessions > 0 else 0
 
         # Quality
-        avg_quality_gates = sum(s.quality_gates_passed for s in sessions) / total_sessions if total_sessions > 0 else 0
-        avg_regenerations = sum(s.regeneration_count for s in sessions) / total_sessions if total_sessions > 0 else 0
+        avg_quality_gates = (
+            sum(s.quality_gates_passed for s in sessions) / total_sessions
+            if total_sessions > 0
+            else 0
+        )
+        avg_regenerations = (
+            sum(s.regeneration_count for s in sessions) / total_sessions
+            if total_sessions > 0
+            else 0
+        )
 
         # Top domains & templates
         top_domains = self.get_domain_stats(start_date, end_date)[:10]
@@ -597,12 +632,16 @@ class UsageAnalytics:
         # Quality gate insights
         avg_quality_gates = sum(s.quality_gates_passed for s in sessions) / len(sessions)
         if avg_quality_gates >= 3:
-            insights.append(f"🏆 High quality: Average {avg_quality_gates:.1f} quality gates passed")
+            insights.append(
+                f"🏆 High quality: Average {avg_quality_gates:.1f} quality gates passed"
+            )
 
         # Regeneration insights
         avg_regenerations = sum(s.regeneration_count for s in sessions) / len(sessions)
         if avg_regenerations > 1.5:
-            insights.append(f"🔄 High regeneration rate: {avg_regenerations:.1f} per session - consider improving prompts")
+            insights.append(
+                f"🔄 High regeneration rate: {avg_regenerations:.1f} per session - consider improving prompts"
+            )
 
         # Cost insights
         total_cost = sum(s.total_cost for s in sessions)
@@ -613,17 +652,25 @@ class UsageAnalytics:
         # Domain insights
         if top_domains:
             most_popular = top_domains[0]
-            insights.append(f"📊 Most popular domain: '{most_popular.domain}' ({most_popular.usage_count} uses)")
+            insights.append(
+                f"📊 Most popular domain: '{most_popular.domain}' ({most_popular.usage_count} uses)"
+            )
 
             # Low success rate domains
-            low_success_domains = [d for d in top_domains if d.success_rate < 50 and d.usage_count >= 3]
+            low_success_domains = [
+                d for d in top_domains if d.success_rate < 50 and d.usage_count >= 3
+            ]
             if low_success_domains:
-                insights.append(f"⚠️ Domains with low success rate: {', '.join(d.domain for d in low_success_domains[:3])}")
+                insights.append(
+                    f"⚠️ Domains with low success rate: {', '.join(d.domain for d in low_success_domains[:3])}"
+                )
 
         # Template insights
         if top_templates:
             most_used = top_templates[0]
-            insights.append(f"📝 Most used template: '{most_used.template}' ({most_used.usage_count} uses)")
+            insights.append(
+                f"📝 Most used template: '{most_used.template}' ({most_used.usage_count} uses)"
+            )
 
         # Trend insights
         if len(daily_trends) >= 7:
@@ -634,9 +681,13 @@ class UsageAnalytics:
             if prev_week:
                 prev_sessions = sum(t.sessions for t in prev_week)
                 if recent_sessions > prev_sessions * 1.2:
-                    insights.append(f"📈 Usage trending up: {((recent_sessions - prev_sessions) / prev_sessions * 100):.1f}% increase this week")
+                    insights.append(
+                        f"📈 Usage trending up: {((recent_sessions - prev_sessions) / prev_sessions * 100):.1f}% increase this week"
+                    )
                 elif recent_sessions < prev_sessions * 0.8:
-                    insights.append(f"📉 Usage trending down: {((prev_sessions - recent_sessions) / prev_sessions * 100):.1f}% decrease this week")
+                    insights.append(
+                        f"📉 Usage trending down: {((prev_sessions - recent_sessions) / prev_sessions * 100):.1f}% decrease this week"
+                    )
 
         return insights
 

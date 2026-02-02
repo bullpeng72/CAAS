@@ -7,6 +7,7 @@ Unified interface for all vector database providers.
 import os
 from abc import abstractmethod
 from typing import Any, Dict, List, Optional
+
 from pydantic import BaseModel
 
 from caas_framework.plugins.base import Plugin, PluginType
@@ -14,6 +15,7 @@ from caas_framework.plugins.base import Plugin, PluginType
 
 class VectorDocument(BaseModel):
     """Vector document format"""
+
     id: str
     text: str
     embedding: List[float]
@@ -22,6 +24,7 @@ class VectorDocument(BaseModel):
 
 class VectorSearchResult(BaseModel):
     """Vector search result"""
+
     id: str
     score: float
     text: str
@@ -42,15 +45,15 @@ class VectorDBPlugin(Plugin):
     def __init__(self, name: str, config: Dict[str, Any]):
         super().__init__(name=name, plugin_type=PluginType.VECTORDB, config=config)
         # Get index_name from environment variable first, then config, then default
-        self.index_name = config.get("index_name") or os.getenv("VECTORDB_INDEX_NAME", "caas-vectors")
+        self.index_name = config.get("index_name") or os.getenv(
+            "VECTORDB_INDEX_NAME", "caas-vectors"
+        )
         self.dimension = config.get("dimension", 1536)  # OpenAI embedding dimension
         self.metric = config.get("metric", "cosine")  # cosine, euclidean, dot_product
 
     @abstractmethod
     async def upsert(
-        self,
-        documents: List[VectorDocument],
-        namespace: Optional[str] = None
+        self, documents: List[VectorDocument], namespace: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Upsert vectors into the database
@@ -69,7 +72,7 @@ class VectorDBPlugin(Plugin):
         query_embedding: List[float],
         top_k: int = 10,
         filter: Optional[Dict[str, Any]] = None,
-        namespace: Optional[str] = None
+        namespace: Optional[str] = None,
     ) -> List[VectorSearchResult]:
         """
         Search for similar vectors
@@ -85,11 +88,7 @@ class VectorDBPlugin(Plugin):
         """
 
     @abstractmethod
-    async def delete(
-        self,
-        ids: List[str],
-        namespace: Optional[str] = None
-    ) -> Dict[str, Any]:
+    async def delete(self, ids: List[str], namespace: Optional[str] = None) -> Dict[str, Any]:
         """
         Delete vectors by ID
 
@@ -102,11 +101,7 @@ class VectorDBPlugin(Plugin):
         """
 
     @abstractmethod
-    async def get(
-        self,
-        ids: List[str],
-        namespace: Optional[str] = None
-    ) -> List[VectorDocument]:
+    async def get(self, ids: List[str], namespace: Optional[str] = None) -> List[VectorDocument]:
         """
         Retrieve vectors by ID
 

@@ -60,28 +60,22 @@ class PortManager:
     def _ensure_registry_exists(self):
         """Create the registry file if it doesn't exist."""
         if not os.path.exists(self.registry_path):
-            with open(self.registry_path, 'w') as f:
+            with open(self.registry_path, "w") as f:
                 json.dump({}, f)
 
     def _load_registry(self) -> Dict[int, PortAllocation]:
         """Load the port registry from disk."""
-        with open(self.registry_path, 'r') as f:
+        with open(self.registry_path, "r") as f:
             content = f.read()
-            if not content or content.strip() == '':
+            if not content or content.strip() == "":
                 return {}
             data = json.loads(content)
-            return {
-                int(port): PortAllocation(**allocation)
-                for port, allocation in data.items()
-            }
+            return {int(port): PortAllocation(**allocation) for port, allocation in data.items()}
 
     def _save_registry(self, registry: Dict[int, PortAllocation]):
         """Save the port registry to disk."""
-        data = {
-            str(port): allocation.model_dump()
-            for port, allocation in registry.items()
-        }
-        with open(self.registry_path, 'w') as f:
+        data = {str(port): allocation.model_dump() for port, allocation in registry.items()}
+        with open(self.registry_path, "w") as f:
             json.dump(data, f, indent=2)
 
     def is_port_available(self, port: int) -> bool:
@@ -102,10 +96,7 @@ class PortManager:
             return port not in registry
 
     def allocate_port(
-        self,
-        service_name: str,
-        project_name: str = "default",
-        preferred_port: Optional[int] = None
+        self, service_name: str, project_name: str = "default", preferred_port: Optional[int] = None
     ) -> int:
         """Allocate a port for a service.
 
@@ -149,7 +140,7 @@ class PortManager:
                 port=port,
                 service_name=service_name,
                 project_name=project_name,
-                allocated_at=datetime.now().isoformat()
+                allocated_at=datetime.now().isoformat(),
             )
             registry[port] = allocation
             self._save_registry(registry)
@@ -230,7 +221,8 @@ class PortManager:
         with self._lock:
             registry = self._load_registry()
             ports_to_release = [
-                port for port, allocation in registry.items()
+                port
+                for port, allocation in registry.items()
                 if allocation.project_name == project_name
             ]
 

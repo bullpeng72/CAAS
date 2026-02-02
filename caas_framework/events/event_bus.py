@@ -5,17 +5,12 @@ Provides publish-subscribe event bus for decoupled communication
 between system components.
 """
 
-from typing import List, Dict, Callable, Optional
-from collections import defaultdict
-import logging
 import asyncio
+import logging
+from collections import defaultdict
+from typing import Callable, Dict, List, Optional
 
-from caas_framework.events.events import (
-    PhaseEvent,
-    Event,
-    EventHandler,
-    EventSubscription
-)
+from caas_framework.events.events import Event, EventHandler, EventSubscription, PhaseEvent
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +41,7 @@ class EventBus:
         event_type: PhaseEvent,
         handler: EventHandler,
         filter_fn: Optional[Callable[[Event], bool]] = None,
-        priority: int = 0
+        priority: int = 0,
     ) -> EventSubscription:
         """
         Subscribe to an event type.
@@ -61,10 +56,7 @@ class EventBus:
             EventSubscription instance
         """
         subscription = EventSubscription(
-            event_type=event_type,
-            handler=handler,
-            filter_fn=filter_fn,
-            priority=priority
+            event_type=event_type, handler=handler, filter_fn=filter_fn, priority=priority
         )
 
         self._subscriptions[event_type].append(subscription)
@@ -125,8 +117,7 @@ class EventBus:
                         subscription.handler(event)
                 except Exception as e:
                     logger.error(
-                        f"Error in event handler for {event.type.value}: {e}",
-                        exc_info=True
+                        f"Error in event handler for {event.type.value}: {e}", exc_info=True
                     )
 
     async def publish_async(self, event: Event):
@@ -172,10 +163,7 @@ class EventBus:
                 loop = asyncio.get_event_loop()
                 await loop.run_in_executor(None, handler, event)
         except Exception as e:
-            logger.error(
-                f"Error in async event handler for {event.type.value}: {e}",
-                exc_info=True
-            )
+            logger.error(f"Error in async event handler for {event.type.value}: {e}", exc_info=True)
 
     def _add_to_history(self, event: Event):
         """Add event to history."""
@@ -183,12 +171,10 @@ class EventBus:
 
         # Trim history if needed
         if len(self._event_history) > self._max_history:
-            self._event_history = self._event_history[-self._max_history:]
+            self._event_history = self._event_history[-self._max_history :]
 
     def get_event_history(
-        self,
-        event_type: Optional[PhaseEvent] = None,
-        limit: Optional[int] = None
+        self, event_type: Optional[PhaseEvent] = None, limit: Optional[int] = None
     ) -> List[Event]:
         """
         Get event history.
@@ -255,15 +241,14 @@ class EventBus:
             event_type_counts[event.type.value] += 1
 
         return {
-            'name': self.name,
-            'enabled': self._enabled,
-            'total_subscriptions': self.get_subscription_count(),
-            'subscriptions_by_type': {
-                event_type.value: len(subs)
-                for event_type, subs in self._subscriptions.items()
+            "name": self.name,
+            "enabled": self._enabled,
+            "total_subscriptions": self.get_subscription_count(),
+            "subscriptions_by_type": {
+                event_type.value: len(subs) for event_type, subs in self._subscriptions.items()
             },
-            'total_events_published': len(self._event_history),
-            'events_by_type': dict(event_type_counts)
+            "total_events_published": len(self._event_history),
+            "events_by_type": dict(event_type_counts),
         }
 
 

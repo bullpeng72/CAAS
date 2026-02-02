@@ -5,14 +5,14 @@ CrewAI의 공식 MCPServerAdapter를 사용하여 MCP 서버와 통합합니다.
 """
 
 import os
-from typing import Any, List, Optional
 from contextlib import contextmanager
+from typing import Any, List, Optional
 
 from crewai_tools import MCPServerAdapter
 from mcp import StdioServerParameters
 
+from caas_framework.config.settings import get_settings
 from caas_framework.utils.logger import get_logger
-from caas_app.utils.config import get_settings
 
 logger = get_logger("tools.mcp")
 

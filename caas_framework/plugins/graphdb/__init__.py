@@ -8,8 +8,8 @@ Supported providers:
 from caas_framework.plugins.graphdb.base import (
     GraphDBPlugin,
     GraphNode,
+    GraphQueryResult,
     GraphRelationship,
-    GraphQueryResult
 )
 
 # Import plugins to register them

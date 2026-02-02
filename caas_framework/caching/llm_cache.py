@@ -10,9 +10,9 @@ import json
 import logging
 from typing import Any, AsyncIterator, Dict, List, Optional
 
-from caas_framework.plugins.llm.base import LLMPlugin, LLMMessage, LLMResponse
-from caas_framework.caching.cache_manager import CacheManager, CacheKey
 from caas_framework.agents.base import AgentPhase
+from caas_framework.caching.cache_manager import CacheKey, CacheManager
+from caas_framework.plugins.llm.base import LLMMessage, LLMPlugin, LLMResponse
 
 
 class LLMCacheWrapper(LLMPlugin):
@@ -32,7 +32,7 @@ class LLMCacheWrapper(LLMPlugin):
         cache_manager: CacheManager,
         enable_cache: bool = True,
         cache_ttl: int = 3600,
-        logger: Optional[logging.Logger] = None
+        logger: Optional[logging.Logger] = None,
     ):
         """
         Initialize LLM cache wrapper.
@@ -50,8 +50,8 @@ class LLMCacheWrapper(LLMPlugin):
             config={
                 "model": llm_plugin.model,
                 "temperature": llm_plugin.temperature,
-                "max_tokens": llm_plugin.max_tokens
-            }
+                "max_tokens": llm_plugin.max_tokens,
+            },
         )
 
         self.llm = llm_plugin
@@ -84,7 +84,7 @@ class LLMCacheWrapper(LLMPlugin):
         max_tokens: Optional[int],
         response_format: Optional[str],
         phase: Optional[AgentPhase] = None,
-        **kwargs
+        **kwargs,
     ) -> CacheKey:
         """
         Build cache key from LLM call parameters.
@@ -102,8 +102,10 @@ class LLMCacheWrapper(LLMPlugin):
         """
         # Create deterministic hash of messages
         messages_dict = [
-            {"role": msg.role if hasattr(msg, 'role') else msg.get('role'),
-             "content": msg.content if hasattr(msg, 'content') else msg.get('content')}
+            {
+                "role": msg.role if hasattr(msg, "role") else msg.get("role"),
+                "content": msg.content if hasattr(msg, "content") else msg.get("content"),
+            }
             for msg in messages
         ]
         messages_json = json.dumps(messages_dict, sort_keys=True)
@@ -118,8 +120,8 @@ class LLMCacheWrapper(LLMPlugin):
             additional_params={
                 "temperature": temperature or self.temperature,
                 "max_tokens": max_tokens or self.max_tokens,
-                "response_format": response_format
-            }
+                "response_format": response_format,
+            },
         )
 
         return cache_key
@@ -132,7 +134,7 @@ class LLMCacheWrapper(LLMPlugin):
         response_format: Optional[str] = None,
         phase: Optional[AgentPhase] = None,
         bypass_cache: bool = False,
-        **kwargs
+        **kwargs,
     ) -> LLMResponse:
         """
         Async LLM call with caching.
@@ -156,7 +158,7 @@ class LLMCacheWrapper(LLMPlugin):
             max_tokens=max_tokens,
             response_format=response_format,
             phase=phase,
-            **kwargs
+            **kwargs,
         )
 
         # Try cache first (if enabled and not bypassed)
@@ -165,8 +167,7 @@ class LLMCacheWrapper(LLMPlugin):
 
             if cached_response is not None:
                 self.logger.debug(
-                    f"💾 Cache HIT for {self.model} "
-                    f"(phase: {phase.value if phase else 'none'})"
+                    f"💾 Cache HIT for {self.model} " f"(phase: {phase.value if phase else 'none'})"
                 )
                 return cached_response
 
@@ -181,7 +182,7 @@ class LLMCacheWrapper(LLMPlugin):
             temperature=temperature,
             max_tokens=max_tokens,
             response_format=response_format,
-            **kwargs
+            **kwargs,
         )
 
         # Cache the response (if enabled)
@@ -193,8 +194,8 @@ class LLMCacheWrapper(LLMPlugin):
                 metadata={
                     "model": self.model,
                     "phase": phase.value if phase else None,
-                    "tokens_used": response.usage.get("total_tokens", 0) if response.usage else 0
-                }
+                    "tokens_used": response.usage.get("total_tokens", 0) if response.usage else 0,
+                },
             )
 
         return response
@@ -204,7 +205,7 @@ class LLMCacheWrapper(LLMPlugin):
         messages: List[LLMMessage],
         temperature: Optional[float] = None,
         max_tokens: Optional[int] = None,
-        **kwargs
+        **kwargs,
     ) -> AsyncIterator[str]:
         """
         Streaming LLM call.
@@ -223,10 +224,7 @@ class LLMCacheWrapper(LLMPlugin):
         self.logger.debug(f"🔄 Streaming (no cache) for {self.model}")
 
         async for chunk in self.llm.stream(
-            messages=messages,
-            temperature=temperature,
-            max_tokens=max_tokens,
-            **kwargs
+            messages=messages, temperature=temperature, max_tokens=max_tokens, **kwargs
         ):
             yield chunk
 
@@ -243,7 +241,7 @@ class LLMCacheWrapper(LLMPlugin):
             "enabled": self.enable_cache,
             "ttl_seconds": self.cache_ttl,
             "hit_rate": f"{hit_rate:.1f}%",
-            "model": self.model
+            "model": self.model,
         }
 
     async def invalidate_cache(self, phase: Optional[AgentPhase] = None) -> None:
@@ -266,7 +264,7 @@ def wrap_llm_with_cache(
     llm_plugin: LLMPlugin,
     cache_manager: CacheManager,
     enable_cache: bool = True,
-    cache_ttl: int = 3600
+    cache_ttl: int = 3600,
 ) -> LLMCacheWrapper:
     """
     Wrap an LLM plugin with caching.
@@ -286,5 +284,5 @@ def wrap_llm_with_cache(
         llm_plugin=llm_plugin,
         cache_manager=cache_manager,
         enable_cache=enable_cache,
-        cache_ttl=cache_ttl
+        cache_ttl=cache_ttl,
     )

@@ -5,13 +5,15 @@ Implements ReviewHandler protocol for CLI-based user interaction.
 Provides beautiful, interactive review UI using Rich library.
 """
 
-from typing import Dict, Any, List
-from caas_framework.api import ReviewHandler, ReviewRequest, ReviewType
+from typing import Any, Dict, List
+
 from rich.console import Console
-from rich.table import Table
-from rich.panel import Panel
 from rich.markdown import Markdown
+from rich.panel import Panel
 from rich.syntax import Syntax
+from rich.table import Table
+
+from caas_framework.api import ReviewHandler, ReviewRequest, ReviewType
 
 
 class CLIReviewHandler:
@@ -67,16 +69,16 @@ class CLIReviewHandler:
         self.console.print("=" * 70 + "\n")
 
         # Project info
-        project_name = data.get('project_name', 'N/A')
-        description = data.get('description', 'N/A')
+        project_name = data.get("project_name", "N/A")
+        description = data.get("description", "N/A")
 
         self.console.print(f"[bold]Project:[/bold] [cyan]{project_name}[/cyan]")
-        if description and description != 'N/A':
+        if description and description != "N/A":
             self.console.print(f"[bold]Description:[/bold] {description}")
         self.console.print()
 
         # Features table
-        features = data.get('features', [])
+        features = data.get("features", [])
         if features:
             self.console.print("[bold green]✨ Features[/bold green]\n")
 
@@ -86,14 +88,14 @@ class CLIReviewHandler:
             table.add_column("Priority", justify="center", width=10)
 
             for feature in features:
-                name = feature.get('name', 'N/A')
-                desc = feature.get('description', 'N/A')
-                priority = feature.get('priority', 'medium')
+                name = feature.get("name", "N/A")
+                desc = feature.get("description", "N/A")
+                priority = feature.get("priority", "medium")
 
                 # Color priority
-                if priority == 'high':
+                if priority == "high":
                     priority_str = f"[red]{priority}[/red]"
-                elif priority == 'medium':
+                elif priority == "medium":
                     priority_str = f"[yellow]{priority}[/yellow]"
                 else:
                     priority_str = f"[green]{priority}[/green]"
@@ -104,19 +106,19 @@ class CLIReviewHandler:
             self.console.print()
 
         # Data models
-        data_models = data.get('data_models', [])
+        data_models = data.get("data_models", [])
         if data_models:
             self.console.print("[bold blue]📊 Data Models[/bold blue]\n")
 
             for model in data_models:
-                name = model.get('name', 'Unknown')
-                attr_count = model.get('attributes_count', 0)
+                name = model.get("name", "Unknown")
+                attr_count = model.get("attributes_count", 0)
                 self.console.print(f"  • {name} ({attr_count} attributes)")
 
             self.console.print()
 
         # Security boundaries
-        boundaries = data.get('boundaries')
+        boundaries = data.get("boundaries")
         if boundaries:
             self._display_boundaries(boundaries)
 
@@ -134,7 +136,7 @@ class CLIReviewHandler:
         self.console.print("=" * 70 + "\n")
 
         # Agents table
-        agents = data.get('agents', [])
+        agents = data.get("agents", [])
         if agents:
             self.console.print("[bold green]🤖 Agents[/bold green]\n")
 
@@ -145,10 +147,10 @@ class CLIReviewHandler:
             table.add_column("Tools", width=15)
 
             for agent in agents:
-                agent_id = agent.get('id', 'N/A')
-                role = agent.get('role', 'N/A')
-                goal = agent.get('goal', 'N/A')
-                tools = agent.get('tools', [])
+                agent_id = agent.get("id", "N/A")
+                role = agent.get("role", "N/A")
+                goal = agent.get("goal", "N/A")
+                tools = agent.get("tools", [])
 
                 # Truncate long goal
                 if len(goal) > 30:
@@ -162,7 +164,7 @@ class CLIReviewHandler:
             self.console.print()
 
         # Tasks table
-        tasks = data.get('tasks', [])
+        tasks = data.get("tasks", [])
         if tasks:
             self.console.print("[bold blue]📋 Tasks[/bold blue]\n")
 
@@ -172,9 +174,9 @@ class CLIReviewHandler:
             table.add_column("Agent", style="yellow", width=15)
 
             for task in tasks:
-                task_id = task.get('id', 'N/A')
-                description = task.get('description', 'N/A')
-                agent = task.get('agent', 'N/A')
+                task_id = task.get("id", "N/A")
+                description = task.get("description", "N/A")
+                agent = task.get("agent", "N/A")
 
                 # Truncate long description
                 if len(description) > 40:
@@ -199,8 +201,8 @@ class CLIReviewHandler:
         self.console.print("=" * 70 + "\n")
 
         # Statistics
-        total_files = data.get('total_files', 0)
-        total_lines = data.get('total_lines', 0)
+        total_files = data.get("total_files", 0)
+        total_lines = data.get("total_lines", 0)
 
         stats_panel = f"""[bold]Statistics:[/bold]
 • Total Files: [cyan]{total_files}[/cyan]
@@ -210,7 +212,7 @@ class CLIReviewHandler:
         self.console.print()
 
         # Files table
-        files = data.get('files', {})
+        files = data.get("files", {})
         if files:
             self.console.print("[bold green]📁 Generated Files[/bold green]\n")
 
@@ -220,21 +222,17 @@ class CLIReviewHandler:
             table.add_column("Size (KB)", justify="right", width=12)
 
             for filename, file_info in files.items():
-                lines = file_info.get('lines', 0)
-                size_kb = file_info.get('size_kb', 0)
+                lines = file_info.get("lines", 0)
+                size_kb = file_info.get("size_kb", 0)
 
-                table.add_row(
-                    filename,
-                    str(lines),
-                    f"{size_kb:.2f}"
-                )
+                table.add_row(filename, str(lines), f"{size_kb:.2f}")
 
             self.console.print(table)
             self.console.print()
 
         # Preview of main.py
-        if 'main.py' in files and files['main.py'].get('preview'):
-            preview = files['main.py']['preview']
+        if "main.py" in files and files["main.py"].get("preview"):
+            preview = files["main.py"]["preview"]
             self.console.print("[bold blue]👀 Preview: main.py[/bold blue]\n")
 
             syntax = Syntax(preview, "python", theme="monokai", line_numbers=True)
@@ -250,21 +248,21 @@ class CLIReviewHandler:
         """
         panel_content = []
 
-        always_allowed = boundaries.get('always_allowed', [])
+        always_allowed = boundaries.get("always_allowed", [])
         if always_allowed:
             panel_content.append("[bold green]✅ Always Allowed:[/bold green]")
             for item in always_allowed:
                 panel_content.append(f"  • {item}")
             panel_content.append("")
 
-        ask_first = boundaries.get('ask_first', [])
+        ask_first = boundaries.get("ask_first", [])
         if ask_first:
             panel_content.append("[bold yellow]⚠️  Ask First:[/bold yellow]")
             for item in ask_first:
                 panel_content.append(f"  • {item}")
             panel_content.append("")
 
-        never_allowed = boundaries.get('never_allowed', [])
+        never_allowed = boundaries.get("never_allowed", [])
         if never_allowed:
             panel_content.append("[bold red]❌ Never Allowed:[/bold red]")
             for item in never_allowed:
@@ -272,11 +270,7 @@ class CLIReviewHandler:
 
         if panel_content:
             self.console.print(
-                Panel(
-                    "\n".join(panel_content),
-                    title="🔒 Security Boundaries",
-                    border_style="cyan"
-                )
+                Panel("\n".join(panel_content), title="🔒 Security Boundaries", border_style="cyan")
             )
             self.console.print()
 
@@ -293,9 +287,7 @@ class CLIReviewHandler:
         self.console.print("=" * 70)
 
         # Display options with colors
-        options_str = " / ".join([
-            f"[cyan]{opt}[/cyan]" for opt in options
-        ])
+        options_str = " / ".join([f"[cyan]{opt}[/cyan]" for opt in options])
 
         while True:
             self.console.print(f"\n[bold]Your Decision ({options_str}):[/bold] ", end="")

@@ -6,15 +6,16 @@ a CrewAI workflow should use Sequential or Hierarchical process mode
 based on complexity analysis.
 """
 
-from typing import List, Dict, Optional, Any
-from enum import Enum
 import logging
+from enum import Enum
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
 
 class WorkflowType(str, Enum):
     """Workflow process types"""
+
     SEQUENTIAL = "sequential"
     HIERARCHICAL = "hierarchical"
 
@@ -29,7 +30,7 @@ class ComplexityMetrics:
         dependency_depth: int = 0,
         domain: Optional[str] = None,
         has_complex_coordination: bool = False,
-        requires_dynamic_allocation: bool = False
+        requires_dynamic_allocation: bool = False,
     ):
         self.agent_count = agent_count
         self.task_count = task_count
@@ -85,25 +86,25 @@ class ComplexityMetrics:
 
 # Domain patterns that typically benefit from hierarchical workflow
 HIERARCHICAL_DOMAINS = {
-    "WORKFLOW",           # Business process automation
-    "FINANCE",            # Financial analysis and trading
-    "HEALTHCARE",         # Patient care coordination
-    "LEGAL",              # Legal document processing
-    "CUSTOMER_SERVICE",   # Multi-tier support
-    "DATA_PIPELINE",      # Complex ETL processes
-    "ANALYTICS",          # Multi-stage data analysis
-    "MONITORING",         # System monitoring and alerting
-    "ORCHESTRATION",      # Service orchestration
-    "ENTERPRISE",         # Enterprise workflows
+    "WORKFLOW",  # Business process automation
+    "FINANCE",  # Financial analysis and trading
+    "HEALTHCARE",  # Patient care coordination
+    "LEGAL",  # Legal document processing
+    "CUSTOMER_SERVICE",  # Multi-tier support
+    "DATA_PIPELINE",  # Complex ETL processes
+    "ANALYTICS",  # Multi-stage data analysis
+    "MONITORING",  # System monitoring and alerting
+    "ORCHESTRATION",  # Service orchestration
+    "ENTERPRISE",  # Enterprise workflows
 }
 
 # Domain patterns that work well with sequential workflow
 SEQUENTIAL_DOMAINS = {
-    "TASK_MANAGEMENT",    # Simple CRUD operations
-    "CONTENT_GENERATION", # Linear content creation
-    "DOCUMENT_MANAGEMENT", # Document storage
-    "SIMPLE_API",         # Basic REST API
-    "CHATBOT",           # Single-purpose bots
+    "TASK_MANAGEMENT",  # Simple CRUD operations
+    "CONTENT_GENERATION",  # Linear content creation
+    "DOCUMENT_MANAGEMENT",  # Document storage
+    "SIMPLE_API",  # Basic REST API
+    "CHATBOT",  # Single-purpose bots
 }
 
 
@@ -162,8 +163,14 @@ def analyze_coordination_complexity(tasks: List[Dict[str, Any]]) -> bool:
     """
     # Check for indicators of complex coordination
     coordination_keywords = [
-        "coordinate", "orchestrate", "manage", "delegate",
-        "prioritize", "schedule", "allocate", "route"
+        "coordinate",
+        "orchestrate",
+        "manage",
+        "delegate",
+        "prioritize",
+        "schedule",
+        "allocate",
+        "route",
     ]
 
     for task in tasks:
@@ -202,8 +209,13 @@ def requires_dynamic_allocation(requirement: str, tasks: List[Dict[str, Any]]) -
     """
     # Check requirement for dynamic allocation indicators
     dynamic_keywords = [
-        "dynamic", "adaptive", "flexible", "responsive",
-        "real-time", "on-demand", "context-aware"
+        "dynamic",
+        "adaptive",
+        "flexible",
+        "responsive",
+        "real-time",
+        "on-demand",
+        "context-aware",
     ]
 
     requirement_lower = requirement.lower()
@@ -213,8 +225,7 @@ def requires_dynamic_allocation(requirement: str, tasks: List[Dict[str, Any]]) -
     # Check for variable task execution patterns
     task_count = len(tasks)
     conditional_tasks = sum(
-        1 for task in tasks
-        if "condition" in task or "optional" in str(task).lower()
+        1 for task in tasks if "condition" in task or "optional" in str(task).lower()
     )
 
     # If >30% of tasks are conditional, dynamic allocation helps
@@ -229,7 +240,7 @@ def determine_workflow_type(
     agents: Optional[List[Dict[str, Any]]] = None,
     tasks: Optional[List[Dict[str, Any]]] = None,
     domain: Optional[str] = None,
-    force_type: Optional[str] = None
+    force_type: Optional[str] = None,
 ) -> WorkflowType:
     """
     Determine optimal workflow type based on complexity analysis
@@ -284,7 +295,7 @@ def determine_workflow_type(
         dependency_depth=dependency_depth,
         domain=domain,
         has_complex_coordination=has_coordination,
-        requires_dynamic_allocation=requires_dynamic
+        requires_dynamic_allocation=requires_dynamic,
     )
 
     # Rule 1: Explicit domain preference
@@ -332,7 +343,7 @@ def get_workflow_recommendation(
     requirement: str,
     agents: Optional[List[Dict[str, Any]]] = None,
     tasks: Optional[List[Dict[str, Any]]] = None,
-    domain: Optional[str] = None
+    domain: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     Get workflow recommendation with detailed explanation
@@ -357,7 +368,7 @@ def get_workflow_recommendation(
         dependency_depth=calculate_dependency_depth(tasks),
         domain=domain,
         has_complex_coordination=analyze_coordination_complexity(tasks),
-        requires_dynamic_allocation=requires_dynamic_allocation(requirement, tasks)
+        requires_dynamic_allocation=requires_dynamic_allocation(requirement, tasks),
     )
 
     reasons = []
@@ -390,6 +401,6 @@ def get_workflow_recommendation(
             "task_count": metrics.task_count,
             "dependency_depth": metrics.dependency_depth,
             "has_complex_coordination": metrics.has_complex_coordination,
-            "requires_dynamic_allocation": metrics.requires_dynamic_allocation
-        }
+            "requires_dynamic_allocation": metrics.requires_dynamic_allocation,
+        },
     }

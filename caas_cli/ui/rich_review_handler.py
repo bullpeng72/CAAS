@@ -4,17 +4,17 @@ Rich-based Review Handler for CLI
 Implements ReviewHandler protocol using Rich library for beautiful console output.
 """
 
-from typing import Optional, Dict, Any, Tuple
 import json
+from typing import Any, Dict, Optional, Tuple
 
+from rich import box
 from rich.console import Console
 from rich.panel import Panel
-from rich.prompt import Prompt, Confirm
+from rich.prompt import Confirm, Prompt
 from rich.syntax import Syntax
 from rich.table import Table
-from rich import box
 
-from caas_framework.modes.interfaces import ReviewHandler, ApprovalDecision
+from caas_framework.modes.interfaces import ApprovalDecision, ReviewHandler
 
 
 class RichReviewHandler:
@@ -24,10 +24,7 @@ class RichReviewHandler:
     Provides colorful, formatted console output for CLI using Rich library.
     """
 
-    def __init__(
-        self,
-        console: Optional[Console] = None
-    ):
+    def __init__(self, console: Optional[Console] = None):
         """
         Initialize Rich review handler.
 
@@ -37,19 +34,15 @@ class RichReviewHandler:
         self.console = console or Console()
 
     def display_phase_output(
-        self,
-        phase_name: str,
-        description: str,
-        output: Dict[str, Any]
+        self, phase_name: str, description: str, output: Dict[str, Any]
     ) -> None:
         """Display phase output for review."""
         self.console.print(f"\n{'='*70}")
         self.console.print(
             Panel.fit(
-                f"[bold cyan]{phase_name} COMPLETE[/bold cyan]\n"
-                f"[dim]{description}[/dim]",
+                f"[bold cyan]{phase_name} COMPLETE[/bold cyan]\n" f"[dim]{description}[/dim]",
                 border_style="cyan",
-                box=box.DOUBLE
+                box=box.DOUBLE,
             )
         )
         self.console.print(f"{'='*70}\n")
@@ -66,37 +59,37 @@ class RichReviewHandler:
             self._display_generic_output(output)
 
     def request_decision(
-        self,
-        phase_name: str,
-        options: Optional[Dict[str, str]] = None
+        self, phase_name: str, options: Optional[Dict[str, str]] = None
     ) -> ApprovalDecision:
         """Request user decision on phase output."""
         default_options = {
             "approve": "Continue to next phase",
             "reject": "Stop execution",
             "edit": "Provide feedback for refinement",
-            "skip": "Skip this phase (advanced)"
+            "skip": "Skip this phase (advanced)",
         }
         opts = options or default_options
 
         # Display options panel
-        options_text = "\n".join([
-            f"  [{'green' if k == 'approve' else 'red' if k == 'reject' else 'cyan' if k == 'edit' else 'dim'}]{k}[/] - {v}"
-            for k, v in opts.items()
-        ])
+        options_text = "\n".join(
+            [
+                f"  [{'green' if k == 'approve' else 'red' if k == 'reject' else 'cyan' if k == 'edit' else 'dim'}]{k}[/] - {v}"
+                for k, v in opts.items()
+            ]
+        )
 
-        self.console.print(Panel.fit(
-            f"[bold yellow]Review {phase_name} output above[/bold yellow]\n\n"
-            f"Options:\n{options_text}",
-            border_style="yellow"
-        ))
+        self.console.print(
+            Panel.fit(
+                f"[bold yellow]Review {phase_name} output above[/bold yellow]\n\n"
+                f"Options:\n{options_text}",
+                border_style="yellow",
+            )
+        )
 
         # Request choice
         while True:
             choice = Prompt.ask(
-                "\n[bold]Your decision[/bold]",
-                choices=list(opts.keys()),
-                default="approve"
+                "\n[bold]Your decision[/bold]", choices=list(opts.keys()), default="approve"
             )
 
             if choice in ["approve", "a", "y", "yes"]:
@@ -113,9 +106,7 @@ class RichReviewHandler:
                 self.console.print("[red]Invalid choice. Please try again.[/red]")
 
     def request_feedback(
-        self,
-        phase_name: str,
-        current_output: Dict[str, Any]
+        self, phase_name: str, current_output: Dict[str, Any]
     ) -> Tuple[Dict[str, Any], str]:
         """
         Request user feedback for refinement.
@@ -149,16 +140,13 @@ class RichReviewHandler:
         # For now, just return original output with feedback
         return current_output, feedback
 
-    def display_summary(
-        self,
-        summary_data: Dict[str, Any]
-    ) -> None:
+    def display_summary(self, summary_data: Dict[str, Any]) -> None:
         """Display approval gates summary."""
         table = Table(
             title="[bold cyan]Approval Gates Summary[/bold cyan]",
             box=box.ROUNDED,
             show_header=True,
-            header_style="bold magenta"
+            header_style="bold magenta",
         )
 
         table.add_column("Phase", style="cyan")
@@ -166,17 +154,14 @@ class RichReviewHandler:
         table.add_column("Edited", justify="center")
 
         for gate_info in summary_data["gates"]:
-            decision_emoji = {
-                "approve": "✅",
-                "reject": "❌",
-                "edit": "✏️",
-                "skip": "⏭️"
-            }.get(gate_info["decision"], "❓")
+            decision_emoji = {"approve": "✅", "reject": "❌", "edit": "✏️", "skip": "⏭️"}.get(
+                gate_info["decision"], "❓"
+            )
 
             table.add_row(
                 gate_info["phase"],
                 f"{decision_emoji} {gate_info['decision']}",
-                "✏️" if gate_info["had_edits"] else "-"
+                "✏️" if gate_info["had_edits"] else "-",
             )
 
         self.console.print()
@@ -190,7 +175,7 @@ class RichReviewHandler:
             f"[bold]Edited:[/bold] [cyan]{summary_data['edited']}[/cyan]\n"
             f"[bold]Approval Rate:[/bold] {summary_data['approval_rate']:.1%}",
             title="Statistics",
-            border_style="blue"
+            border_style="blue",
         )
 
         self.console.print(stats_panel)
@@ -205,23 +190,22 @@ class RichReviewHandler:
         # System scope
         if "system_scope" in output:
             scope = output["system_scope"]
-            self.console.print(Panel(
-                f"[bold]Project:[/bold] {scope.get('project_name', 'N/A')}\n"
-                f"[bold]Purpose:[/bold] {scope.get('purpose', 'N/A')}\n"
-                f"[bold]Type:[/bold] {scope.get('system_type', 'N/A')}",
-                title="System Scope",
-                border_style="blue"
-            ))
+            self.console.print(
+                Panel(
+                    f"[bold]Project:[/bold] {scope.get('project_name', 'N/A')}\n"
+                    f"[bold]Purpose:[/bold] {scope.get('purpose', 'N/A')}\n"
+                    f"[bold]Type:[/bold] {scope.get('system_type', 'N/A')}",
+                    title="System Scope",
+                    border_style="blue",
+                )
+            )
             self.console.print()
 
         # Features
         if "features" in output:
             features = output["features"]
             table = Table(
-                title="Features",
-                box=box.ROUNDED,
-                show_header=True,
-                header_style="bold magenta"
+                title="Features", box=box.ROUNDED, show_header=True, header_style="bold magenta"
             )
             table.add_column("Name", style="cyan")
             table.add_column("Priority", style="yellow")
@@ -230,9 +214,13 @@ class RichReviewHandler:
             for feat in features[:10]:  # Show first 10
                 if isinstance(feat, dict):
                     table.add_row(
-                        feat.get('name', 'N/A'),
-                        feat.get('priority', 'medium'),
-                        feat.get('description', '')[:60] + "..." if len(feat.get('description', '')) > 60 else feat.get('description', '')
+                        feat.get("name", "N/A"),
+                        feat.get("priority", "medium"),
+                        (
+                            feat.get("description", "")[:60] + "..."
+                            if len(feat.get("description", "")) > 60
+                            else feat.get("description", "")
+                        ),
                     )
 
             self.console.print(table)
@@ -257,22 +245,21 @@ class RichReviewHandler:
         tasks = output.get("tasks", [])
 
         # Summary
-        self.console.print(Panel(
-            f"[bold]Agents:[/bold] {len(agents)}\n"
-            f"[bold]Tasks:[/bold] {len(tasks)}\n"
-            f"[bold]Workflow:[/bold] {output.get('workflow_type', 'sequential')}",
-            title="Design Summary",
-            border_style="blue"
-        ))
+        self.console.print(
+            Panel(
+                f"[bold]Agents:[/bold] {len(agents)}\n"
+                f"[bold]Tasks:[/bold] {len(tasks)}\n"
+                f"[bold]Workflow:[/bold] {output.get('workflow_type', 'sequential')}",
+                title="Design Summary",
+                border_style="blue",
+            )
+        )
         self.console.print()
 
         # Agents table
         if agents:
             agent_table = Table(
-                title="Agents",
-                box=box.ROUNDED,
-                show_header=True,
-                header_style="bold magenta"
+                title="Agents", box=box.ROUNDED, show_header=True, header_style="bold magenta"
             )
             agent_table.add_column("ID", style="cyan", no_wrap=True)
             agent_table.add_column("Role", style="yellow")
@@ -281,19 +268,16 @@ class RichReviewHandler:
 
             for agent in agents[:5]:  # Show first 5
                 if isinstance(agent, dict):
-                    tools = agent.get('tools', [])
+                    tools = agent.get("tools", [])
                     tools_str = ", ".join(tools[:3]) if tools else "none"
                     if len(tools) > 3:
                         tools_str += f" +{len(tools)-3}"
 
-                    goal = agent.get('goal', '')
+                    goal = agent.get("goal", "")
                     goal_short = goal[:40] + "..." if len(goal) > 40 else goal
 
                     agent_table.add_row(
-                        agent.get('id', 'N/A'),
-                        agent.get('role', 'N/A'),
-                        tools_str,
-                        goal_short
+                        agent.get("id", "N/A"), agent.get("role", "N/A"), tools_str, goal_short
                     )
 
             self.console.print(agent_table)
@@ -307,8 +291,8 @@ class RichReviewHandler:
             self.console.print(f"[bold]Tasks:[/bold]")
             for i, task in enumerate(tasks[:5], 1):
                 if isinstance(task, dict):
-                    desc = task.get('description', '')[:60]
-                    agent_id = task.get('agent', 'N/A')
+                    desc = task.get("description", "")[:60]
+                    agent_id = task.get("agent", "N/A")
                     self.console.print(f"  {i}. [{agent_id}] {desc}...")
 
             if len(tasks) > 5:
@@ -321,12 +305,14 @@ class RichReviewHandler:
         files = output.get("files", {})
 
         # Summary
-        self.console.print(Panel(
-            f"[bold]Generated Files:[/bold] {len(files)}\n" +
-            "\n".join(f"  • {filename}" for filename in list(files.keys())[:10]),
-            title="Code Generation Summary",
-            border_style="blue"
-        ))
+        self.console.print(
+            Panel(
+                f"[bold]Generated Files:[/bold] {len(files)}\n"
+                + "\n".join(f"  • {filename}" for filename in list(files.keys())[:10]),
+                title="Code Generation Summary",
+                border_style="blue",
+            )
+        )
         self.console.print()
 
         # Preview main.py
@@ -335,18 +321,11 @@ class RichReviewHandler:
             preview_lines = main_content.split("\n")[:30]
             preview = "\n".join(preview_lines)
 
-            syntax = Syntax(
-                preview,
-                "python",
-                theme="monokai",
-                line_numbers=True
-            )
+            syntax = Syntax(preview, "python", theme="monokai", line_numbers=True)
 
-            self.console.print(Panel(
-                syntax,
-                title="main.py Preview (first 30 lines)",
-                border_style="green"
-            ))
+            self.console.print(
+                Panel(syntax, title="main.py Preview (first 30 lines)", border_style="green")
+            )
             self.console.print()
 
         # File sizes
@@ -359,11 +338,7 @@ class RichReviewHandler:
             for filename, content in list(files.items())[:10]:
                 lines = len(content.split("\n"))
                 size = len(content)
-                size_table.add_row(
-                    filename,
-                    str(lines),
-                    f"{size:,} bytes"
-                )
+                size_table.add_row(filename, str(lines), f"{size:,} bytes")
 
             self.console.print(size_table)
             self.console.print()
@@ -374,24 +349,13 @@ class RichReviewHandler:
         json_str = json.dumps(output, indent=2, ensure_ascii=False)
         preview = "\n".join(json_str.split("\n")[:50])
 
-        syntax = Syntax(
-            preview,
-            "json",
-            theme="monokai",
-            line_numbers=True
-        )
+        syntax = Syntax(preview, "json", theme="monokai", line_numbers=True)
 
-        self.console.print(Panel(
-            syntax,
-            title="Phase Output (JSON)",
-            border_style="blue"
-        ))
+        self.console.print(Panel(syntax, title="Phase Output (JSON)", border_style="blue"))
         self.console.print()
 
 
-def create_rich_review_handler(
-    console: Optional[Console] = None
-) -> RichReviewHandler:
+def create_rich_review_handler(console: Optional[Console] = None) -> RichReviewHandler:
     """
     Factory function to create Rich review handler.
 

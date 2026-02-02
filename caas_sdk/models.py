@@ -2,14 +2,15 @@
 CAAS SDK Models
 """
 
-from enum import Enum
-from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, field
 from datetime import datetime
+from enum import Enum
+from typing import Any, Dict, List, Optional
 
 
 class ProjectStatus(str, Enum):
     """Project status"""
+
     PENDING = "pending"
     GENERATING = "generating"
     VALIDATING = "validating"
@@ -20,6 +21,7 @@ class ProjectStatus(str, Enum):
 @dataclass
 class GenerationConfig:
     """Code generation configuration"""
+
     requirement: str
     domain: Optional[str] = None
     deployment_target: str = "docker"
@@ -35,6 +37,7 @@ class GenerationConfig:
 @dataclass
 class Project:
     """Project model"""
+
     project_id: str
     status: str  # Changed from ProjectStatus to str for flexibility
     requirement: str
@@ -59,6 +62,7 @@ class Project:
 @dataclass
 class GenerationResult:
     """Generation result"""
+
     project_id: str
     success: bool
     files: Dict[str, str] = field(default_factory=dict)
@@ -72,6 +76,7 @@ class GenerationResult:
 @dataclass
 class ProgressUpdate:
     """Progress update event"""
+
     project_id: str
     phase: str
     progress: float

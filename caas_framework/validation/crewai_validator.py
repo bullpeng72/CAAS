@@ -5,10 +5,10 @@ Validates generated code for CrewAI-specific correctness and best practices.
 """
 
 import ast
-import sys
 import subprocess
-from typing import List, Optional
+import sys
 from dataclasses import dataclass
+from typing import List, Optional
 
 from caas_framework.models.validation import ValidationIssue, ValidationResult
 
@@ -16,6 +16,7 @@ from caas_framework.models.validation import ValidationIssue, ValidationResult
 @dataclass
 class ExecutionResult:
     """Execution result"""
+
     success: bool
     exit_code: int
     stdout: str
@@ -37,13 +38,13 @@ class CrewAIValidator:
     """
 
     # Required Agent parameters
-    AGENT_REQUIRED_PARAMS = {'role', 'goal', 'backstory'}
+    AGENT_REQUIRED_PARAMS = {"role", "goal", "backstory"}
 
     # Required Task parameters
-    TASK_REQUIRED_PARAMS = {'description', 'expected_output', 'agent'}
+    TASK_REQUIRED_PARAMS = {"description", "expected_output", "agent"}
 
     # Valid Process types
-    VALID_PROCESS_TYPES = {'sequential', 'hierarchical', 'parallel'}
+    VALID_PROCESS_TYPES = {"sequential", "hierarchical", "parallel"}
 
     def __init__(self):
         """Initialize validator"""
@@ -70,23 +71,22 @@ class CrewAIValidator:
                     if isinstance(node.value, ast.Call):
                         if self._is_agent_call(node.value):
                             agent_name = node.targets[0].id if node.targets else "unknown"
-                            issues.extend(self._validate_agent_call(
-                                node.value,
-                                agent_name,
-                                node.lineno
-                            ))
+                            issues.extend(
+                                self._validate_agent_call(node.value, agent_name, node.lineno)
+                            )
 
         except SyntaxError as e:
-            issues.append(ValidationIssue(
-                severity="error",
-                issue_type="syntax_error",
-                message=f"Syntax error in agents.py: {e}",
-                line=e.lineno
-            ))
+            issues.append(
+                ValidationIssue(
+                    severity="error",
+                    issue_type="syntax_error",
+                    message=f"Syntax error in agents.py: {e}",
+                    line=e.lineno,
+                )
+            )
 
         return ValidationResult(
-            is_valid=len([i for i in issues if i.severity == "error"]) == 0,
-            issues=issues
+            is_valid=len([i for i in issues if i.severity == "error"]) == 0, issues=issues
         )
 
     def validate_task_code(self, task_file_content: str) -> ValidationResult:
@@ -109,23 +109,22 @@ class CrewAIValidator:
                     if isinstance(node.value, ast.Call):
                         if self._is_task_call(node.value):
                             task_name = node.targets[0].id if node.targets else "unknown"
-                            issues.extend(self._validate_task_call(
-                                node.value,
-                                task_name,
-                                node.lineno
-                            ))
+                            issues.extend(
+                                self._validate_task_call(node.value, task_name, node.lineno)
+                            )
 
         except SyntaxError as e:
-            issues.append(ValidationIssue(
-                severity="error",
-                issue_type="syntax_error",
-                message=f"Syntax error in tasks.py: {e}",
-                line=e.lineno
-            ))
+            issues.append(
+                ValidationIssue(
+                    severity="error",
+                    issue_type="syntax_error",
+                    message=f"Syntax error in tasks.py: {e}",
+                    line=e.lineno,
+                )
+            )
 
         return ValidationResult(
-            is_valid=len([i for i in issues if i.severity == "error"]) == 0,
-            issues=issues
+            is_valid=len([i for i in issues if i.severity == "error"]) == 0, issues=issues
         )
 
     def validate_crew_code(self, crew_file_content: str) -> ValidationResult:
@@ -147,22 +146,20 @@ class CrewAIValidator:
                 if isinstance(node, ast.Assign):
                     if isinstance(node.value, ast.Call):
                         if self._is_crew_call(node.value):
-                            issues.extend(self._validate_crew_call(
-                                node.value,
-                                node.lineno
-                            ))
+                            issues.extend(self._validate_crew_call(node.value, node.lineno))
 
         except SyntaxError as e:
-            issues.append(ValidationIssue(
-                severity="error",
-                issue_type="syntax_error",
-                message=f"Syntax error in crew.py: {e}",
-                line=e.lineno
-            ))
+            issues.append(
+                ValidationIssue(
+                    severity="error",
+                    issue_type="syntax_error",
+                    message=f"Syntax error in crew.py: {e}",
+                    line=e.lineno,
+                )
+            )
 
         return ValidationResult(
-            is_valid=len([i for i in issues if i.severity == "error"]) == 0,
-            issues=issues
+            is_valid=len([i for i in issues if i.severity == "error"]) == 0, issues=issues
         )
 
     def validate_runtime(self, temp_dir: str) -> ExecutionResult:
@@ -314,7 +311,7 @@ print("=" * 70)
                 capture_output=True,
                 text=True,
                 timeout=30,
-                cwd=temp_dir
+                cwd=temp_dir,
             )
 
             return ExecutionResult(
@@ -322,7 +319,7 @@ print("=" * 70)
                 exit_code=result.returncode,
                 stdout=result.stdout,
                 stderr=result.stderr,
-                error_message=None if result.returncode == 0 else result.stderr
+                error_message=None if result.returncode == 0 else result.stderr,
             )
 
         except subprocess.TimeoutExpired:
@@ -331,7 +328,7 @@ print("=" * 70)
                 exit_code=-1,
                 stdout="",
                 stderr="Execution timeout (>30s)",
-                error_message="Runtime validation timed out"
+                error_message="Runtime validation timed out",
             )
         except Exception as e:
             return ExecutionResult(
@@ -339,7 +336,7 @@ print("=" * 70)
                 exit_code=-1,
                 stdout="",
                 stderr=str(e),
-                error_message=f"Runtime validation error: {e}"
+                error_message=f"Runtime validation error: {e}",
             )
 
     # ========================================
@@ -349,46 +346,45 @@ print("=" * 70)
     def _is_agent_call(self, node: ast.Call) -> bool:
         """Check if AST node is an Agent() call"""
         if isinstance(node.func, ast.Name):
-            return node.func.id == 'Agent'
+            return node.func.id == "Agent"
         elif isinstance(node.func, ast.Attribute):
-            return node.func.attr == 'Agent'
+            return node.func.attr == "Agent"
         return False
 
     def _is_task_call(self, node: ast.Call) -> bool:
         """Check if AST node is a Task() call"""
         if isinstance(node.func, ast.Name):
-            return node.func.id == 'Task'
+            return node.func.id == "Task"
         elif isinstance(node.func, ast.Attribute):
-            return node.func.attr == 'Task'
+            return node.func.attr == "Task"
         return False
 
     def _is_crew_call(self, node: ast.Call) -> bool:
         """Check if AST node is a Crew() call"""
         if isinstance(node.func, ast.Name):
-            return node.func.id == 'Crew'
+            return node.func.id == "Crew"
         elif isinstance(node.func, ast.Attribute):
-            return node.func.attr == 'Crew'
+            return node.func.attr == "Crew"
         return False
 
     def _validate_agent_call(
-        self,
-        node: ast.Call,
-        agent_name: str,
-        line: int
+        self, node: ast.Call, agent_name: str, line: int
     ) -> List[ValidationIssue]:
         """Validate Agent instantiation"""
         issues = []
 
         # CRITICAL: Check for positional arguments (not allowed in CrewAI Pydantic v2 models)
         if len(node.args) > 0:
-            issues.append(ValidationIssue(
-                severity="error",
-                issue_type="invalid_api_usage",
-                message=f"Agent '{agent_name}' uses positional arguments. "
-                        f"CrewAI Agent (Pydantic v2 model) only accepts keyword arguments.",
-                line=line,
-                suggested_fix=f"Convert to keyword arguments: Agent(role='...', goal='...', backstory='...', ...)"
-            ))
+            issues.append(
+                ValidationIssue(
+                    severity="error",
+                    issue_type="invalid_api_usage",
+                    message=f"Agent '{agent_name}' uses positional arguments. "
+                    f"CrewAI Agent (Pydantic v2 model) only accepts keyword arguments.",
+                    line=line,
+                    suggested_fix=f"Convert to keyword arguments: Agent(role='...', goal='...', backstory='...', ...)",
+                )
+            )
             # Don't continue validation if using positional args
             return issues
 
@@ -398,89 +394,89 @@ print("=" * 70)
         # Check required parameters
         missing = self.AGENT_REQUIRED_PARAMS - provided_params
         if missing:
-            issues.append(ValidationIssue(
-                severity="error",
-                issue_type="missing_parameter",
-                message=f"Agent '{agent_name}' missing required parameters: {missing}",
-                line=line,
-                suggested_fix=f"Add missing parameters: {', '.join(missing)}"
-            ))
+            issues.append(
+                ValidationIssue(
+                    severity="error",
+                    issue_type="missing_parameter",
+                    message=f"Agent '{agent_name}' missing required parameters: {missing}",
+                    line=line,
+                    suggested_fix=f"Add missing parameters: {', '.join(missing)}",
+                )
+            )
 
         # Validate tools parameter
         for keyword in node.keywords:
-            if keyword.arg == 'tools':
-                issues.extend(self._validate_tools_param(
-                    keyword.value,
-                    agent_name,
-                    line
-                ))
+            if keyword.arg == "tools":
+                issues.extend(self._validate_tools_param(keyword.value, agent_name, line))
 
             # Validate memory parameter (should be boolean)
-            if keyword.arg == 'memory':
+            if keyword.arg == "memory":
                 if isinstance(keyword.value, ast.Constant):
                     if not isinstance(keyword.value.value, bool):
-                        issues.append(ValidationIssue(
-                            severity="warning",
-                            issue_type="invalid_parameter_type",
-                            message=f"Agent '{agent_name}': memory should be boolean",
-                            line=line,
-                            suggested_fix="Use True or False for memory parameter"
-                        ))
+                        issues.append(
+                            ValidationIssue(
+                                severity="warning",
+                                issue_type="invalid_parameter_type",
+                                message=f"Agent '{agent_name}': memory should be boolean",
+                                line=line,
+                                suggested_fix="Use True or False for memory parameter",
+                            )
+                        )
 
         return issues
 
     def _validate_tools_param(
-        self,
-        tools_node: ast.AST,
-        agent_name: str,
-        line: int
+        self, tools_node: ast.AST, agent_name: str, line: int
     ) -> List[ValidationIssue]:
         """Validate tools parameter"""
         issues = []
 
         # tools must be a List
         if not isinstance(tools_node, ast.List):
-            issues.append(ValidationIssue(
-                severity="error",
-                issue_type="invalid_type",
-                message=f"Agent '{agent_name}': tools must be a list",
-                line=line,
-                suggested_fix="Wrap tools in square brackets: [tool1(), tool2()]"
-            ))
+            issues.append(
+                ValidationIssue(
+                    severity="error",
+                    issue_type="invalid_type",
+                    message=f"Agent '{agent_name}': tools must be a list",
+                    line=line,
+                    suggested_fix="Wrap tools in square brackets: [tool1(), tool2()]",
+                )
+            )
             return issues
 
         # Each tool should be instantiated (Call node)
         for i, element in enumerate(tools_node.elts):
             if not isinstance(element, ast.Call):
-                issues.append(ValidationIssue(
-                    severity="error",
-                    issue_type="tool_not_instantiated",
-                    message=f"Agent '{agent_name}': tool #{i+1} not instantiated",
-                    line=line,
-                    suggested_fix="Add parentheses to instantiate tool: ToolName()"
-                ))
+                issues.append(
+                    ValidationIssue(
+                        severity="error",
+                        issue_type="tool_not_instantiated",
+                        message=f"Agent '{agent_name}': tool #{i+1} not instantiated",
+                        line=line,
+                        suggested_fix="Add parentheses to instantiate tool: ToolName()",
+                    )
+                )
 
         return issues
 
     def _validate_task_call(
-        self,
-        node: ast.Call,
-        task_name: str,
-        line: int
+        self, node: ast.Call, task_name: str, line: int
     ) -> List[ValidationIssue]:
         """Validate Task instantiation"""
         issues = []
 
         # CRITICAL: Check for positional arguments (not allowed in CrewAI Pydantic v2 models)
         if len(node.args) > 0:
-            issues.append(ValidationIssue(
-                severity="error",
-                issue_type="invalid_api_usage",
-                message=f"Task '{task_name}' uses positional arguments. "
-                        f"CrewAI Task (Pydantic v2 model) only accepts keyword arguments.",
-                line=line,
-                suggested_fix=f"Convert to keyword arguments: Task(description='...', expected_output='...', agent=..., ...)"
-            ))
+            issues.append(
+                ValidationIssue(
+                    severity="error",
+                    issue_type="invalid_api_usage",
+                    message=f"Task '{task_name}' uses positional arguments. "
+                    f"CrewAI Task (Pydantic v2 model) only accepts keyword arguments.",
+                    line=line,
+                    suggested_fix=f"Convert to keyword arguments: Task(description='...', expected_output='...', agent=..., ...)",
+                )
+            )
             # Don't continue validation if using positional args
             return issues
 
@@ -490,76 +486,73 @@ print("=" * 70)
         # Check required parameters
         missing = self.TASK_REQUIRED_PARAMS - provided_params
         if missing:
-            issues.append(ValidationIssue(
-                severity="error",
-                issue_type="missing_parameter",
-                message=f"Task '{task_name}' missing required parameters: {missing}",
-                line=line,
-                suggested_fix=f"Add missing parameters: {', '.join(missing)}"
-            ))
+            issues.append(
+                ValidationIssue(
+                    severity="error",
+                    issue_type="missing_parameter",
+                    message=f"Task '{task_name}' missing required parameters: {missing}",
+                    line=line,
+                    suggested_fix=f"Add missing parameters: {', '.join(missing)}",
+                )
+            )
 
         # Validate context parameter
         for keyword in node.keywords:
-            if keyword.arg == 'context':
-                issues.extend(self._validate_context_param(
-                    keyword.value,
-                    task_name,
-                    line
-                ))
+            if keyword.arg == "context":
+                issues.extend(self._validate_context_param(keyword.value, task_name, line))
 
         return issues
 
     def _validate_context_param(
-        self,
-        context_node: ast.AST,
-        task_name: str,
-        line: int
+        self, context_node: ast.AST, task_name: str, line: int
     ) -> List[ValidationIssue]:
         """Validate context (task dependencies) parameter"""
         issues = []
 
         # context must be a List
         if not isinstance(context_node, ast.List):
-            issues.append(ValidationIssue(
-                severity="error",
-                issue_type="invalid_type",
-                message=f"Task '{task_name}': context must be a list",
-                line=line,
-                suggested_fix="Wrap context in square brackets: [task_1, task_2]"
-            ))
+            issues.append(
+                ValidationIssue(
+                    severity="error",
+                    issue_type="invalid_type",
+                    message=f"Task '{task_name}': context must be a list",
+                    line=line,
+                    suggested_fix="Wrap context in square brackets: [task_1, task_2]",
+                )
+            )
             return issues
 
         # Each context element should be a Name (task variable reference), NOT a string
         for i, element in enumerate(context_node.elts):
             if isinstance(element, ast.Constant) and isinstance(element.value, str):
-                issues.append(ValidationIssue(
-                    severity="error",
-                    issue_type="invalid_context_type",
-                    message=f"Task '{task_name}': context should reference Task objects, not strings",
-                    line=line,
-                    suggested_fix=f"Remove quotes: context=[task_1] not context=['task_1']"
-                ))
+                issues.append(
+                    ValidationIssue(
+                        severity="error",
+                        issue_type="invalid_context_type",
+                        message=f"Task '{task_name}': context should reference Task objects, not strings",
+                        line=line,
+                        suggested_fix=f"Remove quotes: context=[task_1] not context=['task_1']",
+                    )
+                )
 
         return issues
 
-    def _validate_crew_call(
-        self,
-        node: ast.Call,
-        line: int
-    ) -> List[ValidationIssue]:
+    def _validate_crew_call(self, node: ast.Call, line: int) -> List[ValidationIssue]:
         """Validate Crew instantiation"""
         issues = []
 
         # CRITICAL: Check for positional arguments (not allowed in CrewAI Pydantic v2 models)
         if len(node.args) > 0:
-            issues.append(ValidationIssue(
-                severity="error",
-                issue_type="invalid_api_usage",
-                message=f"Crew uses positional arguments. "
-                        f"CrewAI Crew (Pydantic v2 model) only accepts keyword arguments.",
-                line=line,
-                suggested_fix=f"Convert to keyword arguments: Crew(agents=[...], tasks=[...], ...)"
-            ))
+            issues.append(
+                ValidationIssue(
+                    severity="error",
+                    issue_type="invalid_api_usage",
+                    message=f"Crew uses positional arguments. "
+                    f"CrewAI Crew (Pydantic v2 model) only accepts keyword arguments.",
+                    line=line,
+                    suggested_fix=f"Convert to keyword arguments: Crew(agents=[...], tasks=[...], ...)",
+                )
+            )
             # Don't continue validation if using positional args
             return issues
 
@@ -567,30 +560,34 @@ print("=" * 70)
         provided_params = {kw.arg for kw in node.keywords if kw.arg}
 
         # Check required parameters
-        required = {'agents', 'tasks'}
+        required = {"agents", "tasks"}
         missing = required - provided_params
         if missing:
-            issues.append(ValidationIssue(
-                severity="error",
-                issue_type="missing_parameter",
-                message=f"Crew missing required parameters: {missing}",
-                line=line,
-                suggested_fix=f"Add: {', '.join(missing)}=[...]"
-            ))
+            issues.append(
+                ValidationIssue(
+                    severity="error",
+                    issue_type="missing_parameter",
+                    message=f"Crew missing required parameters: {missing}",
+                    line=line,
+                    suggested_fix=f"Add: {', '.join(missing)}=[...]",
+                )
+            )
 
         # Validate process parameter if present
         for keyword in node.keywords:
-            if keyword.arg == 'process':
+            if keyword.arg == "process":
                 # Should be Process.sequential, Process.hierarchical, etc.
                 if isinstance(keyword.value, ast.Attribute):
                     process_type = keyword.value.attr.lower()
                     if process_type not in self.VALID_PROCESS_TYPES:
-                        issues.append(ValidationIssue(
-                            severity="warning",
-                            issue_type="invalid_process_type",
-                            message=f"Unknown process type: {process_type}",
-                            line=line,
-                            suggested_fix=f"Use one of: {', '.join(self.VALID_PROCESS_TYPES)}"
-                        ))
+                        issues.append(
+                            ValidationIssue(
+                                severity="warning",
+                                issue_type="invalid_process_type",
+                                message=f"Unknown process type: {process_type}",
+                                line=line,
+                                suggested_fix=f"Use one of: {', '.join(self.VALID_PROCESS_TYPES)}",
+                            )
+                        )
 
         return issues

@@ -6,9 +6,9 @@ Optimized streaming for LLM responses to provide faster user feedback.
 
 import asyncio
 import logging
-from typing import AsyncIterator, Optional, Callable, List
 from dataclasses import dataclass, field
 from datetime import datetime
+from typing import AsyncIterator, Callable, List, Optional
 
 
 @dataclass
@@ -18,6 +18,7 @@ class StreamBuffer:
 
     Collects chunks and provides utilities for processing.
     """
+
     chunks: List[str] = field(default_factory=list)
     complete: bool = False
     error: Optional[Exception] = None
@@ -66,7 +67,7 @@ class StreamingResponseHandler:
         self,
         chunk_callback: Optional[Callable[[str], None]] = None,
         buffer_size: int = 10,
-        logger: Optional[logging.Logger] = None
+        logger: Optional[logging.Logger] = None,
     ):
         """
         Initialize streaming handler.
@@ -81,9 +82,7 @@ class StreamingResponseHandler:
         self.logger = logger or logging.getLogger(__name__)
 
     async def stream_and_collect(
-        self,
-        stream: AsyncIterator[str],
-        progress_callback: Optional[Callable[[int], None]] = None
+        self, stream: AsyncIterator[str], progress_callback: Optional[Callable[[int], None]] = None
     ) -> StreamBuffer:
         """
         Stream and collect all chunks.
@@ -125,9 +124,7 @@ class StreamingResponseHandler:
         return buffer
 
     async def stream_with_batching(
-        self,
-        stream: AsyncIterator[str],
-        batch_callback: Callable[[List[str]], None]
+        self, stream: AsyncIterator[str], batch_callback: Callable[[List[str]], None]
     ) -> str:
         """
         Stream with batch callbacks.
@@ -160,10 +157,7 @@ class StreamingResponseHandler:
 
         return "".join(chunks)
 
-    async def stream_parallel(
-        self,
-        streams: List[AsyncIterator[str]]
-    ) -> List[StreamBuffer]:
+    async def stream_parallel(self, streams: List[AsyncIterator[str]]) -> List[StreamBuffer]:
         """
         Handle multiple streams in parallel.
 
@@ -173,17 +167,12 @@ class StreamingResponseHandler:
         Returns:
             List of StreamBuffers
         """
-        tasks = [
-            self.stream_and_collect(stream)
-            for stream in streams
-        ]
+        tasks = [self.stream_and_collect(stream) for stream in streams]
 
         return await asyncio.gather(*tasks, return_exceptions=True)
 
     async def stream_with_timeout(
-        self,
-        stream: AsyncIterator[str],
-        timeout_seconds: float = 30.0
+        self, stream: AsyncIterator[str], timeout_seconds: float = 30.0
     ) -> StreamBuffer:
         """
         Stream with timeout protection.
@@ -218,8 +207,7 @@ class StreamingResponseHandler:
 
 
 async def consume_stream(
-    stream: AsyncIterator[str],
-    callback: Optional[Callable[[str], None]] = None
+    stream: AsyncIterator[str], callback: Optional[Callable[[str], None]] = None
 ) -> str:
     """
     Convenience function to consume a stream.

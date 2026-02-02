@@ -6,21 +6,21 @@ Efficient parallel execution of async operations with batching and concurrency c
 
 import asyncio
 import logging
-from typing import List, Callable, Any, Optional, TypeVar, Awaitable
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Any, Awaitable, Callable, List, Optional, TypeVar
 
-
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 @dataclass
 class BatchConfig:
     """Configuration for batch execution"""
-    max_concurrent: int = 5        # Maximum concurrent operations
-    batch_size: int = 10           # Size of each batch
-    timeout_per_item: float = 30.0 # Timeout per item (seconds)
-    continue_on_error: bool = True # Continue if individual items fail
+
+    max_concurrent: int = 5  # Maximum concurrent operations
+    batch_size: int = 10  # Size of each batch
+    timeout_per_item: float = 30.0  # Timeout per item (seconds)
+    continue_on_error: bool = True  # Continue if individual items fail
 
 
 class AsyncBatchExecutor:
@@ -36,9 +36,7 @@ class AsyncBatchExecutor:
     """
 
     def __init__(
-        self,
-        config: Optional[BatchConfig] = None,
-        logger: Optional[logging.Logger] = None
+        self, config: Optional[BatchConfig] = None, logger: Optional[logging.Logger] = None
     ):
         """
         Initialize batch executor.
@@ -55,7 +53,7 @@ class AsyncBatchExecutor:
         self,
         items: List[T],
         async_fn: Callable[[T], Awaitable[Any]],
-        progress_callback: Optional[Callable[[int, int], None]] = None
+        progress_callback: Optional[Callable[[int, int], None]] = None,
     ) -> List[tuple[T, Any, Optional[Exception]]]:
         """
         Execute async function on batch of items.
@@ -89,7 +87,7 @@ class AsyncBatchExecutor:
             # Execute batch with concurrency control
             batch_results = await asyncio.gather(
                 *[self._execute_with_semaphore(item, async_fn) for item in batch],
-                return_exceptions=False
+                return_exceptions=False,
             )
 
             results.extend(batch_results)
@@ -103,9 +101,7 @@ class AsyncBatchExecutor:
         return results
 
     async def _execute_with_semaphore(
-        self,
-        item: T,
-        async_fn: Callable[[T], Awaitable[Any]]
+        self, item: T, async_fn: Callable[[T], Awaitable[Any]]
     ) -> tuple[T, Any, Optional[Exception]]:
         """
         Execute with semaphore for concurrency control.
@@ -120,8 +116,7 @@ class AsyncBatchExecutor:
         async with self.semaphore:
             try:
                 result = await asyncio.wait_for(
-                    async_fn(item),
-                    timeout=self.config.timeout_per_item
+                    async_fn(item), timeout=self.config.timeout_per_item
                 )
                 return (item, result, None)
 
@@ -138,10 +133,7 @@ class AsyncBatchExecutor:
                 raise
 
     async def map_parallel(
-        self,
-        items: List[T],
-        async_fn: Callable[[T], Awaitable[Any]],
-        filter_errors: bool = True
+        self, items: List[T], async_fn: Callable[[T], Awaitable[Any]], filter_errors: bool = True
     ) -> List[Any]:
         """
         Map async function over items in parallel (like asyncio.gather but with control).
@@ -164,9 +156,7 @@ class AsyncBatchExecutor:
             return [result for _, result, _ in batch_results]
 
     async def execute_parallel(
-        self,
-        tasks: List[Callable[[], Awaitable[T]]],
-        max_concurrent: Optional[int] = None
+        self, tasks: List[Callable[[], Awaitable[T]]], max_concurrent: Optional[int] = None
     ) -> List[T]:
         """
         Execute multiple async tasks in parallel.
@@ -196,11 +186,7 @@ class AsyncBatchExecutor:
                 self.config.max_concurrent = original_max
                 self.semaphore = asyncio.Semaphore(original_max)
 
-    def get_optimal_batch_size(
-        self,
-        total_items: int,
-        target_batches: int = 10
-    ) -> int:
+    def get_optimal_batch_size(self, total_items: int, target_batches: int = 10) -> int:
         """
         Calculate optimal batch size.
 
@@ -218,9 +204,7 @@ class AsyncBatchExecutor:
 
 
 async def run_parallel(
-    *coroutines: Awaitable[T],
-    max_concurrent: int = 5,
-    return_exceptions: bool = False
+    *coroutines: Awaitable[T], max_concurrent: int = 5, return_exceptions: bool = False
 ) -> List[T]:
     """
     Convenience function to run coroutines in parallel with concurrency limit.
@@ -246,8 +230,7 @@ async def run_parallel(
             return await coro
 
     return await asyncio.gather(
-        *[run_with_semaphore(coro) for coro in coroutines],
-        return_exceptions=return_exceptions
+        *[run_with_semaphore(coro) for coro in coroutines], return_exceptions=return_exceptions
     )
 
 
@@ -255,7 +238,7 @@ async def batch_process(
     items: List[T],
     process_fn: Callable[[T], Awaitable[Any]],
     batch_size: int = 10,
-    max_concurrent: int = 5
+    max_concurrent: int = 5,
 ) -> List[Any]:
     """
     Convenience function for batch processing.
@@ -277,10 +260,7 @@ async def batch_process(
             max_concurrent=3
         )
     """
-    config = BatchConfig(
-        max_concurrent=max_concurrent,
-        batch_size=batch_size
-    )
+    config = BatchConfig(max_concurrent=max_concurrent, batch_size=batch_size)
 
     executor = AsyncBatchExecutor(config=config)
     return await executor.map_parallel(items, process_fn)

@@ -5,16 +5,16 @@ Manage multi-model router, model selection, and performance tracking.
 """
 
 import click
-from rich.console import Console
-from rich.table import Table
-from rich.panel import Panel
 from caas_cli.utils import (
-    echo_success,
     echo_error,
     echo_info,
+    echo_success,
     echo_warning,
     handle_keyboard_interrupt,
 )
+from rich.console import Console
+from rich.panel import Panel
+from rich.table import Table
 
 console = Console()
 
@@ -60,18 +60,13 @@ def models():
 
 
 @models.command(name="list")
-@click.option(
-    "--verbose",
-    "-v",
-    is_flag=True,
-    help="Show detailed model information"
-)
+@click.option("--verbose", "-v", is_flag=True, help="Show detailed model information")
 @click.option(
     "--provider",
     "-p",
     type=click.Choice(["openai", "anthropic", "google", "all"]),
     default="all",
-    help="Filter by provider"
+    help="Filter by provider",
 )
 @handle_keyboard_interrupt
 def list_models(verbose, provider):
@@ -88,8 +83,8 @@ def list_models(verbose, provider):
     • Current status
     """
     try:
-        from caas_framework.plugins.llm import get_multi_model_router
         from caas_framework.config import get_settings
+        from caas_framework.plugins.llm import get_multi_model_router
 
         settings = get_settings()
         router = get_multi_model_router()
@@ -99,17 +94,14 @@ def list_models(verbose, provider):
 
         # Filter by provider
         if provider != "all":
-            available_models = [m for m in available_models if m['provider'] == provider]
+            available_models = [m for m in available_models if m["provider"] == provider]
 
         if not available_models:
             echo_info(f"No models found for provider: {provider}")
             return
 
         console.print()
-        console.print(Panel.fit(
-            "[bold cyan]Available LLM Models[/bold cyan]",
-            border_style="cyan"
-        ))
+        console.print(Panel.fit("[bold cyan]Available LLM Models[/bold cyan]", border_style="cyan"))
         console.print()
 
         # Create table
@@ -126,21 +118,18 @@ def list_models(verbose, provider):
         # Add model rows
         current_model = settings.llm.model
         for model in available_models:
-            status_mark = "✅" if model['name'] == current_model else ""
+            status_mark = "✅" if model["name"] == current_model else ""
 
             row_data = [
-                f"{status_mark} {model['name']}" if status_mark else model['name'],
-                model['provider'],
+                f"{status_mark} {model['name']}" if status_mark else model["name"],
+                model["provider"],
                 f"${model.get('cost_per_1k_tokens', 0):.4f}",
                 f"{model.get('max_tokens', 0):,}",
             ]
 
             if verbose:
-                phases = ", ".join(model.get('suitable_phases', []))
-                row_data.extend([
-                    phases if phases else "All",
-                    model.get('status', 'available')
-                ])
+                phases = ", ".join(model.get("suitable_phases", []))
+                row_data.extend([phases if phases else "All", model.get("status", "available")])
 
             table.add_row(*row_data)
 
@@ -149,7 +138,9 @@ def list_models(verbose, provider):
 
         # Show current configuration
         if settings.llm.enable_multi_model:
-            echo_info(f"Multi-model routing: ✅ Enabled (Strategy: {settings.llm.model_selection_strategy})")
+            echo_info(
+                f"Multi-model routing: ✅ Enabled (Strategy: {settings.llm.model_selection_strategy})"
+            )
         else:
             echo_info(f"Multi-model routing: ⏸️  Disabled (Current: {current_model})")
 
@@ -163,23 +154,19 @@ def list_models(verbose, provider):
         echo_error(f"Failed to list models: {e}")
         if verbose:
             import traceback
+
             echo_error(traceback.format_exc())
         return 1
 
 
 @models.command(name="metrics")
-@click.option(
-    "--model",
-    "-m",
-    type=str,
-    help="Show metrics for specific model"
-)
+@click.option("--model", "-m", type=str, help="Show metrics for specific model")
 @click.option(
     "--sort-by",
     "-s",
     type=click.Choice(["cost", "latency", "success_rate", "requests"]),
     default="requests",
-    help="Sort models by metric"
+    help="Sort models by metric",
 )
 @handle_keyboard_interrupt
 def metrics(model, sort_by):
@@ -224,10 +211,9 @@ def metrics(model, sort_by):
             return
 
         console.print()
-        console.print(Panel.fit(
-            "[bold cyan]Model Performance Metrics[/bold cyan]",
-            border_style="cyan"
-        ))
+        console.print(
+            Panel.fit("[bold cyan]Model Performance Metrics[/bold cyan]", border_style="cyan")
+        )
         console.print()
 
         # Create table
@@ -242,39 +228,49 @@ def metrics(model, sort_by):
         # Sort metrics
         sorted_metrics = sorted(
             metrics_data.items(),
-            key=lambda x: x[1].get(sort_by, 0) if sort_by != 'success_rate' else x[1].get('successful_requests', 0) / max(x[1].get('total_requests', 1), 1),
-            reverse=True
+            key=lambda x: (
+                x[1].get(sort_by, 0)
+                if sort_by != "success_rate"
+                else x[1].get("successful_requests", 0) / max(x[1].get("total_requests", 1), 1)
+            ),
+            reverse=True,
         )
 
         # Add rows
         for model_name, model_metrics in sorted_metrics:
-            success_rate = (model_metrics.get('successful_requests', 0) /
-                          max(model_metrics.get('total_requests', 1), 1) * 100)
-            avg_latency = (model_metrics.get('total_latency_ms', 0) /
-                          max(model_metrics.get('total_requests', 1), 1))
+            success_rate = (
+                model_metrics.get("successful_requests", 0)
+                / max(model_metrics.get("total_requests", 1), 1)
+                * 100
+            )
+            avg_latency = model_metrics.get("total_latency_ms", 0) / max(
+                model_metrics.get("total_requests", 1), 1
+            )
 
             table.add_row(
                 model_name,
-                str(model_metrics.get('total_requests', 0)),
+                str(model_metrics.get("total_requests", 0)),
                 f"{success_rate:.1f}%",
                 f"{avg_latency:.0f}ms",
                 f"${model_metrics.get('total_cost_usd', 0):.4f}",
-                str(model_metrics.get('consecutive_failures', 0))
+                str(model_metrics.get("consecutive_failures", 0)),
             )
 
         console.print(table)
         console.print()
 
         # Show summary
-        total_requests = sum(m.get('total_requests', 0) for m in metrics_data.values())
-        total_cost = sum(m.get('total_cost_usd', 0) for m in metrics_data.values())
+        total_requests = sum(m.get("total_requests", 0) for m in metrics_data.values())
+        total_cost = sum(m.get("total_cost_usd", 0) for m in metrics_data.values())
 
-        console.print(Panel(
-            f"[bold]Total Requests:[/bold] {total_requests}\n"
-            f"[bold]Total Cost:[/bold] ${total_cost:.4f}",
-            title="Overall Summary",
-            border_style="green"
-        ))
+        console.print(
+            Panel(
+                f"[bold]Total Requests:[/bold] {total_requests}\n"
+                f"[bold]Total Cost:[/bold] ${total_cost:.4f}",
+                title="Overall Summary",
+                border_style="green",
+            )
+        )
         console.print()
 
     except ImportError as e:
@@ -287,12 +283,7 @@ def metrics(model, sort_by):
 
 @models.command(name="switch")
 @click.argument("model_name")
-@click.option(
-    "--provider",
-    "-p",
-    type=str,
-    help="Model provider (optional, auto-detected)"
-)
+@click.option("--provider", "-p", type=str, help="Model provider (optional, auto-detected)")
 @handle_keyboard_interrupt
 def switch(model_name, provider):
     """
@@ -341,18 +332,10 @@ def switch(model_name, provider):
 @models.command(name="strategy")
 @click.argument(
     "strategy_name",
-    type=click.Choice(["phase_based", "cost_optimized", "performance_first", "adaptive"])
+    type=click.Choice(["phase_based", "cost_optimized", "performance_first", "adaptive"]),
 )
-@click.option(
-    "--enable-multi-model",
-    is_flag=True,
-    help="Enable multi-model routing"
-)
-@click.option(
-    "--disable-multi-model",
-    is_flag=True,
-    help="Disable multi-model routing"
-)
+@click.option("--enable-multi-model", is_flag=True, help="Enable multi-model routing")
+@click.option("--disable-multi-model", is_flag=True, help="Disable multi-model routing")
 @handle_keyboard_interrupt
 def strategy(strategy_name, enable_multi_model, disable_multi_model):
     """
@@ -409,14 +392,16 @@ def strategy(strategy_name, enable_multi_model, disable_multi_model):
             "phase_based": "Models are selected based on phase complexity and requirements",
             "cost_optimized": "Always selects the cheapest available model",
             "performance_first": "Always selects the fastest/best performing model",
-            "adaptive": "Learns from performance history and adapts selection"
+            "adaptive": "Learns from performance history and adapts selection",
         }
 
-        console.print(Panel(
-            f"[bold]{strategy_name.upper()}[/bold]\n\n{strategy_desc.get(strategy_name, '')}",
-            title="Strategy Description",
-            border_style="blue"
-        ))
+        console.print(
+            Panel(
+                f"[bold]{strategy_name.upper()}[/bold]\n\n{strategy_desc.get(strategy_name, '')}",
+                title="Strategy Description",
+                border_style="blue",
+            )
+        )
         console.print()
 
     except ImportError as e:
@@ -428,22 +413,9 @@ def strategy(strategy_name, enable_multi_model, disable_multi_model):
 
 
 @models.command(name="fallback")
-@click.option(
-    "--enable",
-    is_flag=True,
-    help="Enable fallback"
-)
-@click.option(
-    "--disable",
-    is_flag=True,
-    help="Disable fallback"
-)
-@click.option(
-    "--list",
-    "list_chain",
-    is_flag=True,
-    help="List fallback chain"
-)
+@click.option("--enable", is_flag=True, help="Enable fallback")
+@click.option("--disable", is_flag=True, help="Disable fallback")
+@click.option("--list", "list_chain", is_flag=True, help="List fallback chain")
 @handle_keyboard_interrupt
 def fallback(enable, disable, list_chain):
     """
@@ -489,10 +461,7 @@ def fallback(enable, disable, list_chain):
             fallback_chain = router.get_fallback_chain()
 
             console.print()
-            console.print(Panel.fit(
-                "[bold cyan]Fallback Chain[/bold cyan]",
-                border_style="cyan"
-            ))
+            console.print(Panel.fit("[bold cyan]Fallback Chain[/bold cyan]", border_style="cyan"))
             console.print()
 
             table = Table(border_style="blue")
@@ -504,9 +473,9 @@ def fallback(enable, disable, list_chain):
             for i, model in enumerate(fallback_chain, 1):
                 table.add_row(
                     str(i),
-                    model['name'],
-                    model['provider'],
-                    "✅ Active" if model.get('active') else "⏸️  Inactive"
+                    model["name"],
+                    model["provider"],
+                    "✅ Active" if model.get("active") else "⏸️  Inactive",
                 )
 
             console.print(table)

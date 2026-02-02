@@ -6,7 +6,7 @@ Consolidates duplicate response parsing patterns across agents and modules.
 """
 
 import logging
-from typing import Any, Dict, List, Optional, Callable
+from typing import Any, Callable, Dict, List, Optional
 
 from .text_processing import JsonExtractor
 
@@ -22,7 +22,7 @@ class ResponseParser:
         expected_fields: List[str],
         fallback_factory: Optional[Callable[[], Dict[str, Any]]] = None,
         validators: Optional[Dict[str, Callable[[Any], bool]]] = None,
-        required_fields: Optional[List[str]] = None
+        required_fields: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         """
         Parse and validate LLM response with field extraction.
@@ -60,10 +60,7 @@ class ResponseParser:
         try:
             # Use JsonExtractor for markdown/JSON parsing
             result = JsonExtractor.safe_parse(
-                response,
-                default={},
-                extract_markdown=True,
-                return_type=dict
+                response, default={}, extract_markdown=True, return_type=dict
             )
 
             # Validate result is a dict
@@ -85,7 +82,9 @@ class ResponseParser:
 
             # Check required fields
             if required_fields:
-                missing_fields = [f for f in required_fields if f not in result or result[f] is None]
+                missing_fields = [
+                    f for f in required_fields if f not in result or result[f] is None
+                ]
                 if missing_fields:
                     logger.warning(f"Missing required fields: {missing_fields}")
                     if fallback_factory:
@@ -118,7 +117,7 @@ class ResponseParser:
         fields: List[str],
         status: str = "failed",
         list_fields: Optional[List[str]] = None,
-        dict_fields: Optional[List[str]] = None
+        dict_fields: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         """
         Create empty response with specified fields.
@@ -152,7 +151,14 @@ class ResponseParser:
                 result[field] = []
             elif field in dict_fields_set:
                 result[field] = {}
-            elif field.endswith('s') or field in ['components', 'dependencies', 'gaps', 'features', 'tasks', 'agents']:
+            elif field.endswith("s") or field in [
+                "components",
+                "dependencies",
+                "gaps",
+                "features",
+                "tasks",
+                "agents",
+            ]:
                 # Infer list from field name
                 result[field] = []
             else:
@@ -190,9 +196,7 @@ class ResponseParser:
 
     @staticmethod
     def parse_list_response(
-        response: Any,
-        item_key: Optional[str] = None,
-        fallback: Optional[List[Any]] = None
+        response: Any, item_key: Optional[str] = None, fallback: Optional[List[Any]] = None
     ) -> List[Any]:
         """
         Parse response expected to be a list.
@@ -214,9 +218,7 @@ class ResponseParser:
         """
         try:
             result = JsonExtractor.safe_parse(
-                response,
-                default=fallback or [],
-                extract_markdown=True
+                response, default=fallback or [], extract_markdown=True
             )
 
             # If expecting a list but got dict with item_key

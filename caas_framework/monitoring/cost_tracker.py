@@ -5,15 +5,16 @@ Detailed tracking of LLM usage costs.
 """
 
 import logging
-from typing import Dict, List, Optional, Any
+from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from collections import defaultdict
+from typing import Any, Dict, List, Optional
 
 
 @dataclass
 class CostEntry:
     """Single cost entry"""
+
     timestamp: datetime
     model: str
     operation: str  # e.g., "llm_call", "validation", "refinement"
@@ -28,6 +29,7 @@ class CostEntry:
 @dataclass
 class CostSummary:
     """Cost summary"""
+
     total_cost_usd: float
     total_tokens: int
     total_calls: int
@@ -73,7 +75,7 @@ class CostTracker:
         tokens_output: int,
         operation: str = "llm_call",
         phase: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
     ) -> float:
         """
         Record LLM usage and calculate cost.
@@ -102,28 +104,22 @@ class CostTracker:
             tokens_total=tokens_input + tokens_output,
             cost_usd=cost,
             phase=phase,
-            metadata=metadata or {}
+            metadata=metadata or {},
         )
 
         self.entries.append(entry)
-        
+
         self.logger.debug(
-            f"💰 Cost recorded: {model} - ${cost:.4f} "
-            f"({tokens_input}+{tokens_output} tokens)"
+            f"💰 Cost recorded: {model} - ${cost:.4f} " f"({tokens_input}+{tokens_output} tokens)"
         )
 
         return cost
 
-    def _calculate_cost(
-        self,
-        model: str,
-        tokens_input: int,
-        tokens_output: int
-    ) -> float:
+    def _calculate_cost(self, model: str, tokens_input: int, tokens_output: int) -> float:
         """Calculate cost for model usage"""
         # Get pricing for model
         pricing = self.MODEL_PRICING.get(model)
-        
+
         if not pricing:
             self.logger.warning(f"No pricing for model: {model}, using GPT-3.5 pricing")
             pricing = self.MODEL_PRICING["gpt-3.5-turbo"]
@@ -135,9 +131,7 @@ class CostTracker:
         return input_cost + output_cost
 
     def get_summary(
-        self,
-        since: Optional[datetime] = None,
-        until: Optional[datetime] = None
+        self, since: Optional[datetime] = None, until: Optional[datetime] = None
     ) -> CostSummary:
         """
         Get cost summary for time period.
@@ -162,7 +156,7 @@ class CostTracker:
                 by_model={},
                 by_phase={},
                 by_operation={},
-                time_period=self._format_time_period(since, until)
+                time_period=self._format_time_period(since, until),
             )
 
         # Calculate totals
@@ -201,7 +195,7 @@ class CostTracker:
             by_model=dict(by_model),
             by_phase=dict(by_phase),
             by_operation=dict(by_operation),
-            time_period=self._format_time_period(since, until)
+            time_period=self._format_time_period(since, until),
         )
 
     def get_daily_costs(self, days: int = 7) -> List[Dict[str, Any]]:
@@ -215,21 +209,23 @@ class CostTracker:
             List of daily summaries
         """
         daily_costs = []
-        
+
         for i in range(days):
-            day_start = datetime.now() - timedelta(days=i+1)
+            day_start = datetime.now() - timedelta(days=i + 1)
             day_end = datetime.now() - timedelta(days=i)
-            
+
             day_entries = self._filter_by_time(day_start, day_end)
             day_cost = sum(e.cost_usd for e in day_entries)
             day_tokens = sum(e.tokens_total for e in day_entries)
-            
-            daily_costs.append({
-                "date": day_start.strftime("%Y-%m-%d"),
-                "cost_usd": day_cost,
-                "tokens": day_tokens,
-                "calls": len(day_entries)
-            })
+
+            daily_costs.append(
+                {
+                    "date": day_start.strftime("%Y-%m-%d"),
+                    "cost_usd": day_cost,
+                    "tokens": day_tokens,
+                    "calls": len(day_entries),
+                }
+            )
 
         return list(reversed(daily_costs))
 
@@ -251,13 +247,11 @@ class CostTracker:
             "spent_usd": summary.total_cost_usd,
             "remaining_usd": budget_usd - summary.total_cost_usd,
             "percentage_used": percentage,
-            "over_budget": summary.total_cost_usd > budget_usd
+            "over_budget": summary.total_cost_usd > budget_usd,
         }
 
     def _filter_by_time(
-        self,
-        since: Optional[datetime],
-        until: Optional[datetime]
+        self, since: Optional[datetime], until: Optional[datetime]
     ) -> List[CostEntry]:
         """Filter entries by time range"""
         entries = self.entries
@@ -270,11 +264,7 @@ class CostTracker:
 
         return entries
 
-    def _format_time_period(
-        self,
-        since: Optional[datetime],
-        until: Optional[datetime]
-    ) -> str:
+    def _format_time_period(self, since: Optional[datetime], until: Optional[datetime]) -> str:
         """Format time period string"""
         if since and until:
             return f"{since.strftime('%Y-%m-%d')} to {until.strftime('%Y-%m-%d')}"
@@ -297,7 +287,7 @@ class CostTracker:
                 "tokens_output": e.tokens_output,
                 "tokens_total": e.tokens_total,
                 "cost_usd": e.cost_usd,
-                "metadata": e.metadata
+                "metadata": e.metadata,
             }
             for e in self.entries
         ]

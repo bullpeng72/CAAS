@@ -4,41 +4,22 @@ Env Command
 Manage .env file configuration for CAAS projects.
 """
 
-import click
 from pathlib import Path
-from caas_cli.utils import (
-    echo_success,
-    echo_error,
-    echo_info,
-    echo_warning
-)
+
+import click
+from caas_cli.utils import echo_error, echo_info, echo_success, echo_warning
 
 
 @click.command()
 @click.option(
-    "--create",
-    "-c",
-    is_flag=True,
-    help="Create .env file from template in current directory"
+    "--create", "-c", is_flag=True, help="Create .env file from template in current directory"
 )
 @click.option(
-    "--show",
-    "-s",
-    is_flag=True,
-    help="Show required environment variables and their descriptions"
+    "--show", "-s", is_flag=True, help="Show required environment variables and their descriptions"
 )
+@click.option("--validate", "-v", is_flag=True, help="Validate existing .env file")
 @click.option(
-    "--validate",
-    "-v",
-    is_flag=True,
-    help="Validate existing .env file"
-)
-@click.option(
-    "--path",
-    "-p",
-    type=click.Path(),
-    default=".env",
-    help="Path to .env file (default: .env)"
+    "--path", "-p", type=click.Path(), default=".env", help="Path to .env file (default: .env)"
 )
 def env(create, show, validate, path):
     """
@@ -169,11 +150,13 @@ def env(create, show, validate, path):
 
 def _show_env_info():
     """Show environment variables information"""
-    click.echo("""
+    click.echo(
+        """
 ╔══════════════════════════════════════════════════════════════╗
 ║           CAAS Environment Variables Reference               ║
 ╚══════════════════════════════════════════════════════════════╝
-""")
+"""
+    )
 
     click.echo("🔑 REQUIRED:")
     click.echo("─────────────────────────────────────────────────────────────")
@@ -290,11 +273,13 @@ OPENAI_API_KEY=sk-proj-your-key-here
 
 def _validate_env_file(env_path: Path):
     """Validate .env file"""
-    click.echo(f"""
+    click.echo(
+        f"""
 ╔══════════════════════════════════════════════════════════════╗
 ║              .env File Validation                            ║
 ╚══════════════════════════════════════════════════════════════╝
-""")
+"""
+    )
 
     echo_info(f"Checking: {env_path}")
     click.echo()
@@ -309,6 +294,7 @@ def _validate_env_file(env_path: Path):
 
     # Check file permissions
     import stat
+
     mode = env_path.stat().st_mode
     if mode & stat.S_IROTH or mode & stat.S_IRGRP:
         echo_warning("⚠ File permissions too open (readable by others)")
@@ -319,12 +305,16 @@ def _validate_env_file(env_path: Path):
     # Read and parse .env
     try:
         content = env_path.read_text()
-        lines = [line.strip() for line in content.split('\n') if line.strip() and not line.strip().startswith('#')]
+        lines = [
+            line.strip()
+            for line in content.split("\n")
+            if line.strip() and not line.strip().startswith("#")
+        ]
 
         env_vars = {}
         for line in lines:
-            if '=' in line:
-                key, value = line.split('=', 1)
+            if "=" in line:
+                key, value = line.split("=", 1)
                 env_vars[key.strip()] = value.strip()
 
         # Check required variables
@@ -332,9 +322,9 @@ def _validate_env_file(env_path: Path):
         click.echo("🔑 Required Variables:")
         click.echo("─────────────────────────────────────────────────────────────")
 
-        if 'OPENAI_API_KEY' in env_vars:
-            key_value = env_vars['OPENAI_API_KEY']
-            if key_value and key_value != 'sk-proj-your-key-here' and key_value.startswith('sk-'):
+        if "OPENAI_API_KEY" in env_vars:
+            key_value = env_vars["OPENAI_API_KEY"]
+            if key_value and key_value != "sk-proj-your-key-here" and key_value.startswith("sk-"):
                 echo_success("✓ OPENAI_API_KEY is set")
             else:
                 echo_error("✗ OPENAI_API_KEY is not set or using placeholder")
@@ -349,12 +339,12 @@ def _validate_env_file(env_path: Path):
         click.echo("─────────────────────────────────────────────────────────────")
 
         optional_vars = {
-            'ANTHROPIC_API_KEY': 'Anthropic Claude API',
-            'CAAS_API_KEY': 'CAAS API authentication',
-            'CAAS_API_URL': 'CAAS API server URL',
-            'CAAS_DEFAULT_DOMAIN': 'Default domain',
-            'CAAS_DEFAULT_DEPLOYMENT': 'Default deployment target',
-            'CAAS_OUTPUT_DIR': 'Default output directory'
+            "ANTHROPIC_API_KEY": "Anthropic Claude API",
+            "CAAS_API_KEY": "CAAS API authentication",
+            "CAAS_API_URL": "CAAS API server URL",
+            "CAAS_DEFAULT_DOMAIN": "Default domain",
+            "CAAS_DEFAULT_DEPLOYMENT": "Default deployment target",
+            "CAAS_OUTPUT_DIR": "Default output directory",
         }
 
         for var, description in optional_vars.items():

@@ -4,66 +4,57 @@ CAAS Framework Models
 Data models used throughout the framework.
 """
 
-from caas_framework.models.validation import (
-    ValidationIssue,
-    ValidationSeverity,
-    ValidationResult,
-    GoldenValidationReport,
-    MissingItem,
-    ExtraItem,
-    MismatchedItem,
-    ComplianceStatus,
-    DependencyIssue,
+from caas_framework.models.analysis import (
+    AgentRequirement,
+    ArchitecturalPattern,
+    ArchitectureDesign,
+    BackendAPIRequirement,
+    ComponentSpec,
+    ComponentType,
+    DataFlow,
+    HTTPMethod,
+    LLMConfigSpec,
+    ProjectTemplate,
+    QualityMetrics,
+    RequirementAnalysis,
+    TaskRequirement,
+    TechnologyStack,
+    UIComponentRequirement,
+    UIPageRequirement,
+    WorkflowType,
 )
-
+from caas_framework.models.artifact_types import (
+    Artifact,
+    ArtifactFormat,
+    ArtifactGenerationConfig,
+    ArtifactMetadata,
+    ArtifactType,
+)
+from caas_framework.models.domain_types import DomainClassification, DomainType, ExecutionPattern
 from caas_framework.models.specifications import (
     AgentSpecModel,
-    TaskSpecModel,
     ConcretizedRequirement,
-    FeatureSpec,
     DataModel,
+    FeatureSpec,
     NonFunctionalRequirements,
+    TaskSpecModel,
 )
-
-from caas_framework.models.artifact_types import (
-    ArtifactType,
-    ArtifactFormat,
-    ArtifactMetadata,
-    Artifact,
-    ArtifactGenerationConfig,
-)
-
-from caas_framework.models.domain_types import (
-    DomainType,
-    ExecutionPattern,
-    DomainClassification,
-)
-
 from caas_framework.models.tool_registry import (
-    ToolMetadata,
     MCPServerConfig,
+    ToolMetadata,
     ToolRegistry,
     get_tool_registry,
 )
-
-from caas_framework.models.analysis import (
-    RequirementAnalysis,
-    ArchitectureDesign,
-    QualityMetrics,
-    AgentRequirement,
-    TaskRequirement,
-    UIComponentRequirement,
-    UIPageRequirement,
-    BackendAPIRequirement,
-    WorkflowType,
-    ProjectTemplate,
-    HTTPMethod,
-    LLMConfigSpec,
-    ArchitecturalPattern,
-    ComponentType,
-    ComponentSpec,
-    DataFlow,
-    TechnologyStack,
+from caas_framework.models.validation import (
+    ComplianceStatus,
+    DependencyIssue,
+    ExtraItem,
+    GoldenValidationReport,
+    MismatchedItem,
+    MissingItem,
+    ValidationIssue,
+    ValidationResult,
+    ValidationSeverity,
 )
 
 __all__ = [

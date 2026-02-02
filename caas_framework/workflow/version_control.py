@@ -5,14 +5,15 @@ Integrates workflow state with Git for version tracking and collaboration.
 """
 
 import subprocess
-from pathlib import Path
-from typing import Optional, List, Dict, Any
 from dataclasses import dataclass, field
 from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 # Import ConfigLoader for timeout configuration
 try:
     from caas_framework.config.loader import get_config_loader
+
     _has_config_loader = True
 except ImportError:
     _has_config_loader = False
@@ -21,6 +22,7 @@ except ImportError:
 @dataclass
 class GitCommit:
     """Git commit information"""
+
     commit_hash: str
     author: str
     date: datetime
@@ -31,6 +33,7 @@ class GitCommit:
 @dataclass
 class GitStatus:
     """Git repository status"""
+
     branch: str
     is_clean: bool
     modified_files: List[str] = field(default_factory=list)
@@ -51,10 +54,7 @@ class GitIntegration:
     """
 
     def __init__(
-        self,
-        repo_path: str = ".",
-        auto_commit: bool = False,
-        commit_prefix: str = "[CAAS]"
+        self, repo_path: str = ".", auto_commit: bool = False, commit_prefix: str = "[CAAS]"
     ):
         """
         Initialize Git integration.
@@ -86,7 +86,9 @@ class GitIntegration:
             Timeout in seconds
         """
         if self._config_loader:
-            return self._config_loader.get_timeout(f"version_control_{timeout_type}", default=default)
+            return self._config_loader.get_timeout(
+                f"version_control_{timeout_type}", default=default
+            )
         return default
 
         # Check if repo is initialized
@@ -101,7 +103,7 @@ class GitIntegration:
                 ["git", "--version"],
                 capture_output=True,
                 text=True,
-                timeout=self._get_timeout("git", 5)
+                timeout=self._get_timeout("git", 5),
             )
             return result.returncode == 0
         except (subprocess.TimeoutExpired, FileNotFoundError, OSError) as e:
@@ -119,7 +121,7 @@ class GitIntegration:
                 cwd=self.repo_path,
                 capture_output=True,
                 text=True,
-                timeout=self._get_timeout("git", 5)
+                timeout=self._get_timeout("git", 5),
             )
             return result.returncode == 0
         except (subprocess.TimeoutExpired, FileNotFoundError, OSError) as e:
@@ -147,7 +149,7 @@ class GitIntegration:
                 cwd=self.repo_path,
                 capture_output=True,
                 text=True,
-                timeout=self._get_timeout("commit", 10)
+                timeout=self._get_timeout("commit", 10),
             )
 
             if result.returncode == 0:
@@ -193,7 +195,7 @@ class GitIntegration:
                 cwd=self.repo_path,
                 capture_output=True,
                 text=True,
-                timeout=self._get_timeout("git", 5)
+                timeout=self._get_timeout("git", 5),
             )
             branch = branch_result.stdout.strip() if branch_result.returncode == 0 else "unknown"
 
@@ -203,7 +205,7 @@ class GitIntegration:
                 cwd=self.repo_path,
                 capture_output=True,
                 text=True,
-                timeout=self._get_timeout("commit", 10)
+                timeout=self._get_timeout("commit", 10),
             )
 
             if status_result.returncode != 0:
@@ -214,18 +216,18 @@ class GitIntegration:
             untracked_files = []
             staged_files = []
 
-            for line in status_result.stdout.strip().split('\n'):
+            for line in status_result.stdout.strip().split("\n"):
                 if not line:
                     continue
 
                 status_code = line[:2]
                 filename = line[3:]
 
-                if status_code[0] in ['M', 'A', 'D', 'R', 'C']:
+                if status_code[0] in ["M", "A", "D", "R", "C"]:
                     staged_files.append(filename)
-                if status_code[1] == 'M':
+                if status_code[1] == "M":
                     modified_files.append(filename)
-                if status_code == '??':
+                if status_code == "??":
                     untracked_files.append(filename)
 
             is_clean = not (modified_files or untracked_files or staged_files)
@@ -235,7 +237,7 @@ class GitIntegration:
                 is_clean=is_clean,
                 modified_files=modified_files,
                 untracked_files=untracked_files,
-                staged_files=staged_files
+                staged_files=staged_files,
             )
 
         except (subprocess.TimeoutExpired, OSError, ValueError) as e:
@@ -253,7 +255,7 @@ class GitIntegration:
                 cwd=self.repo_path,
                 capture_output=True,
                 text=True,
-                timeout=self._get_timeout("git", 5)
+                timeout=self._get_timeout("git", 5),
             )
 
             if result.returncode == 0:
@@ -284,24 +286,24 @@ class GitIntegration:
                 cwd=self.repo_path,
                 capture_output=True,
                 text=True,
-                timeout=self._get_timeout("commit", 10)
+                timeout=self._get_timeout("commit", 10),
             )
 
             if result.returncode != 0:
                 return []
 
             commits = []
-            for line in result.stdout.strip().split('\n'):
+            for line in result.stdout.strip().split("\n"):
                 if not line:
                     continue
 
-                parts = line.split('|')
+                parts = line.split("|")
                 if len(parts) >= 4:
                     commit = GitCommit(
                         commit_hash=parts[0],
                         author=parts[1],
-                        date=datetime.fromisoformat(parts[2].replace(' ', 'T', 1)),
-                        message=parts[3]
+                        date=datetime.fromisoformat(parts[2].replace(" ", "T", 1)),
+                        message=parts[3],
                     )
                     commits.append(commit)
 
@@ -314,10 +316,7 @@ class GitIntegration:
     # ========== Commit Operations ==========
 
     def commit_file(
-        self,
-        file_path: str,
-        message: str,
-        author: Optional[str] = None
+        self, file_path: str, message: str, author: Optional[str] = None
     ) -> Optional[str]:
         """
         Commit a single file.
@@ -339,7 +338,7 @@ class GitIntegration:
                 ["git", "add", file_path],
                 cwd=self.repo_path,
                 capture_output=True,
-                timeout=self._get_timeout("commit", 10)
+                timeout=self._get_timeout("commit", 10),
             )
 
             # Commit
@@ -352,7 +351,7 @@ class GitIntegration:
                 cwd=self.repo_path,
                 capture_output=True,
                 text=True,
-                timeout=self._get_timeout("commit", 10)
+                timeout=self._get_timeout("commit", 10),
             )
 
             if result.returncode == 0:
@@ -364,11 +363,7 @@ class GitIntegration:
             # Failed to commit file
             return None
 
-    def commit_all(
-        self,
-        message: str,
-        include_untracked: bool = False
-    ) -> Optional[str]:
+    def commit_all(self, message: str, include_untracked: bool = False) -> Optional[str]:
         """
         Commit all changes.
 
@@ -389,7 +384,7 @@ class GitIntegration:
                 add_cmd,
                 cwd=self.repo_path,
                 capture_output=True,
-                timeout=self._get_timeout("commit", 10)
+                timeout=self._get_timeout("commit", 10),
             )
 
             # Commit
@@ -398,7 +393,7 @@ class GitIntegration:
                 cwd=self.repo_path,
                 capture_output=True,
                 text=True,
-                timeout=self._get_timeout("commit", 10)
+                timeout=self._get_timeout("commit", 10),
             )
 
             if result.returncode == 0:
@@ -411,10 +406,7 @@ class GitIntegration:
             return None
 
     def commit_checkpoint(
-        self,
-        checkpoint_id: str,
-        phase: str,
-        metadata: Optional[Dict[str, Any]] = None
+        self, checkpoint_id: str, phase: str, metadata: Optional[Dict[str, Any]] = None
     ) -> Optional[str]:
         """
         Commit a checkpoint to Git.
@@ -459,7 +451,7 @@ class GitIntegration:
                 cmd,
                 cwd=self.repo_path,
                 capture_output=True,
-                timeout=self._get_timeout("commit", 10)
+                timeout=self._get_timeout("commit", 10),
             )
 
             return result.returncode == 0
@@ -492,7 +484,7 @@ class GitIntegration:
                 cmd,
                 cwd=self.repo_path,
                 capture_output=True,
-                timeout=self._get_timeout("commit", 10)
+                timeout=self._get_timeout("commit", 10),
             )
 
             return result.returncode == 0
@@ -512,16 +504,16 @@ class GitIntegration:
                 cwd=self.repo_path,
                 capture_output=True,
                 text=True,
-                timeout=self._get_timeout("git", 5)
+                timeout=self._get_timeout("git", 5),
             )
 
             if result.returncode != 0:
                 return []
 
             branches = []
-            for line in result.stdout.strip().split('\n'):
+            for line in result.stdout.strip().split("\n"):
                 # Remove * for current branch
-                branch = line.strip().lstrip('* ')
+                branch = line.strip().lstrip("* ")
                 if branch:
                     branches.append(branch)
 
@@ -554,7 +546,7 @@ class GitIntegration:
                 ["git", "reset", reset_type, commit_hash],
                 cwd=self.repo_path,
                 capture_output=True,
-                timeout=self._get_timeout("commit", 10)
+                timeout=self._get_timeout("commit", 10),
             )
 
             return result.returncode == 0
@@ -567,7 +559,7 @@ class GitIntegration:
         self,
         from_commit: Optional[str] = None,
         to_commit: Optional[str] = None,
-        file_path: Optional[str] = None
+        file_path: Optional[str] = None,
     ) -> Optional[str]:
         """
         Get diff between commits.
@@ -598,7 +590,7 @@ class GitIntegration:
                 cwd=self.repo_path,
                 capture_output=True,
                 text=True,
-                timeout=self._get_timeout("commit", 15)
+                timeout=self._get_timeout("commit", 15),
             )
 
             if result.returncode == 0:
@@ -613,10 +605,7 @@ class GitIntegration:
     # ========== Tag Operations ==========
 
     def create_tag(
-        self,
-        tag_name: str,
-        message: Optional[str] = None,
-        commit: Optional[str] = None
+        self, tag_name: str, message: Optional[str] = None, commit: Optional[str] = None
     ) -> bool:
         """
         Create a Git tag.
@@ -647,7 +636,7 @@ class GitIntegration:
                 cmd,
                 cwd=self.repo_path,
                 capture_output=True,
-                timeout=self._get_timeout("commit", 10)
+                timeout=self._get_timeout("commit", 10),
             )
 
             return result.returncode == 0
@@ -667,13 +656,13 @@ class GitIntegration:
                 cwd=self.repo_path,
                 capture_output=True,
                 text=True,
-                timeout=self._get_timeout("git", 5)
+                timeout=self._get_timeout("git", 5),
             )
 
             if result.returncode != 0:
                 return []
 
-            return [tag.strip() for tag in result.stdout.strip().split('\n') if tag.strip()]
+            return [tag.strip() for tag in result.stdout.strip().split("\n") if tag.strip()]
 
         except (subprocess.TimeoutExpired, OSError) as e:
             # Failed to list tags
@@ -691,7 +680,7 @@ class GitIntegration:
                 ["git", "remote", "add", name, url],
                 cwd=self.repo_path,
                 capture_output=True,
-                timeout=self._get_timeout("commit", 10)
+                timeout=self._get_timeout("commit", 10),
             )
 
             return result.returncode == 0
@@ -701,10 +690,7 @@ class GitIntegration:
             return False
 
     def push(
-        self,
-        remote: str = "origin",
-        branch: Optional[str] = None,
-        tags: bool = False
+        self, remote: str = "origin", branch: Optional[str] = None, tags: bool = False
     ) -> bool:
         """
         Push to remote repository.
@@ -730,10 +716,7 @@ class GitIntegration:
                 cmd.append("--tags")
 
             result = subprocess.run(
-                cmd,
-                cwd=self.repo_path,
-                capture_output=True,
-                timeout=self._get_timeout("push", 30)
+                cmd, cwd=self.repo_path, capture_output=True, timeout=self._get_timeout("push", 30)
             )
 
             return result.returncode == 0
@@ -763,10 +746,7 @@ class GitIntegration:
                 cmd.append(branch)
 
             result = subprocess.run(
-                cmd,
-                cwd=self.repo_path,
-                capture_output=True,
-                timeout=self._get_timeout("push", 30)
+                cmd, cwd=self.repo_path, capture_output=True, timeout=self._get_timeout("push", 30)
             )
 
             return result.returncode == 0
@@ -785,10 +765,7 @@ class GitIntegration:
     def get_repository_info(self) -> Dict[str, Any]:
         """Get comprehensive repository information"""
         if not self.repo_initialized:
-            return {
-                "initialized": False,
-                "git_available": self.git_available
-            }
+            return {"initialized": False, "git_available": self.git_available}
 
         status = self.get_status()
         current_commit = self.get_current_commit()

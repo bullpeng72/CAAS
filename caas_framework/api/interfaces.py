@@ -5,13 +5,14 @@ Defines protocols and interfaces that UIs must implement
 to interact with the CAAS Framework.
 """
 
-from typing import Protocol, Dict, Any, Optional
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any, Dict, Optional, Protocol
 
 
 class UIEvent(Enum):
     """Events sent from Framework to UI"""
+
     # Progress events
     PHASE_STARTED = "phase.started"
     PHASE_PROGRESS = "phase.progress"
@@ -31,6 +32,7 @@ class UIEvent(Enum):
 @dataclass
 class EventData:
     """Event data sent to UI"""
+
     event_type: UIEvent
     phase: Optional[str] = None
     message: Optional[str] = None
@@ -58,6 +60,7 @@ class UICallback(Protocol):
 
 class ReviewType(Enum):
     """Review types for Plan Mode"""
+
     REQUIREMENTS = "requirements"
     DESIGN = "design"
     CODE = "code"
@@ -70,6 +73,7 @@ class ReviewRequest:
 
     Contains all data needed for UI to display review.
     """
+
     review_type: ReviewType
     data: Dict[str, Any]  # UI-independent data structure
     options: list[str]  # Available options: ["approve", "edit", "reject"]

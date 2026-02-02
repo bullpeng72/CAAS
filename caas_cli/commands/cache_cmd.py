@@ -5,16 +5,16 @@ Manage caching system - statistics, clearing, configuration.
 """
 
 import click
-from rich.console import Console
-from rich.table import Table
-from rich.panel import Panel
 from caas_cli.utils import (
-    echo_success,
     echo_error,
     echo_info,
+    echo_success,
     echo_warning,
     handle_keyboard_interrupt,
 )
+from rich.console import Console
+from rich.panel import Panel
+from rich.table import Table
 
 console = Console()
 
@@ -61,18 +61,13 @@ def cache():
 
 
 @cache.command(name="stats")
-@click.option(
-    "--verbose",
-    "-v",
-    is_flag=True,
-    help="Show detailed statistics"
-)
+@click.option("--verbose", "-v", is_flag=True, help="Show detailed statistics")
 @click.option(
     "--type",
     "-t",
     type=click.Choice(["llm", "validation", "golden_data", "phase_output", "all"]),
     default="all",
-    help="Cache type to show statistics for"
+    help="Cache type to show statistics for",
 )
 @handle_keyboard_interrupt
 def stats(verbose, type):
@@ -98,10 +93,7 @@ def stats(verbose, type):
         stats_data = cache_manager.get_statistics(cache_type=type if type != "all" else None)
 
         console.print()
-        console.print(Panel.fit(
-            "[bold cyan]Cache Statistics[/bold cyan]",
-            border_style="cyan"
-        ))
+        console.print(Panel.fit("[bold cyan]Cache Statistics[/bold cyan]", border_style="cyan"))
         console.print()
 
         if type == "all":
@@ -113,16 +105,26 @@ def stats(verbose, type):
             _display_cache_stats(type, stats_data, verbose)
 
         # Overall summary
-        total_entries = sum(s.get("entries", 0) for s in stats_data.values()) if isinstance(stats_data, dict) else stats_data.get("entries", 0)
-        total_size = sum(s.get("size_mb", 0) for s in stats_data.values()) if isinstance(stats_data, dict) else stats_data.get("size_mb", 0)
+        total_entries = (
+            sum(s.get("entries", 0) for s in stats_data.values())
+            if isinstance(stats_data, dict)
+            else stats_data.get("entries", 0)
+        )
+        total_size = (
+            sum(s.get("size_mb", 0) for s in stats_data.values())
+            if isinstance(stats_data, dict)
+            else stats_data.get("size_mb", 0)
+        )
 
         console.print()
-        console.print(Panel(
-            f"[bold]Total Entries:[/bold] {total_entries}\n"
-            f"[bold]Total Size:[/bold] {total_size:.2f} MB",
-            title="Overall Summary",
-            border_style="green"
-        ))
+        console.print(
+            Panel(
+                f"[bold]Total Entries:[/bold] {total_entries}\n"
+                f"[bold]Total Size:[/bold] {total_size:.2f} MB",
+                title="Overall Summary",
+                border_style="green",
+            )
+        )
         console.print()
 
     except ImportError as e:
@@ -133,6 +135,7 @@ def stats(verbose, type):
         echo_error(f"Failed to get cache statistics: {e}")
         if verbose:
             import traceback
+
             echo_error(traceback.format_exc())
         return 1
 
@@ -165,14 +168,9 @@ def _display_cache_stats(cache_type: str, stats: dict, verbose: bool = False):
     "-t",
     type=click.Choice(["llm", "validation", "golden_data", "phase_output", "all"]),
     default="all",
-    help="Cache type to clear"
+    help="Cache type to clear",
 )
-@click.option(
-    "--force",
-    "-f",
-    is_flag=True,
-    help="Skip confirmation"
-)
+@click.option("--force", "-f", is_flag=True, help="Skip confirmation")
 @handle_keyboard_interrupt
 def clear(type, force):
     """
@@ -217,18 +215,9 @@ def clear(type, force):
 
 @cache.command(name="config")
 @click.option(
-    "--set",
-    "-s",
-    type=(str, str),
-    multiple=True,
-    help="Set cache configuration (key value)"
+    "--set", "-s", type=(str, str), multiple=True, help="Set cache configuration (key value)"
 )
-@click.option(
-    "--get",
-    "-g",
-    type=str,
-    help="Get specific configuration value"
-)
+@click.option("--get", "-g", type=str, help="Get specific configuration value")
 @handle_keyboard_interrupt
 def config(set, get):
     """
@@ -293,10 +282,7 @@ def config(set, get):
 
         # Display all configuration
         console.print()
-        console.print(Panel.fit(
-            "[bold cyan]Cache Configuration[/bold cyan]",
-            border_style="cyan"
-        ))
+        console.print(Panel.fit("[bold cyan]Cache Configuration[/bold cyan]", border_style="cyan"))
         console.print()
 
         table = Table(border_style="blue")

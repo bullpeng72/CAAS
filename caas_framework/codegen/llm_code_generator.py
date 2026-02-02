@@ -5,12 +5,13 @@ Uses LLM to generate actual business logic code for agents, tasks, and tools.
 """
 
 from typing import Dict, List, Optional
-from caas_framework.plugins.llm.base import LLMPlugin
+
 from caas_framework.models.specifications import (
-    ConcretizedRequirement,
     AgentSpecModel,
+    ConcretizedRequirement,
     TaskSpecModel,
 )
+from caas_framework.plugins.llm.base import LLMPlugin
 from caas_framework.utils.logger import get_logger
 
 
@@ -36,9 +37,7 @@ class LLMCodeGenerator:
         self.logger = get_logger(__name__)
 
     async def generate_custom_tools(
-        self,
-        agents: List[AgentSpecModel],
-        golden_data: Optional[ConcretizedRequirement] = None
+        self, agents: List[AgentSpecModel], golden_data: Optional[ConcretizedRequirement] = None
     ) -> str:
         """
         Generate custom tool implementations for agents with fallback.
@@ -75,10 +74,11 @@ class LLMCodeGenerator:
             # Call LLM
             self.logger.info("🤖 Calling LLM for tool generation...")
             from caas_framework.plugins.llm.base import LLMMessage
+
             response = await self.llm.ainvoke(
                 messages=[LLMMessage(role="user", content=prompt)],
                 temperature=0.3,  # Lower temperature for code generation
-                max_tokens=4000
+                max_tokens=4000,
             )
 
             # Extract and validate code
@@ -105,7 +105,7 @@ class LLMCodeGenerator:
         self,
         task: TaskSpecModel,
         agent: AgentSpecModel,
-        golden_data: Optional[ConcretizedRequirement] = None
+        golden_data: Optional[ConcretizedRequirement] = None,
     ) -> Dict[str, str]:
         """
         Generate business logic code for a specific task.
@@ -159,24 +159,20 @@ Now generate the logic:
 """
 
         from caas_framework.plugins.llm.base import LLMMessage
+
         response = await self.llm.ainvoke(
-            messages=[LLMMessage(role="user", content=prompt)],
-            temperature=0.3,
-            max_tokens=2000
+            messages=[LLMMessage(role="user", content=prompt)], temperature=0.3, max_tokens=2000
         )
 
         code = self._extract_code_from_response(response.content)
 
-        return {
-            "task_logic": code,
-            "task_id": task.id
-        }
+        return {"task_logic": code, "task_id": task.id}
 
     async def generate_crud_api(
         self,
         golden_data: ConcretizedRequirement,
         agents: List[AgentSpecModel],
-        tasks: List[TaskSpecModel]
+        tasks: List[TaskSpecModel],
     ) -> Dict[str, str]:
         """
         Generate CRUD API endpoints for CRUD-based strategies.
@@ -202,10 +198,7 @@ Now generate the logic:
 
         return files
 
-    async def _generate_database_models(
-        self,
-        golden_data: ConcretizedRequirement
-    ) -> str:
+    async def _generate_database_models(self, golden_data: ConcretizedRequirement) -> str:
         """Generate SQLAlchemy database models from Golden Data."""
         if not golden_data.data_models:
             return self._generate_empty_models()
@@ -265,18 +258,14 @@ Now generate the models:
 """
 
         from caas_framework.plugins.llm.base import LLMMessage
+
         response = await self.llm.ainvoke(
-            messages=[LLMMessage(role="user", content=prompt)],
-            temperature=0.2,
-            max_tokens=4000
+            messages=[LLMMessage(role="user", content=prompt)], temperature=0.2, max_tokens=4000
         )
 
         return self._extract_code_from_response(response.content)
 
-    async def _generate_api_endpoints(
-        self,
-        golden_data: ConcretizedRequirement
-    ) -> str:
+    async def _generate_api_endpoints(self, golden_data: ConcretizedRequirement) -> str:
         """Generate FastAPI endpoints from Golden Data."""
         if not golden_data.features:
             return self._generate_empty_api()
@@ -348,11 +337,7 @@ def list_users(db: Session = Depends(get_db)):
 Now generate the API:
 """
 
-        response = await self.llm.generate(
-            prompt=prompt,
-            temperature=0.3,
-            max_tokens=4000
-        )
+        response = await self.llm.generate(prompt=prompt, temperature=0.3, max_tokens=4000)
 
         return self._extract_code_from_response(response)
 
@@ -452,7 +437,7 @@ def health():
         self,
         agents: List[AgentSpecModel],
         tools: set,
-        golden_data: Optional[ConcretizedRequirement]
+        golden_data: Optional[ConcretizedRequirement],
     ) -> str:
         """Build context for tool generation."""
         context_parts = []
@@ -475,7 +460,7 @@ def health():
         self,
         task: TaskSpecModel,
         agent: AgentSpecModel,
-        golden_data: Optional[ConcretizedRequirement]
+        golden_data: Optional[ConcretizedRequirement],
     ) -> str:
         """Build context for task logic generation."""
         context_parts = []
@@ -535,22 +520,24 @@ def health():
 
         # Fallback: Remove special chars, convert to CamelCase
         import re
-        clean_name = re.sub(r'[^a-zA-Z0-9가-힣\s]', '', tool_name)
+
+        clean_name = re.sub(r"[^a-zA-Z0-9가-힣\s]", "", tool_name)
         clean_name = clean_name.strip()
 
         # If still contains Korean, use hash
-        if re.search(r'[가-힣]', clean_name):
+        if re.search(r"[가-힣]", clean_name):
             import hashlib
+
             hash_suffix = hashlib.md5(tool_name.encode()).hexdigest()[:8]
             return f"CustomTool_{hash_suffix}"
 
         # Convert to CamelCase
         words = clean_name.split()
-        class_name = ''.join(word.capitalize() for word in words)
+        class_name = "".join(word.capitalize() for word in words)
 
         # Ensure it ends with 'Tool'
-        if not class_name.endswith('Tool'):
-            class_name += 'Tool'
+        if not class_name.endswith("Tool"):
+            class_name += "Tool"
 
         return class_name
 
@@ -560,7 +547,7 @@ def health():
         for class_name, original_name in sanitized_tools.items():
             tool_list.append(f"- {class_name} (for '{original_name}')")
 
-        tools_str = '\n'.join(tool_list)
+        tools_str = "\n".join(tool_list)
 
         return f"""Generate Python code for the following custom tools for a CrewAI project.
 
@@ -657,5 +644,5 @@ from typing import Any
             include_header=True,
             fallback_warning=True,  # Add "LLM generation failed" warning
             include_helper_functions=False,  # LLM path doesn't include helpers
-            return_type="dict"  # Return dict from _run method
+            return_type="dict",  # Return dict from _run method
         )

@@ -6,12 +6,12 @@ Control workflow execution
 
 import click
 from caas_cli.utils import (
-    echo_success,
     echo_error,
     echo_info,
+    echo_success,
     echo_warning,
     handle_keyboard_interrupt,
-    print_table
+    print_table,
 )
 
 
@@ -87,12 +87,7 @@ def resume(session_id):
 
 @workflow.command()
 @click.argument("session_id")
-@click.option(
-    "--verbose",
-    "-v",
-    is_flag=True,
-    help="Show detailed progress information"
-)
+@click.option("--verbose", "-v", is_flag=True, help="Show detailed progress information")
 @handle_keyboard_interrupt
 def progress(session_id, verbose):
     """
@@ -162,12 +157,7 @@ def progress(session_id, verbose):
 
 @workflow.command()
 @click.argument("session_id")
-@click.option(
-    "--force",
-    "-f",
-    is_flag=True,
-    help="Force cancel without confirmation"
-)
+@click.option("--force", "-f", is_flag=True, help="Force cancel without confirmation")
 @handle_keyboard_interrupt
 def cancel(session_id, force):
     """
@@ -211,7 +201,7 @@ def cancel(session_id, force):
     "--status",
     type=click.Choice(["running", "paused", "completed", "failed", "all"]),
     default="all",
-    help="Filter by status (default: all)"
+    help="Filter by status (default: all)",
 )
 @handle_keyboard_interrupt
 def list_workflows(status):
@@ -264,12 +254,7 @@ def list_workflows(status):
 
 @workflow.command()
 @click.argument("session_id")
-@click.option(
-    "--phase",
-    type=click.IntRange(0, 5),
-    required=True,
-    help="Phase to retry (0-5)"
-)
+@click.option("--phase", type=click.IntRange(0, 5), required=True, help="Phase to retry (0-5)")
 @handle_keyboard_interrupt
 def retry(session_id, phase):
     """

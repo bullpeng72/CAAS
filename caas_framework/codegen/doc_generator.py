@@ -5,19 +5,20 @@ Generates comprehensive documentation for generated projects.
 Supports Sphinx and MkDocs formats.
 """
 
-from typing import Dict, List
 from dataclasses import dataclass
+from typing import Dict, List
 
 from caas_framework.models.specifications import (
-    ConcretizedRequirement,
     AgentSpecModel,
-    TaskSpecModel
+    ConcretizedRequirement,
+    TaskSpecModel,
 )
 
 
 @dataclass
 class DocumentationConfig:
     """Documentation configuration"""
+
     format: str = "mkdocs"  # "mkdocs" or "sphinx"
     project_name: str = "My Project"
     author: str = "CAAS Framework"
@@ -37,7 +38,7 @@ class DocumentationGenerator:
         golden_data: ConcretizedRequirement,
         agents: List[AgentSpecModel],
         tasks: List[TaskSpecModel],
-        config: DocumentationConfig
+        config: DocumentationConfig,
     ) -> Dict[str, str]:
         """
         Generate all documentation files.
@@ -65,13 +66,15 @@ class DocumentationGenerator:
         golden_data: ConcretizedRequirement,
         agents: List[AgentSpecModel],
         tasks: List[TaskSpecModel],
-        config: DocumentationConfig
+        config: DocumentationConfig,
     ) -> Dict[str, str]:
         """Generate MkDocs documentation"""
         files = {}
 
         # mkdocs.yml
-        files["mkdocs.yml"] = f'''
+        files[
+            "mkdocs.yml"
+        ] = f"""
 site_name: {config.project_name} Documentation
 site_author: {config.author}
 site_description: Documentation for {config.project_name}
@@ -103,10 +106,12 @@ markdown_extensions:
   - pymdownx.superfences
   - admonition
   - codehilite
-'''
+"""
 
         # docs/index.md
-        files["docs/index.md"] = f'''# {golden_data.project_name or "Project"} Documentation
+        files[
+            "docs/index.md"
+        ] = f"""# {golden_data.project_name or "Project"} Documentation
 
 {golden_data.description}
 
@@ -135,10 +140,12 @@ python main.py
 This project uses a multi-agent architecture with {len(agents)} agents and {len(tasks)} tasks.
 
 See [Architecture Overview](architecture/overview.md) for more details.
-'''
+"""
 
         # docs/getting-started/installation.md
-        files["docs/getting-started/installation.md"] = '''# Installation
+        files[
+            "docs/getting-started/installation.md"
+        ] = """# Installation
 
 ## Prerequisites
 
@@ -164,10 +171,12 @@ OPENAI_API_KEY=your_api_key_here
 ```bash
 python -c "import crewai; print('CrewAI installed successfully')"
 ```
-'''
+"""
 
         # docs/getting-started/quickstart.md
-        files["docs/getting-started/quickstart.md"] = '''# Quick Start Guide
+        files[
+            "docs/getting-started/quickstart.md"
+        ] = """# Quick Start Guide
 
 ## Running the Application
 
@@ -190,10 +199,12 @@ Build and run with Docker:
 ```bash
 docker-compose up --build
 ```
-'''
+"""
 
         # docs/architecture/overview.md
-        files["docs/architecture/overview.md"] = f'''# Architecture Overview
+        files[
+            "docs/architecture/overview.md"
+        ] = f"""# Architecture Overview
 
 ## System Design
 
@@ -213,12 +224,12 @@ This project implements a multi-agent system using CrewAI.
 
 - **Target**: {golden_data.deployment_target}
 - **Containerization**: Docker support included
-'''
+"""
 
         # docs/architecture/agents.md
         agents_content = "# Agents\n\n"
         for agent in agents:
-            agents_content += f'''
+            agents_content += f"""
 ## {agent.role.title()}
 
 **ID**: `{agent.id}`
@@ -233,13 +244,13 @@ This project implements a multi-agent system using CrewAI.
 
 ---
 
-'''
+"""
         files["docs/architecture/agents.md"] = agents_content
 
         # docs/architecture/tasks.md
         tasks_content = "# Tasks\n\n"
         for task in tasks:
-            tasks_content += f'''
+            tasks_content += f"""
 ## {task.id}
 
 **Description**: {task.description}
@@ -254,11 +265,13 @@ This project implements a multi-agent system using CrewAI.
 
 ---
 
-'''
+"""
         files["docs/architecture/tasks.md"] = tasks_content
 
         # docs/api/reference.md
-        files["docs/api/reference.md"] = '''# API Reference
+        files[
+            "docs/api/reference.md"
+        ] = """# API Reference
 
 ## Core Modules
 
@@ -287,10 +300,12 @@ Execute the crew synchronously.
 Execute the crew asynchronously.
 
 **Returns**: Crew execution result (async)
-'''
+"""
 
         # docs/contributing.md
-        files["docs/contributing.md"] = '''# Contributing
+        files[
+            "docs/contributing.md"
+        ] = """# Contributing
 
 ## Development Setup
 
@@ -323,7 +338,7 @@ Execute the crew asynchronously.
 3. Make your changes
 4. Run tests
 5. Submit PR with description
-'''
+"""
 
         return files
 
@@ -332,13 +347,15 @@ Execute the crew asynchronously.
         golden_data: ConcretizedRequirement,
         agents: List[AgentSpecModel],
         tasks: List[TaskSpecModel],
-        config: DocumentationConfig
+        config: DocumentationConfig,
     ) -> Dict[str, str]:
         """Generate Sphinx documentation"""
         files = {}
 
         # conf.py
-        files["docs/conf.py"] = f'''
+        files[
+            "docs/conf.py"
+        ] = f"""
 # Configuration file for Sphinx documentation
 project = '{config.project_name}'
 author = '{config.author}'
@@ -355,10 +372,12 @@ exclude_patterns = []
 
 html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
-'''
+"""
 
         # index.rst
-        files["docs/index.rst"] = f'''
+        files[
+            "docs/index.rst"
+        ] = f"""
 {config.project_name} Documentation
 {'=' * len(config.project_name)}
 
@@ -379,6 +398,6 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-'''
+"""
 
         return files

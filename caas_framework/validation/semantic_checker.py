@@ -5,18 +5,18 @@ Validates that requirement specifications don't contain contradictory or
 incompatible requirements, improving design quality.
 """
 
-from typing import List, Dict, Optional, Any
 from dataclasses import dataclass
+from typing import Any, Dict, List, Optional
+
 from pydantic import BaseModel, Field
 
-from caas_framework.models.specifications import (
-    ConcretizedRequirement
-)
+from caas_framework.models.specifications import ConcretizedRequirement
 
 
 @dataclass
 class Contradiction:
     """Represents a semantic contradiction in requirements."""
+
     concept_a: str
     concept_b: str
     reason: str
@@ -26,6 +26,7 @@ class Contradiction:
 
 class ContradictionReport(BaseModel):
     """Report of all contradictions found."""
+
     contradictions: List[Dict[str, str]] = Field(default_factory=list)
     has_contradictions: bool = False
     severity_counts: Dict[str, int] = Field(default_factory=dict)
@@ -47,7 +48,7 @@ class SemanticConsistencyChecker:
             "reason": "Real-time features require WebSocket or similar, not just REST API",
             "severity": "error",
             "keywords_a": ["realtime", "real-time", "websocket", "socket.io", "live"],
-            "keywords_b": ["rest only", "restful only", "no websocket"]
+            "keywords_b": ["rest only", "restful only", "no websocket"],
         },
         {
             "concept_a": "serverless",
@@ -55,7 +56,7 @@ class SemanticConsistencyChecker:
             "reason": "Serverless functions are stateless by design",
             "severity": "error",
             "keywords_a": ["serverless", "lambda", "cloud function"],
-            "keywords_b": ["stateful", "session state", "maintain state"]
+            "keywords_b": ["stateful", "session state", "maintain state"],
         },
         {
             "concept_a": "nosql",
@@ -63,7 +64,7 @@ class SemanticConsistencyChecker:
             "reason": "NoSQL databases don't support complex SQL joins well",
             "severity": "warning",
             "keywords_a": ["nosql", "mongodb", "dynamodb", "cassandra"],
-            "keywords_b": ["complex join", "multi-table join", "sql join"]
+            "keywords_b": ["complex join", "multi-table join", "sql join"],
         },
         {
             "concept_a": "microservices",
@@ -71,7 +72,7 @@ class SemanticConsistencyChecker:
             "reason": "Microservices should have independent databases (database per service)",
             "severity": "warning",
             "keywords_a": ["microservice", "micro-service"],
-            "keywords_b": ["shared database", "single database", "common database"]
+            "keywords_b": ["shared database", "single database", "common database"],
         },
         {
             "concept_a": "synchronous",
@@ -79,7 +80,7 @@ class SemanticConsistencyChecker:
             "reason": "Synchronous operations can limit scalability; consider async",
             "severity": "warning",
             "keywords_a": ["synchronous", "blocking", "sync"],
-            "keywords_b": ["high scalability", "millions of users", "massive scale"]
+            "keywords_b": ["high scalability", "millions of users", "massive scale"],
         },
         {
             "concept_a": "local_storage",
@@ -87,7 +88,7 @@ class SemanticConsistencyChecker:
             "reason": "Local storage doesn't work well in distributed systems",
             "severity": "error",
             "keywords_a": ["local storage", "file system", "local file"],
-            "keywords_b": ["distributed", "multi-server", "cluster"]
+            "keywords_b": ["distributed", "multi-server", "cluster"],
         },
         {
             "concept_a": "acid_transactions",
@@ -95,7 +96,7 @@ class SemanticConsistencyChecker:
             "reason": "ACID transactions and eventual consistency are conflicting consistency models",
             "severity": "error",
             "keywords_a": ["acid", "strong consistency", "transaction"],
-            "keywords_b": ["eventual consistency", "eventually consistent"]
+            "keywords_b": ["eventual consistency", "eventually consistent"],
         },
         {
             "concept_a": "monolithic",
@@ -103,7 +104,7 @@ class SemanticConsistencyChecker:
             "reason": "Monolithic architecture doesn't support independent deployment of components",
             "severity": "warning",
             "keywords_a": ["monolithic", "monolith"],
-            "keywords_b": ["independent deploy", "separate deploy", "deploy independently"]
+            "keywords_b": ["independent deploy", "separate deploy", "deploy independently"],
         },
         {
             "concept_a": "client_side_only",
@@ -111,7 +112,7 @@ class SemanticConsistencyChecker:
             "reason": "Client-side only apps can't do server-side processing",
             "severity": "error",
             "keywords_a": ["client-side only", "frontend only", "no backend"],
-            "keywords_b": ["server process", "backend logic", "server-side"]
+            "keywords_b": ["server process", "backend logic", "server-side"],
         },
         {
             "concept_a": "graphql",
@@ -119,7 +120,7 @@ class SemanticConsistencyChecker:
             "reason": "GraphQL and strict REST are different API paradigms, choose one",
             "severity": "warning",
             "keywords_a": ["graphql", "graph ql"],
-            "keywords_b": ["rest only", "restful strict", "pure rest"]
+            "keywords_b": ["rest only", "restful strict", "pure rest"],
         },
         {
             "concept_a": "static_site",
@@ -127,7 +128,7 @@ class SemanticConsistencyChecker:
             "reason": "Static sites can't generate truly dynamic content without backend",
             "severity": "warning",
             "keywords_a": ["static site", "static website", "jamstack"],
-            "keywords_b": ["dynamic content", "user-generated", "personalized"]
+            "keywords_b": ["dynamic content", "user-generated", "personalized"],
         },
         {
             "concept_a": "sql_database",
@@ -135,8 +136,8 @@ class SemanticConsistencyChecker:
             "reason": "SQL databases require schemas; use NoSQL for schema-free data",
             "severity": "warning",
             "keywords_a": ["sql", "postgresql", "mysql", "relational"],
-            "keywords_b": ["schema-free", "schemaless", "no schema"]
-        }
+            "keywords_b": ["schema-free", "schemaless", "no schema"],
+        },
     ]
 
     def __init__(self, llm_provider: Optional[Any] = None):
@@ -148,10 +149,7 @@ class SemanticConsistencyChecker:
         """
         self.llm_provider = llm_provider
 
-    def check_consistency(
-        self,
-        concretized: ConcretizedRequirement
-    ) -> List[Contradiction]:
+    def check_consistency(self, concretized: ConcretizedRequirement) -> List[Contradiction]:
         """
         Check semantic consistency of concretized requirements.
 
@@ -177,10 +175,7 @@ class SemanticConsistencyChecker:
 
         return contradictions
 
-    def _extract_requirements(
-        self,
-        concretized: ConcretizedRequirement
-    ) -> List[str]:
+    def _extract_requirements(self, concretized: ConcretizedRequirement) -> List[str]:
         """
         Extract all requirements as text strings.
 
@@ -193,7 +188,7 @@ class SemanticConsistencyChecker:
         requirements = []
 
         # Extract from system scope
-        if hasattr(concretized, 'system_scope'):
+        if hasattr(concretized, "system_scope"):
             requirements.append(f"Project: {concretized.system_scope.project_name}")
             requirements.append(f"Purpose: {concretized.system_scope.purpose}")
             requirements.append(f"Type: {concretized.system_scope.system_type}")
@@ -201,26 +196,23 @@ class SemanticConsistencyChecker:
         # Extract from features
         for feature in concretized.features:
             requirements.append(f"Feature: {feature.name} - {feature.description}")
-            if hasattr(feature, 'acceptance_criteria'):
+            if hasattr(feature, "acceptance_criteria"):
                 for criteria in feature.acceptance_criteria:
                     requirements.append(f"Criteria: {criteria}")
 
         # Extract from non-functional requirements
-        if hasattr(concretized, 'non_functional_requirements'):
+        if hasattr(concretized, "non_functional_requirements"):
             for key, value in concretized.non_functional_requirements.items():
                 requirements.append(f"NFR {key}: {value}")
 
         # Extract from constraints
-        if hasattr(concretized, 'constraints'):
+        if hasattr(concretized, "constraints"):
             for constraint in concretized.constraints:
                 requirements.append(f"Constraint: {constraint}")
 
         return requirements
 
-    def _rule_based_check(
-        self,
-        requirements: List[str]
-    ) -> List[Contradiction]:
+    def _rule_based_check(self, requirements: List[str]) -> List[Contradiction]:
         """
         Check for contradictions using predefined rules.
 
@@ -237,37 +229,29 @@ class SemanticConsistencyChecker:
 
         for rule in self.CONTRADICTION_RULES:
             # Check if concept A is present
-            concept_a_present = any(
-                keyword in req_text
-                for keyword in rule['keywords_a']
-            )
+            concept_a_present = any(keyword in req_text for keyword in rule["keywords_a"])
 
             # Check if concept B is present
-            concept_b_present = any(
-                keyword in req_text
-                for keyword in rule['keywords_b']
-            )
+            concept_b_present = any(keyword in req_text for keyword in rule["keywords_b"])
 
             # If both present, we have a contradiction
             if concept_a_present and concept_b_present:
                 # Find which specific requirements contain these concepts
                 location = self._find_location(requirements, rule)
 
-                contradictions.append(Contradiction(
-                    concept_a=rule['concept_a'],
-                    concept_b=rule['concept_b'],
-                    reason=rule['reason'],
-                    severity=rule['severity'],
-                    location=location
-                ))
+                contradictions.append(
+                    Contradiction(
+                        concept_a=rule["concept_a"],
+                        concept_b=rule["concept_b"],
+                        reason=rule["reason"],
+                        severity=rule["severity"],
+                        location=location,
+                    )
+                )
 
         return contradictions
 
-    def _find_location(
-        self,
-        requirements: List[str],
-        rule: Dict[str, Any]
-    ) -> str:
+    def _find_location(self, requirements: List[str], rule: Dict[str, Any]) -> str:
         """
         Find which requirements contain the contradictory concepts.
 
@@ -284,10 +268,10 @@ class SemanticConsistencyChecker:
         for req in requirements:
             req_lower = req.lower()
 
-            if any(kw in req_lower for kw in rule['keywords_a']):
+            if any(kw in req_lower for kw in rule["keywords_a"]):
                 locations_a.append(req[:100])
 
-            if any(kw in req_lower for kw in rule['keywords_b']):
+            if any(kw in req_lower for kw in rule["keywords_b"]):
                 locations_b.append(req[:100])
 
         if locations_a and locations_b:
@@ -295,10 +279,7 @@ class SemanticConsistencyChecker:
 
         return "Multiple requirements"
 
-    def _llm_consistency_check(
-        self,
-        requirements: List[str]
-    ) -> List[Contradiction]:
+    def _llm_consistency_check(self, requirements: List[str]) -> List[Contradiction]:
         """
         Use LLM to check for semantic contradictions.
 
@@ -335,21 +316,20 @@ If no contradictions found, return empty array.
 
         try:
             # Call LLM (implementation depends on LLM provider interface)
-            response = self.llm_provider.generate_structured(
-                prompt,
-                schema=ContradictionReport
-            )
+            response = self.llm_provider.generate_structured(prompt, schema=ContradictionReport)
 
             # Convert to Contradiction objects
             contradictions = []
             for c in response.contradictions:
-                contradictions.append(Contradiction(
-                    concept_a=c.get('concept_a', ''),
-                    concept_b=c.get('concept_b', ''),
-                    reason=c.get('reason', ''),
-                    severity=c.get('severity', 'warning'),
-                    location="LLM-detected"
-                ))
+                contradictions.append(
+                    Contradiction(
+                        concept_a=c.get("concept_a", ""),
+                        concept_b=c.get("concept_b", ""),
+                        reason=c.get("reason", ""),
+                        severity=c.get("severity", "warning"),
+                        location="LLM-detected",
+                    )
+                )
 
             return contradictions
 
@@ -357,10 +337,7 @@ If no contradictions found, return empty array.
             # If LLM check fails, just return empty list
             return []
 
-    def generate_report(
-        self,
-        contradictions: List[Contradiction]
-    ) -> ContradictionReport:
+    def generate_report(self, contradictions: List[Contradiction]) -> ContradictionReport:
         """
         Generate a formatted report of contradictions.
 
@@ -374,27 +351,25 @@ If no contradictions found, return empty array.
         severity_counts = {"warning": 0, "error": 0, "critical": 0}
 
         for c in contradictions:
-            report_contradictions.append({
-                "concept_a": c.concept_a,
-                "concept_b": c.concept_b,
-                "reason": c.reason,
-                "severity": c.severity,
-                "location": c.location or "Unknown"
-            })
+            report_contradictions.append(
+                {
+                    "concept_a": c.concept_a,
+                    "concept_b": c.concept_b,
+                    "reason": c.reason,
+                    "severity": c.severity,
+                    "location": c.location or "Unknown",
+                }
+            )
 
             severity_counts[c.severity] = severity_counts.get(c.severity, 0) + 1
 
         return ContradictionReport(
             contradictions=report_contradictions,
             has_contradictions=len(contradictions) > 0,
-            severity_counts=severity_counts
+            severity_counts=severity_counts,
         )
 
-    def print_report(
-        self,
-        contradictions: List[Contradiction],
-        verbose: bool = True
-    ):
+    def print_report(self, contradictions: List[Contradiction], verbose: bool = True):
         """
         Print a human-readable report of contradictions.
 
@@ -406,17 +381,13 @@ If no contradictions found, return empty array.
             print("\n✅ No semantic contradictions found!")
             return
 
-        print("\n" + "="*70)
+        print("\n" + "=" * 70)
         print("⚠️  SEMANTIC CONSISTENCY REPORT")
-        print("="*70)
+        print("=" * 70)
         print(f"\nFound {len(contradictions)} contradiction(s):\n")
 
         for i, c in enumerate(contradictions, 1):
-            severity_icon = {
-                "warning": "⚠️ ",
-                "error": "❌",
-                "critical": "🔴"
-            }.get(c.severity, "•")
+            severity_icon = {"warning": "⚠️ ", "error": "❌", "critical": "🔴"}.get(c.severity, "•")
 
             print(f"{i}. {severity_icon} {c.severity.upper()}")
             print(f"   Conflict: '{c.concept_a}' ↔ '{c.concept_b}'")
@@ -431,15 +402,13 @@ If no contradictions found, return empty array.
         error_count = sum(1 for c in contradictions if c.severity == "error")
         warning_count = sum(1 for c in contradictions if c.severity == "warning")
 
-        print("="*70)
+        print("=" * 70)
         print(f"Summary: {error_count} errors, {warning_count} warnings")
-        print("="*70 + "\n")
+        print("=" * 70 + "\n")
 
 
 def validate_semantic_consistency(
-    concretized: ConcretizedRequirement,
-    llm_provider: Optional[Any] = None,
-    verbose: bool = False
+    concretized: ConcretizedRequirement, llm_provider: Optional[Any] = None, verbose: bool = False
 ) -> tuple[bool, List[Contradiction]]:
     """
     Convenience function to validate semantic consistency.

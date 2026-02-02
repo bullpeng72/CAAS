@@ -5,45 +5,27 @@ Provides common type aliases and type checking utilities
 for the CAAS framework.
 """
 
-from typing import (
-    Any,
-    Dict,
-    List,
-    Union,
-    TypeVar,
-    Protocol,
-    TypedDict,
-    Callable,
-    Awaitable
-)
 from enum import Enum
-
+from typing import Any, Awaitable, Callable, Dict, List, Protocol, TypedDict, TypeVar, Union
 
 # ==================== Type Variables ====================
 
-T = TypeVar('T')
-AgentT = TypeVar('AgentT', bound='BaseExpertAgent')
-PhaseT = TypeVar('PhaseT', bound='AgentPhase')
+T = TypeVar("T")
+AgentT = TypeVar("AgentT", bound="BaseExpertAgent")
+PhaseT = TypeVar("PhaseT", bound="AgentPhase")
 
 
 # ==================== Protocol Definitions ====================
 
+
 class LLMProvider(Protocol):
     """Protocol for LLM providers."""
 
-    async def ainvoke(
-        self,
-        messages: List[Dict[str, str]],
-        **kwargs: Any
-    ) -> Any:
+    async def ainvoke(self, messages: List[Dict[str, str]], **kwargs: Any) -> Any:
         """Invoke LLM asynchronously."""
         ...
 
-    def invoke(
-        self,
-        messages: List[Dict[str, str]],
-        **kwargs: Any
-    ) -> Any:
+    def invoke(self, messages: List[Dict[str, str]], **kwargs: Any) -> Any:
         """Invoke LLM synchronously."""
         ...
 
@@ -51,19 +33,17 @@ class LLMProvider(Protocol):
 class Validator(Protocol):
     """Protocol for validators."""
 
-    def validate(
-        self,
-        output: Dict[str, Any],
-        schema: type
-    ) -> bool:
+    def validate(self, output: Dict[str, Any], schema: type) -> bool:
         """Validate output against schema."""
         ...
 
 
 # ==================== TypedDict Definitions ====================
 
+
 class AgentDict(TypedDict, total=False):
     """Type definition for agent dictionary."""
+
     id: str
     role: str
     goal: str
@@ -75,6 +55,7 @@ class AgentDict(TypedDict, total=False):
 
 class TaskDict(TypedDict, total=False):
     """Type definition for task dictionary."""
+
     id: str
     description: str
     expected_output: str
@@ -85,12 +66,14 @@ class TaskDict(TypedDict, total=False):
 
 class DesignOutput(TypedDict):
     """Type definition for design phase output."""
+
     agents: List[AgentDict]
     tasks: List[TaskDict]
 
 
 class ValidationResult(TypedDict):
     """Type definition for validation result."""
+
     passed: bool
     errors: List[str]
     warnings: List[str]
@@ -98,6 +81,7 @@ class ValidationResult(TypedDict):
 
 class CodeFiles(TypedDict):
     """Type definition for generated code files."""
+
     files: Dict[str, str]  # filename -> content
 
 
@@ -120,8 +104,10 @@ PhaseResult = Union[Dict[str, Any], None]
 
 # ==================== Enum for Phase Status ====================
 
+
 class PhaseStatus(str, Enum):
     """Status of a phase execution."""
+
     PENDING = "pending"
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
@@ -131,12 +117,13 @@ class PhaseStatus(str, Enum):
 
 # ==================== Runtime Type Checking ====================
 
+
 def is_agent_dict(obj: Any) -> bool:
     """Check if object is a valid agent dictionary."""
     if not isinstance(obj, dict):
         return False
 
-    required_fields = {'id', 'role', 'goal', 'backstory'}
+    required_fields = {"id", "role", "goal", "backstory"}
     return required_fields.issubset(obj.keys())
 
 
@@ -145,7 +132,7 @@ def is_task_dict(obj: Any) -> bool:
     if not isinstance(obj, dict):
         return False
 
-    required_fields = {'id', 'description', 'expected_output', 'agent'}
+    required_fields = {"id", "description", "expected_output", "agent"}
     return required_fields.issubset(obj.keys())
 
 
@@ -154,11 +141,11 @@ def validate_design_output(output: Any) -> bool:
     if not isinstance(output, dict):
         return False
 
-    if 'agents' not in output or 'tasks' not in output:
+    if "agents" not in output or "tasks" not in output:
         return False
 
-    agents = output['agents']
-    tasks = output['tasks']
+    agents = output["agents"]
+    tasks = output["tasks"]
 
     if not isinstance(agents, list) or not isinstance(tasks, list):
         return False
@@ -177,6 +164,7 @@ def validate_design_output(output: Any) -> bool:
 
 
 # ==================== Type Guards ====================
+
 
 def assert_agent_dict(obj: Any) -> AgentDict:
     """Assert and return as AgentDict."""

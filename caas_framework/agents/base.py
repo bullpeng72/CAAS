@@ -5,22 +5,23 @@ Abstract base class for all expert agents in the BMAD pipeline.
 Provides common functionality for agent collaboration and feedback loops.
 """
 
+import traceback
 from abc import ABC, abstractmethod
-from enum import Enum
-from typing import Any, Callable, Dict, List, Optional
 from dataclasses import dataclass, field
 from datetime import datetime
-import traceback
+from enum import Enum
+from typing import Any, Callable, Dict, List, Optional
 
+from caas_framework.config.settings import LLMConstants
 from caas_framework.models.specifications import ConcretizedRequirement
 from caas_framework.models.validation import ValidationIssue
 from caas_framework.plugins.llm.base import LLMPlugin
 from caas_framework.utils import ResponseParser
-from caas_framework.config.settings import LLMConstants
 
 
 class AgentPhase(str, Enum):
     """Agent responsibility phases"""
+
     DISCOVERY = "discovery"
     ARCHITECTURE = "architecture"
     DESIGN = "design"
@@ -32,6 +33,7 @@ class AgentPhase(str, Enum):
 @dataclass
 class AgentWorkResult:
     """Result of agent work"""
+
     success: bool
     output: Any
     phase: AgentPhase
@@ -60,7 +62,7 @@ class BaseExpertAgent(ABC):
         self,
         llm_plugin: LLMPlugin,
         golden_data: Optional[ConcretizedRequirement] = None,
-        phase: AgentPhase = AgentPhase.DISCOVERY
+        phase: AgentPhase = AgentPhase.DISCOVERY,
     ):
         """
         Initialize expert agent.
@@ -94,7 +96,7 @@ class BaseExpertAgent(ABC):
         self,
         requirement: Optional[str] = None,
         context: Optional[Dict[str, Any]] = None,
-        previous_outputs: Optional[Dict[AgentPhase, Any]] = None
+        previous_outputs: Optional[Dict[AgentPhase, Any]] = None,
     ) -> AgentWorkResult:
         """
         Execute agent's primary work.
@@ -121,7 +123,7 @@ class BaseExpertAgent(ABC):
                 phase=self.phase,
                 agent_name=self.agent_name,
                 duration=duration,
-                iterations=1
+                iterations=1,
             )
 
             self.work_history.append(result)
@@ -139,7 +141,7 @@ class BaseExpertAgent(ABC):
                 phase=self.phase,
                 agent_name=self.agent_name,
                 duration=duration,
-                errors=[error_msg]
+                errors=[error_msg],
             )
 
             self.work_history.append(result)
@@ -150,7 +152,7 @@ class BaseExpertAgent(ABC):
         self,
         requirement: Optional[str],
         context: Optional[Dict[str, Any]],
-        previous_outputs: Optional[Dict[AgentPhase, Any]]
+        previous_outputs: Optional[Dict[AgentPhase, Any]],
     ) -> Any:
         """
         Agent-specific work implementation.
@@ -171,7 +173,7 @@ class BaseExpertAgent(ABC):
         original_output: Any,
         validation_issues: List[ValidationIssue],
         context: Optional[Dict[str, Any]] = None,
-        max_iterations: int = 3
+        max_iterations: int = 3,
     ) -> AgentWorkResult:
         """
         Refine output based on validation feedback.
@@ -194,10 +196,7 @@ class BaseExpertAgent(ABC):
 
         for iteration in range(max_iterations):
             # Filter issues that still apply
-            remaining_issues = await self._filter_resolved_issues(
-                current_output,
-                validation_issues
-            )
+            remaining_issues = await self._filter_resolved_issues(current_output, validation_issues)
 
             if not remaining_issues:
                 # All issues resolved
@@ -206,10 +205,7 @@ class BaseExpertAgent(ABC):
             # Attempt refinement
             try:
                 refined_output = await self._refine_implementation(
-                    current_output,
-                    remaining_issues,
-                    context,
-                    iteration + 1
+                    current_output, remaining_issues, context, iteration + 1
                 )
 
                 feedback_applied.append(
@@ -227,7 +223,7 @@ class BaseExpertAgent(ABC):
                     duration=(datetime.now() - start_time).total_seconds(),
                     iterations=iteration + 1,
                     feedback_applied=feedback_applied,
-                    errors=[f"Refinement failed: {str(e)}"]
+                    errors=[f"Refinement failed: {str(e)}"],
                 )
                 self.work_history.append(result)
                 return result
@@ -241,16 +237,14 @@ class BaseExpertAgent(ABC):
             agent_name=self.agent_name,
             duration=duration,
             iterations=len(feedback_applied),
-            feedback_applied=feedback_applied
+            feedback_applied=feedback_applied,
         )
 
         self.work_history.append(result)
         return result
 
     async def _filter_resolved_issues(
-        self,
-        current_output: Any,
-        issues: List[ValidationIssue]
+        self, current_output: Any, issues: List[ValidationIssue]
     ) -> List[ValidationIssue]:
         """
         Filter out issues that have been resolved.
@@ -266,7 +260,7 @@ class BaseExpertAgent(ABC):
         output: Any,
         issues: List[ValidationIssue],
         context: Optional[Dict[str, Any]],
-        iteration: int
+        iteration: int,
     ) -> Any:
         """
         Agent-specific refinement implementation.
@@ -284,9 +278,7 @@ class BaseExpertAgent(ABC):
         """
 
     def _build_context_summary(
-        self,
-        context: Optional[Dict[str, Any]],
-        previous_outputs: Optional[Dict[AgentPhase, Any]]
+        self, context: Optional[Dict[str, Any]], previous_outputs: Optional[Dict[AgentPhase, Any]]
     ) -> str:
         """
         Build context summary for LLM prompts.
@@ -323,10 +315,7 @@ class BaseExpertAgent(ABC):
 
         return "\n".join(lines)
 
-    def _format_validation_issues(
-        self,
-        issues: List[ValidationIssue]
-    ) -> str:
+    def _format_validation_issues(self, issues: List[ValidationIssue]) -> str:
         """
         Format validation issues for LLM prompts.
 
@@ -362,7 +351,8 @@ class BaseExpertAgent(ABC):
         total_duration = sum(r.duration for r in self.work_history)
         success_rate = (
             sum(1 for r in self.work_history if r.success) / len(self.work_history)
-            if self.work_history else 0.0
+            if self.work_history
+            else 0.0
         )
 
         return {
@@ -372,7 +362,7 @@ class BaseExpertAgent(ABC):
             "total_iterations": total_iterations,
             "total_duration": total_duration,
             "success_rate": success_rate,
-            "expertise": self.agent_expertise
+            "expertise": self.agent_expertise,
         }
 
     # ==================== LLM Helper Methods ====================
@@ -383,7 +373,7 @@ class BaseExpertAgent(ABC):
         expected_fields: List[str],
         fallback_factory: Callable[[], Dict[str, Any]],
         temperature: Optional[float] = None,
-        max_tokens: Optional[int] = None
+        max_tokens: Optional[int] = None,
     ) -> Dict[str, Any]:
         """
         Unified LLM invocation with structured parsing.
@@ -419,7 +409,7 @@ class BaseExpertAgent(ABC):
         invoke_kwargs = {
             "messages": [{"role": "user", "content": prompt}],
             "response_format": LLMConstants.RESPONSE_FORMAT_JSON,
-            "temperature": temp
+            "temperature": temp,
         }
 
         if max_tokens:
@@ -430,9 +420,7 @@ class BaseExpertAgent(ABC):
 
         # Parse response with fallback
         result = ResponseParser.parse_structured_response(
-            response,
-            expected_fields=expected_fields,
-            fallback_factory=fallback_factory
+            response, expected_fields=expected_fields, fallback_factory=fallback_factory
         )
 
         return result
@@ -459,16 +447,14 @@ class BaseExpertAgent(ABC):
             AgentPhase.DESIGN: LLMConstants.TEMPERATURE_BALANCED,
             AgentPhase.DELIVERY: LLMConstants.TEMPERATURE_PRECISE,
             AgentPhase.QUALITY_ASSURANCE: LLMConstants.TEMPERATURE_PRECISE,
-            AgentPhase.DEVELOPMENT: LLMConstants.TEMPERATURE_BALANCED
+            AgentPhase.DEVELOPMENT: LLMConstants.TEMPERATURE_BALANCED,
         }
 
         return phase_temperatures.get(self.phase, LLMConstants.TEMPERATURE_BALANCED)
 
     @staticmethod
     def _merge_outputs(
-        refined: Dict[str, Any],
-        original: Dict[str, Any],
-        exclude_keys: Optional[List[str]] = None
+        refined: Dict[str, Any], original: Dict[str, Any], exclude_keys: Optional[List[str]] = None
     ) -> Dict[str, Any]:
         """
         Merge refined output with original to preserve missing keys.

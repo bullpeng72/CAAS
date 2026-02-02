@@ -5,6 +5,7 @@ Test First Generator
 """
 
 from typing import List
+
 from pydantic import BaseModel
 
 from .test_scenario import TestScenario
@@ -60,9 +61,7 @@ class TestFirstGenerator:
             framework=framework,
         )
 
-    def _generate_pytest_code(
-        self, scenarios: List[TestScenario], entity: str
-    ) -> str:
+    def _generate_pytest_code(self, scenarios: List[TestScenario], entity: str) -> str:
         """Pytest 코드 생성"""
 
         entity_lower = entity.lower()

@@ -42,7 +42,7 @@ class PromptBuilder:
         self.sections: List[str] = []
         self.task_description = task_description
 
-    def add_task(self, additional_context: Optional[str] = None) -> 'PromptBuilder':
+    def add_task(self, additional_context: Optional[str] = None) -> "PromptBuilder":
         """
         Add task description section.
 
@@ -52,21 +52,14 @@ class PromptBuilder:
         Returns:
             Self for method chaining
         """
-        self.sections.extend([
-            "# Task",
-            f"Your task is to {self.task_description}.",
-            ""
-        ])
+        self.sections.extend(["# Task", f"Your task is to {self.task_description}.", ""])
 
         if additional_context:
-            self.sections.extend([
-                additional_context,
-                ""
-            ])
+            self.sections.extend([additional_context, ""])
 
         return self
 
-    def add_input(self, **inputs: Any) -> 'PromptBuilder':
+    def add_input(self, **inputs: Any) -> "PromptBuilder":
         """
         Add input section with key-value pairs.
 
@@ -90,7 +83,7 @@ class PromptBuilder:
 
         for key, value in inputs.items():
             # Format key as readable label
-            label = key.replace('_', ' ').title()
+            label = key.replace("_", " ").title()
 
             # Format value based on type
             if isinstance(value, (list, dict)):
@@ -104,10 +97,8 @@ class PromptBuilder:
         return self
 
     def add_golden_data(
-        self,
-        golden_data: Optional[Any] = None,
-        fields: Optional[List[str]] = None
-    ) -> 'PromptBuilder':
+        self, golden_data: Optional[Any] = None, fields: Optional[List[str]] = None
+    ) -> "PromptBuilder":
         """
         Add golden data reference section.
 
@@ -139,9 +130,9 @@ class PromptBuilder:
                     # Convert Pydantic models to dict
                     if value is None:
                         data_dict[field] = None
-                    elif hasattr(value, 'model_dump'):
+                    elif hasattr(value, "model_dump"):
                         data_dict[field] = value.model_dump()
-                    elif isinstance(value, list) and value and hasattr(value[0], 'model_dump'):
+                    elif isinstance(value, list) and value and hasattr(value[0], "model_dump"):
                         data_dict[field] = [item.model_dump() for item in value]
                     else:
                         data_dict[field] = value
@@ -149,23 +140,35 @@ class PromptBuilder:
             else:
                 # Extract common fields
                 data_dict = {}
-                if hasattr(golden_data, 'domain'):
-                    data_dict['domain'] = golden_data.domain
-                if hasattr(golden_data, 'features') and golden_data.features:
-                    data_dict['features'] = [f.name for f in golden_data.features] if hasattr(golden_data.features[0], 'name') else golden_data.features
-                if hasattr(golden_data, 'data_models') and golden_data.data_models:
-                    data_dict['data_models'] = [dm.entity_name for dm in golden_data.data_models] if hasattr(golden_data.data_models[0], 'entity_name') else golden_data.data_models
-                if hasattr(golden_data, 'ui_components') and golden_data.ui_components:
-                    data_dict['ui_components'] = [ui.page_name for ui in golden_data.ui_components] if hasattr(golden_data.ui_components[0], 'page_name') else golden_data.ui_components
-                if hasattr(golden_data, 'deployment_target'):
-                    data_dict['deployment_target'] = golden_data.deployment_target
+                if hasattr(golden_data, "domain"):
+                    data_dict["domain"] = golden_data.domain
+                if hasattr(golden_data, "features") and golden_data.features:
+                    data_dict["features"] = (
+                        [f.name for f in golden_data.features]
+                        if hasattr(golden_data.features[0], "name")
+                        else golden_data.features
+                    )
+                if hasattr(golden_data, "data_models") and golden_data.data_models:
+                    data_dict["data_models"] = (
+                        [dm.entity_name for dm in golden_data.data_models]
+                        if hasattr(golden_data.data_models[0], "entity_name")
+                        else golden_data.data_models
+                    )
+                if hasattr(golden_data, "ui_components") and golden_data.ui_components:
+                    data_dict["ui_components"] = (
+                        [ui.page_name for ui in golden_data.ui_components]
+                        if hasattr(golden_data.ui_components[0], "page_name")
+                        else golden_data.ui_components
+                    )
+                if hasattr(golden_data, "deployment_target"):
+                    data_dict["deployment_target"] = golden_data.deployment_target
 
                 self.sections.append(json.dumps(data_dict, indent=2, ensure_ascii=False))
 
         self.sections.append("")
         return self
 
-    def add_constraints(self, constraints: Optional[List[str]] = None) -> 'PromptBuilder':
+    def add_constraints(self, constraints: Optional[List[str]] = None) -> "PromptBuilder":
         """
         Add constraints section.
 
@@ -178,19 +181,14 @@ class PromptBuilder:
         if not constraints:
             return self
 
-        self.sections.extend([
-            "# Constraints",
-            *[f"- {constraint}" for constraint in constraints],
-            ""
-        ])
+        self.sections.extend(
+            ["# Constraints", *[f"- {constraint}" for constraint in constraints], ""]
+        )
         return self
 
     def add_context(
-        self,
-        title: str,
-        content: Any,
-        format_as_json: bool = False
-    ) -> 'PromptBuilder':
+        self, title: str, content: Any, format_as_json: bool = False
+    ) -> "PromptBuilder":
         """
         Add custom context section.
 
@@ -216,10 +214,8 @@ class PromptBuilder:
         return self
 
     def add_previous_outputs(
-        self,
-        previous_outputs: Optional[Dict[str, Any]] = None,
-        phases: Optional[List[str]] = None
-    ) -> 'PromptBuilder':
+        self, previous_outputs: Optional[Dict[str, Any]] = None, phases: Optional[List[str]] = None
+    ) -> "PromptBuilder":
         """
         Add previous agent outputs section.
 
@@ -240,13 +236,13 @@ class PromptBuilder:
             outputs_to_show = {k: v for k, v in previous_outputs.items() if k in phases}
 
         for phase, output in outputs_to_show.items():
-            phase_name = phase.replace('_', ' ').title()
+            phase_name = phase.replace("_", " ").title()
             self.sections.append(f"\n## {phase_name}")
 
             if isinstance(output, dict):
                 # Show summary of dict output
-                if 'summary' in output:
-                    self.sections.append(output['summary'])
+                if "summary" in output:
+                    self.sections.append(output["summary"])
                 else:
                     # Show key fields
                     for key in list(output.keys())[:5]:  # Limit to 5 keys
@@ -264,10 +260,8 @@ class PromptBuilder:
         return self
 
     def add_output_format(
-        self,
-        template: Dict[str, Any],
-        description: Optional[str] = None
-    ) -> 'PromptBuilder':
+        self, template: Dict[str, Any], description: Optional[str] = None
+    ) -> "PromptBuilder":
         """
         Add JSON output format section.
 
@@ -285,20 +279,14 @@ class PromptBuilder:
         else:
             self.sections.append("Return JSON with the following structure:")
 
-        self.sections.extend([
-            "```json",
-            json.dumps(template, indent=2, ensure_ascii=False),
-            "```",
-            ""
-        ])
+        self.sections.extend(
+            ["```json", json.dumps(template, indent=2, ensure_ascii=False), "```", ""]
+        )
         return self
 
     def add_examples(
-        self,
-        examples: List[Dict[str, Any]],
-        show_input: bool = True,
-        show_output: bool = True
-    ) -> 'PromptBuilder':
+        self, examples: List[Dict[str, Any]], show_input: bool = True, show_output: bool = True
+    ) -> "PromptBuilder":
         """
         Add examples section.
 
@@ -318,18 +306,20 @@ class PromptBuilder:
         for i, example in enumerate(examples, 1):
             self.sections.append(f"\n## Example {i}")
 
-            if show_input and 'input' in example:
+            if show_input and "input" in example:
                 self.sections.append("\nInput:")
                 self.sections.append(f"```\n{example['input']}\n```")
 
-            if show_output and 'output' in example:
+            if show_output and "output" in example:
                 self.sections.append("\nOutput:")
-                self.sections.append(f"```json\n{json.dumps(example['output'], indent=2, ensure_ascii=False)}\n```")
+                self.sections.append(
+                    f"```json\n{json.dumps(example['output'], indent=2, ensure_ascii=False)}\n```"
+                )
 
         self.sections.append("")
         return self
 
-    def add_guidelines(self, guidelines: List[str]) -> 'PromptBuilder':
+    def add_guidelines(self, guidelines: List[str]) -> "PromptBuilder":
         """
         Add guidelines/best practices section.
 
@@ -342,19 +332,12 @@ class PromptBuilder:
         if not guidelines:
             return self
 
-        self.sections.extend([
-            "# Guidelines",
-            *[f"- {guideline}" for guideline in guidelines],
-            ""
-        ])
+        self.sections.extend(["# Guidelines", *[f"- {guideline}" for guideline in guidelines], ""])
         return self
 
     def add_refinement_intro(
-        self,
-        agent_role: str,
-        output_type: str,
-        iteration: Optional[int] = None
-    ) -> 'PromptBuilder':
+        self, agent_role: str, output_type: str, iteration: Optional[int] = None
+    ) -> "PromptBuilder":
         """
         Add refinement introduction section.
 
@@ -382,10 +365,8 @@ class PromptBuilder:
         return self
 
     def add_current_output(
-        self,
-        output: Any,
-        output_label: str = "Current Output"
-    ) -> 'PromptBuilder':
+        self, output: Any, output_label: str = "Current Output"
+    ) -> "PromptBuilder":
         """
         Add current output section for refinement.
 
@@ -400,10 +381,10 @@ class PromptBuilder:
 
         if isinstance(output, dict):
             self.sections.append(json.dumps(output, indent=2, ensure_ascii=False))
-        elif hasattr(output, 'model_dump'):
+        elif hasattr(output, "model_dump"):
             # Pydantic model
             self.sections.append(json.dumps(output.model_dump(), indent=2, ensure_ascii=False))
-        elif hasattr(output, 'dict'):
+        elif hasattr(output, "dict"):
             # Legacy Pydantic
             self.sections.append(json.dumps(output.dict(), indent=2, ensure_ascii=False))
         else:
@@ -413,10 +394,8 @@ class PromptBuilder:
         return self
 
     def add_validation_issues(
-        self,
-        issues_summary: str,
-        issues_label: str = "Issues Identified"
-    ) -> 'PromptBuilder':
+        self, issues_summary: str, issues_label: str = "Issues Identified"
+    ) -> "PromptBuilder":
         """
         Add validation issues section for refinement.
 
@@ -427,18 +406,12 @@ class PromptBuilder:
         Returns:
             Self for method chaining
         """
-        self.sections.extend([
-            f"## {issues_label}",
-            issues_summary,
-            ""
-        ])
+        self.sections.extend([f"## {issues_label}", issues_summary, ""])
         return self
 
     def add_refinement_task(
-        self,
-        output_type: str,
-        guidelines: Optional[List[str]] = None
-    ) -> 'PromptBuilder':
+        self, output_type: str, guidelines: Optional[List[str]] = None
+    ) -> "PromptBuilder":
         """
         Add refinement task section with guidelines.
 
@@ -449,19 +422,23 @@ class PromptBuilder:
         Returns:
             Self for method chaining
         """
-        self.sections.extend([
-            "## Task",
-            f"Refine the {output_type} to address all issues. Return the complete refined {output_type} in JSON format.",
-            ""
-        ])
+        self.sections.extend(
+            [
+                "## Task",
+                f"Refine the {output_type} to address all issues. Return the complete refined {output_type} in JSON format.",
+                "",
+            ]
+        )
 
         if guidelines:
-            self.sections.extend([
-                "Important:",
-                *[f"- {guideline}" for guideline in guidelines],
-                "",
-                f"Return the complete refined {output_type}."
-            ])
+            self.sections.extend(
+                [
+                    "Important:",
+                    *[f"- {guideline}" for guideline in guidelines],
+                    "",
+                    f"Return the complete refined {output_type}.",
+                ]
+            )
 
         return self
 
@@ -475,7 +452,7 @@ class PromptBuilder:
         golden_data: Optional[Any] = None,
         golden_data_context: Optional[str] = None,
         guidelines: Optional[List[str]] = None,
-        iteration: Optional[int] = None
+        iteration: Optional[int] = None,
     ) -> str:
         """
         Convenience method to build a complete refinement prompt.

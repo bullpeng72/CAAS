@@ -5,20 +5,20 @@ Phase 0: Requirement Concretization
 Converts natural language requirements into structured Golden Data.
 """
 
-from typing import Any, Dict, Optional
 import json
 import logging
+from typing import Any, Dict, Optional
 
 from caas_framework.models.specifications import (
-    ConcretizedRequirement,
-    FeatureSpec,
-    DataModel,
-    UIComponent,
-    NonFunctionalRequirements,
     BoundariesSpec,
-    CommandsSpec,
     CodeStyleSpec,
+    CommandsSpec,
+    ConcretizedRequirement,
+    DataModel,
+    FeatureSpec,
     GitWorkflowSpec,
+    NonFunctionalRequirements,
+    UIComponent,
 )
 from caas_framework.plugins.llm.base import LLMPlugin
 
@@ -40,9 +40,7 @@ class RequirementConcretizer:
         self.logger = logging.getLogger(__name__)
 
     async def concretize(
-        self,
-        requirement: str,
-        domain: Optional[str] = None
+        self, requirement: str, domain: Optional[str] = None
     ) -> ConcretizedRequirement:
         """
         Concretize requirement into Golden Data.
@@ -61,7 +59,7 @@ class RequirementConcretizer:
         response = await self.llm.ainvoke(
             messages=[{"role": "user", "content": prompt}],
             response_format={"type": "json_object"},
-            temperature=0.3
+            temperature=0.3,
         )
 
         # Parse response
@@ -69,7 +67,7 @@ class RequirementConcretizer:
             result_text = response.get("content", "")
         else:
             # LLMResponse object with .content attribute
-            result_text = response.content if hasattr(response, 'content') else str(response)
+            result_text = response.content if hasattr(response, "content") else str(response)
 
         # Debug logging
         self.logger.debug(f"LLM response type: {type(response)}")
@@ -84,12 +82,15 @@ class RequirementConcretizer:
             self.logger.warning(f"JSON decode error: {e}")
             # If not valid JSON, try to extract JSON from markdown code blocks
             import re
-            json_match = re.search(r'```json\s*(.*?)\s*```', result_text, re.DOTALL)
+
+            json_match = re.search(r"```json\s*(.*?)\s*```", result_text, re.DOTALL)
             if json_match:
                 self.logger.debug("Found JSON in markdown code block")
                 result_data = json.loads(json_match.group(1))
             else:
-                self.logger.error(f"Failed to parse LLM response. Full response: {result_text[:1000]}")
+                self.logger.error(
+                    f"Failed to parse LLM response. Full response: {result_text[:1000]}"
+                )
                 # Fallback: create minimal structure
                 result_data = {
                     "domain": domain or "GENERAL",
@@ -199,10 +200,7 @@ class RequirementConcretizer:
         return prompt
 
     def _parse_golden_data(
-        self,
-        data: Dict[str, Any],
-        original_requirement: str,
-        domain: Optional[str]
+        self, data: Dict[str, Any], original_requirement: str, domain: Optional[str]
     ) -> ConcretizedRequirement:
         """Parse LLM response into ConcretizedRequirement."""
 
@@ -214,7 +212,7 @@ class RequirementConcretizer:
                 name=f_data.get("name", f"Feature {i+1}"),
                 description=f_data.get("description", ""),
                 priority=f_data.get("priority", "medium"),
-                acceptance_criteria=f_data.get("acceptance_criteria", [])
+                acceptance_criteria=f_data.get("acceptance_criteria", []),
             )
             features.append(feature)
 
@@ -224,7 +222,7 @@ class RequirementConcretizer:
             data_model = DataModel(
                 entity_name=dm_data.get("entity_name", ""),
                 attributes=dm_data.get("attributes", []),
-                relationships=dm_data.get("relationships", [])
+                relationships=dm_data.get("relationships", []),
             )
             data_models.append(data_model)
 
@@ -234,7 +232,7 @@ class RequirementConcretizer:
             ui_comp = UIComponent(
                 page_name=ui_data.get("page_name", ""),
                 component_type=ui_data.get("component_type", ""),
-                description=ui_data.get("description", "")
+                description=ui_data.get("description", ""),
             )
             ui_components.append(ui_comp)
 
@@ -244,29 +242,22 @@ class RequirementConcretizer:
             security=nfr_data.get("security"),
             scalability=nfr_data.get("scalability"),
             performance=nfr_data.get("performance"),
-            reliability=nfr_data.get("reliability")
+            reliability=nfr_data.get("reliability"),
         )
 
         # Parse Boundaries (CRITICAL for security)
         boundaries_data = data.get("boundaries", {})
         boundaries = BoundariesSpec(
-            always_allowed=boundaries_data.get("always_allowed", [
-                "읽기 작업",
-                "기본 CRUD 작업",
-                "로깅"
-            ]),
-            ask_first=boundaries_data.get("ask_first", [
-                "파일 작업",
-                "네트워크 호출",
-                "데이터베이스 변경",
-                "외부 API 호출"
-            ]),
-            never_allowed=boundaries_data.get("never_allowed", [
-                "시스템 명령 실행",
-                "임의 코드 실행",
-                "rm -rf",
-                "파일 시스템 전체 삭제"
-            ])
+            always_allowed=boundaries_data.get(
+                "always_allowed", ["읽기 작업", "기본 CRUD 작업", "로깅"]
+            ),
+            ask_first=boundaries_data.get(
+                "ask_first", ["파일 작업", "네트워크 호출", "데이터베이스 변경", "외부 API 호출"]
+            ),
+            never_allowed=boundaries_data.get(
+                "never_allowed",
+                ["시스템 명령 실행", "임의 코드 실행", "rm -rf", "파일 시스템 전체 삭제"],
+            ),
         )
 
         # Parse Commands
@@ -278,7 +269,7 @@ class RequirementConcretizer:
             lint=commands_data.get("lint", "pylint src/"),
             format=commands_data.get("format", "black src/"),
             build=commands_data.get("build"),
-            deploy=commands_data.get("deploy")
+            deploy=commands_data.get("deploy"),
         )
 
         # Parse Code Style
@@ -288,16 +279,20 @@ class RequirementConcretizer:
             line_length=code_style_data.get("line_length", 88),
             use_type_hints=code_style_data.get("use_type_hints", True),
             docstring_style=code_style_data.get("docstring_style", "google"),
-            import_order=code_style_data.get("import_order", "isort")
+            import_order=code_style_data.get("import_order", "isort"),
         )
 
         # Parse Git Workflow
         git_workflow_data = data.get("git_workflow", {})
         git_workflow = GitWorkflowSpec(
-            branch_naming=git_workflow_data.get("branch_naming", "feature/{issue-number}-{description}"),
-            commit_message_format=git_workflow_data.get("commit_message_format", "<type>(<scope>): <subject>"),
+            branch_naming=git_workflow_data.get(
+                "branch_naming", "feature/{issue-number}-{description}"
+            ),
+            commit_message_format=git_workflow_data.get(
+                "commit_message_format", "<type>(<scope>): <subject>"
+            ),
             requires_pr=git_workflow_data.get("requires_pr", True),
-            main_branch=git_workflow_data.get("main_branch", "main")
+            main_branch=git_workflow_data.get("main_branch", "main"),
         )
 
         # Create ConcretizedRequirement
@@ -314,7 +309,7 @@ class RequirementConcretizer:
             boundaries=boundaries,
             commands=commands,
             code_style=code_style,
-            git_workflow=git_workflow
+            git_workflow=git_workflow,
         )
 
         return golden_data
@@ -328,11 +323,7 @@ class GoldenDataPipeline:
     Includes validation and refinement steps.
     """
 
-    def __init__(
-        self,
-        llm_plugin: LLMPlugin,
-        use_hierarchical_extraction: bool = True
-    ):
+    def __init__(self, llm_plugin: LLMPlugin, use_hierarchical_extraction: bool = True):
         """
         Args:
             llm_plugin: LLM plugin for generation
@@ -344,15 +335,13 @@ class GoldenDataPipeline:
         # Initialize hierarchical feature extractor if enabled
         if use_hierarchical_extraction:
             from caas_framework.bmad.feature_extraction import HierarchicalFeatureExtractor
+
             self.feature_extractor = HierarchicalFeatureExtractor(llm_plugin)
         else:
             self.feature_extractor = None
 
     async def generate(
-        self,
-        requirement: str,
-        domain: Optional[str] = None,
-        validate: bool = True
+        self, requirement: str, domain: Optional[str] = None, validate: bool = True
     ) -> ConcretizedRequirement:
         """
         Generate Golden Data from requirement.
@@ -371,13 +360,13 @@ class GoldenDataPipeline:
         # Step 1.5: Enhanced feature extraction (if enabled)
         if self.use_hierarchical_extraction and self.feature_extractor:
             import logging
+
             logger = logging.getLogger(__name__)
             logger.info("Using hierarchical feature extraction...")
 
             # Extract features using hierarchical approach
             enhanced_features = await self.feature_extractor.extract_complete_features(
-                requirement=requirement,
-                domain=domain or golden_data.domain
+                requirement=requirement, domain=domain or golden_data.domain
             )
 
             # Replace features with enhanced extraction
@@ -397,8 +386,7 @@ class GoldenDataPipeline:
         return golden_data
 
     async def _validate_and_refine(
-        self,
-        golden_data: ConcretizedRequirement
+        self, golden_data: ConcretizedRequirement
     ) -> ConcretizedRequirement:
         """
         Validate and refine Golden Data.

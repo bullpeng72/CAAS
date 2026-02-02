@@ -5,7 +5,8 @@ Validates task dependencies including circular dependencies, orphan tasks,
 and dependency depth.
 """
 
-from typing import Dict, List, Set, Tuple, Optional, Any, Union
+from typing import Any, Dict, List, Optional, Set, Tuple, Union
+
 from pydantic import BaseModel
 
 from caas_framework.models.validation import DependencyIssue
@@ -68,7 +69,9 @@ class DependencyValidator:
     def _check_circular_dependencies(self) -> None:
         """Detect circular dependencies using DFS"""
 
-        def dfs(task_id: str, visited: Set[str], rec_stack: Set[str], path: List[str]) -> Optional[List[str]]:
+        def dfs(
+            task_id: str, visited: Set[str], rec_stack: Set[str], path: List[str]
+        ) -> Optional[List[str]]:
             """
             Depth-first search.
 
@@ -103,20 +106,21 @@ class DependencyValidator:
             if task_id not in visited:
                 cycle_path = dfs(task_id, visited, set(), [])
                 if cycle_path:
-                    self.issues.append(DependencyIssue(
-                        severity="error",
-                        task_id=task_id,
-                        message=f"Circular dependency detected",
-                        path=cycle_path
-                    ))
+                    self.issues.append(
+                        DependencyIssue(
+                            severity="error",
+                            task_id=task_id,
+                            message=f"Circular dependency detected",
+                            path=cycle_path,
+                        )
+                    )
 
     def _check_orphan_tasks(self) -> None:
         """Detect orphan tasks (unreachable from dependency graph)"""
 
         # Start tasks (no dependencies)
         start_tasks = [
-            task_id for task_id, task in self.tasks.items()
-            if not _safe_get(task, "context")
+            task_id for task_id, task in self.tasks.items() if not _safe_get(task, "context")
         ]
 
         # Find all reachable tasks from start tasks (BFS)
@@ -137,11 +141,13 @@ class DependencyValidator:
         # Unreachable tasks = orphan tasks
         for task_id in self.tasks:
             if task_id not in reachable:
-                self.issues.append(DependencyIssue(
-                    severity="warning",
-                    task_id=task_id,
-                    message=f"Orphan task: unreachable from start tasks (broken dependency chain)"
-                ))
+                self.issues.append(
+                    DependencyIssue(
+                        severity="warning",
+                        task_id=task_id,
+                        message=f"Orphan task: unreachable from start tasks (broken dependency chain)",
+                    )
+                )
 
     def _check_dependency_depth(self, max_depth: int = 10) -> None:
         """Validate dependency depth (check for overly deep dependency chains)"""
@@ -169,11 +175,13 @@ class DependencyValidator:
         for task_id in self.tasks:
             depth = get_depth(task_id)
             if depth > max_depth:
-                self.issues.append(DependencyIssue(
-                    severity="warning",
-                    task_id=task_id,
-                    message=f"Dependency depth too deep (depth: {depth}, max: {max_depth})"
-                ))
+                self.issues.append(
+                    DependencyIssue(
+                        severity="warning",
+                        task_id=task_id,
+                        message=f"Dependency depth too deep (depth: {depth}, max: {max_depth})",
+                    )
+                )
 
     def _check_missing_references(self) -> None:
         """Validate non-existent task references"""
@@ -182,11 +190,13 @@ class DependencyValidator:
             dependencies = _safe_get(task, "context", [])
             for dep_id in dependencies:
                 if dep_id not in self.tasks:
-                    self.issues.append(DependencyIssue(
-                        severity="error",
-                        task_id=task_id,
-                        message=f"References non-existent task '{dep_id}'"
-                    ))
+                    self.issues.append(
+                        DependencyIssue(
+                            severity="error",
+                            task_id=task_id,
+                            message=f"References non-existent task '{dep_id}'",
+                        )
+                    )
 
     def get_execution_order(self) -> Optional[List[str]]:
         """

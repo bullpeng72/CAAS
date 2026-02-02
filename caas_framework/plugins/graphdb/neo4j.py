@@ -7,14 +7,14 @@ Supports:
 - APOC procedures
 """
 
-from typing import Any, Dict, List, Optional
 import os
+from typing import Any, Dict, List, Optional
 
 from caas_framework.plugins.graphdb.base import (
     GraphDBPlugin,
     GraphNode,
+    GraphQueryResult,
     GraphRelationship,
-    GraphQueryResult
 )
 
 
@@ -37,25 +37,17 @@ class Neo4jPlugin(GraphDBPlugin):
         try:
             from neo4j import AsyncGraphDatabase
 
-            self._driver = AsyncGraphDatabase.driver(
-                self.uri,
-                auth=(self.username, self.password)
-            )
+            self._driver = AsyncGraphDatabase.driver(self.uri, auth=(self.username, self.password))
 
             # Verify connectivity
             await self._driver.verify_connectivity()
             self._initialized = True
 
         except ImportError:
-            raise ImportError(
-                "Neo4j package not installed. "
-                "Install with: pip install neo4j"
-            )
+            raise ImportError("Neo4j package not installed. " "Install with: pip install neo4j")
 
     async def execute_query(
-        self,
-        query: str,
-        parameters: Optional[Dict[str, Any]] = None
+        self, query: str, parameters: Optional[Dict[str, Any]] = None
     ) -> GraphQueryResult:
         """Execute Cypher query"""
         if not self._initialized:
@@ -71,35 +63,31 @@ class Neo4jPlugin(GraphDBPlugin):
             async for record in result:
                 # Extract nodes and relationships
                 for value in record.values():
-                    if hasattr(value, 'labels'):  # It's a node
-                        nodes.append(GraphNode(
-                            id=str(value.element_id),
-                            labels=list(value.labels),
-                            properties=dict(value.items())
-                        ))
-                    elif hasattr(value, 'type'):  # It's a relationship
-                        relationships.append(GraphRelationship(
-                            id=str(value.element_id),
-                            type=value.type,
-                            start_node_id=str(value.start_node.element_id),
-                            end_node_id=str(value.end_node.element_id),
-                            properties=dict(value.items())
-                        ))
+                    if hasattr(value, "labels"):  # It's a node
+                        nodes.append(
+                            GraphNode(
+                                id=str(value.element_id),
+                                labels=list(value.labels),
+                                properties=dict(value.items()),
+                            )
+                        )
+                    elif hasattr(value, "type"):  # It's a relationship
+                        relationships.append(
+                            GraphRelationship(
+                                id=str(value.element_id),
+                                type=value.type,
+                                start_node_id=str(value.start_node.element_id),
+                                end_node_id=str(value.end_node.element_id),
+                                properties=dict(value.items()),
+                            )
+                        )
 
                 # Store raw record
                 records.append(dict(record))
 
-            return GraphQueryResult(
-                nodes=nodes,
-                relationships=relationships,
-                records=records
-            )
+            return GraphQueryResult(nodes=nodes, relationships=relationships, records=records)
 
-    async def create_node(
-        self,
-        labels: List[str],
-        properties: Dict[str, Any]
-    ) -> GraphNode:
+    async def create_node(self, labels: List[str], properties: Dict[str, Any]) -> GraphNode:
         """Create a new node"""
         if not self._initialized:
             await self.initialize()
@@ -119,24 +107,27 @@ class Neo4jPlugin(GraphDBPlugin):
         start_node_id: str,
         end_node_id: str,
         relationship_type: str,
-        properties: Optional[Dict[str, Any]] = None
+        properties: Optional[Dict[str, Any]] = None,
     ) -> GraphRelationship:
         """Create a relationship between nodes"""
         if not self._initialized:
             await self.initialize()
 
-        query = """
+        query = (
+            """
         MATCH (a), (b)
         WHERE elementId(a) = $start_id AND elementId(b) = $end_id
-        CREATE (a)-[r:""" + relationship_type + """ $properties]->(b)
+        CREATE (a)-[r:"""
+            + relationship_type
+            + """ $properties]->(b)
         RETURN r
         """
+        )
 
-        result = await self.execute_query(query, {
-            "start_id": start_node_id,
-            "end_id": end_node_id,
-            "properties": properties or {}
-        })
+        result = await self.execute_query(
+            query,
+            {"start_id": start_node_id, "end_id": end_node_id, "properties": properties or {}},
+        )
 
         if result.relationships:
             return result.relationships[0]
@@ -147,7 +138,7 @@ class Neo4jPlugin(GraphDBPlugin):
         self,
         labels: Optional[List[str]] = None,
         properties: Optional[Dict[str, Any]] = None,
-        limit: int = 100
+        limit: int = 100,
     ) -> List[GraphNode]:
         """Find nodes by labels and properties"""
         if not self._initialized:
@@ -173,7 +164,7 @@ class Neo4jPlugin(GraphDBPlugin):
         start_node_id: str,
         end_node_id: str,
         max_depth: int = 5,
-        relationship_types: Optional[List[str]] = None
+        relationship_types: Optional[List[str]] = None,
     ) -> List[Dict[str, Any]]:
         """Find paths between two nodes"""
         if not self._initialized:
@@ -189,20 +180,19 @@ class Neo4jPlugin(GraphDBPlugin):
         RETURN p
         """
 
-        result = await self.execute_query(query, {
-            "start_id": start_node_id,
-            "end_id": end_node_id
-        })
+        result = await self.execute_query(query, {"start_id": start_node_id, "end_id": end_node_id})
 
         paths = []
         for record in result.records:
-            if 'p' in record:
-                path = record['p']
-                paths.append({
-                    "nodes": [dict(node) for node in path.nodes],
-                    "relationships": [dict(rel) for rel in path.relationships],
-                    "length": len(path)
-                })
+            if "p" in record:
+                path = record["p"]
+                paths.append(
+                    {
+                        "nodes": [dict(node) for node in path.nodes],
+                        "relationships": [dict(rel) for rel in path.relationships],
+                        "length": len(path),
+                    }
+                )
 
         return paths
 
@@ -247,20 +237,20 @@ class Neo4jPlugin(GraphDBPlugin):
 
         # Get node labels
         labels_result = await self.execute_query("CALL db.labels()")
-        labels = [record['label'] for record in labels_result.records]
+        labels = [record["label"] for record in labels_result.records]
 
         # Get relationship types
         types_result = await self.execute_query("CALL db.relationshipTypes()")
-        relationship_types = [record['relationshipType'] for record in types_result.records]
+        relationship_types = [record["relationshipType"] for record in types_result.records]
 
         # Get property keys
         props_result = await self.execute_query("CALL db.propertyKeys()")
-        property_keys = [record['propertyKey'] for record in props_result.records]
+        property_keys = [record["propertyKey"] for record in props_result.records]
 
         return {
             "labels": labels,
             "relationship_types": relationship_types,
-            "property_keys": property_keys
+            "property_keys": property_keys,
         }
 
     async def close(self) -> None:

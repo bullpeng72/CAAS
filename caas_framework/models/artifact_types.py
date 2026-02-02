@@ -4,10 +4,11 @@ Artifact Types
 개발 산출물 타입 정의
 """
 
+from datetime import datetime
 from enum import Enum
 from typing import List, Optional
+
 from pydantic import BaseModel, Field
-from datetime import datetime
 
 
 class ArtifactType(str, Enum):
@@ -46,6 +47,7 @@ class ArtifactType(str, Enum):
 
 class ArtifactFormat(str, Enum):
     """산출물 포맷"""
+
     MARKDOWN = "markdown"
     HTML = "html"
     PDF = "pdf"
@@ -75,9 +77,7 @@ class Artifact(BaseModel):
     related_artifacts: List[str] = Field(default_factory=list, description="관련 산출물 ID")
 
     class Config:
-        json_encoders = {
-            datetime: lambda v: v.isoformat()
-        }
+        json_encoders = {datetime: lambda v: v.isoformat()}
 
 
 class ArtifactGenerationConfig(BaseModel):

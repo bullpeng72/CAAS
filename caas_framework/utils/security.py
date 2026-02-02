@@ -5,9 +5,10 @@ CAAS Security Utilities
 """
 
 import re
-import yaml
 from pathlib import Path
 from typing import Any, Optional
+
+import yaml
 
 
 class SecurityError(Exception):
@@ -25,6 +26,7 @@ class YAMLSecurityError(SecurityError):
 # ============================================================================
 # 경로 탐색 공격 방어
 # ============================================================================
+
 
 def sanitize_filename(filename: str, max_length: int = 255) -> str:
     """
@@ -52,23 +54,23 @@ def sanitize_filename(filename: str, max_length: int = 255) -> str:
         raise ValueError("파일명은 비어 있을 수 없습니다")
 
     # 특수 디렉토리 참조 거부
-    if filename in ('.', '..', '...'):
+    if filename in (".", "..", "..."):
         raise ValueError(f"특수 디렉토리 참조는 허용되지 않습니다: {filename}")
 
     # 경로 탐색 시도 감지
-    if '..' in filename:
+    if ".." in filename:
         raise PathTraversalError(f"파일명에 경로 탐색 감지됨: {filename}")
 
     # 절대 경로 거부
-    if filename.startswith('/') or (len(filename) > 1 and filename[1] == ':'):
+    if filename.startswith("/") or (len(filename) > 1 and filename[1] == ":"):
         raise PathTraversalError(f"절대 경로는 허용되지 않습니다: {filename}")
 
     # Null 바이트 거부
-    if '\0' in filename:
+    if "\0" in filename:
         raise PathTraversalError("파일명에 Null 바이트 포함")
 
     # 디렉토리 구분자 거부 (단순 파일명의 경우)
-    if '/' in filename or '\\' in filename:
+    if "/" in filename or "\\" in filename:
         raise PathTraversalError(f"디렉토리 구분자는 허용되지 않습니다: {filename}")
 
     # 길이 확인
@@ -76,7 +78,7 @@ def sanitize_filename(filename: str, max_length: int = 255) -> str:
         raise ValueError(f"파일명이 너무 깁니다 (최대 {max_length}자): {len(filename)}")
 
     # 안전한 문자만 허용
-    if not re.match(r'^[a-zA-Z0-9_\-\.]+$', filename):
+    if not re.match(r"^[a-zA-Z0-9_\-\.]+$", filename):
         raise ValueError(f"파일명에 유효하지 않은 문자 포함: {filename}")
 
     return filename
@@ -107,7 +109,12 @@ def sanitize_path_component(component: str, max_length: int = 255) -> str:
         raise ValueError("경로 컴포넌트는 비어 있을 수 없습니다")
 
     # . 및 .. 거부 (경로 탐색 공격)
-    if component in ('.', '..') or '..' in component or component.startswith('./') or component.startswith('../'):
+    if (
+        component in (".", "..")
+        or ".." in component
+        or component.startswith("./")
+        or component.startswith("../")
+    ):
         raise PathTraversalError(f"경로 탐색 시도 감지: {component}")
 
     # 길이 확인
@@ -119,7 +126,7 @@ def sanitize_path_component(component: str, max_length: int = 255) -> str:
     #   - Dotfiles: .env.example, .gitignore, etc. (start with dot, then alphanumeric+underscore+dot)
     #   - Regular files: README.md, my_file-v2.txt, etc. (start with alphanumeric, then alphanumeric+underscore+hyphen+dot)
     # Allow dotfiles but NOT . or .. (those are checked above)
-    if not re.match(r'^(\.[a-zA-Z][a-zA-Z0-9_\-\.]*|[a-zA-Z][a-zA-Z0-9_\-\.]*)$', component):
+    if not re.match(r"^(\.[a-zA-Z][a-zA-Z0-9_\-\.]*|[a-zA-Z][a-zA-Z0-9_\-\.]*)$", component):
         raise ValueError(
             f"경로 컴포넌트는 유효한 파일명이어야 합니다 (dotfiles, snake_case, kebab-case, 파일 확장자 허용): {component}"
         )
@@ -157,7 +164,7 @@ def sanitize_relative_path(
         raise ValueError("경로는 비어 있을 수 없습니다")
 
     # 절대 경로 거부
-    if path.startswith('/') or (len(path) > 1 and path[1] == ':'):
+    if path.startswith("/") or (len(path) > 1 and path[1] == ":"):
         raise ValueError(f"절대 경로는 허용되지 않습니다: {path}")
 
     # base_dir을 먼저 resolve (symlink 해결)
@@ -167,7 +174,7 @@ def sanitize_relative_path(
         raise PathTraversalError(f"기본 디렉토리가 유효하지 않습니다: {base_dir} ({e})")
 
     # 경로를 컴포넌트로 파싱
-    parts = path.replace('\\', '/').split('/')
+    parts = path.replace("\\", "/").split("/")
     # 빈 문자열 제거
     parts = [p for p in parts if p]
 
@@ -201,9 +208,7 @@ def sanitize_relative_path(
         try:
             resolved.relative_to(base_resolved)
         except ValueError:
-            raise PathTraversalError(
-                f"경로가 기본 디렉토리를 벗어남: {path} -> {resolved}"
-            )
+            raise PathTraversalError(f"경로가 기본 디렉토리를 벗어남: {path} -> {resolved}")
 
         return resolved
 
@@ -239,10 +244,8 @@ def validate_project_name(name: str) -> str:
     if len(name) > 64:
         raise ValueError(f"프로젝트 이름이 너무 깁니다 (최대 64자): {len(name)}")
 
-    if not re.match(r'^[a-z][a-z0-9_]*$', name):
-        raise ValueError(
-            f"프로젝트 이름은 snake_case여야 합니다 (소문자, 문자로 시작): {name}"
-        )
+    if not re.match(r"^[a-z][a-z0-9_]*$", name):
+        raise ValueError(f"프로젝트 이름은 snake_case여야 합니다 (소문자, 문자로 시작): {name}")
 
     return name
 
@@ -250,6 +253,7 @@ def validate_project_name(name: str) -> str:
 # ============================================================================
 # Cypher 인젝션 방어
 # ============================================================================
+
 
 def sanitize_neo4j_label(label: str) -> str:
     """
@@ -277,19 +281,57 @@ def sanitize_neo4j_label(label: str) -> str:
         raise ValueError(f"레이블이 너무 깁니다 (최대 64자): {len(label)}")
 
     # 레이블에 대한 안전한 문자만 허용
-    if not re.match(r'^[A-Za-z][A-Za-z0-9_]*$', label):
-        raise ValueError(
-            f"레이블은 문자로 시작하고 영숫자/밑줄만 포함해야 합니다: {label}"
-        )
+    if not re.match(r"^[A-Za-z][A-Za-z0-9_]*$", label):
+        raise ValueError(f"레이블은 문자로 시작하고 영숫자/밑줄만 포함해야 합니다: {label}")
 
     # Neo4j 예약어 거부
     reserved_words = {
-        'ALL', 'AND', 'AS', 'ASC', 'ASCENDING', 'BY', 'CALL', 'CASE', 'COMMIT',
-        'CONSTRAINT', 'CREATE', 'DELETE', 'DESC', 'DESCENDING', 'DETACH',
-        'DISTINCT', 'DROP', 'ELSE', 'END', 'EXISTS', 'FOREACH', 'IN', 'INDEX',
-        'IS', 'LIMIT', 'MATCH', 'MERGE', 'NOT', 'NULL', 'ON', 'OPTIONAL',
-        'OR', 'ORDER', 'REMOVE', 'RETURN', 'SET', 'SKIP', 'THEN', 'UNION',
-        'UNIQUE', 'UNWIND', 'WHEN', 'WHERE', 'WITH', 'XOR', 'YIELD',
+        "ALL",
+        "AND",
+        "AS",
+        "ASC",
+        "ASCENDING",
+        "BY",
+        "CALL",
+        "CASE",
+        "COMMIT",
+        "CONSTRAINT",
+        "CREATE",
+        "DELETE",
+        "DESC",
+        "DESCENDING",
+        "DETACH",
+        "DISTINCT",
+        "DROP",
+        "ELSE",
+        "END",
+        "EXISTS",
+        "FOREACH",
+        "IN",
+        "INDEX",
+        "IS",
+        "LIMIT",
+        "MATCH",
+        "MERGE",
+        "NOT",
+        "NULL",
+        "ON",
+        "OPTIONAL",
+        "OR",
+        "ORDER",
+        "REMOVE",
+        "RETURN",
+        "SET",
+        "SKIP",
+        "THEN",
+        "UNION",
+        "UNIQUE",
+        "UNWIND",
+        "WHEN",
+        "WHERE",
+        "WITH",
+        "XOR",
+        "YIELD",
     }
 
     if label.upper() in reserved_words:
@@ -323,10 +365,8 @@ def sanitize_neo4j_property_key(key: str) -> str:
         raise ValueError(f"속성 키가 너무 깁니다 (최대 64자): {len(key)}")
 
     # 안전한 문자 허용
-    if not re.match(r'^[a-zA-Z_][a-zA-Z0-9_\-]*$', key):
-        raise ValueError(
-            f"속성 키는 문자/밑줄로 시작해야 합니다: {key}"
-        )
+    if not re.match(r"^[a-zA-Z_][a-zA-Z0-9_\-]*$", key):
+        raise ValueError(f"속성 키는 문자/밑줄로 시작해야 합니다: {key}")
 
     return key
 
@@ -356,10 +396,8 @@ def sanitize_neo4j_relationship_type(rel_type: str) -> str:
         raise ValueError(f"관계 타입이 너무 깁니다 (최대 64자): {len(rel_type)}")
 
     # 규칙: 관계 타입은 UPPERCASE_WITH_UNDERSCORES
-    if not re.match(r'^[A-Z][A-Z0-9_]*$', rel_type):
-        raise ValueError(
-            f"관계 타입은 UPPERCASE_WITH_UNDERSCORES여야 합니다: {rel_type}"
-        )
+    if not re.match(r"^[A-Z][A-Z0-9_]*$", rel_type):
+        raise ValueError(f"관계 타입은 UPPERCASE_WITH_UNDERSCORES여야 합니다: {rel_type}")
 
     return rel_type
 
@@ -394,6 +432,7 @@ def validate_cypher_limit(limit: int, max_limit: int = 10000) -> int:
 # YAML Bomb 방어
 # ============================================================================
 
+
 def validate_yaml_size(
     yaml_content: str,
     max_size: int = 1_000_000,  # 1MB
@@ -419,18 +458,14 @@ def validate_yaml_size(
         raise ValueError("YAML 컨텐츠는 비어 있을 수 없습니다")
 
     # 바이트 크기 확인
-    content_size = len(yaml_content.encode('utf-8'))
+    content_size = len(yaml_content.encode("utf-8"))
     if content_size > max_size:
-        raise YAMLSecurityError(
-            f"YAML이 너무 큽니다 ({content_size} 바이트, 최대 {max_size})"
-        )
+        raise YAMLSecurityError(f"YAML이 너무 큽니다 ({content_size} 바이트, 최대 {max_size})")
 
     # 라인 수 확인
-    line_count = yaml_content.count('\n') + 1
+    line_count = yaml_content.count("\n") + 1
     if line_count > max_lines:
-        raise YAMLSecurityError(
-            f"YAML에 라인이 너무 많습니다 ({line_count}, 최대 {max_lines})"
-        )
+        raise YAMLSecurityError(f"YAML에 라인이 너무 많습니다 ({line_count}, 최대 {max_lines})")
 
 
 def safe_yaml_load(
@@ -477,17 +512,13 @@ def safe_yaml_load(
     # 깊이 검증
     actual_depth = _get_nested_depth(data)
     if actual_depth > max_depth:
-        raise YAMLSecurityError(
-            f"YAML이 너무 깊게 중첩됨 ({actual_depth}, 최대 {max_depth})"
-        )
+        raise YAMLSecurityError(f"YAML이 너무 깊게 중첩됨 ({actual_depth}, 최대 {max_depth})")
 
     # 복잡도 검증
     node_count = _count_nodes(data)
     max_nodes = 10_000
     if node_count > max_nodes:
-        raise YAMLSecurityError(
-            f"YAML이 너무 복잡함 ({node_count} 노드, 최대 {max_nodes})"
-        )
+        raise YAMLSecurityError(f"YAML이 너무 복잡함 ({node_count} 노드, 최대 {max_nodes})")
 
     return data
 
@@ -500,18 +531,12 @@ def _get_nested_depth(obj: Any, current_depth: int = 0) -> int:
     if isinstance(obj, dict):
         if not obj:
             return current_depth
-        return max(
-            _get_nested_depth(v, current_depth + 1)
-            for v in obj.values()
-        )
+        return max(_get_nested_depth(v, current_depth + 1) for v in obj.values())
 
     if isinstance(obj, list):
         if not obj:
             return current_depth
-        return max(
-            _get_nested_depth(item, current_depth + 1)
-            for item in obj
-        )
+        return max(_get_nested_depth(item, current_depth + 1) for item in obj)
 
     return current_depth
 
@@ -529,6 +554,7 @@ def _count_nodes(obj: Any) -> int:
 # ============================================================================
 # 프롬프트 인젝션 방어
 # ============================================================================
+
 
 class PromptInjectionError(SecurityError):
     """프롬프트 인젝션 시도 감지"""
@@ -561,10 +587,15 @@ def sanitize_user_input(user_input: str, max_length: int = 10000) -> str:
 
     # 3. LLM 특수 토큰 제거
     special_tokens = [
-        "<|im_start|>", "<|im_end|>",  # ChatML
-        "[INST]", "[/INST]",            # Llama
-        "<s>", "</s>",                   # 일반 토큰
-        "###", "Assistant:", "Human:",  # 일반 프롬프트 패턴
+        "<|im_start|>",
+        "<|im_end|>",  # ChatML
+        "[INST]",
+        "[/INST]",  # Llama
+        "<s>",
+        "</s>",  # 일반 토큰
+        "###",
+        "Assistant:",
+        "Human:",  # 일반 프롬프트 패턴
     ]
     for token in special_tokens:
         sanitized = sanitized.replace(token, "")
@@ -610,12 +641,16 @@ def detect_prompt_injection(user_input: str) -> Optional[str]:
             return f"Dangerous pattern: {pattern}"
 
     # 시스템 프롬프트 오버라이드 시도
-    if re.search(r"(you are|act as|pretend to be).{0,50}(system|admin|root|assistant)", user_input_lower):
+    if re.search(
+        r"(you are|act as|pretend to be).{0,50}(system|admin|root|assistant)", user_input_lower
+    ):
         return "System override attempt"
 
     # 과도한 특수문자 (난독화 시도)
     if len(user_input) > 0:
-        special_char_ratio = sum(not c.isalnum() and not c.isspace() for c in user_input) / len(user_input)
+        special_char_ratio = sum(not c.isalnum() and not c.isspace() for c in user_input) / len(
+            user_input
+        )
         if special_char_ratio > 0.4:
             return "Excessive special characters"
 

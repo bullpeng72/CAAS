@@ -18,9 +18,9 @@ Example:
     ... )
 """
 
-from caas_framework.framework import CrewAIFramework
+from caas_framework.config.loader import ConfigLoader, get_config_loader, load_config
 from caas_framework.config.settings import FrameworkConfig
-from caas_framework.config.loader import load_config, get_config_loader, ConfigLoader
+from caas_framework.framework import CrewAIFramework
 
 # Models will be imported from app/models until Phase 2
 # from caas_framework.models.schemas import (

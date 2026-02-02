@@ -10,16 +10,12 @@ Expert agent responsible for Phase 6 (Quality Assurance):
 
 from typing import Any, Dict, List, Optional
 
-from caas_framework.agents.base import (
-    BaseExpertAgent,
-    AgentPhase,
-    ValidationIssue
-)
+from caas_framework.agents.base import AgentPhase, BaseExpertAgent, ValidationIssue
 from caas_framework.agents.registry import register_agent
+from caas_framework.config.settings import LLMConstants
 from caas_framework.models.specifications import ConcretizedRequirement
 from caas_framework.plugins.llm.base import LLMPlugin
-from caas_framework.utils import ResponseParser, PromptBuilder, GoldenDataMatcher
-from caas_framework.config.settings import LLMConstants
+from caas_framework.utils import GoldenDataMatcher, PromptBuilder, ResponseParser
 
 
 @register_agent(phase=AgentPhase.QUALITY_ASSURANCE)
@@ -31,11 +27,7 @@ class QASpecialistAgent(BaseExpertAgent):
     Performs comprehensive validation and compliance checking.
     """
 
-    def __init__(
-        self,
-        llm_plugin: LLMPlugin,
-        golden_data: Optional[ConcretizedRequirement] = None
-    ):
+    def __init__(self, llm_plugin: LLMPlugin, golden_data: Optional[ConcretizedRequirement] = None):
         super().__init__(llm_plugin, golden_data, AgentPhase.QUALITY_ASSURANCE)
 
     @property
@@ -56,14 +48,14 @@ class QASpecialistAgent(BaseExpertAgent):
             "Security auditing",
             "Performance testing",
             "Code review",
-            "Production readiness assessment"
+            "Production readiness assessment",
         ]
 
     async def _do_work(
         self,
         requirement: Optional[str],
         context: Optional[Dict[str, Any]],
-        previous_outputs: Optional[Dict[AgentPhase, Any]]
+        previous_outputs: Optional[Dict[AgentPhase, Any]],
     ) -> Dict[str, Any]:
         """
         Perform comprehensive QA on all outputs.
@@ -83,13 +75,13 @@ class QASpecialistAgent(BaseExpertAgent):
         response = await self.llm.ainvoke(
             messages=[{"role": "user", "content": prompt}],
             response_format=LLMConstants.RESPONSE_FORMAT_JSON,
-            temperature=LLMConstants.TEMPERATURE_PRECISE  # Very low temperature for QA
+            temperature=LLMConstants.TEMPERATURE_PRECISE,  # Very low temperature for QA
         )
 
         qa_report = ResponseParser.parse_structured_response(
             response,
-            expected_fields=['test_coverage', 'validation_results', 'recommendations'],
-            fallback_factory=self._create_fallback_qa_report
+            expected_fields=["test_coverage", "validation_results", "recommendations"],
+            fallback_factory=self._create_fallback_qa_report,
         )
 
         # Enhance with Golden Data compliance check
@@ -99,10 +91,7 @@ class QASpecialistAgent(BaseExpertAgent):
         return qa_report
 
     def _build_qa_prompt(
-        self,
-        requirement: str,
-        previous_outputs: Optional[Dict[AgentPhase, Any]],
-        context: str
+        self, requirement: str, previous_outputs: Optional[Dict[AgentPhase, Any]], context: str
     ) -> str:
         """Build LLM prompt for QA analysis."""
 
@@ -115,12 +104,10 @@ class QASpecialistAgent(BaseExpertAgent):
         # Add golden data if available
         if self.golden_data:
             builder.add_golden_data(
-                self.golden_data,
-                fields=['domain', 'features', 'data_models', 'ui_components']
+                self.golden_data, fields=["domain", "features", "data_models", "ui_components"]
             )
             builder.add_context(
-                "Quality Baseline",
-                "All outputs must align with these Golden Data specifications."
+                "Quality Baseline", "All outputs must align with these Golden Data specifications."
             )
 
         # Add previous phase outputs
@@ -132,93 +119,86 @@ class QASpecialistAgent(BaseExpertAgent):
             builder.add_context("Additional Context", context)
 
         # Add output format
-        builder.add_output_format({
-            "qa_report": {
-                "overall_quality": "excellent|good|fair|poor",
-                "phase_assessments": {
-                    "discovery": {"score": "0-10", "issues": [], "strengths": []},
-                    "architecture": {"score": "0-10", "issues": [], "strengths": []},
-                    "design": {"score": "0-10", "issues": [], "strengths": []},
-                    "delivery": {"score": "0-10", "issues": [], "strengths": []}
-                }
+        builder.add_output_format(
+            {
+                "qa_report": {
+                    "overall_quality": "excellent|good|fair|poor",
+                    "phase_assessments": {
+                        "discovery": {"score": "0-10", "issues": [], "strengths": []},
+                        "architecture": {"score": "0-10", "issues": [], "strengths": []},
+                        "design": {"score": "0-10", "issues": [], "strengths": []},
+                        "delivery": {"score": "0-10", "issues": [], "strengths": []},
+                    },
+                },
+                "compliance_check": {
+                    "golden_data_alignment": "0-100",
+                    "requirement_coverage": "0-100",
+                    "completeness": "0-100",
+                    "non_compliant_items": [],
+                },
+                "test_results": {
+                    "unit_tests": "pass|fail|not_run",
+                    "integration_tests": "pass|fail|not_run",
+                    "e2e_tests": "pass|fail|not_run",
+                    "test_coverage": "0-100",
+                },
+                "security_assessment": {
+                    "vulnerabilities": [],
+                    "security_score": "0-10",
+                    "recommendations": [],
+                },
+                "performance_assessment": {
+                    "scalability": "0-10",
+                    "efficiency": "0-10",
+                    "bottlenecks": [],
+                },
+                "recommendations": ["Specific recommendation 1", "Specific recommendation 2"],
+                "readiness_score": "0-100",
+                "production_ready": "true|false",
             },
-            "compliance_check": {
-                "golden_data_alignment": "0-100",
-                "requirement_coverage": "0-100",
-                "completeness": "0-100",
-                "non_compliant_items": []
-            },
-            "test_results": {
-                "unit_tests": "pass|fail|not_run",
-                "integration_tests": "pass|fail|not_run",
-                "e2e_tests": "pass|fail|not_run",
-                "test_coverage": "0-100"
-            },
-            "security_assessment": {
-                "vulnerabilities": [],
-                "security_score": "0-10",
-                "recommendations": []
-            },
-            "performance_assessment": {
-                "scalability": "0-10",
-                "efficiency": "0-10",
-                "bottlenecks": []
-            },
-            "recommendations": [
-                "Specific recommendation 1",
-                "Specific recommendation 2"
-            ],
-            "readiness_score": "0-100",
-            "production_ready": "true|false"
-        }, "Provide comprehensive QA report in JSON format:")
+            "Provide comprehensive QA report in JSON format:",
+        )
 
-        builder.add_guidelines([
-            "Be thorough and critical",
-            "Identify all issues and provide actionable recommendations",
-            "Validate alignment with Golden Data specifications",
-            "Assess production readiness objectively"
-        ])
+        builder.add_guidelines(
+            [
+                "Be thorough and critical",
+                "Identify all issues and provide actionable recommendations",
+                "Validate alignment with Golden Data specifications",
+                "Assess production readiness objectively",
+            ]
+        )
 
         return builder.build()
 
     def _create_fallback_qa_report(self) -> Dict[str, Any]:
         """Create basic QA report when LLM fails."""
         return {
-            "qa_report": {
-                "overall_quality": "unknown",
-                "phase_assessments": {}
-            },
+            "qa_report": {"overall_quality": "unknown", "phase_assessments": {}},
             "compliance_check": {
                 "golden_data_alignment": 0,
                 "requirement_coverage": 0,
                 "completeness": 0,
-                "non_compliant_items": []
+                "non_compliant_items": [],
             },
             "test_results": {
                 "unit_tests": "not_run",
                 "integration_tests": "not_run",
                 "e2e_tests": "not_run",
-                "test_coverage": 0
+                "test_coverage": 0,
             },
             "security_assessment": {
                 "vulnerabilities": [],
                 "security_score": 0,
-                "recommendations": []
+                "recommendations": [],
             },
-            "performance_assessment": {
-                "scalability": 0,
-                "efficiency": 0,
-                "bottlenecks": []
-            },
+            "performance_assessment": {"scalability": 0, "efficiency": 0, "bottlenecks": []},
             "recommendations": ["QA analysis could not be completed"],
             "readiness_score": 0,
-            "production_ready": False
+            "production_ready": False,
         }
 
     def _check_golden_data_compliance(
-        self,
-        qa_report: Dict[str, Any],
-        previous_outputs: Optional[Dict[AgentPhase, Any]]
+        self, qa_report: Dict[str, Any], previous_outputs: Optional[Dict[AgentPhase, Any]]
     ) -> Dict[str, Any]:
         """Check compliance with Golden Data."""
         if not self.golden_data or not previous_outputs:
@@ -233,8 +213,7 @@ class QASpecialistAgent(BaseExpertAgent):
 
             # Calculate coverage metrics
             coverage_metrics = GoldenDataMatcher.calculate_coverage(
-                features=self.golden_data.features,
-                item_feature_map=task_feature_map
+                features=self.golden_data.features, item_feature_map=task_feature_map
             )
 
             compliance["feature_coverage"] = coverage_metrics["coverage_percentage"]
@@ -258,7 +237,7 @@ class QASpecialistAgent(BaseExpertAgent):
         output: Dict[str, Any],
         issues: List[ValidationIssue],
         context: Optional[Dict[str, Any]],
-        iteration: int
+        iteration: int,
     ) -> Dict[str, Any]:
         """
         Refine QA report based on feedback.

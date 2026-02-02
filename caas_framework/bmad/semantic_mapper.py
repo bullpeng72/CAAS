@@ -4,16 +4,15 @@ Semantic Mapper
 Phase 3: Use LLM to semantically map code to features
 """
 
-from typing import Dict, List, Tuple
-from dataclasses import dataclass, field
 import logging
+from dataclasses import dataclass, field
+from typing import Dict, List, Tuple
 
-from caas_framework.plugins.llm.base import LLMPlugin
-from caas_framework.models.specifications import FeatureSpec
 from caas_framework.bmad.code_analyzer import FileAnalysis
-from caas_framework.utils import ResponseParser, PromptBuilder
 from caas_framework.config.settings import LLMConstants
-
+from caas_framework.models.specifications import FeatureSpec
+from caas_framework.plugins.llm.base import LLMPlugin
+from caas_framework.utils import PromptBuilder, ResponseParser
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +20,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class FeatureImplementation:
     """Information about how a feature is implemented"""
+
     feature_id: str
     feature_name: str
 
@@ -44,6 +44,7 @@ class FeatureImplementation:
 @dataclass
 class MappingResult:
     """Result of semantic mapping"""
+
     feature_implementations: List[FeatureImplementation] = field(default_factory=list)
     unimplemented_features: List[str] = field(default_factory=list)
     implementation_rate: float = 0.0
@@ -76,7 +77,13 @@ class SemanticMapper:
         self._translation_map = {
             # Feature names
             "keyword input": ["키워드 입력", "키워드입력", "keyword", "사용자 인터페이스"],
-            "internet search": ["인터넷 검색", "인터넷검색", "웹 검색", "search", "인터넷 정보 검색"],
+            "internet search": [
+                "인터넷 검색",
+                "인터넷검색",
+                "웹 검색",
+                "search",
+                "인터넷 정보 검색",
+            ],
             "internet information search": ["인터넷 정보 검색", "인터넷 검색", "정보 검색"],
             "trend report": ["동향 보고서", "트렌드 리포트", "보고서", "report"],
             "trend report generation": ["동향 보고서 작성", "보고서 생성", "리포트 생성"],
@@ -88,13 +95,21 @@ class SemanticMapper:
             "error handling": ["오류 처리", "에러 처리", "예외 처리"],
             "security": ["보안", "시큐리티"],
             "user interface": ["사용자 인터페이스", "UI", "인터페이스"],
-
             # Agent roles (including "관리자" manager variants)
-            "user agent": ["사용자 대리자", "사용자 에이전트", "유저 에이전트", "사용자 인터페이스 관리자"],
+            "user agent": [
+                "사용자 대리자",
+                "사용자 에이전트",
+                "유저 에이전트",
+                "사용자 인터페이스 관리자",
+            ],
             "validation agent": ["검증 대리자", "검증 에이전트", "키워드 검증 관리자"],
             "research agent": ["조사 대리자", "조사 에이전트", "리서치 에이전트"],
             "report agent": ["보고서 작성 대리자", "보고서 에이전트", "보고서 작성 관리자"],
-            "search agent": ["검색 에이전트", "검색 관리자", "인터넷 정보 검색 및 보고서 작성 관리자"],
+            "search agent": [
+                "검색 에이전트",
+                "검색 관리자",
+                "인터넷 정보 검색 및 보고서 작성 관리자",
+            ],
         }
 
     def _get_translation_variants(self, text: str) -> List[str]:
@@ -135,8 +150,9 @@ class SemanticMapper:
         # Add word-level tokens for better matching
         # Extract Korean and English words
         import re
-        korean_words = re.findall(r'[가-힣]+', text)
-        english_words = re.findall(r'[a-zA-Z]+', text_lower)
+
+        korean_words = re.findall(r"[가-힣]+", text)
+        english_words = re.findall(r"[a-zA-Z]+", text_lower)
 
         variants.extend(korean_words)
         variants.extend(english_words)
@@ -144,9 +160,7 @@ class SemanticMapper:
         return list(set(v for v in variants if v))
 
     async def map_features_to_code(
-        self,
-        features: List[FeatureSpec],
-        code_analyses: Dict[str, FileAnalysis]
+        self, features: List[FeatureSpec], code_analyses: Dict[str, FileAnalysis]
     ) -> MappingResult:
         """
         Map features to code using semantic analysis
@@ -172,9 +186,7 @@ class SemanticMapper:
         for feature in features:
             self.logger.debug(f"Analyzing feature: {feature.name} ({feature.id})")
 
-            implementation = await self._analyze_feature_implementation(
-                feature, code_analyses
-            )
+            implementation = await self._analyze_feature_implementation(feature, code_analyses)
 
             if implementation.is_fully_implemented or implementation.is_partially_implemented:
                 feature_implementations.append(implementation)
@@ -189,7 +201,7 @@ class SemanticMapper:
         result = MappingResult(
             feature_implementations=feature_implementations,
             unimplemented_features=unimplemented,
-            implementation_rate=implementation_rate
+            implementation_rate=implementation_rate,
         )
 
         self.logger.info(
@@ -200,9 +212,7 @@ class SemanticMapper:
         return result
 
     def _map_features_to_crewai(
-        self,
-        features: List[FeatureSpec],
-        code_analyses: Dict[str, FileAnalysis]
+        self, features: List[FeatureSpec], code_analyses: Dict[str, FileAnalysis]
     ) -> MappingResult:
         """
         Map features to CrewAI agents and tasks (specialized, no LLM needed)
@@ -274,7 +284,7 @@ class SemanticMapper:
                 lev_distance = levenshtein_distance(text1, text2)
                 lev_similarity = 1.0 - (lev_distance / max_len)
 
-            direct_score = (seq_ratio * 0.6 + lev_similarity * 0.4)
+            direct_score = seq_ratio * 0.6 + lev_similarity * 0.4
 
             # Check translation variants for better matching
             variants1 = self._get_translation_variants(text1)
@@ -298,7 +308,7 @@ class SemanticMapper:
                         else:
                             var_lev_dist = levenshtein_distance(v1_lower, v2_lower)
                             var_lev_sim = 1.0 - (var_lev_dist / var_max_len)
-                        variant_score = (var_seq_ratio * 0.6 + var_lev_sim * 0.4)
+                        variant_score = var_seq_ratio * 0.6 + var_lev_sim * 0.4
 
                     best_variant_score = max(best_variant_score, variant_score)
 
@@ -346,7 +356,7 @@ class SemanticMapper:
 
             # Determine implementation status with weighted scoring
             # Agent weight: 60%, Task weight: 40%
-            combined_score = (best_agent_score * 0.6 + best_task_score * 0.4)
+            combined_score = best_agent_score * 0.6 + best_task_score * 0.4
 
             # Adjusted thresholds (lowered from 40% to 35%)
             threshold_full = 0.35  # 35% similarity = implemented
@@ -385,7 +395,7 @@ class SemanticMapper:
                     implementing_files=list(implementing_files),
                     implementing_functions=[],
                     implementing_classes=[],
-                    evidence=evidence
+                    evidence=evidence,
                 )
                 feature_implementations.append(implementation)
 
@@ -420,7 +430,7 @@ class SemanticMapper:
                     implementing_files=list(implementing_files),
                     implementing_functions=[],
                     implementing_classes=[],
-                    evidence=evidence
+                    evidence=evidence,
                 )
                 feature_implementations.append(implementation)
 
@@ -436,7 +446,7 @@ class SemanticMapper:
         result = MappingResult(
             feature_implementations=feature_implementations,
             unimplemented_features=unimplemented,
-            implementation_rate=implementation_rate
+            implementation_rate=implementation_rate,
         )
 
         self.logger.info(
@@ -447,9 +457,7 @@ class SemanticMapper:
         return result
 
     async def _analyze_feature_implementation(
-        self,
-        feature: FeatureSpec,
-        code_analyses: Dict[str, FileAnalysis]
+        self, feature: FeatureSpec, code_analyses: Dict[str, FileAnalysis]
     ) -> FeatureImplementation:
         """
         Analyze if a single feature is implemented
@@ -509,71 +517,75 @@ Be thorough but realistic. Don't claim implementation unless you see actual code
         ]
 
         if is_crewai:
-            guidelines.extend([
-                "In CrewAI systems, Agent definitions ARE implementations",
-                "In CrewAI systems, Task definitions ARE implementations",
-                "Match feature descriptions to Agent goals and Task descriptions",
-                "An Agent + Task pair implementing a feature = fully_implemented",
-            ])
+            guidelines.extend(
+                [
+                    "In CrewAI systems, Agent definitions ARE implementations",
+                    "In CrewAI systems, Task definitions ARE implementations",
+                    "Match feature descriptions to Agent goals and Task descriptions",
+                    "An Agent + Task pair implementing a feature = fully_implemented",
+                ]
+            )
 
         guidelines.append("Return only valid JSON")
 
-        prompt = PromptBuilder(
-            f"analyze if feature '{feature.name}' is implemented in code"
-        ).add_task(task_description).add_context(
-            "Code Structure",
-            code_summary
-        ).add_output_format(
-            {
-                "is_fully_implemented": True,
-                "is_partially_implemented": False,
-                "confidence_score": 0.85,
-                "implementation_percentage": 100,
-                "implementing_files": ["tasks.py"],
-                "implementing_functions": ["add_task", "create_task"],
-                "implementing_classes": ["TaskManager"],
-                "evidence": [
-                    "Found add_task function in tasks.py that creates new tasks",
-                    "TaskManager class has create_task method matching description"
-                ]
-            },
-            "Return analysis in JSON format:"
-        ).add_guidelines(guidelines).build()
+        prompt = (
+            PromptBuilder(f"analyze if feature '{feature.name}' is implemented in code")
+            .add_task(task_description)
+            .add_context("Code Structure", code_summary)
+            .add_output_format(
+                {
+                    "is_fully_implemented": True,
+                    "is_partially_implemented": False,
+                    "confidence_score": 0.85,
+                    "implementation_percentage": 100,
+                    "implementing_files": ["tasks.py"],
+                    "implementing_functions": ["add_task", "create_task"],
+                    "implementing_classes": ["TaskManager"],
+                    "evidence": [
+                        "Found add_task function in tasks.py that creates new tasks",
+                        "TaskManager class has create_task method matching description",
+                    ],
+                },
+                "Return analysis in JSON format:",
+            )
+            .add_guidelines(guidelines)
+            .build()
+        )
 
         response = await self.llm.ainvoke(
             messages=[{"role": "user", "content": prompt}],
             response_format=LLMConstants.RESPONSE_FORMAT_JSON,
-            temperature=LLMConstants.TEMPERATURE_PRECISE
+            temperature=LLMConstants.TEMPERATURE_PRECISE,
         )
 
         result = ResponseParser.parse_structured_response(
             response,
             expected_fields=[
-                'is_fully_implemented',
-                'is_partially_implemented',
-                'confidence_score',
-                'implementation_percentage'
+                "is_fully_implemented",
+                "is_partially_implemented",
+                "confidence_score",
+                "implementation_percentage",
             ],
             fallback_factory=lambda: {
                 "is_fully_implemented": False,
                 "is_partially_implemented": False,
                 "confidence_score": 0.0,
-                "implementation_percentage": 0
-            }
+                "implementation_percentage": 0,
+            },
         )
 
         # Create FeatureImplementation
         implementation = FeatureImplementation(
             feature_id=feature.id,
             feature_name=feature.name,
-            is_fully_implemented=result.get('is_fully_implemented', False),
-            is_partially_implemented=result.get('is_partially_implemented', False),
-            confidence_score=float(result.get('confidence_score', 0.0)),
-            implementation_percentage=float(result.get('implementation_percentage', 0)),
-            implementing_files=result.get('implementing_files', []),
-            implementing_functions=result.get('implementing_functions', []),
-            implementing_classes=result.get('implementing_classes', []),
-            evidence=result.get('evidence', [])
+            is_fully_implemented=result.get("is_fully_implemented", False),
+            is_partially_implemented=result.get("is_partially_implemented", False),
+            confidence_score=float(result.get("confidence_score", 0.0)),
+            implementation_percentage=float(result.get("implementation_percentage", 0)),
+            implementing_files=result.get("implementing_files", []),
+            implementing_functions=result.get("implementing_functions", []),
+            implementing_classes=result.get("implementing_classes", []),
+            evidence=result.get("evidence", []),
         )
 
         return implementation
@@ -594,7 +606,9 @@ Be thorough but realistic. Don't claim implementation unless you see actual code
         is_crewai = any(a.is_crewai_code for a in code_analyses.values())
         if is_crewai:
             lines.append("**This is a CrewAI Multi-Agent System**")
-            lines.append("Note: In CrewAI systems, features are implemented through Agent and Task definitions.")
+            lines.append(
+                "Note: In CrewAI systems, features are implemented through Agent and Task definitions."
+            )
 
         for file_path, analysis in code_analyses.items():
             lines.append(f"\n### File: {file_path}")
@@ -632,11 +646,11 @@ Be thorough but realistic. Don't claim implementation unless you see actual code
             if analysis.functions:
                 lines.append(f"\nFunctions ({len(analysis.functions)}):")
                 for func in analysis.functions[:10]:  # Limit to avoid token overflow
-                    params = ', '.join(func.parameters)
+                    params = ", ".join(func.parameters)
                     lines.append(f"  - {func.name}({params})")
                     if func.docstring:
-                        first_line = func.docstring.split('\n')[0]
-                        lines.append(f"    \"{first_line}\"")
+                        first_line = func.docstring.split("\n")[0]
+                        lines.append(f'    "{first_line}"')
                 if len(analysis.functions) > 10:
                     lines.append(f"  ... and {len(analysis.functions) - 10} more")
 
@@ -646,8 +660,8 @@ Be thorough but realistic. Don't claim implementation unless you see actual code
                 for cls in analysis.classes[:5]:  # Limit to avoid token overflow
                     lines.append(f"  - class {cls.name}")
                     if cls.docstring:
-                        first_line = cls.docstring.split('\n')[0]
-                        lines.append(f"    \"{first_line}\"")
+                        first_line = cls.docstring.split("\n")[0]
+                        lines.append(f'    "{first_line}"')
                     if cls.methods:
                         lines.append(f"    Methods: {', '.join(m.name for m in cls.methods[:5])}")
                         if len(cls.methods) > 5:
@@ -655,12 +669,10 @@ Be thorough but realistic. Don't claim implementation unless you see actual code
                 if len(analysis.classes) > 5:
                     lines.append(f"  ... and {len(analysis.classes) - 5} more")
 
-        return '\n'.join(lines)
+        return "\n".join(lines)
 
     async def find_best_implementation_location(
-        self,
-        feature: FeatureSpec,
-        code_analyses: Dict[str, FileAnalysis]
+        self, feature: FeatureSpec, code_analyses: Dict[str, FileAnalysis]
     ) -> Tuple[str, float]:
         """
         Find the best file to implement a feature
@@ -674,10 +686,10 @@ Be thorough but realistic. Don't claim implementation unless you see actual code
         """
         code_summary = self._build_code_summary(code_analyses)
 
-        prompt = PromptBuilder(
-            f"find best location to implement feature '{feature.name}'"
-        ).add_task(
-            f"""You are a code architect. Determine the best file to implement the following feature.
+        prompt = (
+            PromptBuilder(f"find best location to implement feature '{feature.name}'")
+            .add_task(
+                f"""You are a code architect. Determine the best file to implement the following feature.
 
 Feature:
 - Name: {feature.name}
@@ -689,31 +701,29 @@ Consider:
 - What would be the file name?
 
 Recommend the most logical location."""
-        ).add_context(
-            "Existing Code Structure",
-            code_summary
-        ).add_output_format(
-            {
-                "recommended_file": "tasks.py",
-                "confidence": 0.9,
-                "reasoning": "Feature is related to task management, tasks.py already handles task operations"
-            },
-            "Return recommendation in JSON format:"
-        ).build()
+            )
+            .add_context("Existing Code Structure", code_summary)
+            .add_output_format(
+                {
+                    "recommended_file": "tasks.py",
+                    "confidence": 0.9,
+                    "reasoning": "Feature is related to task management, tasks.py already handles task operations",
+                },
+                "Return recommendation in JSON format:",
+            )
+            .build()
+        )
 
         response = await self.llm.ainvoke(
             messages=[{"role": "user", "content": prompt}],
             response_format=LLMConstants.RESPONSE_FORMAT_JSON,
-            temperature=LLMConstants.TEMPERATURE_BALANCED
+            temperature=LLMConstants.TEMPERATURE_BALANCED,
         )
 
         result = ResponseParser.parse_structured_response(
             response,
-            expected_fields=['recommended_file', 'confidence'],
-            fallback_factory=lambda: {
-                "recommended_file": "main.py",
-                "confidence": 0.5
-            }
+            expected_fields=["recommended_file", "confidence"],
+            fallback_factory=lambda: {"recommended_file": "main.py", "confidence": 0.5},
         )
 
-        return result['recommended_file'], float(result.get('confidence', 0.5))
+        return result["recommended_file"], float(result.get("confidence", 0.5))

@@ -11,7 +11,8 @@ Enhanced to achieve 80%+ test coverage with:
 - Fixtures for common setup
 """
 
-from typing import Dict, List, Any, Optional
+from typing import Any, Dict, List, Optional
+
 from pydantic import BaseModel
 
 from caas_framework.models.specifications import AgentSpecModel, TaskSpecModel
@@ -19,6 +20,7 @@ from caas_framework.models.specifications import AgentSpecModel, TaskSpecModel
 
 class TestCase(BaseModel):
     """Test case specification"""
+
     name: str
     description: str
     test_type: str  # "unit", "integration", "e2e"
@@ -35,10 +37,7 @@ class TestGenerator:
     Includes edge cases, error handling, parameterized tests, and mocking.
     """
 
-    def generate_agent_tests(
-        self,
-        agents: List[AgentSpecModel]
-    ) -> List[TestCase]:
+    def generate_agent_tests(self, agents: List[AgentSpecModel]) -> List[TestCase]:
         """
         Generate comprehensive tests for agents.
 
@@ -171,21 +170,21 @@ class Test{agent.id.title().replace("_", "")}:
         assert execution_time < 5.0
 '''
 
-            test_cases.append(TestCase(
-                name=f"test_{agent.id}",
-                description=f"Comprehensive tests for {agent.id} agent",
-                test_type="unit",
-                target=f"agents.{agent.id}",
-                code=test_code.strip(),
-                coverage_target=0.85
-            ))
+            test_cases.append(
+                TestCase(
+                    name=f"test_{agent.id}",
+                    description=f"Comprehensive tests for {agent.id} agent",
+                    test_type="unit",
+                    target=f"agents.{agent.id}",
+                    code=test_code.strip(),
+                    coverage_target=0.85,
+                )
+            )
 
         return test_cases
 
     def generate_task_tests(
-        self,
-        tasks: List[TaskSpecModel],
-        agents: List[AgentSpecModel]
+        self, tasks: List[TaskSpecModel], agents: List[AgentSpecModel]
     ) -> List[TestCase]:
         """
         Generate comprehensive tests for tasks.
@@ -333,21 +332,21 @@ class Test{task.id.title().replace("_", "")}:
             assert result is not None
 '''
 
-            test_cases.append(TestCase(
-                name=f"test_{task.id}",
-                description=f"Comprehensive tests for {task.id} task",
-                test_type="unit",
-                target=f"tasks.{task.id}",
-                code=test_code.strip(),
-                coverage_target=0.85
-            ))
+            test_cases.append(
+                TestCase(
+                    name=f"test_{task.id}",
+                    description=f"Comprehensive tests for {task.id} task",
+                    test_type="unit",
+                    target=f"tasks.{task.id}",
+                    code=test_code.strip(),
+                    coverage_target=0.85,
+                )
+            )
 
         return test_cases
 
     def generate_integration_tests(
-        self,
-        agents: List[AgentSpecModel],
-        tasks: List[TaskSpecModel]
+        self, agents: List[AgentSpecModel], tasks: List[TaskSpecModel]
     ) -> List[TestCase]:
         """
         Generate comprehensive integration tests for full crew.
@@ -536,19 +535,18 @@ class TestCrewIntegration:
             assert result is not None
 '''
 
-        return [TestCase(
-            name="test_integration",
-            description="Comprehensive integration tests for crew",
-            test_type="integration",
-            target="crew",
-            code=test_code.strip(),
-            coverage_target=0.85
-        )]
+        return [
+            TestCase(
+                name="test_integration",
+                description="Comprehensive integration tests for crew",
+                test_type="integration",
+                target="crew",
+                code=test_code.strip(),
+                coverage_target=0.85,
+            )
+        ]
 
-    def generate_api_tests(
-        self,
-        endpoints: List[Dict[str, Any]]
-    ) -> List[TestCase]:
+    def generate_api_tests(self, endpoints: List[Dict[str, Any]]) -> List[TestCase]:
         """
         Generate tests for API endpoints.
 
@@ -600,13 +598,15 @@ def test_{path.replace("/", "_").strip("_")}_post():
     assert "output" in response.json()
 '''
 
-        test_cases.append(TestCase(
-            name="test_api",
-            description="API endpoint tests",
-            test_type="integration",
-            target="api",
-            code=test_code.strip()
-        ))
+        test_cases.append(
+            TestCase(
+                name="test_api",
+                description="API endpoint tests",
+                test_type="integration",
+                target="api",
+                code=test_code.strip(),
+            )
+        )
 
         return test_cases
 
@@ -614,7 +614,7 @@ def test_{path.replace("/", "_").strip("_")}_post():
         self,
         agents: List[AgentSpecModel],
         tasks: List[TaskSpecModel],
-        api_endpoints: List[Dict[str, Any]] = None
+        api_endpoints: List[Dict[str, Any]] = None,
     ) -> Dict[str, str]:
         """
         Generate all tests.
@@ -657,7 +657,9 @@ def test_{path.replace("/", "_").strip("_")}_post():
                 files["tests/test_api.py"] = api_test_code
 
         # Enhanced Conftest with comprehensive fixtures
-        files["tests/conftest.py"] = '''
+        files[
+            "tests/conftest.py"
+        ] = '''
 """
 Pytest configuration and fixtures
 
@@ -925,7 +927,9 @@ def assert_valid_task():
 '''
 
         # Enhanced test requirements for 80%+ coverage
-        files["tests/requirements-test.txt"] = '''# Testing framework
+        files[
+            "tests/requirements-test.txt"
+        ] = """# Testing framework
 pytest>=7.0.0
 pytest-asyncio>=0.21.0
 pytest-cov>=4.0.0
@@ -952,7 +956,7 @@ faker>=18.0.0  # Fake data generation
 # Code quality
 pytest-clarity>=1.0.0  # Better assertion messages
 pytest-sugar>=0.9.7  # Better test output
-'''
+"""
 
         return files
 
@@ -981,9 +985,7 @@ class TestFirstCodeGenerator:
         self.max_iterations = 3
 
     def generate_test_code(
-        self,
-        feature_spec: Dict[str, Any],
-        test_framework: str = "pytest"
+        self, feature_spec: Dict[str, Any], test_framework: str = "pytest"
     ) -> str:
         """
         RED Phase: Generate failing test code from acceptance criteria.
@@ -1090,7 +1092,7 @@ class Test{name.title().replace("_", "")}:
         self,
         feature_spec: Dict[str, Any],
         test_code: str,
-        test_results: Optional[Dict[str, Any]] = None
+        test_results: Optional[Dict[str, Any]] = None,
     ) -> str:
         """
         GREEN Phase: Generate minimal implementation to pass tests.
@@ -1168,9 +1170,7 @@ def {name}(input_data: Any = None, error_condition: bool = False) -> Any:
         return impl_code.strip()
 
     def run_tests(
-        self,
-        test_file_path: str,
-        implementation_file_path: Optional[str] = None
+        self, test_file_path: str, implementation_file_path: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Execute tests and collect results.
@@ -1189,8 +1189,8 @@ def {name}(input_data: Any = None, error_condition: bool = False) -> Any:
                 "error_messages": ["error 1", "error 2"]
             }
         """
-        import subprocess
         import json
+        import subprocess
 
         # Run pytest with coverage
         cmd = [
@@ -1201,16 +1201,11 @@ def {name}(input_data: Any = None, error_condition: bool = False) -> Any:
             "--cov",
             "--cov-report=json",
             "--json-report",
-            "--json-report-file=test_report.json"
+            "--json-report-file=test_report.json",
         ]
 
         try:
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                timeout=60
-            )
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
 
             # Parse results
             passed = result.stdout.count(" PASSED")
@@ -1232,7 +1227,9 @@ def {name}(input_data: Any = None, error_condition: bool = False) -> Any:
                 lines = result.stdout.split("\n")
                 for line in lines:
                     if "FAILED" in line:
-                        failed_tests.append(line.split("::")[1].split(" ")[0] if "::" in line else "unknown")
+                        failed_tests.append(
+                            line.split("::")[1].split(" ")[0] if "::" in line else "unknown"
+                        )
                         error_messages.append(line)
 
             return {
@@ -1243,7 +1240,7 @@ def {name}(input_data: Any = None, error_condition: bool = False) -> Any:
                 "error_messages": error_messages,
                 "stdout": result.stdout,
                 "stderr": result.stderr,
-                "returncode": result.returncode
+                "returncode": result.returncode,
             }
 
         except subprocess.TimeoutExpired:
@@ -1255,7 +1252,7 @@ def {name}(input_data: Any = None, error_condition: bool = False) -> Any:
                 "error_messages": ["Test execution timeout"],
                 "stdout": "",
                 "stderr": "Timeout after 60 seconds",
-                "returncode": -1
+                "returncode": -1,
             }
         except Exception as e:
             return {
@@ -1266,14 +1263,14 @@ def {name}(input_data: Any = None, error_condition: bool = False) -> Any:
                 "error_messages": [str(e)],
                 "stdout": "",
                 "stderr": str(e),
-                "returncode": -1
+                "returncode": -1,
             }
 
     def refine_implementation(
         self,
         feature_spec: Dict[str, Any],
         current_implementation: str,
-        test_results: Dict[str, Any]
+        test_results: Dict[str, Any],
     ) -> str:
         """
         REFACTOR Phase: Improve implementation based on test failures.
@@ -1313,9 +1310,7 @@ def {name}(input_data: Any = None, error_condition: bool = False) -> Any:
         return refined_code
 
     def tdd_cycle(
-        self,
-        feature_spec: Dict[str, Any],
-        output_dir: str = "./generated"
+        self, feature_spec: Dict[str, Any], output_dir: str = "./generated"
     ) -> Dict[str, Any]:
         """
         Execute complete TDD cycle: RED -> GREEN -> REFACTOR.
@@ -1358,10 +1353,7 @@ def {name}(input_data: Any = None, error_condition: bool = False) -> Any:
         with open(test_file, "w") as f:
             f.write(test_code)
 
-        red_phase = {
-            "status": "generated",
-            "test_count": test_code.count("def test_")
-        }
+        red_phase = {"status": "generated", "test_count": test_code.count("def test_")}
 
         # Phase 2: GREEN - Generate implementation
         print(f"🟢 GREEN Phase: Generating implementation for {name}...")
@@ -1377,7 +1369,7 @@ def {name}(input_data: Any = None, error_condition: bool = False) -> Any:
             "status": "generated",
             "passed": test_results.get("passed", 0),
             "failed": test_results.get("failed", 0),
-            "coverage": test_results.get("coverage", 0.0)
+            "coverage": test_results.get("coverage", 0.0),
         }
 
         # Phase 3: REFACTOR - Iteratively improve until tests pass
@@ -1389,11 +1381,7 @@ def {name}(input_data: Any = None, error_condition: bool = False) -> Any:
             print(f"  Iteration {iterations}/{self.max_iterations}...")
 
             # Refine implementation
-            impl_code = self.refine_implementation(
-                feature_spec,
-                impl_code,
-                test_results
-            )
+            impl_code = self.refine_implementation(feature_spec, impl_code, test_results)
 
             with open(impl_file, "w") as f:
                 f.write(impl_code)
@@ -1406,11 +1394,13 @@ def {name}(input_data: Any = None, error_condition: bool = False) -> Any:
                 break
 
         refactor_phase = {
-            "status": "complete" if test_results.get("failed", 0) == 0 else "max_iterations_reached",
+            "status": (
+                "complete" if test_results.get("failed", 0) == 0 else "max_iterations_reached"
+            ),
             "iterations": iterations,
             "final_passed": test_results.get("passed", 0),
             "final_failed": test_results.get("failed", 0),
-            "final_coverage": test_results.get("coverage", 0.0)
+            "final_coverage": test_results.get("coverage", 0.0),
         }
 
         # Return complete cycle results
@@ -1420,10 +1410,6 @@ def {name}(input_data: Any = None, error_condition: bool = False) -> Any:
             "iterations": iterations,
             "final_coverage": test_results.get("coverage", 0.0),
             "all_tests_passed": test_results.get("failed", 0) == 0,
-            "cycle_phases": {
-                "red": red_phase,
-                "green": green_phase,
-                "refactor": refactor_phase
-            },
-            "test_results": test_results
+            "cycle_phases": {"red": red_phase, "green": green_phase, "refactor": refactor_phase},
+            "test_results": test_results,
         }

@@ -4,9 +4,9 @@ Tool Fixer
 Automatically fixes missing tools in agent definitions.
 """
 
-from typing import List, Dict, Any
-import sys
 import os
+import sys
+from typing import Any, Dict, List
 
 
 class ToolFixer:
@@ -16,8 +16,7 @@ class ToolFixer:
 
     @staticmethod
     def detect_missing_tools(
-        agents: List[Dict[str, Any]],
-        tasks: List[Dict[str, Any]]
+        agents: List[Dict[str, Any]], tasks: List[Dict[str, Any]]
     ) -> Dict[str, List[str]]:
         """
         Detect which agents are missing tools based on their tasks.
@@ -31,11 +30,14 @@ class ToolFixer:
         """
         # Import tool recommendation function
         try:
-            app_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'app')
+            app_path = os.path.join(
+                os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "app"
+            )
             if app_path not in sys.path:
                 sys.path.insert(0, app_path)
 
-            from caas_app.codegen.tool_generator import get_recommended_tools_for_task
+            from caas_framework.codegen.tool_generator import get_recommended_tools_for_task
+
             tool_func_available = True
         except ImportError:
             tool_func_available = False
@@ -59,7 +61,7 @@ class ToolFixer:
                 if tool_func_available:
                     recommended = get_recommended_tools_for_task(
                         task_description=task.get("description", ""),
-                        agent_role=agent.get("role", "")
+                        agent_role=agent.get("role", ""),
                     )
 
                     if agent_id not in missing_tools:
@@ -74,9 +76,7 @@ class ToolFixer:
 
     @classmethod
     def fix_agents_tools(
-        cls,
-        agents: List[Dict[str, Any]],
-        tasks: List[Dict[str, Any]]
+        cls, agents: List[Dict[str, Any]], tasks: List[Dict[str, Any]]
     ) -> List[Dict[str, Any]]:
         """
         Automatically fix missing tools in agent definitions.

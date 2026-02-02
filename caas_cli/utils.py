@@ -2,9 +2,10 @@
 CLI Utility Functions
 """
 
-import click
 import sys
 from typing import Optional
+
+import click
 
 
 def echo_success(message: str):
@@ -72,11 +73,7 @@ def prompt_choice(message: str, choices: list, default: Optional[str] = None) ->
     Returns:
         str: Selected choice
     """
-    return click.prompt(
-        message,
-        type=click.Choice(choices, case_sensitive=False),
-        default=default
-    )
+    return click.prompt(message, type=click.Choice(choices, case_sensitive=False), default=default)
 
 
 def print_table(headers: list, rows: list):
@@ -95,23 +92,20 @@ def print_table(headers: list, rows: list):
             col_widths[i] = max(col_widths[i], len(str(cell)))
 
     # Print header
-    header_line = "  ".join(
-        h.ljust(w) for h, w in zip(headers, col_widths)
-    )
+    header_line = "  ".join(h.ljust(w) for h, w in zip(headers, col_widths))
     click.echo(click.style(header_line, bold=True))
     click.echo("-" * len(header_line))
 
     # Print rows
     for row in rows:
-        row_line = "  ".join(
-            str(cell).ljust(w) for cell, w in zip(row, col_widths)
-        )
+        row_line = "  ".join(str(cell).ljust(w) for cell, w in zip(row, col_widths))
         click.echo(row_line)
 
 
 def print_json(data: dict):
     """Print JSON data"""
     import json
+
     click.echo(json.dumps(data, indent=2))
 
 
@@ -126,12 +120,7 @@ class ProgressBar:
             total: Total steps
             label: Progress bar label
         """
-        self.bar = click.progressbar(
-            length=total,
-            label=label,
-            show_percent=True,
-            show_pos=True
-        )
+        self.bar = click.progressbar(length=total, label=label, show_percent=True, show_pos=True)
 
     def __enter__(self):
         self.bar.__enter__()
@@ -147,8 +136,8 @@ class ProgressBar:
 
 def handle_keyboard_interrupt(func):
     """Decorator to handle keyboard interrupt"""
-    from functools import wraps
     import asyncio
+    from functools import wraps
 
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -181,7 +170,7 @@ def load_json(file_path: str):
     from pathlib import Path
 
     try:
-        with open(file_path, 'r', encoding='utf-8') as f:
+        with open(file_path, "r", encoding="utf-8") as f:
             return json.load(f)
     except FileNotFoundError:
         echo_error(f"File not found: {file_path}")
@@ -210,12 +199,12 @@ def save_json(file_path, data):
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
         # Handle Pydantic models
-        if hasattr(data, 'model_dump'):
+        if hasattr(data, "model_dump"):
             data = data.model_dump()
-        elif hasattr(data, 'dict'):
+        elif hasattr(data, "dict"):
             data = data.dict()
 
-        with open(output_path, 'w', encoding='utf-8') as f:
+        with open(output_path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
 
         echo_success(f"Saved to: {file_path}")
@@ -246,11 +235,12 @@ def save_files(output_dir, files_dict):
             # Convert to string if needed
             if isinstance(content, dict):
                 import json
+
                 content = json.dumps(content, indent=2, ensure_ascii=False)
             elif not isinstance(content, str):
                 content = str(content)
 
-            with open(full_path, 'w', encoding='utf-8') as f:
+            with open(full_path, "w", encoding="utf-8") as f:
                 f.write(content)
 
             saved_count += 1
@@ -282,25 +272,25 @@ def print_validation_results(result):
     Args:
         result: Validation result object
     """
-    if hasattr(result, 'is_valid'):
+    if hasattr(result, "is_valid"):
         if result.is_valid:
             echo_success("Validation passed!")
         else:
             echo_error("Validation failed!")
 
-    if hasattr(result, 'errors') and result.errors:
+    if hasattr(result, "errors") and result.errors:
         click.echo()
         click.echo(click.style("Errors:", fg="red", bold=True))
         for error in result.errors:
             click.echo(f"  - {error}")
 
-    if hasattr(result, 'warnings') and result.warnings:
+    if hasattr(result, "warnings") and result.warnings:
         click.echo()
         click.echo(click.style("Warnings:", fg="yellow", bold=True))
         for warning in result.warnings:
             click.echo(f"  - {warning}")
 
-    if hasattr(result, 'summary'):
+    if hasattr(result, "summary"):
         click.echo()
         click.echo(click.style("Summary:", bold=True))
         if isinstance(result.summary, dict):
@@ -325,16 +315,15 @@ def get_or_create_session_manager():
 
     if _session_manager is None:
         try:
-            from caas_framework.session.manager import SessionManager
             from pathlib import Path
+
+            from caas_framework.session.manager import SessionManager
 
             # Store sessions in ~/.caas/sessions.json
             session_dir = Path.home() / ".caas"
             session_dir.mkdir(exist_ok=True)
 
-            _session_manager = SessionManager(
-                storage_path=session_dir / "sessions.json"
-            )
+            _session_manager = SessionManager(storage_path=session_dir / "sessions.json")
         except ImportError:
             echo_error("Failed to import SessionManager from caas_framework")
             sys.exit(1)
@@ -354,16 +343,15 @@ async def initialize_framework(llm_provider: str = "openai", **config):
         CrewAIFramework: Initialized framework
     """
     try:
-        from caas_framework import CrewAIFramework
-        from caas_framework.config.settings import FrameworkConfig
-        from dotenv import load_dotenv
         from pathlib import Path
 
+        from dotenv import load_dotenv
+
+        from caas_framework import CrewAIFramework
+        from caas_framework.config.settings import FrameworkConfig
+
         # Load .env file
-        env_paths = [
-            Path.cwd() / ".env",
-            Path(__file__).parent.parent / ".env"
-        ]
+        env_paths = [Path.cwd() / ".env", Path(__file__).parent.parent / ".env"]
         for env_path in env_paths:
             if env_path.exists():
                 load_dotenv(env_path)
@@ -373,10 +361,7 @@ async def initialize_framework(llm_provider: str = "openai", **config):
         framework_config = FrameworkConfig(**config)
 
         # Initialize framework
-        framework = CrewAIFramework(
-            llm_provider=llm_provider,
-            config=framework_config
-        )
+        framework = CrewAIFramework(llm_provider=llm_provider, config=framework_config)
 
         await framework.initialize()
         echo_success("Framework initialized")

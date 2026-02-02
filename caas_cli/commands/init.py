@@ -6,7 +6,7 @@ Initialize CAAS configuration.
 
 import click
 from caas_cli.config import get_config
-from caas_cli.utils import echo_success, echo_info, prompt_text, prompt_choice
+from caas_cli.utils import echo_info, echo_success, prompt_choice, prompt_text
 
 
 @click.command()
@@ -44,26 +44,22 @@ def init():
     📚 Next steps after init:
        $ caas generate "Build a task management system"
     """
-    click.echo("""
+    click.echo(
+        """
 ╔══════════════════════════════════════════════════════════════╗
 ║              CAAS CLI Configuration Setup                     ║
 ╚══════════════════════════════════════════════════════════════╝
-""")
+"""
+    )
 
     config = get_config()
 
     # API URL
-    api_url = prompt_text(
-        "API URL",
-        default=config.get("api_url", "http://localhost:8000")
-    )
+    api_url = prompt_text("API URL", default=config.get("api_url", "http://localhost:8000"))
     config.set("api_url", api_url)
 
     # API Key
-    api_key = prompt_text(
-        "API Key (optional, press Enter to skip)",
-        default=""
-    )
+    api_key = prompt_text("API Key (optional, press Enter to skip)", default="")
     if api_key:
         config.set("api_key", api_key)
 
@@ -77,14 +73,10 @@ def init():
         "HEALTHCARE",
         "E_COMMERCE",
         "EDUCATION",
-        "CONTENT_CREATION"
+        "CONTENT_CREATION",
     ]
 
-    default_domain = prompt_choice(
-        "Default domain (optional)",
-        choices=domains,
-        default="NONE"
-    )
+    default_domain = prompt_choice("Default domain (optional)", choices=domains, default="NONE")
     if default_domain != "NONE":
         config.set("default_domain", default_domain)
 
@@ -92,40 +84,33 @@ def init():
     deployment = prompt_choice(
         "Default deployment target",
         choices=["docker", "kubernetes", "serverless"],
-        default=config.get("default_deployment", "docker")
+        default=config.get("default_deployment", "docker"),
     )
     config.set("default_deployment", deployment)
 
     # Output directory
     output_dir = prompt_text(
-        "Output directory for generated code",
-        default=config.get("output_dir", "./generated")
+        "Output directory for generated code", default=config.get("output_dir", "./generated")
     )
     config.set("output_dir", output_dir)
 
     # Advanced options
     if click.confirm("Configure advanced options?", default=False):
         enable_validation = click.confirm(
-            "Enable validation?",
-            default=config.get("enable_validation", True)
+            "Enable validation?", default=config.get("enable_validation", True)
         )
         config.set("enable_validation", enable_validation)
 
         enable_auto_fix = click.confirm(
-            "Enable auto-fix?",
-            default=config.get("enable_auto_fix", True)
+            "Enable auto-fix?", default=config.get("enable_auto_fix", True)
         )
         config.set("enable_auto_fix", enable_auto_fix)
 
-        enable_tests = click.confirm(
-            "Generate tests?",
-            default=config.get("enable_tests", True)
-        )
+        enable_tests = click.confirm("Generate tests?", default=config.get("enable_tests", True))
         config.set("enable_tests", enable_tests)
 
         use_expert_agents = click.confirm(
-            "Use expert agent collaboration?",
-            default=config.get("use_expert_agents", True)
+            "Use expert agent collaboration?", default=config.get("use_expert_agents", True)
         )
         config.set("use_expert_agents", use_expert_agents)
 
@@ -133,7 +118,8 @@ def init():
     echo_success("Configuration saved successfully!")
     echo_info(f"Config file: {config.config_path}")
 
-    click.echo("""
+    click.echo(
+        """
 Next steps:
   1. Generate your first project:
      $ caas generate "Build a task management system"
@@ -145,4 +131,5 @@ Next steps:
      $ caas download <project-id>
 
 Happy coding! 🚀
-""")
+"""
+    )

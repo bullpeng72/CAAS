@@ -5,20 +5,18 @@ Provides visual progress indication for CAAS phase execution.
 Uses rich library for beautiful console output.
 """
 
-from typing import Optional, Dict, Any, List
-from dataclasses import dataclass, field
-import time
 import logging
+import time
+from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional
 
-from rich.console import Console
-from rich.progress import (
-    Progress
-)
-from rich.table import Table
-from rich.panel import Panel
-from rich.text import Text
-from rich.live import Live
 from rich import box
+from rich.console import Console
+from rich.live import Live
+from rich.panel import Panel
+from rich.progress import Progress
+from rich.table import Table
+from rich.text import Text
 
 from caas_framework.agents.base import AgentPhase
 
@@ -28,6 +26,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class PhaseProgress:
     """Progress tracking for a single phase"""
+
     phase: AgentPhase
     phase_name: str
     agent_name: str
@@ -49,12 +48,9 @@ class PhaseProgress:
     @property
     def status_emoji(self) -> str:
         """Get emoji for current status"""
-        return {
-            "pending": "⏳",
-            "in_progress": "🔄",
-            "completed": "✅",
-            "failed": "❌"
-        }.get(self.status, "❓")
+        return {"pending": "⏳", "in_progress": "🔄", "completed": "✅", "failed": "❌"}.get(
+            self.status, "❓"
+        )
 
 
 class ProgressTracker:
@@ -66,10 +62,7 @@ class ProgressTracker:
     """
 
     def __init__(
-        self,
-        total_phases: int = 6,
-        show_details: bool = True,
-        console: Optional[Console] = None
+        self, total_phases: int = 6, show_details: bool = True, console: Optional[Console] = None
     ):
         """
         Initialize progress tracker.
@@ -101,11 +94,7 @@ class ProgressTracker:
         self._display_header()
 
     def add_phase(
-        self,
-        phase: AgentPhase,
-        phase_name: str,
-        agent_name: str,
-        description: str
+        self, phase: AgentPhase, phase_name: str, agent_name: str, description: str
     ) -> PhaseProgress:
         """
         Add a new phase to track.
@@ -120,19 +109,13 @@ class ProgressTracker:
             PhaseProgress instance
         """
         phase_progress = PhaseProgress(
-            phase=phase,
-            phase_name=phase_name,
-            agent_name=agent_name,
-            description=description
+            phase=phase, phase_name=phase_name, agent_name=agent_name, description=description
         )
         self.phases.append(phase_progress)
         return phase_progress
 
     def start_phase(
-        self,
-        phase_name: str,
-        agent_name: Optional[str] = None,
-        description: Optional[str] = None
+        self, phase_name: str, agent_name: Optional[str] = None, description: Optional[str] = None
     ):
         """
         Mark a phase as started.
@@ -143,10 +126,7 @@ class ProgressTracker:
             description: Phase description
         """
         # Find phase
-        phase_progress = next(
-            (p for p in self.phases if p.phase_name == phase_name),
-            None
-        )
+        phase_progress = next((p for p in self.phases if p.phase_name == phase_name), None)
 
         if not phase_progress:
             # Auto-create if not exists
@@ -154,7 +134,7 @@ class ProgressTracker:
                 phase=AgentPhase.DISCOVERY,  # Default
                 phase_name=phase_name,
                 agent_name=agent_name or "Agent",
-                description=description or "Processing..."
+                description=description or "Processing...",
             )
             self.phases.append(phase_progress)
 
@@ -170,7 +150,7 @@ class ProgressTracker:
         phase_name: str,
         duration: Optional[float] = None,
         success: bool = True,
-        details: Optional[List[str]] = None
+        details: Optional[List[str]] = None,
     ):
         """
         Mark a phase as completed.
@@ -182,10 +162,7 @@ class ProgressTracker:
             details: Optional detail messages
         """
         # Find phase
-        phase_progress = next(
-            (p for p in self.phases if p.phase_name == phase_name),
-            None
-        )
+        phase_progress = next((p for p in self.phases if p.phase_name == phase_name), None)
 
         if not phase_progress:
             logger.warning(f"Phase '{phase_name}' not found in tracker")
@@ -222,7 +199,7 @@ class ProgressTracker:
                 "[bold cyan]CAAS - CrewAI Agent Auto-generation System[/bold cyan]\n"
                 "[dim]Multi-Agent Code Generation in Progress...[/dim]",
                 border_style="cyan",
-                box=box.DOUBLE
+                box=box.DOUBLE,
             )
         )
         self.console.print()
@@ -233,7 +210,7 @@ class ProgressTracker:
         self.console.print(
             f"[bold blue]{phase.status_emoji} Starting:[/bold blue] "
             f"[cyan]{phase.phase_name}[/cyan]",
-            style="bold"
+            style="bold",
         )
         self.console.print(f"[dim]Agent:[/dim] {phase.agent_name}")
         self.console.print(f"[dim]Task:[/dim] {phase.description}")
@@ -268,7 +245,7 @@ class ProgressTracker:
             title="[bold cyan]Execution Summary[/bold cyan]",
             box=box.ROUNDED,
             show_header=True,
-            header_style="bold magenta"
+            header_style="bold magenta",
         )
 
         table.add_column("Phase", style="cyan", no_wrap=True)
@@ -294,12 +271,7 @@ class ProgressTracker:
 
             duration_str = f"{phase.duration:.2f}s" if phase.duration else "N/A"
 
-            table.add_row(
-                phase.phase_name,
-                phase.agent_name,
-                status_text,
-                duration_str
-            )
+            table.add_row(phase.phase_name, phase.agent_name, status_text, duration_str)
 
         self.console.print()
         self.console.print(table)
@@ -340,7 +312,7 @@ class ProgressTracker:
             "pending": len(self.phases) - completed - failed - in_progress,
             "completion_rate": completed / len(self.phases) if self.phases else 0,
             "total_duration": total_duration,
-            "average_phase_duration": total_duration / completed if completed > 0 else 0
+            "average_phase_duration": total_duration / completed if completed > 0 else 0,
         }
 
 
@@ -360,11 +332,7 @@ class SpinnerProgressTracker(ProgressTracker):
         super().start_tracking()
 
         # Start live display
-        self.live = Live(
-            self._generate_live_display(),
-            console=self.console,
-            refresh_per_second=4
-        )
+        self.live = Live(self._generate_live_display(), console=self.console, refresh_per_second=4)
         self.live.start()
 
     def _generate_live_display(self) -> Table:
@@ -373,7 +341,7 @@ class SpinnerProgressTracker(ProgressTracker):
             title="[bold cyan]Phase Progress[/bold cyan]",
             box=box.SIMPLE,
             show_header=True,
-            header_style="bold magenta"
+            header_style="bold magenta",
         )
 
         table.add_column("Status", justify="center", width=4)
@@ -384,12 +352,7 @@ class SpinnerProgressTracker(ProgressTracker):
         for phase in self.phases:
             duration_str = f"{phase.duration:.1f}s" if phase.duration else "-"
 
-            table.add_row(
-                phase.status_emoji,
-                phase.phase_name,
-                phase.agent_name,
-                duration_str
-            )
+            table.add_row(phase.status_emoji, phase.phase_name, phase.agent_name, duration_str)
 
         return table
 
@@ -416,9 +379,7 @@ class SpinnerProgressTracker(ProgressTracker):
 
 
 def create_progress_tracker(
-    total_phases: int = 6,
-    show_details: bool = True,
-    use_spinner: bool = False
+    total_phases: int = 6, show_details: bool = True, use_spinner: bool = False
 ) -> ProgressTracker:
     """
     Factory function to create a progress tracker.
@@ -432,12 +393,6 @@ def create_progress_tracker(
         ProgressTracker instance
     """
     if use_spinner:
-        return SpinnerProgressTracker(
-            total_phases=total_phases,
-            show_details=show_details
-        )
+        return SpinnerProgressTracker(total_phases=total_phases, show_details=show_details)
     else:
-        return ProgressTracker(
-            total_phases=total_phases,
-            show_details=show_details
-        )
+        return ProgressTracker(total_phases=total_phases, show_details=show_details)

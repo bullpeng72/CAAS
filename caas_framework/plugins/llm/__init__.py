@@ -14,24 +14,23 @@ Multi-Model Support:
 - Cost optimization
 """
 
-from caas_framework.plugins.llm.base import LLMPlugin
-from caas_framework.plugins.llm.multi_model_router import (
-    MultiModelRouter,
-    ModelConfig,
-    ModelSelectionStrategy,
-    ModelMetrics,
-    ModelPerformanceTracker
-)
-from caas_framework.plugins.llm.factory import (
-    create_llm_plugin,
-    create_multi_model_router,
-    create_default_multi_model_setup,
-    create_cost_optimized_setup,
-    create_performance_first_setup
-)
-
 # Import plugin implementations to trigger registration
 from caas_framework.plugins.llm import openai  # noqa: F401
+from caas_framework.plugins.llm.base import LLMPlugin
+from caas_framework.plugins.llm.factory import (
+    create_cost_optimized_setup,
+    create_default_multi_model_setup,
+    create_llm_plugin,
+    create_multi_model_router,
+    create_performance_first_setup,
+)
+from caas_framework.plugins.llm.multi_model_router import (
+    ModelConfig,
+    ModelMetrics,
+    ModelPerformanceTracker,
+    ModelSelectionStrategy,
+    MultiModelRouter,
+)
 
 __all__ = [
     "LLMPlugin",
@@ -44,5 +43,5 @@ __all__ = [
     "create_multi_model_router",
     "create_default_multi_model_setup",
     "create_cost_optimized_setup",
-    "create_performance_first_setup"
+    "create_performance_first_setup",
 ]

@@ -4,8 +4,9 @@ Feature Matching Algorithms
 Golden Data와 Phase Output 간의 항목 매칭을 위한 알고리즘
 """
 
-from typing import List, Tuple, Optional
 from difflib import SequenceMatcher
+from typing import List, Optional, Tuple
+
 from caas_framework.utils.logger import get_logger
 
 logger = get_logger("validation.matcher")
@@ -30,11 +31,7 @@ class FeatureMatcher:
         """
         self.fuzzy_threshold = fuzzy_threshold
 
-    def exact_match(
-        self,
-        golden_name: str,
-        output_names: List[str]
-    ) -> Optional[str]:
+    def exact_match(self, golden_name: str, output_names: List[str]) -> Optional[str]:
         """
         정확한 매칭 (대소문자 무시)
 
@@ -54,10 +51,7 @@ class FeatureMatcher:
         return None
 
     def fuzzy_match(
-        self,
-        golden_name: str,
-        output_names: List[str],
-        threshold: Optional[float] = None
+        self, golden_name: str, output_names: List[str], threshold: Optional[float] = None
     ) -> Optional[Tuple[str, float]]:
         """
         유사도 기반 매칭
@@ -95,11 +89,7 @@ class FeatureMatcher:
 
         return None
 
-    def match_features_to_tasks(
-        self,
-        golden_features: List[str],
-        output_tasks: List[str]
-    ) -> dict:
+    def match_features_to_tasks(self, golden_features: List[str], output_tasks: List[str]) -> dict:
         """
         Golden Features를 Output Tasks에 매칭
 
@@ -152,14 +142,10 @@ class FeatureMatcher:
         return {
             "matched": matched,
             "unmatched_golden": unmatched_golden,
-            "unmatched_output": unmatched_output
+            "unmatched_output": unmatched_output,
         }
 
-    def calculate_coverage_score(
-        self,
-        golden_items: List[str],
-        output_items: List[str]
-    ) -> float:
+    def calculate_coverage_score(self, golden_items: List[str], output_items: List[str]) -> float:
         """
         Coverage Score 계산
 
@@ -194,9 +180,7 @@ class SemanticMatcher:
         self.llm_client = llm_client
 
     def semantic_match(
-        self,
-        golden_description: str,
-        output_description: str
+        self, golden_description: str, output_description: str
     ) -> Tuple[bool, float, str]:
         """
         의미적 동등성 판단

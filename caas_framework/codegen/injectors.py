@@ -54,10 +54,7 @@ class ErrorHandlingInjector:
             return code
 
     def wrap_function(
-        self,
-        func_code: str,
-        error_handler: str = "logger.error",
-        reraise: bool = False
+        self, func_code: str, error_handler: str = "logger.error", reraise: bool = False
     ) -> str:
         """
         Wrap a function with try-except.
@@ -70,18 +67,22 @@ class ErrorHandlingInjector:
         Returns:
             str: Wrapped function code
         """
-        lines = func_code.split('\n')
+        lines = func_code.split("\n")
         if not lines:
             return func_code
 
         # Find function definition
-        func_def_idx = next((i for i, line in enumerate(lines) if 'def ' in line), None)
+        func_def_idx = next((i for i, line in enumerate(lines) if "def " in line), None)
         if func_def_idx is None:
             return func_code
 
         # Find function body start
         body_start = func_def_idx + 1
-        while body_start < len(lines) and (not lines[body_start].strip() or lines[body_start].strip().startswith('"""') or lines[body_start].strip().startswith("'''")):
+        while body_start < len(lines) and (
+            not lines[body_start].strip()
+            or lines[body_start].strip().startswith('"""')
+            or lines[body_start].strip().startswith("'''")
+        ):
             body_start += 1
 
         if body_start >= len(lines):
@@ -89,7 +90,7 @@ class ErrorHandlingInjector:
 
         # Get indentation
         indent = len(lines[body_start]) - len(lines[body_start].lstrip())
-        indent_str = ' ' * indent
+        indent_str = " " * indent
 
         # Wrap body with try-except
         wrapped_lines = lines[:body_start]
@@ -103,22 +104,24 @@ class ErrorHandlingInjector:
                 wrapped_lines.append(line)
 
         # Add except block
-        wrapped_lines.extend([
-            f"{indent_str}except Exception as e:",
-            f"{indent_str}    {error_handler}(f\"Error: {{str(e)}}\")",
-        ])
+        wrapped_lines.extend(
+            [
+                f"{indent_str}except Exception as e:",
+                f'{indent_str}    {error_handler}(f"Error: {{str(e)}}")',
+            ]
+        )
 
         if reraise:
             wrapped_lines.append(f"{indent_str}    raise")
 
-        return '\n'.join(wrapped_lines)
+        return "\n".join(wrapped_lines)
 
     def inject_retry_logic(
         self,
         code: str,
         functions_to_retry: Optional[List[str]] = None,
         max_retries: int = 3,
-        backoff_factor: float = 2.0
+        backoff_factor: float = 2.0,
     ) -> str:
         """
         Inject retry logic with exponential backoff.
@@ -171,17 +174,17 @@ def retry_with_backoff(max_retries={max_retries}, backoff_factor={backoff_factor
         # Add decorator to code
         if retry_decorator not in code:
             # Find first import or function definition
-            lines = code.split('\n')
+            lines = code.split("\n")
             insert_idx = 0
             for i, line in enumerate(lines):
-                if line.startswith('def ') or line.startswith('class '):
+                if line.startswith("def ") or line.startswith("class "):
                     insert_idx = i
                     break
-                elif 'import' in line:
+                elif "import" in line:
                     insert_idx = i + 1
 
             lines.insert(insert_idx, retry_decorator)
-            code = '\n'.join(lines)
+            code = "\n".join(lines)
 
         # Apply decorator to specified functions or all async functions
         try:
@@ -317,17 +320,14 @@ class RetryDecoratorTransformer(ast.NodeTransformer):
             return node
 
         # Skip if already has retry decorator
-        if any('retry' in dec.id if isinstance(dec, ast.Name) else False
-               for dec in node.decorator_list):
+        if any(
+            "retry" in dec.id if isinstance(dec, ast.Name) else False for dec in node.decorator_list
+        ):
             return node
 
         # Add retry decorator
-        retry_dec = ast.Name(id='retry_with_backoff', ctx=ast.Load())
-        node.decorator_list.insert(0, ast.Call(
-            func=retry_dec,
-            args=[],
-            keywords=[]
-        ))
+        retry_dec = ast.Name(id="retry_with_backoff", ctx=ast.Load())
+        node.decorator_list.insert(0, ast.Call(func=retry_dec, args=[], keywords=[]))
 
         return node
 
@@ -345,7 +345,7 @@ class ErrorHandlingTransformer(ast.NodeTransformer):
             return node
 
         # Skip special methods
-        if node.name.startswith('__') and node.name.endswith('__'):
+        if node.name.startswith("__") and node.name.endswith("__"):
             return node
 
         # Create try-except wrapper
@@ -353,41 +353,41 @@ class ErrorHandlingTransformer(ast.NodeTransformer):
             body=node.body,
             handlers=[
                 ast.ExceptHandler(
-                    type=ast.Name(id='Exception', ctx=ast.Load()),
-                    name='e',
+                    type=ast.Name(id="Exception", ctx=ast.Load()),
+                    name="e",
                     body=[
                         ast.Expr(
                             value=ast.Call(
                                 func=ast.Attribute(
-                                    value=ast.Name(id='logger', ctx=ast.Load()),
-                                    attr='error',
-                                    ctx=ast.Load()
+                                    value=ast.Name(id="logger", ctx=ast.Load()),
+                                    attr="error",
+                                    ctx=ast.Load(),
                                 ),
                                 args=[
                                     ast.JoinedStr(
                                         values=[
-                                            ast.Constant(value=f'Error in {node.name}: '),
+                                            ast.Constant(value=f"Error in {node.name}: "),
                                             ast.FormattedValue(
                                                 value=ast.Call(
-                                                    func=ast.Name(id='str', ctx=ast.Load()),
-                                                    args=[ast.Name(id='e', ctx=ast.Load())],
-                                                    keywords=[]
+                                                    func=ast.Name(id="str", ctx=ast.Load()),
+                                                    args=[ast.Name(id="e", ctx=ast.Load())],
+                                                    keywords=[],
                                                 ),
                                                 conversion=-1,
-                                                format_spec=None
-                                            )
+                                                format_spec=None,
+                                            ),
                                         ]
                                     )
                                 ],
-                                keywords=[]
+                                keywords=[],
                             )
                         ),
-                        ast.Raise()
-                    ]
+                        ast.Raise(),
+                    ],
                 )
             ],
             orelse=[],
-            finalbody=[]
+            finalbody=[],
         )
 
         node.body = [try_node]
@@ -416,12 +416,7 @@ class LoggingInjector:
         """
         self.use_json_format = use_json_format
 
-    def inject(
-        self,
-        code: str,
-        logger_name: str = "app",
-        log_level: str = "info"
-    ) -> str:
+    def inject(self, code: str, logger_name: str = "app", log_level: str = "info") -> str:
         """
         Inject structured logging into Python code.
 
@@ -494,11 +489,7 @@ logging.basicConfig(
         except SyntaxError:
             return code
 
-    def add_function_logging(
-        self,
-        func_code: str,
-        logger_name: str = "logger"
-    ) -> str:
+    def add_function_logging(self, func_code: str, logger_name: str = "logger") -> str:
         """
         Add logging to function entry/exit.
 
@@ -509,22 +500,26 @@ logging.basicConfig(
         Returns:
             str: Function with logging
         """
-        lines = func_code.split('\n')
+        lines = func_code.split("\n")
         if not lines:
             return func_code
 
         # Find function definition
-        func_def_idx = next((i for i, line in enumerate(lines) if 'def ' in line), None)
+        func_def_idx = next((i for i, line in enumerate(lines) if "def " in line), None)
         if func_def_idx is None:
             return func_code
 
         # Extract function name
         func_def = lines[func_def_idx]
-        func_name = func_def.split('def ')[1].split('(')[0].strip()
+        func_name = func_def.split("def ")[1].split("(")[0].strip()
 
         # Find function body start
         body_start = func_def_idx + 1
-        while body_start < len(lines) and (not lines[body_start].strip() or lines[body_start].strip().startswith('"""') or lines[body_start].strip().startswith("'''")):
+        while body_start < len(lines) and (
+            not lines[body_start].strip()
+            or lines[body_start].strip().startswith('"""')
+            or lines[body_start].strip().startswith("'''")
+        ):
             body_start += 1
 
         if body_start >= len(lines):
@@ -532,11 +527,11 @@ logging.basicConfig(
 
         # Get indentation
         indent = len(lines[body_start]) - len(lines[body_start].lstrip())
-        indent_str = ' ' * indent
+        indent_str = " " * indent
 
         # Add entry log
         logged_lines = lines[:body_start]
-        logged_lines.append(f"{indent_str}{logger_name}.info(f\"Entering {func_name}\")")
+        logged_lines.append(f'{indent_str}{logger_name}.info(f"Entering {func_name}")')
 
         # Add rest of function body
         logged_lines.extend(lines[body_start:])
@@ -544,12 +539,14 @@ logging.basicConfig(
         # Add exit log before return statements
         final_lines = []
         for line in logged_lines:
-            if 'return ' in line:
+            if "return " in line:
                 line_indent = len(line) - len(line.lstrip())
-                final_lines.append(' ' * line_indent + f"{logger_name}.info(f\"Exiting {func_name}\")")
+                final_lines.append(
+                    " " * line_indent + f'{logger_name}.info(f"Exiting {func_name}")'
+                )
             final_lines.append(line)
 
-        return '\n'.join(final_lines)
+        return "\n".join(final_lines)
 
     def generate_structured_logging_utils(self) -> str:
         """
@@ -706,24 +703,22 @@ class LoggingTransformer(ast.NodeTransformer):
     def visit_FunctionDef(self, node):
         """Visit function definitions and add logging"""
         # Skip special methods
-        if node.name.startswith('__') and node.name.endswith('__'):
+        if node.name.startswith("__") and node.name.endswith("__"):
             return node
 
         # Skip logging-related methods to prevent infinite recursion
         # (e.g., JSONFormatter.format, LoggingHandler methods, etc.)
-        if node.name in ('format', 'emit', 'handleError', 'filter'):
+        if node.name in ("format", "emit", "handleError", "filter"):
             return node
 
         # Add entry log
         entry_log = ast.Expr(
             value=ast.Call(
                 func=ast.Attribute(
-                    value=ast.Name(id='logger', ctx=ast.Load()),
-                    attr=self.log_level,
-                    ctx=ast.Load()
+                    value=ast.Name(id="logger", ctx=ast.Load()), attr=self.log_level, ctx=ast.Load()
                 ),
-                args=[ast.Constant(value=f'Entering {node.name}')],
-                keywords=[]
+                args=[ast.Constant(value=f"Entering {node.name}")],
+                keywords=[],
             )
         )
 

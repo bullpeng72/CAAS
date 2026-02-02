@@ -6,16 +6,11 @@ Provides automatic fixing suggestions.
 """
 
 from typing import Any, Dict, List, Optional, Tuple, Union
+
 from pydantic import BaseModel
 
-from caas_framework.knowledge.ontology import (
-    OntologyManager,
-)
-from caas_framework.models.validation import (
-    ValidationIssue,
-    ValidationSeverity,
-    ValidationResult,
-)
+from caas_framework.knowledge.ontology import OntologyManager
+from caas_framework.models.validation import ValidationIssue, ValidationResult, ValidationSeverity
 
 
 def _safe_get(obj: Union[Dict, BaseModel], key: str, default: Any = None) -> Any:
@@ -53,12 +48,12 @@ class OntologyValidator:
                           If None, all registered tools are considered enabled.
         """
         self.ontology = OntologyManager()
-        self.enabled_tools = set(enabled_tools) if enabled_tools else set(self.ontology.tool_capabilities.keys())
+        self.enabled_tools = (
+            set(enabled_tools) if enabled_tools else set(self.ontology.tool_capabilities.keys())
+        )
 
     def validate_agents_and_tasks(
-        self,
-        agents: List[Dict[str, Any]],
-        tasks: List[Dict[str, Any]]
+        self, agents: List[Dict[str, Any]], tasks: List[Dict[str, Any]]
     ) -> ValidationResult:
         """
         Validate agents and tasks.
@@ -95,11 +90,7 @@ class OntologyValidator:
 
         is_valid = summary["errors"] == 0
 
-        return ValidationResult(
-            is_valid=is_valid,
-            issues=issues,
-            summary=summary
-        )
+        return ValidationResult(is_valid=is_valid, issues=issues, summary=summary)
 
     def _validate_agent_roles(self, agents: List[Dict[str, Any]]) -> List[ValidationIssue]:
         """Validate agent roles"""
@@ -116,26 +107,26 @@ class OntologyValidator:
 
             # Detect non-standard roles
             if role.lower() != inferred_role.value:
-                issues.append(ValidationIssue(
-                    severity=ValidationSeverity.WARNING,
-                    issue_type="role",
-                    agent_id=agent_id,
-                    message=f"Non-standard role: '{role}'",
-                    suggested_fix=f"Consider using standard role '{inferred_role.value}'.",
-                    auto_fix_available=True,
-                    auto_fix_data={
-                        "action": "normalize_role",
-                        "agent_id": agent_id,
-                        "new_role": inferred_role.value
-                    }
-                ))
+                issues.append(
+                    ValidationIssue(
+                        severity=ValidationSeverity.WARNING,
+                        issue_type="role",
+                        agent_id=agent_id,
+                        message=f"Non-standard role: '{role}'",
+                        suggested_fix=f"Consider using standard role '{inferred_role.value}'.",
+                        auto_fix_available=True,
+                        auto_fix_data={
+                            "action": "normalize_role",
+                            "agent_id": agent_id,
+                            "new_role": inferred_role.value,
+                        },
+                    )
+                )
 
         return issues
 
     def _validate_agent_tools(
-        self,
-        agents: List[Dict[str, Any]],
-        tasks: List[Dict[str, Any]]
+        self, agents: List[Dict[str, Any]], tasks: List[Dict[str, Any]]
     ) -> List[ValidationIssue]:
         """Validate agent tools"""
         issues = []
@@ -152,25 +143,30 @@ class OntologyValidator:
                     unregistered_tools.append(tool)
 
             if unregistered_tools:
-                issues.append(ValidationIssue(
-                    severity=ValidationSeverity.ERROR,
-                    issue_type="tool",
-                    agent_id=agent_id,
-                    message=f"Unregistered tools: {', '.join(unregistered_tools)}",
-                    suggested_fix=f"Remove or register these tools: {', '.join(unregistered_tools)}",
-                    auto_fix_available=True,
-                    auto_fix_data={
-                        "action": "remove_tools",
-                        "agent_id": agent_id,
-                        "tools_to_remove": unregistered_tools
-                    }
-                ))
+                issues.append(
+                    ValidationIssue(
+                        severity=ValidationSeverity.ERROR,
+                        issue_type="tool",
+                        agent_id=agent_id,
+                        message=f"Unregistered tools: {', '.join(unregistered_tools)}",
+                        suggested_fix=f"Remove or register these tools: {', '.join(unregistered_tools)}",
+                        auto_fix_available=True,
+                        auto_fix_data={
+                            "action": "remove_tools",
+                            "agent_id": agent_id,
+                            "tools_to_remove": unregistered_tools,
+                        },
+                    )
+                )
 
             # Find agent's tasks
             agent_tasks = [
-                t for t in tasks
-                if (_safe_get(t, "assigned_agent") or _safe_get(t, "agent", "")).lower() in agent_id.lower()
-                or (_safe_get(t, "assigned_agent") or _safe_get(t, "agent", "")).lower() in role.lower()
+                t
+                for t in tasks
+                if (_safe_get(t, "assigned_agent") or _safe_get(t, "agent", "")).lower()
+                in agent_id.lower()
+                or (_safe_get(t, "assigned_agent") or _safe_get(t, "agent", "")).lower()
+                in role.lower()
             ]
 
             if not agent_tasks:
@@ -185,13 +181,14 @@ class OntologyValidator:
                 # Extract tool names from task description
                 # Look for patterns like "using X tool", "with X", "via X scraping", etc.
                 import re
+
                 tool_patterns = [
-                    r'using\s+(\w+)',
-                    r'with\s+(\w+)',
-                    r'via\s+(\w+)',
-                    r'(\w+)_scraping',
-                    r'(\w+)_tool',
-                    r'(\w+)_api'
+                    r"using\s+(\w+)",
+                    r"with\s+(\w+)",
+                    r"via\s+(\w+)",
+                    r"(\w+)_scraping",
+                    r"(\w+)_tool",
+                    r"(\w+)_api",
                 ]
 
                 for pattern in tool_patterns:
@@ -208,19 +205,21 @@ class OntologyValidator:
             missing_explicit_tools = tools_mentioned_in_tasks - current_tools
 
             if missing_explicit_tools:
-                issues.append(ValidationIssue(
-                    severity=ValidationSeverity.WARNING,
-                    issue_type="tool",
-                    agent_id=agent_id,
-                    message=f"The '{agent_id}' is missing the '{', '.join(missing_explicit_tools)}' tool in its tools list, which is specified in the task.",
-                    suggested_fix=f"Add tools to agent: {', '.join(missing_explicit_tools)}",
-                    auto_fix_available=True,
-                    auto_fix_data={
-                        "action": "add_tools",
-                        "agent_id": agent_id,
-                        "tools_to_add": list(missing_explicit_tools)
-                    }
-                ))
+                issues.append(
+                    ValidationIssue(
+                        severity=ValidationSeverity.WARNING,
+                        issue_type="tool",
+                        agent_id=agent_id,
+                        message=f"The '{agent_id}' is missing the '{', '.join(missing_explicit_tools)}' tool in its tools list, which is specified in the task.",
+                        suggested_fix=f"Add tools to agent: {', '.join(missing_explicit_tools)}",
+                        auto_fix_available=True,
+                        auto_fix_data={
+                            "action": "add_tools",
+                            "agent_id": agent_id,
+                            "tools_to_add": list(missing_explicit_tools),
+                        },
+                    )
+                )
 
             # Calculate required tools based on ontology
             inferred_role = self.ontology.infer_role_from_description(
@@ -236,8 +235,7 @@ class OntologyValidator:
 
             # Recommend tools
             recommended_tools = self.ontology.recommend_agent_tools(
-                role=inferred_role,
-                assigned_tasks=task_types
+                role=inferred_role, assigned_tasks=task_types
             )
 
             # Filter to only enabled tools
@@ -247,26 +245,26 @@ class OntologyValidator:
             missing_tools = set(recommended_tools) - current_tools - missing_explicit_tools
 
             if missing_tools:
-                issues.append(ValidationIssue(
-                    severity=ValidationSeverity.INFO,
-                    issue_type="tool",
-                    agent_id=agent_id,
-                    message=f"Missing recommended tools: {len(missing_tools)} tools",
-                    suggested_fix=f"Consider adding: {', '.join(list(missing_tools)[:3])}",
-                    auto_fix_available=True,
-                    auto_fix_data={
-                        "action": "add_tools",
-                        "agent_id": agent_id,
-                        "tools_to_add": list(missing_tools)
-                    }
-                ))
+                issues.append(
+                    ValidationIssue(
+                        severity=ValidationSeverity.INFO,
+                        issue_type="tool",
+                        agent_id=agent_id,
+                        message=f"Missing recommended tools: {len(missing_tools)} tools",
+                        suggested_fix=f"Consider adding: {', '.join(list(missing_tools)[:3])}",
+                        auto_fix_available=True,
+                        auto_fix_data={
+                            "action": "add_tools",
+                            "agent_id": agent_id,
+                            "tools_to_add": list(missing_tools),
+                        },
+                    )
+                )
 
         return issues
 
     def _validate_task_assignments(
-        self,
-        agents: List[Dict[str, Any]],
-        tasks: List[Dict[str, Any]]
+        self, agents: List[Dict[str, Any]], tasks: List[Dict[str, Any]]
     ) -> List[ValidationIssue]:
         """Validate task assignments"""
         issues = []
@@ -278,8 +276,10 @@ class OntologyValidator:
             # Find assigned agent
             assigned_agent = None
             for agent in agents:
-                if (_safe_get(agent, "id", "").lower() in assigned_agent_name.lower()
-                    or _safe_get(agent, "role", "").lower() in assigned_agent_name.lower()):
+                if (
+                    _safe_get(agent, "id", "").lower() in assigned_agent_name.lower()
+                    or _safe_get(agent, "role", "").lower() in assigned_agent_name.lower()
+                ):
                     assigned_agent = agent
                     break
 
@@ -307,28 +307,34 @@ class OntologyValidator:
                     if not suitable_agent:
                         suitable_agent = agents[0]
 
-                    issues.append(ValidationIssue(
-                        severity=ValidationSeverity.ERROR,
-                        issue_type="assignment",
-                        task_id=task_id,
-                        message=f"Assigned agent not found: '{assigned_agent_name}'",
-                        suggested_fix=f"Auto-assign to agent '{_safe_get(suitable_agent, 'id', _safe_get(suitable_agent, 'role'))}'.",
-                        auto_fix_available=True,
-                        auto_fix_data={
-                            "action": "assign_agent",
-                            "task_id": task_id,
-                            "agent_id": _safe_get(suitable_agent, "id", _safe_get(suitable_agent, "role"))
-                        }
-                    ))
+                    issues.append(
+                        ValidationIssue(
+                            severity=ValidationSeverity.ERROR,
+                            issue_type="assignment",
+                            task_id=task_id,
+                            message=f"Assigned agent not found: '{assigned_agent_name}'",
+                            suggested_fix=f"Auto-assign to agent '{_safe_get(suitable_agent, 'id', _safe_get(suitable_agent, 'role'))}'.",
+                            auto_fix_available=True,
+                            auto_fix_data={
+                                "action": "assign_agent",
+                                "task_id": task_id,
+                                "agent_id": _safe_get(
+                                    suitable_agent, "id", _safe_get(suitable_agent, "role")
+                                ),
+                            },
+                        )
+                    )
                 else:
-                    issues.append(ValidationIssue(
-                        severity=ValidationSeverity.ERROR,
-                        issue_type="assignment",
-                        task_id=task_id,
-                        message=f"Assigned agent not found: '{assigned_agent_name}'",
-                        suggested_fix="Create an agent first.",
-                        auto_fix_available=False
-                    ))
+                    issues.append(
+                        ValidationIssue(
+                            severity=ValidationSeverity.ERROR,
+                            issue_type="assignment",
+                            task_id=task_id,
+                            message=f"Assigned agent not found: '{assigned_agent_name}'",
+                            suggested_fix="Create an agent first.",
+                            auto_fix_available=False,
+                        )
+                    )
                 continue
 
             # Validate role-task compatibility
@@ -360,30 +366,44 @@ class OntologyValidator:
                             break
 
                     # Create clear error message with agent names
-                    assigned_agent_name = _safe_get(assigned_agent, "id", _safe_get(assigned_agent, "role", "Unknown"))
-                    best_agent_name = _safe_get(best_agent, "id", _safe_get(best_agent, "role", "Unknown")) if best_agent else suitable_roles[0].value
+                    assigned_agent_name = _safe_get(
+                        assigned_agent, "id", _safe_get(assigned_agent, "role", "Unknown")
+                    )
+                    best_agent_name = (
+                        _safe_get(best_agent, "id", _safe_get(best_agent, "role", "Unknown"))
+                        if best_agent
+                        else suitable_roles[0].value
+                    )
 
                     # Format: "X task is assigned to Y instead of Z"
                     error_message = f"{task_type.value.replace('_', ' ').title()} task is assigned to {assigned_agent_name} instead of {best_agent_name}."
 
                     suggestion = f"Reassign this task to '{best_agent_name}' agent. More suitable roles: {', '.join([r.value for r in suitable_roles[:2]])}"
 
-                    issues.append(ValidationIssue(
-                        severity=ValidationSeverity.ERROR,  # Changed from WARNING to ERROR
-                        issue_type="assignment",
-                        task_id=task_id,
-                        agent_id=_safe_get(assigned_agent, "id"),
-                        message=error_message,
-                        suggested_fix=suggestion,
-                        auto_fix_available=True if best_agent else False,
-                        auto_fix_data={
-                            "action": "reassign_task",
-                            "task_id": task_id,
-                            "current_agent_id": _safe_get(assigned_agent, "id"),
-                            "new_agent_id": _safe_get(best_agent, "id") if best_agent else None,
-                            "new_agent_name": best_agent_name
-                        } if best_agent else None
-                    ))
+                    issues.append(
+                        ValidationIssue(
+                            severity=ValidationSeverity.ERROR,  # Changed from WARNING to ERROR
+                            issue_type="assignment",
+                            task_id=task_id,
+                            agent_id=_safe_get(assigned_agent, "id"),
+                            message=error_message,
+                            suggested_fix=suggestion,
+                            auto_fix_available=True if best_agent else False,
+                            auto_fix_data=(
+                                {
+                                    "action": "reassign_task",
+                                    "task_id": task_id,
+                                    "current_agent_id": _safe_get(assigned_agent, "id"),
+                                    "new_agent_id": (
+                                        _safe_get(best_agent, "id") if best_agent else None
+                                    ),
+                                    "new_agent_name": best_agent_name,
+                                }
+                                if best_agent
+                                else None
+                            ),
+                        )
+                    )
 
         return issues
 
@@ -400,37 +420,39 @@ class OntologyValidator:
             # Check for non-existent dependencies
             for dep in dependencies:
                 if dep not in task_ids:
-                    issues.append(ValidationIssue(
-                        severity=ValidationSeverity.ERROR,
-                        issue_type="task",
-                        task_id=task_id,
-                        message=f"Non-existent dependency task: '{dep}'",
-                        suggested_fix="Remove dependency or fix task ID.",
-                        auto_fix_available=False
-                    ))
+                    issues.append(
+                        ValidationIssue(
+                            severity=ValidationSeverity.ERROR,
+                            issue_type="task",
+                            task_id=task_id,
+                            message=f"Non-existent dependency task: '{dep}'",
+                            suggested_fix="Remove dependency or fix task ID.",
+                            auto_fix_available=False,
+                        )
+                    )
 
             # Check for circular dependencies (self-dependency)
             if task_id in dependencies:
-                issues.append(ValidationIssue(
-                    severity=ValidationSeverity.ERROR,
-                    issue_type="task",
-                    task_id=task_id,
-                    message="Self-referencing circular dependency",
-                    suggested_fix="Remove the dependency.",
-                    auto_fix_available=True,
-                    auto_fix_data={
-                        "action": "remove_circular_dependency",
-                        "task_id": task_id,
-                        "dependency_to_remove": task_id
-                    }
-                ))
+                issues.append(
+                    ValidationIssue(
+                        severity=ValidationSeverity.ERROR,
+                        issue_type="task",
+                        task_id=task_id,
+                        message="Self-referencing circular dependency",
+                        suggested_fix="Remove the dependency.",
+                        auto_fix_available=True,
+                        auto_fix_data={
+                            "action": "remove_circular_dependency",
+                            "task_id": task_id,
+                            "dependency_to_remove": task_id,
+                        },
+                    )
+                )
 
         return issues
 
     def validate_requirement_task_alignment(
-        self,
-        requirements: Dict[str, Any],
-        tasks: List[Dict[str, Any]]
+        self, requirements: Dict[str, Any], tasks: List[Dict[str, Any]]
     ) -> List[ValidationIssue]:
         """
         Validate that tasks align with their source requirements.
@@ -446,6 +468,7 @@ class OntologyValidator:
             List of validation issues
         """
         import re
+
         issues = []
 
         # Extract features from requirements
@@ -466,14 +489,14 @@ class OntologyValidator:
 
             # Common implementation method patterns
             method_patterns = {
-                "rss": r'\brss\s+feed|rss\b',
-                "api": r'\bapi\b|rest\s+api|graphql',
-                "web_scraping": r'\bweb\s+scrap|scraping|beautifulsoup|selenium',
-                "database": r'\bdatabase\b|sql|mysql|postgresql|mongodb',
-                "websocket": r'\bwebsocket|ws://|wss://',
-                "file": r'\bfile\s+upload|file\s+download|file\s+system',
-                "email": r'\bemail|smtp|imap',
-                "queue": r'\bqueue|kafka|rabbitmq|redis\s+queue',
+                "rss": r"\brss\s+feed|rss\b",
+                "api": r"\bapi\b|rest\s+api|graphql",
+                "web_scraping": r"\bweb\s+scrap|scraping|beautifulsoup|selenium",
+                "database": r"\bdatabase\b|sql|mysql|postgresql|mongodb",
+                "websocket": r"\bwebsocket|ws://|wss://",
+                "file": r"\bfile\s+upload|file\s+download|file\s+system",
+                "email": r"\bemail|smtp|imap",
+                "queue": r"\bqueue|kafka|rabbitmq|redis\s+queue",
             }
 
             for method, pattern in method_patterns.items():
@@ -484,7 +507,7 @@ class OntologyValidator:
                 requirement_specs[feature_name.lower()] = {
                     "name": feature_name,
                     "methods": methods,
-                    "description": feature_desc
+                    "description": feature_desc,
                 }
 
         # Check each task against requirements
@@ -498,7 +521,11 @@ class OntologyValidator:
             for req_key, req_spec in requirement_specs.items():
                 # Check if task relates to this requirement
                 req_name_words = req_key.split()
-                task_mentions_req = any(word in task_id.lower() or word in task_desc for word in req_name_words if len(word) > 3)
+                task_mentions_req = any(
+                    word in task_id.lower() or word in task_desc
+                    for word in req_name_words
+                    if len(word) > 3
+                )
 
                 if not task_mentions_req:
                     continue
@@ -509,14 +536,14 @@ class OntologyValidator:
 
                 # Check what methods the task actually mentions
                 method_patterns = {
-                    "rss": r'\brss\b|feed\s+parser',
-                    "api": r'\bapi\b|rest|graphql|endpoint',
-                    "web_scraping": r'\bscrap|beautifulsoup|selenium|crawl',
-                    "database": r'\bdatabase|sql|query|mysql|postgresql|mongodb',
-                    "websocket": r'\bwebsocket|ws://',
-                    "file": r'\bfile|upload|download',
-                    "email": r'\bemail|smtp|imap',
-                    "queue": r'\bqueue|kafka|rabbitmq',
+                    "rss": r"\brss\b|feed\s+parser",
+                    "api": r"\bapi\b|rest|graphql|endpoint",
+                    "web_scraping": r"\bscrap|beautifulsoup|selenium|crawl",
+                    "database": r"\bdatabase|sql|query|mysql|postgresql|mongodb",
+                    "websocket": r"\bwebsocket|ws://",
+                    "file": r"\bfile|upload|download",
+                    "email": r"\bemail|smtp|imap",
+                    "queue": r"\bqueue|kafka|rabbitmq",
                 }
 
                 for method, pattern in method_patterns.items():
@@ -530,24 +557,25 @@ class OntologyValidator:
 
                     if missing_methods:
                         method_str = ", ".join(missing_methods)
-                        task_method_str = ", ".join(task_methods) if task_methods else "other methods"
+                        task_method_str = (
+                            ", ".join(task_methods) if task_methods else "other methods"
+                        )
 
-                        issues.append(ValidationIssue(
-                            severity=ValidationSeverity.WARNING,
-                            issue_type="requirement_alignment",
-                            task_id=task_id,
-                            message=f"The '{req_spec['name']}' requirement specifies using {method_str}, but the task only mentions {task_method_str}.",
-                            suggested_fix=f"Ensure the task implementation includes {method_str} as specified in the requirement.",
-                            auto_fix_available=False,
-                        ))
+                        issues.append(
+                            ValidationIssue(
+                                severity=ValidationSeverity.WARNING,
+                                issue_type="requirement_alignment",
+                                task_id=task_id,
+                                message=f"The '{req_spec['name']}' requirement specifies using {method_str}, but the task only mentions {task_method_str}.",
+                                suggested_fix=f"Ensure the task implementation includes {method_str} as specified in the requirement.",
+                                auto_fix_available=False,
+                            )
+                        )
 
         return issues
 
     def apply_auto_fix(
-        self,
-        agents: List[Dict[str, Any]],
-        tasks: List[Dict[str, Any]],
-        issue: ValidationIssue
+        self, agents: List[Dict[str, Any]], tasks: List[Dict[str, Any]], issue: ValidationIssue
     ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
         """
         Apply automatic fix for an issue.

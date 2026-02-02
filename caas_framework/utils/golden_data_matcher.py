@@ -11,11 +11,8 @@ Consolidates duplicate feature matching logic from:
 """
 
 from typing import Any, Dict, List, Optional, Set, Union
-from caas_framework.models.specifications import (
-    ConcretizedRequirement,
-    FeatureSpec,
-    DataModel
-)
+
+from caas_framework.models.specifications import ConcretizedRequirement, DataModel, FeatureSpec
 
 
 class GoldenDataMatcher:
@@ -33,7 +30,7 @@ class GoldenDataMatcher:
         features: List[FeatureSpec],
         items: List[Union[Dict[str, Any], Any]],
         item_text_keys: List[str],
-        item_id_key: str = "id"
+        item_id_key: str = "id",
     ) -> Dict[str, List[str]]:
         """
         Match Golden Data features to items (FRs, tasks, components, etc.)
@@ -91,7 +88,7 @@ class GoldenDataMatcher:
         features: List[FeatureSpec],
         items: List[Union[Dict[str, Any], Any]],
         item_text_keys: List[str],
-        item_id_key: str = "id"
+        item_id_key: str = "id",
     ) -> Dict[str, List[str]]:
         """
         Build traceability map: feature_id -> [item_ids]
@@ -130,8 +127,7 @@ class GoldenDataMatcher:
 
     @staticmethod
     def calculate_coverage(
-        features: List[FeatureSpec],
-        item_feature_map: Dict[str, List[str]]
+        features: List[FeatureSpec], item_feature_map: Dict[str, List[str]]
     ) -> Dict[str, Any]:
         """
         Calculate Golden Data coverage metrics.
@@ -169,20 +165,15 @@ class GoldenDataMatcher:
         covered_count = len(covered_feature_ids)
 
         # Identify uncovered features
-        uncovered_features = [
-            f.id for f in features
-            if f.id not in covered_feature_ids
-        ]
+        uncovered_features = [f.id for f in features if f.id not in covered_feature_ids]
 
-        coverage_percentage = GoldenDataMatcher.calculate_percentage(
-            covered_count, total_features
-        )
+        coverage_percentage = GoldenDataMatcher.calculate_percentage(covered_count, total_features)
 
         return {
             "total_features": total_features,
             "covered_features": covered_count,
             "uncovered_features": uncovered_features,
-            "coverage_percentage": coverage_percentage
+            "coverage_percentage": coverage_percentage,
         }
 
     @staticmethod
@@ -214,8 +205,7 @@ class GoldenDataMatcher:
 
     @staticmethod
     def create_alignment_metadata(
-        golden_data: ConcretizedRequirement,
-        coverage_metrics: Optional[Dict[str, Any]] = None
+        golden_data: ConcretizedRequirement, coverage_metrics: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
         Create Golden Data alignment metadata.
@@ -238,16 +228,18 @@ class GoldenDataMatcher:
             "total_data_models": len(data_models),
             "total_ui_components": len(ui_components),
             "deployment_target": golden_data.deployment_target,
-            "workflow_type": golden_data.workflow_type
+            "workflow_type": golden_data.workflow_type,
         }
 
         # Add coverage metrics if provided
         if coverage_metrics:
-            metadata.update({
-                "covered_features": coverage_metrics.get("covered_features", 0),
-                "coverage_percentage": coverage_metrics.get("coverage_percentage", 0.0),
-                "uncovered_features": coverage_metrics.get("uncovered_features", [])
-            })
+            metadata.update(
+                {
+                    "covered_features": coverage_metrics.get("covered_features", 0),
+                    "coverage_percentage": coverage_metrics.get("coverage_percentage", 0.0),
+                    "uncovered_features": coverage_metrics.get("uncovered_features", []),
+                }
+            )
 
         return metadata
 
@@ -255,7 +247,7 @@ class GoldenDataMatcher:
     def format_feature_list(
         features: List[FeatureSpec],
         max_features: Optional[int] = None,
-        include_priority: bool = True
+        include_priority: bool = True,
     ) -> str:
         """
         Format feature list for display or logging.
@@ -284,9 +276,7 @@ class GoldenDataMatcher:
 
     @staticmethod
     def format_data_model_list(
-        data_models: List[DataModel],
-        max_models: Optional[int] = None,
-        max_attributes: int = 5
+        data_models: List[DataModel], max_models: Optional[int] = None, max_attributes: int = 5
     ) -> str:
         """
         Format data model list for display or logging.

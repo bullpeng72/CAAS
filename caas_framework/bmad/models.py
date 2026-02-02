@@ -5,6 +5,7 @@ BMAD Data Models
 """
 
 from typing import List
+
 from pydantic import BaseModel, Field
 
 from caas_framework.knowledge.ontology import AgentRole, TaskType
@@ -12,6 +13,7 @@ from caas_framework.knowledge.ontology import AgentRole, TaskType
 
 class AgentMapping(BaseModel):
     """에이전트 매핑 정보"""
+
     id: str
     role: str
     role_type: AgentRole
@@ -24,6 +26,7 @@ class AgentMapping(BaseModel):
 
 class TaskMapping(BaseModel):
     """태스크 매핑 정보"""
+
     id: str
     name: str
     description: str
@@ -36,6 +39,7 @@ class TaskMapping(BaseModel):
 
 class MappingResult(BaseModel):
     """매핑 결과"""
+
     agents: List[AgentMapping]
     tasks: List[TaskMapping]
     workflow_type: str = "sequential"

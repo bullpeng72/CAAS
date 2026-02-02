@@ -5,8 +5,8 @@ Utilities for standardized LLM invocation patterns.
 Consolidates duplicate LLM calling code from across the framework.
 """
 
-from typing import Any, Optional
 import logging
+from typing import Any, Optional
 
 # Get logger
 logger = logging.getLogger(__name__)
@@ -17,9 +17,7 @@ class LLMHelper:
 
     @staticmethod
     def invoke_with_message(
-        llm_client: Any,
-        prompt: str,
-        temperature: Optional[float] = None
+        llm_client: Any, prompt: str, temperature: Optional[float] = None
     ) -> str:
         """
         Invoke LLM with a prompt using standard message format.
@@ -55,7 +53,7 @@ class LLMHelper:
                 response = llm_client.invoke([message])
 
             # Extract content
-            if hasattr(response, 'content'):
+            if hasattr(response, "content"):
                 return response.content
             else:
                 # Fallback: convert to string
@@ -71,7 +69,7 @@ class LLMHelper:
         prompt: str,
         default_value: str = "",
         temperature: Optional[float] = None,
-        context: str = "LLM call"
+        context: str = "LLM call",
     ) -> str:
         """
         Safely invoke LLM with error handling and logging.

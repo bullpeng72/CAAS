@@ -4,21 +4,21 @@ CAAS Base Factory
 팩토리 클래스들의 공통 기능을 제공하는 기본 클래스
 """
 
-from typing import Any, Dict, Optional, TypeVar, Generic
-from pathlib import Path
-from abc import ABC, abstractmethod
-
-from pydantic import BaseModel
-from jinja2 import Environment, FileSystemLoader, Template
-
 import logging
-from caas_framework.config import get_settings
+from abc import ABC, abstractmethod
 from pathlib import Path
+from typing import Any, Dict, Generic, Optional, TypeVar
+
+from jinja2 import Environment, FileSystemLoader, Template
+from pydantic import BaseModel
+
+from caas_framework.config import get_settings
+
 PROJECT_ROOT = Path.cwd()
 
 # Type variables for generic factory
-SpecModel = TypeVar('SpecModel', bound=BaseModel)
-Definition = TypeVar('Definition', bound=BaseModel)
+SpecModel = TypeVar("SpecModel", bound=BaseModel)
+Definition = TypeVar("Definition", bound=BaseModel)
 
 logger = logging.getLogger("caas_framework.factory.base")
 
@@ -82,10 +82,7 @@ class BaseFactory(ABC, Generic[SpecModel, Definition]):
             raise
 
     def render_template(
-        self,
-        template_name: str,
-        context: Dict[str, Any],
-        strip: bool = True
+        self, template_name: str, context: Dict[str, Any], strip: bool = True
     ) -> str:
         """
         템플릿 렌더링

@@ -4,40 +4,39 @@ Knowledge Graph Pattern Matching
 패턴 검색 및 매칭 기능을 제공합니다.
 """
 
-from typing import Any, Dict, List, Optional, Tuple
-from pydantic import BaseModel, Field
 from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
 
-from caas_framework.utils.logger import get_logger, LoggerMixin
+from pydantic import BaseModel, Field
+
 from caas_framework.knowledge.graph.neo4j_client import Neo4jClient
-from caas_framework.knowledge.graph.queries import (
-    FIND_PATTERNS_BY_DOMAIN,
-    FIND_SIMILAR_PATTERNS,
-    CREATE_PATTERN,
-    INCREMENT_PATTERN_USAGE,
-    FIND_TEMPLATES_FOR_PATTERN,
-    # Advanced pattern queries
-    CREATE_PATTERN_WITH_TEMPLATE,
-    UPDATE_PATTERN_VERSION,
-    FIND_LATEST_PATTERN,
-    RECORD_PATTERN_SUCCESS,
-    GET_PATTERN_RECOMMENDATIONS,
-    FIND_PATTERNS_BY_ONTOLOGY,
-    # Template queries
+from caas_framework.knowledge.graph.queries import (  # Advanced pattern queries; Template queries; Lifecycle queries
     CREATE_CODE_TEMPLATE,
-    LINK_TEMPLATE_TO_PATTERN,
-    GET_PATTERN_WITH_TEMPLATES,
-    # Lifecycle queries
-    GET_PATTERN_HISTORY,
-    GET_PATTERN_USAGE_STATS,
+    CREATE_PATTERN,
+    CREATE_PATTERN_WITH_TEMPLATE,
     DEPRECATE_PATTERN,
+    FIND_LATEST_PATTERN,
+    FIND_PATTERNS_BY_DOMAIN,
+    FIND_PATTERNS_BY_ONTOLOGY,
+    FIND_SIMILAR_PATTERNS,
+    FIND_TEMPLATES_FOR_PATTERN,
+    GET_PATTERN_HISTORY,
+    GET_PATTERN_RECOMMENDATIONS,
+    GET_PATTERN_USAGE_STATS,
+    GET_PATTERN_WITH_TEMPLATES,
+    INCREMENT_PATTERN_USAGE,
+    LINK_TEMPLATE_TO_PATTERN,
+    RECORD_PATTERN_SUCCESS,
+    UPDATE_PATTERN_VERSION,
 )
+from caas_framework.utils.logger import LoggerMixin, get_logger
 
 logger = get_logger("knowledge.patterns")
 
 
 class PatternType(str, Enum):
     """패턴 유형"""
+
     WORKFLOW = "workflow"
     AGENT_COMPOSITION = "agent_composition"
     TASK_SEQUENCE = "task_sequence"
@@ -47,6 +46,7 @@ class PatternType(str, Enum):
 
 class PatternMatch(BaseModel):
     """패턴 매칭 결과"""
+
     pattern_id: str
     pattern_name: str
     similarity_score: float = Field(ge=0.0, le=1.0)
@@ -56,6 +56,7 @@ class PatternMatch(BaseModel):
 
 class AgentPattern(BaseModel):
     """에이전트 패턴"""
+
     id: str
     name: str
     description: str
@@ -76,6 +77,7 @@ class AgentPattern(BaseModel):
 
 class TemplateInfo(BaseModel):
     """템플릿 정보"""
+
     id: str
     name: str
     category: str
@@ -88,16 +90,16 @@ class TemplateInfo(BaseModel):
 class PatternMatcher(LoggerMixin):
     """
     패턴 매칭 엔진
-    
+
     요구사항이나 스펙에 맞는 패턴을 검색하고 매칭합니다.
     """
-    
+
     def __init__(self, client: Optional[Neo4jClient] = None):
         self.client = client or Neo4jClient()
-        
+
         # 미리 정의된 패턴 (Neo4j 없이도 사용 가능)
         self.builtin_patterns = self._load_builtin_patterns()
-    
+
     def find_patterns(
         self,
         domain: str,
@@ -107,62 +109,60 @@ class PatternMatcher(LoggerMixin):
     ) -> List[AgentPattern]:
         """
         조건에 맞는 패턴을 검색합니다.
-        
+
         Args:
             domain: 도메인
             task_types: 태스크 유형 목록
             keywords: 검색 키워드
             limit: 최대 결과 수
-        
+
         Returns:
             List[AgentPattern]: 매칭된 패턴 목록
         """
         self.logger.info(f"패턴 검색: domain={domain}, tasks={task_types}")
-        
+
         patterns = []
-        
+
         # 1. Neo4j에서 검색 시도
         if self.client.verify_connectivity():
             try:
                 # 도메인 기반 검색
                 result = self.client.run_query(
-                    FIND_PATTERNS_BY_DOMAIN.query,
-                    {"domain": domain, "limit": limit}
+                    FIND_PATTERNS_BY_DOMAIN.query, {"domain": domain, "limit": limit}
                 )
                 for record in result:
                     pattern_data = dict(record["p"])
                     patterns.append(self._record_to_pattern(pattern_data))
-                
+
                 # 키워드 기반 추가 검색
                 if keywords:
                     for keyword in keywords[:3]:  # 최대 3개 키워드
                         result = self.client.run_query(
-                            FIND_SIMILAR_PATTERNS.query,
-                            {"keyword": keyword, "limit": 5}
+                            FIND_SIMILAR_PATTERNS.query, {"keyword": keyword, "limit": 5}
                         )
                         for record in result:
                             pattern_data = dict(record["p"])
                             pattern = self._record_to_pattern(pattern_data)
                             if pattern.id not in [p.id for p in patterns]:
                                 patterns.append(pattern)
-                
+
             except Exception as e:
                 self.logger.warning(f"Neo4j 패턴 검색 실패: {e}")
-        
+
         # 2. 내장 패턴에서 검색
         builtin_matches = self._search_builtin_patterns(domain, task_types, keywords)
-        
+
         # 중복 제거하며 병합
         existing_ids = {p.id for p in patterns}
         for pattern in builtin_matches:
             if pattern.id not in existing_ids:
                 patterns.append(pattern)
-        
+
         # 정렬 (usage_count 기준)
         patterns.sort(key=lambda p: p.usage_count, reverse=True)
-        
+
         return patterns[:limit]
-    
+
     def match_pattern(
         self,
         requirement_features: List[str],
@@ -170,23 +170,23 @@ class PatternMatcher(LoggerMixin):
     ) -> List[PatternMatch]:
         """
         요구사항 특성에 맞는 패턴을 매칭합니다.
-        
+
         Args:
             requirement_features: 요구사항에서 추출된 특성
             domain: 도메인
-        
+
         Returns:
             List[PatternMatch]: 매칭 결과 목록
         """
         self.logger.info(f"패턴 매칭: {len(requirement_features)} features")
-        
+
         # 패턴 검색
         patterns = self.find_patterns(
             domain=domain,
             keywords=requirement_features[:5],
             limit=20,
         )
-        
+
         # 유사도 계산
         matches = []
         for pattern in patterns:
@@ -194,7 +194,7 @@ class PatternMatcher(LoggerMixin):
                 requirement_features,
                 pattern,
             )
-            
+
             if score > 0.3:  # 최소 유사도 임계값
                 match = PatternMatch(
                     pattern_id=pattern.id,
@@ -208,52 +208,53 @@ class PatternMatcher(LoggerMixin):
                     ),
                 )
                 matches.append(match)
-        
+
         # 유사도 순 정렬
         matches.sort(key=lambda m: m.similarity_score, reverse=True)
-        
+
         return matches[:10]
-    
+
     def get_templates_for_pattern(
         self,
         pattern_id: str,
     ) -> List[TemplateInfo]:
         """
         패턴에 대한 템플릿을 조회합니다.
-        
+
         Args:
             pattern_id: 패턴 ID
-        
+
         Returns:
             List[TemplateInfo]: 템플릿 목록
         """
         templates = []
-        
+
         # Neo4j에서 검색
         if self.client.verify_connectivity():
             try:
                 result = self.client.run_query(
-                    FIND_TEMPLATES_FOR_PATTERN.query,
-                    {"pattern_id": pattern_id}
+                    FIND_TEMPLATES_FOR_PATTERN.query, {"pattern_id": pattern_id}
                 )
                 for record in result:
                     template_data = dict(record["t"])
-                    templates.append(TemplateInfo(
-                        id=template_data.get("id", ""),
-                        name=template_data.get("name", ""),
-                        category=template_data.get("category", ""),
-                        code_template=template_data.get("code", ""),
-                        description=template_data.get("description", ""),
-                    ))
+                    templates.append(
+                        TemplateInfo(
+                            id=template_data.get("id", ""),
+                            name=template_data.get("name", ""),
+                            category=template_data.get("category", ""),
+                            code_template=template_data.get("code", ""),
+                            description=template_data.get("description", ""),
+                        )
+                    )
             except Exception as e:
                 self.logger.warning(f"템플릿 검색 실패: {e}")
-        
+
         # 내장 템플릿 추가
         builtin_templates = self._get_builtin_templates(pattern_id)
         templates.extend(builtin_templates)
-        
+
         return templates
-    
+
     def record_pattern_usage(self, pattern_id: str) -> bool:
         """
         패턴 사용을 기록합니다.
@@ -268,10 +269,7 @@ class PatternMatcher(LoggerMixin):
             return False
 
         try:
-            self.client.run_query(
-                INCREMENT_PATTERN_USAGE.query,
-                {"pattern_id": pattern_id}
-            )
+            self.client.run_query(INCREMENT_PATTERN_USAGE.query, {"pattern_id": pattern_id})
             return True
         except Exception as e:
             self.logger.error(f"패턴 사용 기록 실패: {e}")
@@ -323,7 +321,7 @@ class PatternMatcher(LoggerMixin):
                     "language": language,
                     "code": code,
                     "variables": variables or [],
-                }
+                },
             )
             self.logger.info(f"패턴 및 템플릿 저장 성공: {pattern_id}")
             return True
@@ -351,8 +349,7 @@ class PatternMatcher(LoggerMixin):
 
         try:
             result = self.client.run_query(
-                GET_PATTERN_WITH_TEMPLATES.query,
-                {"pattern_id": pattern_id, "version": version}
+                GET_PATTERN_WITH_TEMPLATES.query, {"pattern_id": pattern_id, "version": version}
             )
 
             for record in result:
@@ -363,14 +360,16 @@ class PatternMatcher(LoggerMixin):
                 if record.get("templates"):
                     for template_data in record["templates"]:
                         template_dict = dict(template_data)
-                        templates.append(TemplateInfo(
-                            id=template_dict.get("id", ""),
-                            name=template_dict.get("name", ""),
-                            category=template_dict.get("category", "code"),
-                            code_template=template_dict.get("code", ""),
-                            description=template_dict.get("description", ""),
-                            parameters=template_dict.get("variables", []),
-                        ))
+                        templates.append(
+                            TemplateInfo(
+                                id=template_dict.get("id", ""),
+                                name=template_dict.get("name", ""),
+                                category=template_dict.get("category", "code"),
+                                code_template=template_dict.get("code", ""),
+                                description=template_dict.get("description", ""),
+                                parameters=template_dict.get("variables", []),
+                            )
+                        )
 
                 return (pattern, templates)
 
@@ -399,8 +398,7 @@ class PatternMatcher(LoggerMixin):
 
         try:
             self.client.run_query(
-                RECORD_PATTERN_SUCCESS.query,
-                {"pattern_id": pattern_id, "success": success}
+                RECORD_PATTERN_SUCCESS.query, {"pattern_id": pattern_id, "success": success}
             )
             self.logger.info(f"패턴 성공 기록: {pattern_id} - {'성공' if success else '실패'}")
             return True
@@ -426,13 +424,14 @@ class PatternMatcher(LoggerMixin):
         """
         if not self.client.verify_connectivity():
             self.logger.warning("Neo4j 연결 불가, 내장 패턴 사용")
-            return [(p, 0.5, self._get_builtin_templates(p.id))
-                    for p in self._search_builtin_patterns("general", None, [keyword])[:limit]]
+            return [
+                (p, 0.5, self._get_builtin_templates(p.id))
+                for p in self._search_builtin_patterns("general", None, [keyword])[:limit]
+            ]
 
         try:
             result = self.client.run_query(
-                GET_PATTERN_RECOMMENDATIONS.query,
-                {"keyword": keyword, "limit": limit}
+                GET_PATTERN_RECOMMENDATIONS.query, {"keyword": keyword, "limit": limit}
             )
 
             recommendations = []
@@ -445,14 +444,16 @@ class PatternMatcher(LoggerMixin):
                 if record.get("templates"):
                     for template_data in record["templates"]:
                         template_dict = dict(template_data)
-                        templates.append(TemplateInfo(
-                            id=template_dict.get("id", ""),
-                            name=template_dict.get("name", ""),
-                            category=template_dict.get("category", "code"),
-                            code_template=template_dict.get("code", ""),
-                            description=template_dict.get("description", ""),
-                            parameters=template_dict.get("variables", []),
-                        ))
+                        templates.append(
+                            TemplateInfo(
+                                id=template_dict.get("id", ""),
+                                name=template_dict.get("name", ""),
+                                category=template_dict.get("category", "code"),
+                                code_template=template_dict.get("code", ""),
+                                description=template_dict.get("description", ""),
+                                parameters=template_dict.get("variables", []),
+                            )
+                        )
 
                 recommendations.append((pattern, score, templates))
 
@@ -491,7 +492,7 @@ class PatternMatcher(LoggerMixin):
                     "new_pattern_id": new_pattern_id,
                     "version": new_version,
                     "description": description,
-                }
+                },
             )
 
             if result:
@@ -521,8 +522,7 @@ class PatternMatcher(LoggerMixin):
 
         try:
             result = self.client.run_query(
-                GET_PATTERN_HISTORY.query,
-                {"pattern_name": pattern_name}
+                GET_PATTERN_HISTORY.query, {"pattern_name": pattern_name}
             )
 
             history = []
@@ -557,15 +557,14 @@ class PatternMatcher(LoggerMixin):
 
         try:
             self.client.run_query(
-                DEPRECATE_PATTERN.query,
-                {"pattern_id": pattern_id, "reason": reason}
+                DEPRECATE_PATTERN.query, {"pattern_id": pattern_id, "reason": reason}
             )
             self.logger.info(f"패턴 deprecated 처리: {pattern_id}")
             return True
         except Exception as e:
             self.logger.error(f"패턴 deprecated 실패: {e}")
             return False
-    
+
     def _calculate_similarity(
         self,
         requirement_features: List[str],
@@ -578,23 +577,23 @@ class PatternMatcher(LoggerMixin):
         pattern_features.update(pattern.task_types)
         pattern_features.update(pattern.recommended_tools)
         pattern_features.add(pattern.domain)
-        
+
         # 소문자로 정규화
         pattern_features = {f.lower() for f in pattern_features}
         req_features = {f.lower() for f in requirement_features}
-        
+
         # 매칭되는 특성
         matched = pattern_features.intersection(req_features)
-        
+
         # Jaccard 유사도
         union = pattern_features.union(req_features)
         if not union:
             return 0.0, []
-        
+
         score = len(matched) / len(union)
-        
+
         return round(score, 2), list(matched)
-    
+
     def _suggest_adaptations(
         self,
         requirement_features: List[str],
@@ -603,23 +602,23 @@ class PatternMatcher(LoggerMixin):
     ) -> List[str]:
         """적응 제안 생성"""
         suggestions = []
-        
+
         # 매칭되지 않은 요구사항 특성
         unmatched = set(f.lower() for f in requirement_features) - set(matched_features)
-        
+
         if unmatched:
             suggestions.append(f"추가 기능 필요: {', '.join(list(unmatched)[:3])}")
-        
+
         # 패턴의 추가 도구 제안
         if pattern.recommended_tools:
             suggestions.append(f"권장 도구: {', '.join(pattern.recommended_tools[:3])}")
-        
+
         # 워크플로우 제안
         if pattern.workflow_type:
             suggestions.append(f"권장 워크플로우: {pattern.workflow_type}")
-        
+
         return suggestions
-    
+
     def _record_to_pattern(self, data: Dict) -> AgentPattern:
         """Neo4j 레코드를 패턴 객체로 변환"""
         return AgentPattern(
@@ -635,7 +634,7 @@ class PatternMatcher(LoggerMixin):
             usage_count=data.get("usage_count", 0),
             domain=data.get("domain", "general"),
         )
-    
+
     def _load_builtin_patterns(self) -> List[AgentPattern]:
         """
         내장 패턴 로드 (Refactored: P1.2)
@@ -644,8 +643,9 @@ class PatternMatcher(LoggerMixin):
         Reduces code from 379 lines to 3 lines (-97%).
         """
         from caas_framework.knowledge.graph.patterns_loader import load_builtin_patterns
+
         return load_builtin_patterns()
-    
+
     def _search_builtin_patterns(
         self,
         domain: str,
@@ -654,35 +654,35 @@ class PatternMatcher(LoggerMixin):
     ) -> List[AgentPattern]:
         """내장 패턴에서 검색"""
         matches = []
-        
+
         for pattern in self.builtin_patterns:
             score = 0
-            
+
             # 도메인 매칭
             if pattern.domain == domain or pattern.domain == "general":
                 score += 2
-            
+
             # 태스크 유형 매칭
             if task_types:
                 for task_type in task_types:
                     if task_type.lower() in [t.lower() for t in pattern.task_types]:
                         score += 1
-            
+
             # 키워드 매칭
             if keywords:
                 pattern_text = f"{pattern.name} {pattern.description} {pattern.use_case}".lower()
                 for keyword in keywords:
                     if keyword.lower() in pattern_text:
                         score += 1
-            
+
             if score > 0:
                 matches.append((score, pattern))
-        
+
         # 점수순 정렬
         matches.sort(key=lambda x: x[0], reverse=True)
-        
+
         return [m[1] for m in matches]
-    
+
     def _get_builtin_templates(self, pattern_id: str) -> List[TemplateInfo]:
         """내장 템플릿 조회"""
         templates_map = {
@@ -712,5 +712,5 @@ class PatternMatcher(LoggerMixin):
                 ),
             ],
         }
-        
+
         return templates_map.get(pattern_id, [])

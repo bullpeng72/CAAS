@@ -6,9 +6,9 @@ Goes beyond schema validation to assess semantic quality and design coherence.
 """
 
 import logging
-from typing import Any, Dict, List, Optional
 from dataclasses import dataclass, field
 from enum import Enum
+from typing import Any, Dict, List, Optional
 
 from caas_framework.agents.base import AgentPhase
 from caas_framework.plugins.llm.base import LLMPlugin
@@ -16,6 +16,7 @@ from caas_framework.plugins.llm.base import LLMPlugin
 
 class EvaluationDimension(str, Enum):
     """Quality evaluation dimensions"""
+
     CLARITY = "clarity"
     COMPLETENESS = "completeness"
     COHERENCE = "coherence"
@@ -26,6 +27,7 @@ class EvaluationDimension(str, Enum):
 @dataclass
 class DimensionScore:
     """Score for a single evaluation dimension"""
+
     dimension: EvaluationDimension
     score: float  # 0.0 to 10.0
     reasoning: str
@@ -35,6 +37,7 @@ class DimensionScore:
 @dataclass
 class EvaluationResult:
     """Result of LLM quality evaluation"""
+
     phase: AgentPhase
     overall_score: float  # 0.0 to 10.0
     dimension_scores: List[DimensionScore]
@@ -58,14 +61,14 @@ class EvaluationResult:
                     "dimension": score.dimension.value,
                     "score": score.score,
                     "reasoning": score.reasoning,
-                    "suggestions": score.suggestions
+                    "suggestions": score.suggestions,
                 }
                 for score in self.dimension_scores
             ],
             "approved": self.approved,
             "feedback": self.feedback,
             "critical_issues": self.critical_issues,
-            "warnings": self.warnings
+            "warnings": self.warnings,
         }
 
 
@@ -89,7 +92,7 @@ class LLMJudge:
         llm_plugin: LLMPlugin,
         approval_threshold: float = 7.0,
         phase_thresholds: Optional[Dict[AgentPhase, float]] = None,
-        logger: Optional[logging.Logger] = None
+        logger: Optional[logging.Logger] = None,
     ):
         """
         Initialize LLM Judge.
@@ -111,7 +114,7 @@ class LLMJudge:
             AgentPhase.ARCHITECTURE: self._get_architecture_criteria,
             AgentPhase.DESIGN: self._get_design_criteria,
             AgentPhase.DELIVERY: self._get_delivery_criteria,
-            AgentPhase.QUALITY_ASSURANCE: self._get_qa_criteria
+            AgentPhase.QUALITY_ASSURANCE: self._get_qa_criteria,
         }
 
     def get_threshold_for_phase(self, phase: AgentPhase) -> float:
@@ -119,10 +122,7 @@ class LLMJudge:
         return self.phase_thresholds.get(phase, self.approval_threshold)
 
     async def evaluate_quality(
-        self,
-        output: Dict[str, Any],
-        phase: AgentPhase,
-        context: Optional[Dict[str, Any]] = None
+        self, output: Dict[str, Any], phase: AgentPhase, context: Optional[Dict[str, Any]] = None
     ) -> EvaluationResult:
         """
         Evaluate quality of agent output using LLM.
@@ -154,11 +154,18 @@ class LLMJudge:
             response = await self.llm.ainvoke(
                 messages=messages,
                 temperature=0.3,  # Lower temperature for consistent evaluation
-                max_tokens=2000
+                max_tokens=2000,
             )
 
             # Extract content from response
-            response_content = response.get("content", "") if isinstance(response, dict) else str(response)
+            response_content = (
+                response.get("content", "") if isinstance(response, dict) else str(response)
+            )
+
+            # Check if response is empty
+            if not response_content or not response_content.strip():
+                self.logger.error(f"LLM returned empty response. Full response object: {response}")
+                raise ValueError(f"Empty response from LLM. Response type: {type(response)}")
 
             # Parse evaluation response
             evaluation = self._parse_evaluation_response(response_content, phase, criteria)
@@ -179,7 +186,7 @@ class LLMJudge:
         output: Dict[str, Any],
         phase: AgentPhase,
         criteria: List[Dict[str, str]],
-        context: Optional[Dict[str, Any]]
+        context: Optional[Dict[str, Any]],
     ) -> str:
         """Build evaluation prompt for LLM"""
 
@@ -191,14 +198,29 @@ class LLMJudge:
                 context_section = f"\n## Original Requirement\n{requirement}\n"
 
         # Format criteria
-        criteria_section = "\n".join([
-            f"{i+1}. **{c['dimension']}**: {c['description']}"
-            for i, c in enumerate(criteria)
-        ])
+        criteria_section = "\n".join(
+            [f"{i+1}. **{c['dimension']}**: {c['description']}" for i, c in enumerate(criteria)]
+        )
 
         # Format output for readability
         import json
-        output_json = json.dumps(output, indent=2, ensure_ascii=False)
+
+        from pydantic import BaseModel
+
+        # Convert Pydantic models to dicts for JSON serialization
+        def convert_to_dict(obj):
+            """Recursively convert Pydantic models and other objects to dicts"""
+            if isinstance(obj, BaseModel):
+                return obj.model_dump()
+            elif isinstance(obj, dict):
+                return {k: convert_to_dict(v) for k, v in obj.items()}
+            elif isinstance(obj, (list, tuple)):
+                return [convert_to_dict(item) for item in obj]
+            else:
+                return obj
+
+        serializable_output = convert_to_dict(output)
+        output_json = json.dumps(serializable_output, indent=2, ensure_ascii=False, default=str)
 
         prompt = f"""# Quality Evaluation Task
 
@@ -253,10 +275,7 @@ Evaluate now:"""
         return prompt
 
     def _parse_evaluation_response(
-        self,
-        response: str,
-        phase: AgentPhase,
-        criteria: List[Dict[str, str]]
+        self, response: str, phase: AgentPhase, criteria: List[Dict[str, str]]
     ) -> EvaluationResult:
         """Parse LLM evaluation response into EvaluationResult"""
 
@@ -264,13 +283,23 @@ Evaluate now:"""
         import re
 
         try:
+            # Check for empty response
+            if not response or not response.strip():
+                self.logger.warning("LLM returned empty response for evaluation")
+                raise ValueError("Empty response from LLM")
+
             # Extract JSON from response (handle markdown code blocks)
-            json_match = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', response, re.DOTALL)
+            json_match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", response, re.DOTALL)
             if json_match:
                 json_str = json_match.group(1)
             else:
                 # Try to find raw JSON
                 json_str = response.strip()
+
+                # Check if json_str is empty after stripping
+                if not json_str:
+                    self.logger.warning("No JSON content found in LLM response")
+                    raise ValueError("No JSON content in response")
 
             data = json.loads(json_str)
 
@@ -283,12 +312,14 @@ Evaluate now:"""
                     # Skip invalid dimensions
                     continue
 
-                dimension_scores.append(DimensionScore(
-                    dimension=dimension,
-                    score=float(dim_data.get("score", 0.0)),
-                    reasoning=dim_data.get("reasoning", ""),
-                    suggestions=dim_data.get("suggestions", [])
-                ))
+                dimension_scores.append(
+                    DimensionScore(
+                        dimension=dimension,
+                        score=float(dim_data.get("score", 0.0)),
+                        reasoning=dim_data.get("reasoning", ""),
+                        suggestions=dim_data.get("suggestions", []),
+                    )
+                )
 
             overall_score = float(data.get("overall_score", 0.0))
 
@@ -307,7 +338,7 @@ Evaluate now:"""
                 approved=approved,
                 feedback=data.get("feedback", "No feedback provided"),
                 critical_issues=data.get("critical_issues", []),
-                warnings=data.get("warnings", [])
+                warnings=data.get("warnings", []),
             )
 
         except Exception as e:
@@ -319,7 +350,7 @@ Evaluate now:"""
                 dimension_scores=[],
                 approved=False,
                 feedback=f"Failed to parse evaluation: {str(e)}\n\nRaw response: {response[:500]}",
-                critical_issues=["Evaluation parsing failed"]
+                critical_issues=["Evaluation parsing failed"],
             )
 
     def _create_fallback_result(self, phase: AgentPhase) -> EvaluationResult:
@@ -330,7 +361,7 @@ Evaluate now:"""
             dimension_scores=[],
             approved=True,
             feedback="No specific criteria defined for this phase. Structural validation passed.",
-            warnings=["LLM evaluation skipped - no criteria defined"]
+            warnings=["LLM evaluation skipped - no criteria defined"],
         )
 
     def _create_error_result(self, phase: AgentPhase, error: str) -> EvaluationResult:
@@ -341,7 +372,7 @@ Evaluate now:"""
             dimension_scores=[],
             approved=False,
             feedback=f"Evaluation failed: {error}",
-            critical_issues=[f"LLM evaluation error: {error}"]
+            critical_issues=[f"LLM evaluation error: {error}"],
         )
 
     # ==================== Phase-Specific Criteria ====================
@@ -351,16 +382,16 @@ Evaluate now:"""
         return [
             {
                 "dimension": "clarity",
-                "description": "Are requirements clearly stated and unambiguous?"
+                "description": "Are requirements clearly stated and unambiguous?",
             },
             {
                 "dimension": "completeness",
-                "description": "Are all necessary features and constraints identified?"
+                "description": "Are all necessary features and constraints identified?",
             },
             {
                 "dimension": "coherence",
-                "description": "Do requirements work together without conflicts?"
-            }
+                "description": "Do requirements work together without conflicts?",
+            },
         ]
 
     def _get_architecture_criteria(self) -> List[Dict[str, str]]:
@@ -368,94 +399,80 @@ Evaluate now:"""
         return [
             {
                 "dimension": "clarity",
-                "description": "Are component responsibilities clearly defined?"
+                "description": "Are component responsibilities clearly defined?",
             },
             {
                 "dimension": "completeness",
-                "description": "Are all necessary components and interfaces identified?"
+                "description": "Are all necessary components and interfaces identified?",
             },
             {
                 "dimension": "coherence",
-                "description": "Do components interact logically and efficiently?"
+                "description": "Do components interact logically and efficiently?",
             },
             {
                 "dimension": "appropriateness",
-                "description": "Are architectural choices suitable for requirements?"
-            }
+                "description": "Are architectural choices suitable for requirements?",
+            },
         ]
 
     def _get_design_criteria(self) -> List[Dict[str, str]]:
         """Get evaluation criteria for Design phase (Agent/Task Design)"""
         return [
-            {
-                "dimension": "clarity",
-                "description": "Are agent roles clear and non-overlapping?"
-            },
+            {"dimension": "clarity", "description": "Are agent roles clear and non-overlapping?"},
             {
                 "dimension": "completeness",
-                "description": "Are all necessary agents and tasks defined?"
+                "description": "Are all necessary agents and tasks defined?",
             },
-            {
-                "dimension": "coherence",
-                "description": "Are task dependencies logical and acyclic?"
-            },
+            {"dimension": "coherence", "description": "Are task dependencies logical and acyclic?"},
             {
                 "dimension": "appropriateness",
-                "description": "Are tools appropriate for each agent's role?"
+                "description": "Are tools appropriate for each agent's role?",
             },
             {
                 "dimension": "correctness",
-                "description": "Are there any logical errors or inconsistencies?"
-            }
+                "description": "Are there any logical errors or inconsistencies?",
+            },
         ]
 
     def _get_delivery_criteria(self) -> List[Dict[str, str]]:
         """Get evaluation criteria for Delivery phase (Code Generation)"""
         return [
-            {
-                "dimension": "clarity",
-                "description": "Is code readable and well-documented?"
-            },
-            {
-                "dimension": "completeness",
-                "description": "Are all required features implemented?"
-            },
+            {"dimension": "clarity", "description": "Is code readable and well-documented?"},
+            {"dimension": "completeness", "description": "Are all required features implemented?"},
             {
                 "dimension": "correctness",
-                "description": "Is code syntactically and logically correct?"
+                "description": "Is code syntactically and logically correct?",
             },
             {
                 "dimension": "appropriateness",
-                "description": "Are implementation choices suitable and follow best practices?"
-            }
+                "description": "Are implementation choices suitable and follow best practices?",
+            },
         ]
 
     def _get_qa_criteria(self) -> List[Dict[str, str]]:
         """Get evaluation criteria for QA phase (Quality Assurance)"""
         return [
-            {
-                "dimension": "completeness",
-                "description": "Are all critical aspects tested?"
-            },
+            {"dimension": "completeness", "description": "Are all critical aspects tested?"},
             {
                 "dimension": "correctness",
-                "description": "Are test assertions correct and comprehensive?"
+                "description": "Are test assertions correct and comprehensive?",
             },
             {
                 "dimension": "appropriateness",
-                "description": "Are test strategies suitable for the codebase?"
-            }
+                "description": "Are test strategies suitable for the codebase?",
+            },
         ]
 
 
 # ==================== Convenience Functions ====================
+
 
 async def evaluate_with_llm_judge(
     output: Dict[str, Any],
     phase: AgentPhase,
     llm_plugin: LLMPlugin,
     context: Optional[Dict[str, Any]] = None,
-    approval_threshold: float = 7.0
+    approval_threshold: float = 7.0,
 ) -> EvaluationResult:
     """
     Convenience function to evaluate output with LLM Judge.

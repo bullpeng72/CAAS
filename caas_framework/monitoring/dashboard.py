@@ -5,23 +5,21 @@ Rich console-based dashboard for displaying performance metrics in real-time.
 Provides beautiful, colorful visualization of workflow execution metrics.
 """
 
-from typing import Optional, Dict, Any
 from datetime import datetime
 from pathlib import Path
+from typing import Any, Dict, Optional
 
 try:
-    from rich.console import Console
-    from rich.table import Table
-    from rich.panel import Panel
     from rich import box
+    from rich.console import Console
+    from rich.panel import Panel
+    from rich.table import Table
+
     RICH_AVAILABLE = True
 except ImportError:
     RICH_AVAILABLE = False
 
-from caas_framework.monitoring.metrics_collector import (
-    WorkflowMetrics,
-    MetricsCollector
-)
+from caas_framework.monitoring.metrics_collector import MetricsCollector, WorkflowMetrics
 
 
 class PerformanceDashboard:
@@ -53,7 +51,7 @@ class PerformanceDashboard:
         """
         # Header
         self.console.print()
-        self.console.print("="* 70, style="cyan")
+        self.console.print("=" * 70, style="cyan")
         self.console.print(f"  Performance Summary: {metrics.workflow_id}", style="bold cyan")
         self.console.print("=" * 70, style="cyan")
         self.console.print()
@@ -85,7 +83,7 @@ class PerformanceDashboard:
             summary_text.strip(),
             title="[bold]Workflow Summary[/bold]",
             border_style="green",
-            box=box.ROUNDED
+            box=box.ROUNDED,
         )
 
         self.console.print(panel)
@@ -102,7 +100,7 @@ class PerformanceDashboard:
             title="Phase Performance Breakdown",
             box=box.ROUNDED,
             show_header=True,
-            header_style="bold cyan"
+            header_style="bold cyan",
         )
 
         table.add_column("Phase", style="cyan", no_wrap=True)
@@ -115,7 +113,11 @@ class PerformanceDashboard:
 
         for phase in metrics.phases:
             # Calculate percentage of total time
-            pct_of_total = (phase.duration_seconds / metrics.total_duration_seconds * 100) if metrics.total_duration_seconds > 0 else 0
+            pct_of_total = (
+                (phase.duration_seconds / metrics.total_duration_seconds * 100)
+                if metrics.total_duration_seconds > 0
+                else 0
+            )
 
             # Status emoji
             if phase.success:
@@ -135,17 +137,14 @@ class PerformanceDashboard:
                 str(phase.llm_calls),
                 f"{phase.llm_tokens_total:,}",
                 f"${phase.llm_cost_usd:.4f}",
-                f"[{status_style}]{status}[/{status_style}]"
+                f"[{status_style}]{status}[/{status_style}]",
             )
 
         self.console.print(table)
         self.console.print()
 
     def display_comparison(
-        self,
-        current: WorkflowMetrics,
-        baseline: WorkflowMetrics,
-        comparison: Dict[str, Any]
+        self, current: WorkflowMetrics, baseline: WorkflowMetrics, comparison: Dict[str, Any]
     ):
         """
         Display comparison between current and baseline metrics
@@ -162,14 +161,14 @@ class PerformanceDashboard:
         self.console.print()
 
         # Duration comparison
-        duration_imp = comparison['duration_improvement']
-        duration_color = "green" if duration_imp['improved'] else "red"
-        duration_arrow = "↓" if duration_imp['improved'] else "↑"
+        duration_imp = comparison["duration_improvement"]
+        duration_color = "green" if duration_imp["improved"] else "red"
+        duration_arrow = "↓" if duration_imp["improved"] else "↑"
 
         # Cost comparison
-        cost_imp = comparison['cost_improvement']
-        cost_color = "green" if cost_imp['improved'] else "red"
-        cost_arrow = "↓" if cost_imp['improved'] else "↑"
+        cost_imp = comparison["cost_improvement"]
+        cost_color = "green" if cost_imp["improved"] else "red"
+        cost_arrow = "↓" if cost_imp["improved"] else "↑"
 
         comparison_text = f"""
 [bold]Duration Comparison:[/bold]
@@ -192,7 +191,7 @@ class PerformanceDashboard:
             comparison_text.strip(),
             title="[bold]Performance Comparison[/bold]",
             border_style="blue",
-            box=box.ROUNDED
+            box=box.ROUNDED,
         )
 
         self.console.print(panel)
@@ -213,7 +212,11 @@ class PerformanceDashboard:
             return
 
         # Calculate impact
-        pct_of_total = (bottleneck.duration_seconds / metrics.total_duration_seconds * 100) if metrics.total_duration_seconds > 0 else 0
+        pct_of_total = (
+            (bottleneck.duration_seconds / metrics.total_duration_seconds * 100)
+            if metrics.total_duration_seconds > 0
+            else 0
+        )
 
         analysis_text = f"""
 [bold red]🔥 Bottleneck Identified:[/bold red] {bottleneck.phase}
@@ -236,16 +239,14 @@ class PerformanceDashboard:
             analysis_text.strip(),
             title="[bold red]Bottleneck Analysis[/bold red]",
             border_style="red",
-            box=box.ROUNDED
+            box=box.ROUNDED,
         )
 
         self.console.print(panel)
         self.console.print()
 
     def display_full_report(
-        self,
-        metrics: WorkflowMetrics,
-        baseline: Optional[WorkflowMetrics] = None
+        self, metrics: WorkflowMetrics, baseline: Optional[WorkflowMetrics] = None
     ):
         """
         Display complete performance report
@@ -273,7 +274,7 @@ class PerformanceDashboard:
         self,
         metrics: WorkflowMetrics,
         output_path: Path,
-        baseline: Optional[WorkflowMetrics] = None
+        baseline: Optional[WorkflowMetrics] = None,
     ):
         """
         Generate Markdown performance report
@@ -307,7 +308,11 @@ class PerformanceDashboard:
         md_lines.append("|-------|----------|------------|-----------|--------|------|--------|")
 
         for phase in metrics.phases:
-            pct = (phase.duration_seconds / metrics.total_duration_seconds * 100) if metrics.total_duration_seconds > 0 else 0
+            pct = (
+                (phase.duration_seconds / metrics.total_duration_seconds * 100)
+                if metrics.total_duration_seconds > 0
+                else 0
+            )
             status = "✅" if phase.success else "❌"
 
             md_lines.append(
@@ -319,7 +324,9 @@ class PerformanceDashboard:
 
         # Bottleneck analysis
         if metrics.bottleneck_phase:
-            bottleneck = next((p for p in metrics.phases if p.phase == metrics.bottleneck_phase), None)
+            bottleneck = next(
+                (p for p in metrics.phases if p.phase == metrics.bottleneck_phase), None
+            )
             if bottleneck:
                 md_lines.append("## Bottleneck Analysis\n")
                 md_lines.append(f"**🔥 Bottleneck Phase:** {bottleneck.phase}\n")
@@ -340,32 +347,36 @@ class PerformanceDashboard:
 
             md_lines.append("## Comparison with Baseline\n")
 
-            duration_imp = comparison['duration_improvement']
-            duration_arrow = "↓" if duration_imp['improved'] else "↑"
+            duration_imp = comparison["duration_improvement"]
+            duration_arrow = "↓" if duration_imp["improved"] else "↑"
 
-            cost_imp = comparison['cost_improvement']
-            cost_arrow = "↓" if cost_imp['improved'] else "↑"
+            cost_imp = comparison["cost_improvement"]
+            cost_arrow = "↓" if cost_imp["improved"] else "↑"
 
             md_lines.append("### Duration")
             md_lines.append(f"- Baseline: {duration_imp['baseline_seconds']:.2f}s")
             md_lines.append(f"- Current: {duration_imp['current_seconds']:.2f}s")
-            md_lines.append(f"- Difference: {duration_arrow} {abs(duration_imp['difference_seconds']):.2f}s ({abs(duration_imp['difference_percent']):.1f}%)")
+            md_lines.append(
+                f"- Difference: {duration_arrow} {abs(duration_imp['difference_seconds']):.2f}s ({abs(duration_imp['difference_percent']):.1f}%)"
+            )
             md_lines.append(f"- Speedup: {comparison['speedup']:.2f}x")
             md_lines.append("\n### Cost")
             md_lines.append(f"- Baseline: ${cost_imp['baseline_usd']:.4f}")
             md_lines.append(f"- Current: ${cost_imp['current_usd']:.4f}")
-            md_lines.append(f"- Difference: {cost_arrow} ${abs(cost_imp['difference_usd']):.4f} ({abs(cost_imp['difference_percent']):.1f}%)")
+            md_lines.append(
+                f"- Difference: {cost_arrow} ${abs(cost_imp['difference_usd']):.4f} ({abs(cost_imp['difference_percent']):.1f}%)"
+            )
             md_lines.append("\n")
 
         # Write to file
-        with open(output_path, 'w') as f:
-            f.write('\n'.join(md_lines))
+        with open(output_path, "w") as f:
+            f.write("\n".join(md_lines))
 
     def generate_html_report(
         self,
         metrics: WorkflowMetrics,
         output_path: Path,
-        baseline: Optional[WorkflowMetrics] = None
+        baseline: Optional[WorkflowMetrics] = None,
     ):
         """
         Generate HTML performance report
@@ -383,7 +394,8 @@ class PerformanceDashboard:
         html_lines.append("<head>")
         html_lines.append(f"<title>Performance Report: {metrics.workflow_id}</title>")
         html_lines.append("<style>")
-        html_lines.append("""
+        html_lines.append(
+            """
             body { font-family: Arial, sans-serif; margin: 40px; background: #f5f5f5; }
             .container { max-width: 1200px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
             h1 { color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px; }
@@ -401,7 +413,8 @@ class PerformanceDashboard:
             .bottleneck { background: #ffe5e5; font-weight: bold; }
             .improvement { color: #27ae60; }
             .regression { color: #e74c3c; }
-        """)
+        """
+        )
         html_lines.append("</style>")
         html_lines.append("</head>")
         html_lines.append("<body>")
@@ -409,26 +422,54 @@ class PerformanceDashboard:
 
         # Title
         html_lines.append(f"<h1>Performance Report: {metrics.workflow_id}</h1>")
-        html_lines.append(f"<p><strong>Generated:</strong> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>")
+        html_lines.append(
+            f"<p><strong>Generated:</strong> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>"
+        )
         html_lines.append(f"<p><strong>Requirement:</strong> {metrics.requirement}</p>")
 
         # Summary
         html_lines.append("<div class='summary'>")
         html_lines.append("<h2>Summary</h2>")
-        html_lines.append("<div class='metric'><span class='metric-label'>Duration:</span> <span class='metric-value'>{:.2f}s</span></div>".format(metrics.total_duration_seconds))
-        html_lines.append("<div class='metric'><span class='metric-label'>Success Rate:</span> <span class='metric-value'>{:.1f}%</span></div>".format(metrics.success_rate * 100))
-        html_lines.append("<div class='metric'><span class='metric-label'>Total Cost:</span> <span class='metric-value'>${:.4f}</span></div>".format(metrics.total_cost_usd))
-        html_lines.append("<div class='metric'><span class='metric-label'>Tokens:</span> <span class='metric-value'>{:,}</span></div>".format(metrics.total_tokens))
-        html_lines.append("<div class='metric'><span class='metric-label'>Bottleneck:</span> <span class='metric-value'>{}</span></div>".format(metrics.bottleneck_phase or 'None'))
+        html_lines.append(
+            "<div class='metric'><span class='metric-label'>Duration:</span> <span class='metric-value'>{:.2f}s</span></div>".format(
+                metrics.total_duration_seconds
+            )
+        )
+        html_lines.append(
+            "<div class='metric'><span class='metric-label'>Success Rate:</span> <span class='metric-value'>{:.1f}%</span></div>".format(
+                metrics.success_rate * 100
+            )
+        )
+        html_lines.append(
+            "<div class='metric'><span class='metric-label'>Total Cost:</span> <span class='metric-value'>${:.4f}</span></div>".format(
+                metrics.total_cost_usd
+            )
+        )
+        html_lines.append(
+            "<div class='metric'><span class='metric-label'>Tokens:</span> <span class='metric-value'>{:,}</span></div>".format(
+                metrics.total_tokens
+            )
+        )
+        html_lines.append(
+            "<div class='metric'><span class='metric-label'>Bottleneck:</span> <span class='metric-value'>{}</span></div>".format(
+                metrics.bottleneck_phase or "None"
+            )
+        )
         html_lines.append("</div>")
 
         # Phase breakdown table
         html_lines.append("<h2>Phase Breakdown</h2>")
         html_lines.append("<table>")
-        html_lines.append("<tr><th>Phase</th><th>Duration</th><th>% of Total</th><th>LLM Calls</th><th>Tokens</th><th>Cost</th><th>Status</th></tr>")
+        html_lines.append(
+            "<tr><th>Phase</th><th>Duration</th><th>% of Total</th><th>LLM Calls</th><th>Tokens</th><th>Cost</th><th>Status</th></tr>"
+        )
 
         for phase in metrics.phases:
-            pct = (phase.duration_seconds / metrics.total_duration_seconds * 100) if metrics.total_duration_seconds > 0 else 0
+            pct = (
+                (phase.duration_seconds / metrics.total_duration_seconds * 100)
+                if metrics.total_duration_seconds > 0
+                else 0
+            )
             status_class = "success" if phase.success else "failed"
             status_icon = "✅" if phase.success else "❌"
             row_class = "bottleneck" if phase.phase == metrics.bottleneck_phase else ""
@@ -455,20 +496,28 @@ class PerformanceDashboard:
             html_lines.append("<h2>Comparison with Baseline</h2>")
             html_lines.append("<div class='summary'>")
 
-            duration_imp = comparison['duration_improvement']
-            duration_class = "improvement" if duration_imp['improved'] else "regression"
+            duration_imp = comparison["duration_improvement"]
+            duration_class = "improvement" if duration_imp["improved"] else "regression"
 
-            cost_imp = comparison['cost_improvement']
-            cost_class = "improvement" if cost_imp['improved'] else "regression"
+            cost_imp = comparison["cost_improvement"]
+            cost_class = "improvement" if cost_imp["improved"] else "regression"
 
             html_lines.append(f"<h3>Duration</h3>")
-            html_lines.append(f"<p>Baseline: {duration_imp['baseline_seconds']:.2f}s → Current: {duration_imp['current_seconds']:.2f}s</p>")
-            html_lines.append(f"<p class='{duration_class}'>Difference: {abs(duration_imp['difference_seconds']):.2f}s ({abs(duration_imp['difference_percent']):.1f}%)</p>")
+            html_lines.append(
+                f"<p>Baseline: {duration_imp['baseline_seconds']:.2f}s → Current: {duration_imp['current_seconds']:.2f}s</p>"
+            )
+            html_lines.append(
+                f"<p class='{duration_class}'>Difference: {abs(duration_imp['difference_seconds']):.2f}s ({abs(duration_imp['difference_percent']):.1f}%)</p>"
+            )
             html_lines.append(f"<p>Speedup: {comparison['speedup']:.2f}x</p>")
 
             html_lines.append(f"<h3>Cost</h3>")
-            html_lines.append(f"<p>Baseline: ${cost_imp['baseline_usd']:.4f} → Current: ${cost_imp['current_usd']:.4f}</p>")
-            html_lines.append(f"<p class='{cost_class}'>Difference: ${abs(cost_imp['difference_usd']):.4f} ({abs(cost_imp['difference_percent']):.1f}%)</p>")
+            html_lines.append(
+                f"<p>Baseline: ${cost_imp['baseline_usd']:.4f} → Current: ${cost_imp['current_usd']:.4f}</p>"
+            )
+            html_lines.append(
+                f"<p class='{cost_class}'>Difference: ${abs(cost_imp['difference_usd']):.4f} ({abs(cost_imp['difference_percent']):.1f}%)</p>"
+            )
 
             html_lines.append("</div>")
 
@@ -478,5 +527,5 @@ class PerformanceDashboard:
         html_lines.append("</html>")
 
         # Write to file
-        with open(output_path, 'w') as f:
-            f.write('\n'.join(html_lines))
+        with open(output_path, "w") as f:
+            f.write("\n".join(html_lines))

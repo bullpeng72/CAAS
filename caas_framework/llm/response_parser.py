@@ -4,17 +4,18 @@ LLM Response Parser
 LLM 응답을 파싱하고 구조화된 데이터로 변환합니다.
 """
 
-import re
 import json
-from typing import Any, Dict, List, Optional, Callable, TypeVar, Type
+import logging
+import re
+from typing import Any, Callable, Dict, List, Optional, Type, TypeVar
+
 from pydantic import BaseModel, ValidationError
 
-import logging
 from caas_framework.utils.json_helper import JSONHelper
 
 logger = logging.getLogger("caas_framework.llm.response_parser")
 
-T = TypeVar('T', bound=BaseModel)
+T = TypeVar("T", bound=BaseModel)
 
 
 class ResponseParser:
@@ -22,9 +23,7 @@ class ResponseParser:
 
     @staticmethod
     def extract_code_block(
-        content: str,
-        language: Optional[str] = None,
-        fallback: Optional[str] = None
+        content: str, language: Optional[str] = None, fallback: Optional[str] = None
     ) -> Optional[str]:
         """
         Markdown 코드 블록 추출
@@ -69,8 +68,7 @@ class ResponseParser:
 
     @staticmethod
     def extract_all_code_blocks(
-        content: str,
-        language: Optional[str] = None
+        content: str, language: Optional[str] = None
     ) -> List[Dict[str, str]]:
         """
         모든 코드 블록 추출
@@ -98,19 +96,14 @@ class ResponseParser:
             if language and lang.lower() != language.lower():
                 continue
 
-            blocks.append({
-                "language": lang,
-                "code": code
-            })
+            blocks.append({"language": lang, "code": code})
 
         logger.debug(f"코드 블록 {len(blocks)}개 추출됨")
         return blocks
 
     @staticmethod
     def extract_json_from_response(
-        content: str,
-        fallback: Optional[Any] = None,
-        strict: bool = False
+        content: str, fallback: Optional[Any] = None, strict: bool = False
     ) -> Optional[Dict[str, Any]]:
         """
         LLM 응답에서 JSON 추출 (JSONHelper 래퍼)
@@ -134,10 +127,7 @@ class ResponseParser:
         return result
 
     @staticmethod
-    def extract_list_from_response(
-        content: str,
-        pattern: Optional[str] = None
-    ) -> List[str]:
+    def extract_list_from_response(content: str, pattern: Optional[str] = None) -> List[str]:
         """
         LLM 응답에서 리스트 항목 추출
 
@@ -167,7 +157,7 @@ class ResponseParser:
             patterns = [pattern]
 
         items = []
-        lines = content.split('\n')
+        lines = content.split("\n")
 
         for line in lines:
             line = line.strip()
@@ -184,10 +174,7 @@ class ResponseParser:
         return items
 
     @staticmethod
-    def extract_key_value_pairs(
-        content: str,
-        separator: str = ":"
-    ) -> Dict[str, str]:
+    def extract_key_value_pairs(content: str, separator: str = ":") -> Dict[str, str]:
         """
         LLM 응답에서 키-값 쌍 추출
 
@@ -208,7 +195,7 @@ class ResponseParser:
             return {}
 
         pairs = {}
-        lines = content.split('\n')
+        lines = content.split("\n")
 
         for line in lines:
             line = line.strip()
@@ -222,8 +209,8 @@ class ResponseParser:
                 value = parts[1].strip()
 
                 # Markdown 강조 제거 (**, __, ` 등)
-                key = re.sub(r'[*_`]', '', key)
-                value = re.sub(r'[*_`]', '', value)
+                key = re.sub(r"[*_`]", "", key)
+                value = re.sub(r"[*_`]", "", value)
 
                 pairs[key] = value
 
@@ -232,10 +219,7 @@ class ResponseParser:
 
     @staticmethod
     def parse_to_model(
-        content: str,
-        model_class: Type[T],
-        extract_json: bool = True,
-        strict: bool = True
+        content: str, model_class: Type[T], extract_json: bool = True, strict: bool = True
     ) -> Optional[T]:
         """
         LLM 응답을 Pydantic 모델로 파싱
@@ -281,7 +265,7 @@ class ResponseParser:
         content: str,
         remove_markdown: bool = False,
         remove_code_blocks: bool = False,
-        strip_whitespace: bool = True
+        strip_whitespace: bool = True,
     ) -> str:
         """
         LLM 응답 정제
@@ -330,7 +314,7 @@ class ResponseParser:
         min_length: Optional[int] = None,
         max_length: Optional[int] = None,
         required_keywords: Optional[List[str]] = None,
-        forbidden_keywords: Optional[List[str]] = None
+        forbidden_keywords: Optional[List[str]] = None,
     ) -> tuple[bool, List[str]]:
         """
         LLM 응답 검증
@@ -378,7 +362,7 @@ class ResponseParser:
         content: str,
         parser_func: Callable[[str], Any],
         max_retries: int = 3,
-        fallback: Optional[Any] = None
+        fallback: Optional[Any] = None,
     ) -> Any:
         """
         파싱 재시도 (에러 처리 포함)
@@ -452,17 +436,17 @@ class StreamingResponseParser:
                 break
 
             # 블록 추출
-            block = self.buffer[start_idx:end_idx + 3]
+            block = self.buffer[start_idx : end_idx + 3]
             new_blocks.append(block)
             self.complete_blocks.append(block)
 
             # 버퍼에서 제거
-            self.buffer = self.buffer[end_idx + 3:]
+            self.buffer = self.buffer[end_idx + 3 :]
 
         # 버퍼 크기 제한
         if len(self.buffer) > self.buffer_size:
             # 오래된 내용 제거
-            self.buffer = self.buffer[-self.buffer_size:]
+            self.buffer = self.buffer[-self.buffer_size :]
 
         return new_blocks
 

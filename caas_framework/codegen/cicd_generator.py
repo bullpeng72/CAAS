@@ -5,13 +5,14 @@ Generates CI/CD pipeline configurations for different platforms.
 Supports GitHub Actions, GitLab CI, and Jenkins.
 """
 
-from typing import Dict
 from dataclasses import dataclass
+from typing import Dict
 
 
 @dataclass
 class CICDConfig:
     """CI/CD configuration"""
+
     platform: str = "github_actions"  # github_actions, gitlab_ci, jenkins
     python_version: str = "3.11"
     run_tests: bool = True
@@ -54,7 +55,9 @@ class CICDGenerator:
         files = {}
 
         # Main CI workflow
-        files[".github/workflows/ci.yml"] = f'''name: CI
+        files[
+            ".github/workflows/ci.yml"
+        ] = f"""name: CI
 
 on:
   push:
@@ -99,11 +102,13 @@ jobs:
 {"      uses: codecov/codecov-action@v3" if config.run_tests else ""}
 {"      with:" if config.run_tests else ""}
 {"        file: ./coverage.xml" if config.run_tests else ""}
-'''
+"""
 
         # Build and push Docker image
         if config.build_docker:
-            files[".github/workflows/docker-build.yml"] = f'''name: Docker Build
+            files[
+                ".github/workflows/docker-build.yml"
+            ] = f"""name: Docker Build
 
 on:
   push:
@@ -140,11 +145,13 @@ jobs:
         push: true
         tags: ${{{{ steps.meta.outputs.tags }}}}
         labels: ${{{{ steps.meta.outputs.labels }}}}
-'''
+"""
 
         # Deployment workflow
         if config.deploy_enabled:
-            files[".github/workflows/deploy.yml"] = f'''name: Deploy
+            files[
+                ".github/workflows/deploy.yml"
+            ] = f"""name: Deploy
 
 on:
   push:
@@ -162,7 +169,7 @@ jobs:
       run: |
         echo "Deploying to {config.deploy_target}..."
         # Add your deployment commands here
-'''
+"""
 
         return files
 
@@ -170,7 +177,12 @@ jobs:
         """Generate GitLab CI configuration"""
         files = {}
 
-        files[".gitlab-ci.yml"] = f'''
+        # Coverage regex pattern (extracted to avoid f-string backslash issue)
+        coverage_pattern = r"'/(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'"
+
+        files[
+            ".gitlab-ci.yml"
+        ] = f"""
 image: python:{config.python_version}
 
 stages:
@@ -205,7 +217,7 @@ before_script:
 {"  script:" if config.run_tests else ""}
 {"    - pip install pytest pytest-cov" if config.run_tests else ""}
 {"    - pytest tests/ --cov=src --cov-report=xml --cov-report=html" if config.run_tests else ""}
-{"  coverage: '/(?i)total.*? (100(?:\\.0+)?\\%|[1-9]?\\d(?:\\.\\d+)?\\%)$/'" if config.run_tests else ""}
+{f"  coverage: {coverage_pattern}" if config.run_tests else ""}
 {"  artifacts:" if config.run_tests else ""}
 {"    reports:" if config.run_tests else ""}
 {"      coverage_report:" if config.run_tests else ""}
@@ -232,7 +244,7 @@ before_script:
 {"    - echo 'Deploying to {config.deploy_target}...'" if config.deploy_enabled else ""}
 {"  only:" if config.deploy_enabled else ""}
 {"    - tags" if config.deploy_enabled else ""}
-'''
+"""
 
         return files
 
@@ -240,7 +252,9 @@ before_script:
         """Generate Jenkinsfile"""
         files = {}
 
-        files["Jenkinsfile"] = f'''
+        files[
+            "Jenkinsfile"
+        ] = f"""
 pipeline {{
     agent any
 
@@ -299,6 +313,6 @@ pipeline {{
         }}
     }}
 }}
-'''
+"""
 
         return files
