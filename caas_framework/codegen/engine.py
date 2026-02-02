@@ -17,7 +17,7 @@ from caas_framework.codegen.frontend_generator import (
 from caas_framework.codegen.injectors import ErrorHandlingInjector, LoggingInjector
 from caas_framework.codegen.llm_code_generator import LLMCodeGenerator
 from caas_framework.codegen.port_manager import PortManager
-from caas_framework.codegen.test_generator import TestGenerator
+from caas_framework.codegen.tdd_test_generator import TestGenerator
 from caas_framework.models.specifications import (
     AgentSpecModel,
     ConcretizedRequirement,
@@ -106,7 +106,7 @@ class CodeGenerationEngine:
 
         # Initialize TDD generator if TDD mode is enabled
         if tdd_mode:
-            from caas_framework.codegen.test_generator import TestFirstCodeGenerator
+            from caas_framework.codegen.tdd_test_generator import TestFirstCodeGenerator
 
             self.tdd_generator = TestFirstCodeGenerator(llm_client=llm_plugin)
         else:

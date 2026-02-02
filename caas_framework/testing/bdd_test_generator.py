@@ -1,7 +1,14 @@
 """
-Test First Generator
+BDD Test Generator (Behavior-Driven Development)
 
 테스트 코드 우선 생성 - 테스트 시나리오에서 pytest 코드 생성
+
+This module generates test code from BDD-style test scenarios (Given-When-Then).
+Renamed from test_generator.py to bdd_test_generator.py to distinguish from TDD test generator.
+
+Classes:
+    - TestFirstGenerator: Generate pytest tests from BDD scenarios (~170 lines)
+    - TestCodeResult: Result model for generated test code
 """
 
 from typing import List

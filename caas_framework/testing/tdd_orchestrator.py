@@ -15,8 +15,8 @@ from typing import List, Optional
 
 from caas_framework.models.specifications import ConcretizedRequirement, FeatureSpec
 from caas_framework.plugins.llm.base import LLMPlugin
+from caas_framework.testing.bdd_test_generator import TestCodeResult, TestFirstGenerator
 from caas_framework.testing.test_executor import TestExecutor, TestResult
-from caas_framework.testing.test_generator import TestCodeResult, TestFirstGenerator
 from caas_framework.testing.test_scenario import TestScenario, TestScenarioGenerator
 
 logger = logging.getLogger(__name__)

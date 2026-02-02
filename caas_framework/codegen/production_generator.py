@@ -19,7 +19,7 @@ from caas_framework.codegen.doc_generator import DocumentationConfig, Documentat
 from caas_framework.codegen.engine import CodeGenerationEngine
 from caas_framework.codegen.execution_validator import ExecutionValidationResult, ExecutionValidator
 from caas_framework.codegen.injectors import ErrorHandlingInjector, LoggingInjector
-from caas_framework.codegen.test_generator import TestGenerator
+from caas_framework.codegen.tdd_test_generator import TestGenerator
 from caas_framework.models.specifications import (
     AgentSpecModel,
     ConcretizedRequirement,

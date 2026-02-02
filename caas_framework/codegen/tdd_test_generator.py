@@ -1,5 +1,5 @@
 """
-Test Generator
+TDD Test Generator (Test-Driven Development)
 
 Generates comprehensive unit tests and integration tests for generated code.
 Enhanced to achieve 80%+ test coverage with:
@@ -9,6 +9,13 @@ Enhanced to achieve 80%+ test coverage with:
 - Mocking strategies
 - Property-based testing
 - Fixtures for common setup
+
+This module focuses on comprehensive test generation for production code (TDD approach).
+Renamed from test_generator.py to tdd_test_generator.py to distinguish from BDD test generator.
+
+Classes:
+    - TestGenerator: Generate tests for existing agents/tasks (1,400+ lines)
+    - TestFirstCodeGenerator: TDD workflow (RED-GREEN-REFACTOR)
 """
 
 from typing import Any, Dict, List, Optional

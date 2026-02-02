@@ -218,7 +218,7 @@ async def codegen(
 
 async def _generate_tests(agents_list, tasks_list, golden_data, verbose):
     """Generate tests"""
-    from caas_framework.codegen.test_generator import TestGenerator
+    from caas_framework.codegen.tdd_test_generator import TestGenerator
 
     echo_progress("Generating tests...")
 
