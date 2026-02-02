@@ -43,8 +43,8 @@ def load_agent_patterns() -> Dict[DomainType, AgentPattern]:
 
     try:
         # Try to load from data/ontology/agent_patterns.json
-        from caas_app.utils.config import PROJECT_ROOT
-        patterns_path = PROJECT_ROOT / "data" / "ontology" / "agent_patterns.json"
+        from pathlib import Path
+        patterns_path = Path(__file__).parent.parent.parent / "data" / "ontology" / "agent_patterns.json"
 
         if patterns_path.exists():
             with open(patterns_path, "r", encoding="utf-8") as f:

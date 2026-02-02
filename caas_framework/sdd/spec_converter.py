@@ -41,7 +41,7 @@ from caas_framework.sdd.multi_spec import (
 )
 import logging
 from caas_framework.models import DomainType
-from caas_app.knowledge.agent_patterns import get_agent_pattern
+from caas_framework.knowledge.patterns import get_agent_pattern
 
 logger = logging.getLogger("caas_framework.sdd.spec_converter")
 
