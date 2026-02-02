@@ -1,0 +1,582 @@
+{
+  "total_features": 29,
+  "fully_implemented": 24,
+  "partially_implemented": 5,
+  "not_implemented": 0,
+  "implementation_rate": 91.37931034482759,
+  "feature_implementations": [
+    {
+      "feature_id": "create_task",
+      "feature_name": "Create Task",
+      "implementing_files": [
+        "agents.py",
+        "tasks.py"
+      ],
+      "implementing_functions": [],
+      "implementing_classes": [],
+      "confidence_score": 0.43794234030525725,
+      "is_fully_implemented": true,
+      "is_partially_implemented": false,
+      "implementation_percentage": 100,
+      "evidence": [
+        "Combined score: 0.44 (Agent: 0.13 [60%], Task: 0.90 [40%])",
+        "✓ Agent '작업 조회 에이전트' matches feature (fuzzy similarity: 0.13)",
+        "  Goal: 사용자가 특정 작업의 세부 정보를 조회할 수 있도록 지원합니다.",
+        "✓ Task '사용자가 새로운 작업을 생성합니다. 제목, 설명 및 마감일을 포함합니다....' matches feature (fuzzy similarity: 0.90)"
+      ]
+    },
+    {
+      "feature_id": "read_task",
+      "feature_name": "Read Task",
+      "implementing_files": [
+        "agents.py",
+        "tasks.py"
+      ],
+      "implementing_functions": [],
+      "implementing_classes": [],
+      "confidence_score": 0.44418387741505666,
+      "is_fully_implemented": true,
+      "is_partially_implemented": false,
+      "implementation_percentage": 100,
+      "evidence": [
+        "Combined score: 0.44 (Agent: 0.14 [60%], Task: 0.90 [40%])",
+        "✓ Agent '작업 조회 에이전트' matches feature (fuzzy similarity: 0.14)",
+        "  Goal: 사용자가 특정 작업의 세부 정보를 조회할 수 있도록 지원합니다.",
+        "✓ Task '사용자가 새로운 작업을 생성합니다. 제목, 설명 및 마감일을 포함합니다....' matches feature (fuzzy similarity: 0.90)"
+      ]
+    },
+    {
+      "feature_id": "update_task",
+      "feature_name": "Update Task",
+      "implementing_files": [
+        "agents.py",
+        "tasks.py"
+      ],
+      "implementing_functions": [],
+      "implementing_classes": [],
+      "confidence_score": 0.4307626208378088,
+      "is_fully_implemented": true,
+      "is_partially_implemented": false,
+      "implementation_percentage": 100,
+      "evidence": [
+        "Combined score: 0.43 (Agent: 0.12 [60%], Task: 0.90 [40%])",
+        "✓ Agent '작업 조회 에이전트' matches feature (fuzzy similarity: 0.12)",
+        "  Goal: 사용자가 특정 작업의 세부 정보를 조회할 수 있도록 지원합니다.",
+        "✓ Task '사용자가 새로운 작업을 생성합니다. 제목, 설명 및 마감일을 포함합니다....' matches feature (fuzzy similarity: 0.90)"
+      ]
+    },
+    {
+      "feature_id": "delete_task",
+      "feature_name": "Delete Task",
+      "implementing_files": [
+        "agents.py",
+        "tasks.py"
+      ],
+      "implementing_functions": [],
+      "implementing_classes": [],
+      "confidence_score": 0.4641189931350115,
+      "is_fully_implemented": true,
+      "is_partially_implemented": false,
+      "implementation_percentage": 100,
+      "evidence": [
+        "Combined score: 0.46 (Agent: 0.17 [60%], Task: 0.90 [40%])",
+        "✓ Agent '작업 조회 에이전트' matches feature (fuzzy similarity: 0.17)",
+        "  Goal: 사용자가 특정 작업의 세부 정보를 조회할 수 있도록 지원합니다.",
+        "✓ Task '사용자가 새로운 작업을 생성합니다. 제목, 설명 및 마감일을 포함합니다....' matches feature (fuzzy similarity: 0.90)"
+      ]
+    },
+    {
+      "feature_id": "user_login",
+      "feature_name": "User Login",
+      "implementing_files": [
+        "tasks.py"
+      ],
+      "implementing_functions": [],
+      "implementing_classes": [],
+      "confidence_score": 0.30933333333333335,
+      "is_fully_implemented": false,
+      "is_partially_implemented": true,
+      "implementation_percentage": 30,
+      "evidence": [
+        "Partial score: 0.31 (Agent: 0.18 [60%], Task: 0.50 [40%])",
+        "⚠️  Task partially matches (fuzzy similarity: 0.50)"
+      ]
+    },
+    {
+      "feature_id": "user_registration",
+      "feature_name": "User Registration",
+      "implementing_files": [
+        "tasks.py"
+      ],
+      "implementing_functions": [],
+      "implementing_classes": [],
+      "confidence_score": 0.24196491228070177,
+      "is_fully_implemented": false,
+      "is_partially_implemented": true,
+      "implementation_percentage": 24,
+      "evidence": [
+        "Partial score: 0.24 (Agent: 0.15 [60%], Task: 0.37 [40%])",
+        "⚠️  Task partially matches (fuzzy similarity: 0.37)"
+      ]
+    },
+    {
+      "feature_id": "password_reset",
+      "feature_name": "Password Reset",
+      "implementing_files": [
+        "agents.py",
+        "tasks.py"
+      ],
+      "implementing_functions": [],
+      "implementing_classes": [],
+      "confidence_score": 0.45583021223470666,
+      "is_fully_implemented": true,
+      "is_partially_implemented": false,
+      "implementation_percentage": 100,
+      "evidence": [
+        "Combined score: 0.46 (Agent: 0.16 [60%], Task: 0.90 [40%])",
+        "✓ Agent '작업 조회 에이전트' matches feature (fuzzy similarity: 0.16)",
+        "  Goal: 사용자가 특정 작업의 세부 정보를 조회할 수 있도록 지원합니다.",
+        "✓ Task '사용자가 새로운 작업을 생성합니다. 제목, 설명 및 마감일을 포함합니다....' matches feature (fuzzy similarity: 0.90)"
+      ]
+    },
+    {
+      "feature_id": "user_logout",
+      "feature_name": "User Logout",
+      "implementing_files": [
+        "tasks.py"
+      ],
+      "implementing_functions": [],
+      "implementing_classes": [],
+      "confidence_score": 0.21810375670840787,
+      "is_fully_implemented": false,
+      "is_partially_implemented": true,
+      "implementation_percentage": 21,
+      "evidence": [
+        "Partial score: 0.22 (Agent: 0.16 [60%], Task: 0.30 [40%])",
+        "⚠️  Task partially matches (fuzzy similarity: 0.30)"
+      ]
+    },
+    {
+      "feature_id": "two_factor_authentication",
+      "feature_name": "Two-Factor Authentication",
+      "implementing_files": [
+        "agents.py",
+        "tasks.py"
+      ],
+      "implementing_functions": [],
+      "implementing_classes": [],
+      "confidence_score": 0.5840000000000001,
+      "is_fully_implemented": true,
+      "is_partially_implemented": false,
+      "implementation_percentage": 100,
+      "evidence": [
+        "Combined score: 0.58 (Agent: 0.37 [60%], Task: 0.90 [40%])",
+        "✓ Agent '작업 조회 에이전트' matches feature (fuzzy similarity: 0.37)",
+        "  Goal: 사용자가 특정 작업의 세부 정보를 조회할 수 있도록 지원합니다.",
+        "✓ Task '사용자가 새로운 작업을 생성합니다. 제목, 설명 및 마감일을 포함합니다....' matches feature (fuzzy similarity: 0.90)"
+      ]
+    },
+    {
+      "feature_id": "create_todo",
+      "feature_name": "Create Todo Item",
+      "implementing_files": [
+        "agents.py",
+        "tasks.py"
+      ],
+      "implementing_functions": [],
+      "implementing_classes": [],
+      "confidence_score": 0.4746352941176471,
+      "is_fully_implemented": true,
+      "is_partially_implemented": false,
+      "implementation_percentage": 100,
+      "evidence": [
+        "Combined score: 0.47 (Agent: 0.19 [60%], Task: 0.90 [40%])",
+        "✓ Agent '작업 조회 에이전트' matches feature (fuzzy similarity: 0.19)",
+        "  Goal: 사용자가 특정 작업의 세부 정보를 조회할 수 있도록 지원합니다.",
+        "✓ Task '사용자가 새로운 작업을 생성합니다. 제목, 설명 및 마감일을 포함합니다....' matches feature (fuzzy similarity: 0.90)"
+      ]
+    },
+    {
+      "feature_id": "read_todo",
+      "feature_name": "Read Todo Item",
+      "implementing_files": [
+        "agents.py",
+        "tasks.py"
+      ],
+      "implementing_functions": [],
+      "implementing_classes": [],
+      "confidence_score": 0.46120879120879127,
+      "is_fully_implemented": true,
+      "is_partially_implemented": false,
+      "implementation_percentage": 100,
+      "evidence": [
+        "Combined score: 0.46 (Agent: 0.17 [60%], Task: 0.90 [40%])",
+        "✓ Agent '작업 조회 에이전트' matches feature (fuzzy similarity: 0.17)",
+        "  Goal: 사용자가 특정 작업의 세부 정보를 조회할 수 있도록 지원합니다.",
+        "✓ Task '사용자가 새로운 작업을 생성합니다. 제목, 설명 및 마감일을 포함합니다....' matches feature (fuzzy similarity: 0.90)"
+      ]
+    },
+    {
+      "feature_id": "update_todo",
+      "feature_name": "Update Todo Item",
+      "implementing_files": [
+        "tasks.py"
+      ],
+      "implementing_functions": [],
+      "implementing_classes": [],
+      "confidence_score": 0.2781019197174985,
+      "is_fully_implemented": false,
+      "is_partially_implemented": true,
+      "implementation_percentage": 27,
+      "evidence": [
+        "Partial score: 0.28 (Agent: 0.17 [60%], Task: 0.44 [40%])",
+        "⚠️  Task partially matches (fuzzy similarity: 0.44)"
+      ]
+    },
+    {
+      "feature_id": "delete_todo",
+      "feature_name": "Delete Todo Item",
+      "implementing_files": [
+        "agents.py",
+        "tasks.py"
+      ],
+      "implementing_functions": [],
+      "implementing_classes": [],
+      "confidence_score": 0.464474287585981,
+      "is_fully_implemented": true,
+      "is_partially_implemented": false,
+      "implementation_percentage": 100,
+      "evidence": [
+        "Combined score: 0.46 (Agent: 0.17 [60%], Task: 0.90 [40%])",
+        "✓ Agent '작업 삭제 에이전트' matches feature (fuzzy similarity: 0.17)",
+        "  Goal: 사용자가 특정 작업을 삭제할 수 있도록 지원합니다.",
+        "✓ Task '사용자가 새로운 작업을 생성합니다. 제목, 설명 및 마감일을 포함합니다....' matches feature (fuzzy similarity: 0.90)"
+      ]
+    },
+    {
+      "feature_id": "user_authentication",
+      "feature_name": "User Authentication",
+      "implementing_files": [
+        "agents.py",
+        "tasks.py"
+      ],
+      "implementing_functions": [],
+      "implementing_classes": [],
+      "confidence_score": 0.458909090909091,
+      "is_fully_implemented": true,
+      "is_partially_implemented": false,
+      "implementation_percentage": 100,
+      "evidence": [
+        "Combined score: 0.46 (Agent: 0.16 [60%], Task: 0.90 [40%])",
+        "✓ Agent '작업 조회 에이전트' matches feature (fuzzy similarity: 0.16)",
+        "  Goal: 사용자가 특정 작업의 세부 정보를 조회할 수 있도록 지원합니다.",
+        "✓ Task '사용자가 새로운 작업을 생성합니다. 제목, 설명 및 마감일을 포함합니다....' matches feature (fuzzy similarity: 0.90)"
+      ]
+    },
+    {
+      "feature_id": "task_due_date_reminder",
+      "feature_name": "Task Due Date Reminder",
+      "implementing_files": [
+        "agents.py",
+        "tasks.py"
+      ],
+      "implementing_functions": [],
+      "implementing_classes": [],
+      "confidence_score": 0.4268181818181819,
+      "is_fully_implemented": true,
+      "is_partially_implemented": false,
+      "implementation_percentage": 100,
+      "evidence": [
+        "Combined score: 0.43 (Agent: 0.11 [60%], Task: 0.90 [40%])",
+        "✓ Agent '작업 생성 에이전트' matches feature (fuzzy similarity: 0.11)",
+        "  Goal: 사용자가 새로운 작업을 생성할 수 있도록 지원합니다.",
+        "✓ Task '사용자가 새로운 작업을 생성합니다. 제목, 설명 및 마감일을 포함합니다....' matches feature (fuzzy similarity: 0.90)"
+      ]
+    },
+    {
+      "feature_id": "task_recurring",
+      "feature_name": "Recurring Tasks",
+      "implementing_files": [
+        "agents.py",
+        "tasks.py"
+      ],
+      "implementing_functions": [],
+      "implementing_classes": [],
+      "confidence_score": 0.44093935062283035,
+      "is_fully_implemented": true,
+      "is_partially_implemented": false,
+      "implementation_percentage": 100,
+      "evidence": [
+        "Combined score: 0.44 (Agent: 0.13 [60%], Task: 0.90 [40%])",
+        "✓ Agent '작업 조회 에이전트' matches feature (fuzzy similarity: 0.13)",
+        "  Goal: 사용자가 특정 작업의 세부 정보를 조회할 수 있도록 지원합니다.",
+        "✓ Task '사용자가 새로운 작업을 생성합니다. 제목, 설명 및 마감일을 포함합니다....' matches feature (fuzzy similarity: 0.90)"
+      ]
+    },
+    {
+      "feature_id": "task_search",
+      "feature_name": "Task Search",
+      "implementing_files": [
+        "agents.py",
+        "tasks.py"
+      ],
+      "implementing_functions": [],
+      "implementing_classes": [],
+      "confidence_score": 0.6061538461538463,
+      "is_fully_implemented": true,
+      "is_partially_implemented": false,
+      "implementation_percentage": 100,
+      "evidence": [
+        "Combined score: 0.61 (Agent: 0.41 [60%], Task: 0.90 [40%])",
+        "✓ Agent '작업 생성 에이전트' matches feature (fuzzy similarity: 0.41)",
+        "  Goal: 사용자가 새로운 작업을 생성할 수 있도록 지원합니다.",
+        "✓ Task '사용자가 새로운 작업을 생성합니다. 제목, 설명 및 마감일을 포함합니다....' matches feature (fuzzy similarity: 0.90)"
+      ]
+    },
+    {
+      "feature_id": "task_sorting",
+      "feature_name": "Task Sorting",
+      "implementing_files": [
+        "agents.py",
+        "tasks.py"
+      ],
+      "implementing_functions": [],
+      "implementing_classes": [],
+      "confidence_score": 0.4313589503280225,
+      "is_fully_implemented": true,
+      "is_partially_implemented": false,
+      "implementation_percentage": 100,
+      "evidence": [
+        "Combined score: 0.43 (Agent: 0.12 [60%], Task: 0.90 [40%])",
+        "✓ Agent '작업 조회 에이전트' matches feature (fuzzy similarity: 0.12)",
+        "  Goal: 사용자가 특정 작업의 세부 정보를 조회할 수 있도록 지원합니다.",
+        "✓ Task '사용자가 새로운 작업을 생성합니다. 제목, 설명 및 마감일을 포함합니다....' matches feature (fuzzy similarity: 0.90)"
+      ]
+    },
+    {
+      "feature_id": "list_tasks",
+      "feature_name": "List Tasks",
+      "implementing_files": [
+        "agents.py",
+        "tasks.py"
+      ],
+      "implementing_functions": [],
+      "implementing_classes": [],
+      "confidence_score": 0.43794234030525725,
+      "is_fully_implemented": true,
+      "is_partially_implemented": false,
+      "implementation_percentage": 100,
+      "evidence": [
+        "Combined score: 0.44 (Agent: 0.13 [60%], Task: 0.90 [40%])",
+        "✓ Agent '작업 조회 에이전트' matches feature (fuzzy similarity: 0.13)",
+        "  Goal: 사용자가 특정 작업의 세부 정보를 조회할 수 있도록 지원합니다.",
+        "✓ Task '사용자가 새로운 작업을 생성합니다. 제목, 설명 및 마감일을 포함합니다....' matches feature (fuzzy similarity: 0.90)"
+      ]
+    },
+    {
+      "feature_id": "complete_task",
+      "feature_name": "Complete Task",
+      "implementing_files": [
+        "agents.py",
+        "tasks.py"
+      ],
+      "implementing_functions": [],
+      "implementing_classes": [],
+      "confidence_score": 0.47280000000000005,
+      "is_fully_implemented": true,
+      "is_partially_implemented": false,
+      "implementation_percentage": 100,
+      "evidence": [
+        "Combined score: 0.47 (Agent: 0.19 [60%], Task: 0.90 [40%])",
+        "✓ Agent '작업 조회 에이전트' matches feature (fuzzy similarity: 0.19)",
+        "  Goal: 사용자가 특정 작업의 세부 정보를 조회할 수 있도록 지원합니다.",
+        "✓ Task '사용자가 새로운 작업을 생성합니다. 제목, 설명 및 마감일을 포함합니다....' matches feature (fuzzy similarity: 0.90)"
+      ]
+    },
+    {
+      "feature_id": "reopen_task",
+      "feature_name": "Reopen Task",
+      "implementing_files": [
+        "agents.py",
+        "tasks.py"
+      ],
+      "implementing_functions": [],
+      "implementing_classes": [],
+      "confidence_score": 0.4536120401337793,
+      "is_fully_implemented": true,
+      "is_partially_implemented": false,
+      "implementation_percentage": 100,
+      "evidence": [
+        "Combined score: 0.45 (Agent: 0.16 [60%], Task: 0.90 [40%])",
+        "✓ Agent '작업 조회 에이전트' matches feature (fuzzy similarity: 0.16)",
+        "  Goal: 사용자가 특정 작업의 세부 정보를 조회할 수 있도록 지원합니다.",
+        "✓ Task '사용자가 새로운 작업을 생성합니다. 제목, 설명 및 마감일을 포함합니다....' matches feature (fuzzy similarity: 0.90)"
+      ]
+    },
+    {
+      "feature_id": "password_reset_request",
+      "feature_name": "Password Reset Request",
+      "implementing_files": [
+        "agents.py",
+        "tasks.py"
+      ],
+      "implementing_functions": [],
+      "implementing_classes": [],
+      "confidence_score": 0.4530612244897959,
+      "is_fully_implemented": true,
+      "is_partially_implemented": false,
+      "implementation_percentage": 100,
+      "evidence": [
+        "Combined score: 0.45 (Agent: 0.16 [60%], Task: 0.90 [40%])",
+        "✓ Agent '작업 조회 에이전트' matches feature (fuzzy similarity: 0.16)",
+        "  Goal: 사용자가 특정 작업의 세부 정보를 조회할 수 있도록 지원합니다.",
+        "✓ Task '사용자가 새로운 작업을 생성합니다. 제목, 설명 및 마감일을 포함합니다....' matches feature (fuzzy similarity: 0.90)"
+      ]
+    },
+    {
+      "feature_id": "session_timeout",
+      "feature_name": "Session Timeout",
+      "implementing_files": [
+        "agents.py",
+        "tasks.py"
+      ],
+      "implementing_functions": [],
+      "implementing_classes": [],
+      "confidence_score": 0.45329670329670335,
+      "is_fully_implemented": true,
+      "is_partially_implemented": false,
+      "implementation_percentage": 100,
+      "evidence": [
+        "Combined score: 0.45 (Agent: 0.16 [60%], Task: 0.90 [40%])",
+        "✓ Agent '작업 조회 에이전트' matches feature (fuzzy similarity: 0.16)",
+        "  Goal: 사용자가 특정 작업의 세부 정보를 조회할 수 있도록 지원합니다.",
+        "✓ Task '사용자가 새로운 작업을 생성합니다. 제목, 설명 및 마감일을 포함합니다....' matches feature (fuzzy similarity: 0.90)"
+      ]
+    },
+    {
+      "feature_id": "list_todos",
+      "feature_name": "List Todo Items",
+      "implementing_files": [
+        "agents.py",
+        "tasks.py"
+      ],
+      "implementing_functions": [],
+      "implementing_classes": [],
+      "confidence_score": 0.46690909090909094,
+      "is_fully_implemented": true,
+      "is_partially_implemented": false,
+      "implementation_percentage": 100,
+      "evidence": [
+        "Combined score: 0.47 (Agent: 0.18 [60%], Task: 0.90 [40%])",
+        "✓ Agent '작업 조회 에이전트' matches feature (fuzzy similarity: 0.18)",
+        "  Goal: 사용자가 특정 작업의 세부 정보를 조회할 수 있도록 지원합니다.",
+        "✓ Task '사용자가 새로운 작업을 생성합니다. 제목, 설명 및 마감일을 포함합니다....' matches feature (fuzzy similarity: 0.90)"
+      ]
+    },
+    {
+      "feature_id": "handle_api_errors",
+      "feature_name": "API Error Handling",
+      "implementing_files": [
+        "agents.py",
+        "tasks.py"
+      ],
+      "implementing_functions": [],
+      "implementing_classes": [],
+      "confidence_score": 0.488,
+      "is_fully_implemented": true,
+      "is_partially_implemented": false,
+      "implementation_percentage": 100,
+      "evidence": [
+        "Combined score: 0.49 (Agent: 0.21 [60%], Task: 0.90 [40%])",
+        "✓ Agent '작업 생성 에이전트' matches feature (fuzzy similarity: 0.21)",
+        "  Goal: 사용자가 새로운 작업을 생성할 수 있도록 지원합니다.",
+        "✓ Task '사용자가 새로운 작업을 생성합니다. 제목, 설명 및 마감일을 포함합니다....' matches feature (fuzzy similarity: 0.90)"
+      ]
+    },
+    {
+      "feature_id": "user_profile_management",
+      "feature_name": "User Profile Management",
+      "implementing_files": [
+        "tasks.py"
+      ],
+      "implementing_functions": [],
+      "implementing_classes": [],
+      "confidence_score": 0.24112930547713154,
+      "is_fully_implemented": false,
+      "is_partially_implemented": true,
+      "implementation_percentage": 24,
+      "evidence": [
+        "Partial score: 0.24 (Agent: 0.11 [60%], Task: 0.44 [40%])",
+        "⚠️  Task partially matches (fuzzy similarity: 0.44)"
+      ]
+    },
+    {
+      "feature_id": "set_task_priority",
+      "feature_name": "Set Task Priority",
+      "implementing_files": [
+        "agents.py",
+        "tasks.py"
+      ],
+      "implementing_functions": [],
+      "implementing_classes": [],
+      "confidence_score": 0.44156862745098047,
+      "is_fully_implemented": true,
+      "is_partially_implemented": false,
+      "implementation_percentage": 100,
+      "evidence": [
+        "Combined score: 0.44 (Agent: 0.14 [60%], Task: 0.90 [40%])",
+        "✓ Agent '작업 생성 에이전트' matches feature (fuzzy similarity: 0.14)",
+        "  Goal: 사용자가 새로운 작업을 생성할 수 있도록 지원합니다.",
+        "✓ Task '사용자가 새로운 작업을 생성합니다. 제목, 설명 및 마감일을 포함합니다....' matches feature (fuzzy similarity: 0.90)"
+      ]
+    },
+    {
+      "feature_id": "add_task_comment",
+      "feature_name": "Add Task Comment",
+      "implementing_files": [
+        "agents.py",
+        "tasks.py"
+      ],
+      "implementing_functions": [],
+      "implementing_classes": [],
+      "confidence_score": 0.46120879120879127,
+      "is_fully_implemented": true,
+      "is_partially_implemented": false,
+      "implementation_percentage": 100,
+      "evidence": [
+        "Combined score: 0.46 (Agent: 0.17 [60%], Task: 0.90 [40%])",
+        "✓ Agent '작업 조회 에이전트' matches feature (fuzzy similarity: 0.17)",
+        "  Goal: 사용자가 특정 작업의 세부 정보를 조회할 수 있도록 지원합니다.",
+        "✓ Task '사용자가 새로운 작업을 생성합니다. 제목, 설명 및 마감일을 포함합니다....' matches feature (fuzzy similarity: 0.90)"
+      ]
+    },
+    {
+      "feature_id": "get_task_comments",
+      "feature_name": "Get Task Comments",
+      "implementing_files": [
+        "agents.py",
+        "tasks.py"
+      ],
+      "implementing_functions": [],
+      "implementing_classes": [],
+      "confidence_score": 0.45013377926421405,
+      "is_fully_implemented": true,
+      "is_partially_implemented": false,
+      "implementation_percentage": 100,
+      "evidence": [
+        "Combined score: 0.45 (Agent: 0.15 [60%], Task: 0.90 [40%])",
+        "✓ Agent '작업 조회 에이전트' matches feature (fuzzy similarity: 0.15)",
+        "  Goal: 사용자가 특정 작업의 세부 정보를 조회할 수 있도록 지원합니다.",
+        "✓ Task '사용자가 새로운 작업을 생성합니다. 제목, 설명 및 마감일을 포함합니다....' matches feature (fuzzy similarity: 0.90)"
+      ]
+    }
+  ],
+  "unimplemented_features": [],
+  "missing_critical_features": [],
+  "quality_issues": [],
+  "recommendations": [
+    "부분 구현된 5개 기능을 완료하세요"
+  ],
+  "is_complete": true,
+  "completeness_score": 91.37931034482759
+}

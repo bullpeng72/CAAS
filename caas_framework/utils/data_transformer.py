@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Optional, Type, TypeVar
 from pydantic import BaseModel, ValidationError
 
 from caas_framework.utils.logger import get_logger
-from caas_app.utils.json_helper import sanitize_id
+from caas_framework.utils.json_helper import sanitize_id
 
 logger = get_logger("utils.data_transformer")
 

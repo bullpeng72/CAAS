@@ -9,8 +9,8 @@ from pydantic import BaseModel, Field
 from enum import Enum
 
 from caas_framework.utils.logger import get_logger, LoggerMixin
-from caas_app.knowledge.graph.neo4j_client import Neo4jClient
-from caas_app.knowledge.graph.queries import (
+from caas_framework.knowledge.graph.neo4j_client import Neo4jClient
+from caas_framework.knowledge.graph.queries import (
     FIND_PATTERNS_BY_DOMAIN,
     FIND_SIMILAR_PATTERNS,
     CREATE_PATTERN,
@@ -643,7 +643,7 @@ class PatternMatcher(LoggerMixin):
         Load patterns from external YAML file instead of hardcoded data.
         Reduces code from 379 lines to 3 lines (-97%).
         """
-        from caas_app.knowledge.graph.patterns_loader import load_builtin_patterns
+        from caas_framework.knowledge.graph.patterns_loader import load_builtin_patterns
         return load_builtin_patterns()
     
     def _search_builtin_patterns(

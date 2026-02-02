@@ -1,0 +1,172 @@
+{
+  "components": [
+    {
+      "id": "backend_api",
+      "name": "Task Management API",
+      "type": "api",
+      "responsibility": "Handles all incoming requests related to task management, including the creation, retrieval, updating, and deletion of tasks.",
+      "interfaces": [
+        "POST /tasks",
+        "GET /tasks/{id}",
+        "PUT /tasks/{id}",
+        "DELETE /tasks/{id}",
+        "GET /tasks"
+      ],
+      "dependencies": [
+        "task_service",
+        "task_repository"
+      ]
+    },
+    {
+      "id": "task_service",
+      "name": "Task Service",
+      "type": "service",
+      "responsibility": "Contains the business logic for managing tasks, including validation, data transformation, and interaction with the task repository.",
+      "interfaces": [
+        "createTask(task)",
+        "getTask(id)",
+        "updateTask(id, task)",
+        "deleteTask(id)",
+        "listTasks()"
+      ],
+      "dependencies": [
+        "task_repository"
+      ]
+    },
+    {
+      "id": "task_repository",
+      "name": "Task Repository",
+      "type": "database",
+      "responsibility": "Manages data storage and retrieval for tasks, ensuring efficient interaction with the database.",
+      "interfaces": [
+        "save(task)",
+        "findById(id)",
+        "update(id, task)",
+        "delete(id)",
+        "findAll()"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "frontend_app",
+      "name": "Task Management Frontend",
+      "type": "frontend",
+      "responsibility": "Provides the user interface for interacting with the Task Management API, enabling users to view, add, and manage tasks.",
+      "interfaces": [
+        "GET /api/tasks",
+        "POST /api/tasks",
+        "PUT /api/tasks/{id}",
+        "DELETE /api/tasks/{id}"
+      ],
+      "dependencies": [
+        "backend_api"
+      ]
+    }
+  ],
+  "data_flow": {
+    "flows": [
+      {
+        "from": "frontend_app",
+        "to": "backend_api",
+        "data": "Task data including title and status",
+        "protocol": "REST"
+      },
+      {
+        "from": "backend_api",
+        "to": "task_service",
+        "data": "Task data for processing",
+        "protocol": "gRPC"
+      },
+      {
+        "from": "task_service",
+        "to": "task_repository",
+        "data": "Task data for persistence",
+        "protocol": "gRPC"
+      },
+      {
+        "from": "task_repository",
+        "to": "task_service",
+        "data": "Task data retrieved from database",
+        "protocol": "gRPC"
+      },
+      {
+        "from": "task_service",
+        "to": "backend_api",
+        "data": "Processed task data",
+        "protocol": "gRPC"
+      },
+      {
+        "from": "backend_api",
+        "to": "frontend_app",
+        "data": "Response data for the frontend",
+        "protocol": "REST"
+      }
+    ]
+  },
+  "integration_points": [
+    {
+      "name": "Database Integration",
+      "type": "database",
+      "purpose": "Store and retrieve task data efficiently",
+      "protocol": "SQL"
+    }
+  ],
+  "technology_stack": {
+    "backend": [
+      "Express.js",
+      "Node.js"
+    ],
+    "frontend": [
+      "React",
+      "Redux"
+    ],
+    "database": [
+      "PostgreSQL"
+    ],
+    "infrastructure": [
+      "Docker"
+    ],
+    "tools": [
+      "Postman",
+      "Jest"
+    ]
+  },
+  "architecture_patterns": [
+    "Microservices",
+    "RESTful API"
+  ],
+  "deployment_architecture": {
+    "environment": "cloud",
+    "containers": [
+      "backend_api_container",
+      "frontend_app_container",
+      "database_container"
+    ],
+    "services": [
+      "task_management_service"
+    ],
+    "scaling_strategy": "horizontal"
+  },
+  "security_architecture": {
+    "authentication": "JWT (JSON Web Tokens)",
+    "authorization": "Role-based access control",
+    "data_protection": [
+      "TLS for data in transit",
+      "AES encryption for sensitive data at rest"
+    ]
+  },
+  "golden_data_alignment": {
+    "total_golden_models": 1,
+    "matched_models": 0,
+    "coverage_percentage": 0.0,
+    "missing_models": [
+      "할 일"
+    ],
+    "extra_components": [
+      "task management frontend",
+      "task repository",
+      "task service",
+      "task management api"
+    ]
+  }
+}

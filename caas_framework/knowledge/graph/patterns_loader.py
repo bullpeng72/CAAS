@@ -7,7 +7,7 @@ Replaces 379-line _load_builtin_patterns() with simple YAML loader.
 import yaml
 from pathlib import Path
 from typing import List
-from caas_app.knowledge.graph.patterns import AgentPattern, PatternType
+from caas_framework.knowledge.graph.patterns import AgentPattern, PatternType
 
 
 def load_builtin_patterns() -> List[AgentPattern]:

@@ -1,0 +1,10 @@
+[
+  {
+    "type": "python311_compatibility",
+    "is_valid": true,
+    "error_count": 0,
+    "warning_count": 0,
+    "info_count": 0,
+    "issues": []
+  }
+]

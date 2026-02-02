@@ -127,6 +127,43 @@ class CrewAIFramework:
         self._auto_fixer: Optional[AutoFixer] = None
         self._initialized = False
 
+    # Public API properties
+    @property
+    def llm_plugin(self) -> LLMPlugin:
+        """Public accessor for LLM plugin"""
+        if not self._initialized:
+            raise RuntimeError(
+                "Framework not initialized. Call 'await framework.initialize()' first."
+            )
+        return self._llm_plugin
+
+    @property
+    def validation_orchestrator(self):
+        """Public accessor for validation orchestrator"""
+        if not self._initialized:
+            raise RuntimeError(
+                "Framework not initialized. Call 'await framework.initialize()' first."
+            )
+        return self._validator
+
+    @property
+    def bmad_engine(self):
+        """Public accessor for BMAD engine"""
+        if not self._initialized:
+            raise RuntimeError(
+                "Framework not initialized. Call 'await framework.initialize()' first."
+            )
+        return self._bmad_engine
+
+    @property
+    def golden_pipeline(self):
+        """Public accessor for Golden Data pipeline"""
+        if not self._initialized:
+            raise RuntimeError(
+                "Framework not initialized. Call 'await framework.initialize()' first."
+            )
+        return self._golden_pipeline
+
     async def initialize(self) -> None:
         """
         Initialize framework components
@@ -157,8 +194,8 @@ class CrewAIFramework:
 
         # 2. Initialize graph backend
         try:
-            from caas_app.knowledge.graph.factory import get_graph_client
-            self._graph_client = get_graph_client()
+            from caas_framework.knowledge.graph_client import GraphClient
+            self._graph_client = GraphClient(backend=self.config.graph.backend)
             logger.info("Graph backend initialized successfully")
         except Exception as e:
             logger.warning(f"Failed to initialize graph backend: {e}. Continuing without graph support.")

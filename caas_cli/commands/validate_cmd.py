@@ -179,7 +179,7 @@ def _validate_ontology(agents_list, tasks_list, verbose):
 def _validate_golden(agents_list, tasks_list, golden_data, verbose):
     """Run golden data validation"""
     from caas_framework.validation.golden_validator import GoldenDataValidator
-    from caas_framework.models.golden_data import GoldenData
+    from caas_framework.models.specifications import ConcretizedRequirement as GoldenData
 
     echo_progress("Validating against Golden Data...")
 
@@ -256,7 +256,7 @@ def _validate_crewai(agents_list, tasks_list, verbose):
 def _validate_all(agents_list, tasks_list, golden_data, verbose):
     """Run all validators"""
     from caas_framework.validation.orchestrator import ValidationOrchestrator
-    from caas_framework.models.golden_data import GoldenData
+    from caas_framework.models.specifications import ConcretizedRequirement as GoldenData
 
     echo_progress("Running all validators...")
 

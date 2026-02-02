@@ -9,8 +9,8 @@ from pathlib import Path
 import yaml
 
 from caas_framework.utils.logger import get_logger
-from caas_app.utils.security import validate_yaml_size, YAMLSecurityError
-from caas_app.utils.file_utils import FileUtils
+from caas_framework.utils.security import validate_yaml_size, YAMLSecurityError
+from caas_framework.utils.file_utils import FileUtils
 
 logger = get_logger("utils.yaml_helper")
 

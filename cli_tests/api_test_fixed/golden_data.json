@@ -1,0 +1,514 @@
+{
+  "system_scope": {
+    "project_name": "간단한 TODO REST API",
+    "purpose": "할 일 관리를 위한 간단한 REST API입니다.",
+    "target_users": [],
+    "system_type": "web_app",
+    "scope_description": null,
+    "out_of_scope": []
+  },
+  "features": [
+    {
+      "id": "create_task",
+      "name": "Create Task",
+      "description": "Allow users to create a new task with details such as title, description, and due date.",
+      "priority": "high",
+      "acceptance_criteria": [],
+      "functional_requirements": [
+        "title",
+        "description",
+        "due_date"
+      ],
+      "user_stories": []
+    },
+    {
+      "id": "read_task",
+      "name": "Read Task",
+      "description": "Allow users to retrieve details of a specific task using its unique identifier.",
+      "priority": "high",
+      "acceptance_criteria": [],
+      "functional_requirements": [
+        "task_id"
+      ],
+      "user_stories": []
+    },
+    {
+      "id": "update_task",
+      "name": "Update Task",
+      "description": "Allow users to update the details of an existing task, including title, description, and due date.",
+      "priority": "high",
+      "acceptance_criteria": [],
+      "functional_requirements": [
+        "task_id",
+        "title",
+        "description",
+        "due_date"
+      ],
+      "user_stories": []
+    },
+    {
+      "id": "delete_task",
+      "name": "Delete Task",
+      "description": "Allow users to delete a task using its unique identifier.",
+      "priority": "high",
+      "acceptance_criteria": [],
+      "functional_requirements": [
+        "task_id"
+      ],
+      "user_stories": []
+    },
+    {
+      "id": "user_login",
+      "name": "User Login",
+      "description": "Allow users to log in with email and password",
+      "priority": "high",
+      "acceptance_criteria": [
+        "User can login with valid credentials",
+        "Invalid credentials show error message"
+      ],
+      "functional_requirements": [
+        "email",
+        "password"
+      ],
+      "user_stories": []
+    },
+    {
+      "id": "user_registration",
+      "name": "User Registration",
+      "description": "Allow new users to create an account with email and password",
+      "priority": "high",
+      "acceptance_criteria": [
+        "User can register with valid email and matching passwords",
+        "Duplicate email shows error message",
+        "Password strength validation is enforced"
+      ],
+      "functional_requirements": [
+        "email",
+        "password",
+        "confirm_password"
+      ],
+      "user_stories": []
+    },
+    {
+      "id": "password_reset",
+      "name": "Password Reset",
+      "description": "Allow users to reset their password using a reset link",
+      "priority": "high",
+      "acceptance_criteria": [
+        "User can reset password with valid reset token",
+        "New password must meet security criteria"
+      ],
+      "functional_requirements": [
+        "new_password",
+        "reset_token"
+      ],
+      "user_stories": []
+    },
+    {
+      "id": "user_logout",
+      "name": "User Logout",
+      "description": "Allow users to log out from the application",
+      "priority": "high",
+      "acceptance_criteria": [
+        "User can logout successfully",
+        "Invalid or expired token shows error message"
+      ],
+      "functional_requirements": [
+        "auth_token"
+      ],
+      "user_stories": []
+    },
+    {
+      "id": "two_factor_authentication",
+      "name": "Two-Factor Authentication",
+      "description": "Provide an additional layer of security by requiring a second form of verification during login",
+      "priority": "high",
+      "acceptance_criteria": [
+        "User can enable/disable two-factor authentication",
+        "Valid two-factor code allows access",
+        "Invalid code shows error message"
+      ],
+      "functional_requirements": [
+        "auth_token",
+        "two_factor_code"
+      ],
+      "user_stories": []
+    },
+    {
+      "id": "create_todo",
+      "name": "Create Todo Item",
+      "description": "Allow users to create a new todo item via the API.",
+      "priority": "high",
+      "acceptance_criteria": [
+        "Todo item is created with valid inputs",
+        "API returns the unique todo_id",
+        "Creation timestamp is accurate"
+      ],
+      "functional_requirements": [
+        "title",
+        "description",
+        "due_date",
+        "user_id"
+      ],
+      "user_stories": []
+    },
+    {
+      "id": "read_todo",
+      "name": "Read Todo Item",
+      "description": "Allow users to retrieve details of a specific todo item.",
+      "priority": "high",
+      "acceptance_criteria": [
+        "Todo item details are returned for a valid todo_id",
+        "Error message is shown for an invalid todo_id"
+      ],
+      "functional_requirements": [
+        "todo_id"
+      ],
+      "user_stories": []
+    },
+    {
+      "id": "update_todo",
+      "name": "Update Todo Item",
+      "description": "Allow users to update the details of an existing todo item.",
+      "priority": "high",
+      "acceptance_criteria": [
+        "Todo item is updated with valid inputs",
+        "API returns the updated timestamp",
+        "Error message is shown for an invalid todo_id"
+      ],
+      "functional_requirements": [
+        "todo_id",
+        "title",
+        "description",
+        "due_date",
+        "status"
+      ],
+      "user_stories": []
+    },
+    {
+      "id": "delete_todo",
+      "name": "Delete Todo Item",
+      "description": "Allow users to delete a specific todo item.",
+      "priority": "high",
+      "acceptance_criteria": [
+        "Todo item is deleted for a valid todo_id",
+        "Deletion confirmation is returned",
+        "Error message is shown for an invalid todo_id"
+      ],
+      "functional_requirements": [
+        "todo_id"
+      ],
+      "user_stories": []
+    },
+    {
+      "id": "user_authentication",
+      "name": "User Authentication",
+      "description": "Authenticate users and provide access to API endpoints.",
+      "priority": "high",
+      "acceptance_criteria": [
+        "User can log in with valid credentials",
+        "Invalid credentials return an error message"
+      ],
+      "functional_requirements": [
+        "email",
+        "password"
+      ],
+      "user_stories": []
+    },
+    {
+      "id": "task_due_date_reminder",
+      "name": "Task Due Date Reminder",
+      "description": "Allow users to set reminders for tasks based on their due dates, notifying them via email or push notifications.",
+      "priority": "high",
+      "acceptance_criteria": [
+        "Reason missed: The requirement for reminders is often implied in a TODO application to enhance task management."
+      ],
+      "functional_requirements": [],
+      "user_stories": []
+    },
+    {
+      "id": "task_recurring",
+      "name": "Recurring Tasks",
+      "description": "Allow users to create tasks that recur on a regular basis (daily, weekly, monthly).",
+      "priority": "high",
+      "acceptance_criteria": [
+        "Reason missed: Recurring tasks are a common feature in task management systems, enhancing usability for users with regular activities."
+      ],
+      "functional_requirements": [],
+      "user_stories": []
+    },
+    {
+      "id": "task_search",
+      "name": "Task Search",
+      "description": "Allow users to search for tasks based on keywords in the title or description.",
+      "priority": "high",
+      "acceptance_criteria": [
+        "Reason missed: Search functionality is a standard feature in applications that manage lists of items, improving user experience."
+      ],
+      "functional_requirements": [],
+      "user_stories": []
+    },
+    {
+      "id": "task_sorting",
+      "name": "Task Sorting",
+      "description": "Allow users to sort tasks based on various criteria such as due date, priority, or creation date.",
+      "priority": "high",
+      "acceptance_criteria": [
+        "Reason missed: Sorting is a common feature that enhances the usability of task management applications."
+      ],
+      "functional_requirements": [],
+      "user_stories": []
+    },
+    {
+      "id": "list_tasks",
+      "name": "List Tasks",
+      "description": "Allow users to retrieve a list of all tasks, optionally filtered by status or due date.",
+      "priority": "medium",
+      "acceptance_criteria": [],
+      "functional_requirements": [
+        "status",
+        "due_date"
+      ],
+      "user_stories": []
+    },
+    {
+      "id": "complete_task",
+      "name": "Complete Task",
+      "description": "Allow users to mark a task as completed.",
+      "priority": "medium",
+      "acceptance_criteria": [],
+      "functional_requirements": [
+        "task_id"
+      ],
+      "user_stories": []
+    },
+    {
+      "id": "reopen_task",
+      "name": "Reopen Task",
+      "description": "Allow users to reopen a task that was previously marked as completed.",
+      "priority": "medium",
+      "acceptance_criteria": [],
+      "functional_requirements": [
+        "task_id"
+      ],
+      "user_stories": []
+    },
+    {
+      "id": "password_reset_request",
+      "name": "Password Reset Request",
+      "description": "Allow users to request a password reset via email",
+      "priority": "medium",
+      "acceptance_criteria": [
+        "User can request a password reset with valid email",
+        "Invalid email shows error message"
+      ],
+      "functional_requirements": [
+        "email"
+      ],
+      "user_stories": []
+    },
+    {
+      "id": "session_timeout",
+      "name": "Session Timeout",
+      "description": "Automatically log users out after a period of inactivity",
+      "priority": "medium",
+      "acceptance_criteria": [
+        "User is logged out after specified inactivity period",
+        "User receives notification before timeout"
+      ],
+      "functional_requirements": [
+        "user_activity"
+      ],
+      "user_stories": []
+    },
+    {
+      "id": "list_todos",
+      "name": "List Todo Items",
+      "description": "Allow users to retrieve a list of all their todo items.",
+      "priority": "medium",
+      "acceptance_criteria": [
+        "List of todo items is returned for a valid user_id",
+        "Empty list is returned if no todos exist for the user"
+      ],
+      "functional_requirements": [
+        "user_id"
+      ],
+      "user_stories": []
+    },
+    {
+      "id": "handle_api_errors",
+      "name": "API Error Handling",
+      "description": "Provide standardized error responses for API requests.",
+      "priority": "medium",
+      "acceptance_criteria": [
+        "Error messages are clear and informative",
+        "Correct HTTP status codes are returned based on error type"
+      ],
+      "functional_requirements": [
+        "error_code"
+      ],
+      "user_stories": []
+    },
+    {
+      "id": "user_profile_management",
+      "name": "User Profile Management",
+      "description": "Allow users to manage their profile information, including updating email, password, and other personal details.",
+      "priority": "medium",
+      "acceptance_criteria": [
+        "Reason missed: User profile management is a standard feature in applications that require user accounts."
+      ],
+      "functional_requirements": [],
+      "user_stories": []
+    },
+    {
+      "id": "set_task_priority",
+      "name": "Set Task Priority",
+      "description": "Allow users to set or update the priority level of a task (e.g., low, medium, high).",
+      "priority": "low",
+      "acceptance_criteria": [],
+      "functional_requirements": [
+        "task_id",
+        "priority_level"
+      ],
+      "user_stories": []
+    },
+    {
+      "id": "add_task_comment",
+      "name": "Add Task Comment",
+      "description": "Allow users to add comments or notes to a specific task.",
+      "priority": "low",
+      "acceptance_criteria": [],
+      "functional_requirements": [
+        "task_id",
+        "comment"
+      ],
+      "user_stories": []
+    },
+    {
+      "id": "get_task_comments",
+      "name": "Get Task Comments",
+      "description": "Allow users to retrieve all comments associated with a specific task.",
+      "priority": "low",
+      "acceptance_criteria": [],
+      "functional_requirements": [
+        "task_id"
+      ],
+      "user_stories": []
+    }
+  ],
+  "data_models": [
+    {
+      "entity_name": "할 일",
+      "description": null,
+      "attributes": [
+        {
+          "name": "ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "제목",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "상태",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "생성일",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "수정일",
+          "type": "string",
+          "required": true
+        }
+      ],
+      "relationships": [
+        {
+          "type": "one-to-many",
+          "target": "사용자는 여러 개의 할 일을 가질 수 있다."
+        }
+      ],
+      "constraints": []
+    }
+  ],
+  "ui_components": [
+    {
+      "id": "9c852ccd-5f8d-4d21-be19-eeab0001cb41",
+      "component_type": "table",
+      "page_name": "할 일 목록 페이지",
+      "description": "사용자가 할 일 목록을 볼 수 있는 테이블 컴포넌트입니다.",
+      "purpose": null,
+      "data_source": null,
+      "interactions": [],
+      "related_features": []
+    },
+    {
+      "id": "67ca5e97-9bc2-450f-bafa-492e346700fe",
+      "component_type": "form",
+      "page_name": "할 일 추가 페이지",
+      "description": "사용자가 새로운 할 일을 추가할 수 있는 폼 컴포넌트입니다.",
+      "purpose": null,
+      "data_source": null,
+      "interactions": [],
+      "related_features": []
+    }
+  ],
+  "non_functional_requirements": {
+    "security": "사용자 인증 및 권한 부여가 필요하다.",
+    "scalability": "사용자 수가 증가해도 성능 저하 없이 운영 가능해야 한다.",
+    "performance": "응답 시간은 200ms 이내여야 한다.",
+    "reliability": "시스템은 99.9%의 가용성을 유지해야 한다."
+  },
+  "constraints": [],
+  "assumptions": [],
+  "success_criteria": [],
+  "domain": "TASK_MANAGEMENT",
+  "workflow_type": "sequential",
+  "deployment_target": "docker",
+  "boundaries": {
+    "always_allowed": [
+      "읽기 작업",
+      "기본 CRUD 작업",
+      "로깅"
+    ],
+    "ask_first": [
+      "파일 작업",
+      "네트워크 호출",
+      "데이터베이스 변경",
+      "외부 API 호출"
+    ],
+    "never_allowed": [
+      "시스템 명령 실행",
+      "임의 코드 실행",
+      "rm -rf",
+      "파일 시스템 전체 삭제"
+    ]
+  },
+  "commands": {
+    "install": "pip install -r requirements.txt",
+    "test": "pytest tests/",
+    "run": "python main.py",
+    "lint": "pylint src/",
+    "format": "black src/",
+    "build": "도커 빌드 명령어가 필요하면",
+    "deploy": "배포 명령어가 필요하면"
+  },
+  "code_style": {
+    "formatter": "black",
+    "line_length": 88,
+    "use_type_hints": true,
+    "docstring_style": "google",
+    "import_order": "isort"
+  },
+  "git_workflow": {
+    "branch_naming": "feature/{issue-number}-{description}",
+    "commit_message_format": "<type>(<scope>): <subject>",
+    "requires_pr": true,
+    "main_branch": "main"
+  }
+}

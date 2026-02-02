@@ -1,0 +1,412 @@
+{
+  "system_scope": {
+    "project_name": "작업 관리 대시보드",
+    "purpose": "사용자 인증, 작업 CRUD, 실시간 업데이트 기능을 갖춘 웹 대시보드입니다.",
+    "target_users": [],
+    "system_type": "web_app",
+    "scope_description": null,
+    "out_of_scope": []
+  },
+  "features": [
+    {
+      "id": "user_login",
+      "name": "User Login",
+      "description": "Allow users to log in with email and password.",
+      "priority": "high",
+      "acceptance_criteria": [
+        "User can log in with valid credentials.",
+        "Invalid credentials show an error message."
+      ],
+      "functional_requirements": [
+        "email",
+        "password"
+      ],
+      "user_stories": []
+    },
+    {
+      "id": "user_registration",
+      "name": "User Registration",
+      "description": "Allow new users to create an account using email and password.",
+      "priority": "high",
+      "acceptance_criteria": [
+        "User can register with valid email and password.",
+        "Passwords must match.",
+        "Duplicate email addresses show an error message."
+      ],
+      "functional_requirements": [
+        "email",
+        "password",
+        "confirm_password"
+      ],
+      "user_stories": []
+    },
+    {
+      "id": "user_logout",
+      "name": "User Logout",
+      "description": "Allow users to log out from their account.",
+      "priority": "high",
+      "acceptance_criteria": [
+        "User is logged out successfully.",
+        "Invalid or expired token shows an error message."
+      ],
+      "functional_requirements": [
+        "auth_token"
+      ],
+      "user_stories": []
+    },
+    {
+      "id": "two_factor_authentication",
+      "name": "Two-Factor Authentication",
+      "description": "Provide an additional layer of security by requiring a second form of verification during login.",
+      "priority": "high",
+      "acceptance_criteria": [
+        "User must enter a valid verification code after login.",
+        "Invalid verification codes show an error message."
+      ],
+      "functional_requirements": [
+        "auth_token",
+        "verification_code"
+      ],
+      "user_stories": []
+    },
+    {
+      "id": "create_task",
+      "name": "Create Task",
+      "description": "Allow users to create a new task with details such as title, description, due date, and priority level.",
+      "priority": "high",
+      "acceptance_criteria": [
+        "User can create a task with all required fields",
+        "Task is saved in the database",
+        "Confirmation message is displayed"
+      ],
+      "functional_requirements": [
+        "title",
+        "description",
+        "due_date",
+        "priority"
+      ],
+      "user_stories": []
+    },
+    {
+      "id": "read_task",
+      "name": "Read Task",
+      "description": "Allow users to view details of an existing task by its ID.",
+      "priority": "high",
+      "acceptance_criteria": [
+        "User can retrieve task details using a valid task ID",
+        "Invalid task ID returns an error message"
+      ],
+      "functional_requirements": [
+        "task_id"
+      ],
+      "user_stories": []
+    },
+    {
+      "id": "update_task",
+      "name": "Update Task",
+      "description": "Allow users to update the details of an existing task, including title, description, due date, and priority level.",
+      "priority": "high",
+      "acceptance_criteria": [
+        "User can update task details with valid inputs",
+        "Updated task details are saved in the database",
+        "Confirmation message is displayed"
+      ],
+      "functional_requirements": [
+        "task_id",
+        "title",
+        "description",
+        "due_date",
+        "priority"
+      ],
+      "user_stories": []
+    },
+    {
+      "id": "delete_task",
+      "name": "Delete Task",
+      "description": "Allow users to delete an existing task by its ID.",
+      "priority": "high",
+      "acceptance_criteria": [
+        "User can delete a task using a valid task ID",
+        "Deleted task is removed from the database",
+        "Confirmation message is displayed"
+      ],
+      "functional_requirements": [
+        "task_id"
+      ],
+      "user_stories": []
+    },
+    {
+      "id": "task_update_notifications",
+      "name": "Task Update Notifications",
+      "description": "Notify users in real-time when a task is created, updated, or deleted by any user.",
+      "priority": "high",
+      "acceptance_criteria": [
+        "Users receive notifications for all task changes in real-time",
+        "Notifications contain relevant task details"
+      ],
+      "functional_requirements": [
+        "task_id",
+        "user_id"
+      ],
+      "user_stories": []
+    },
+    {
+      "id": "live_task_status",
+      "name": "Live Task Status Updates",
+      "description": "Provide live updates on the status of tasks being worked on, reflecting changes immediately.",
+      "priority": "high",
+      "acceptance_criteria": [
+        "Task status updates are reflected in real-time on the dashboard",
+        "Users can see the latest status without refreshing the page"
+      ],
+      "functional_requirements": [
+        "task_id"
+      ],
+      "user_stories": []
+    },
+    {
+      "id": "real_time_collaboration",
+      "name": "Real-Time Collaboration",
+      "description": "Enable multiple users to collaborate on tasks in real-time, allowing simultaneous edits and updates.",
+      "priority": "high",
+      "acceptance_criteria": [
+        "Users can edit tasks simultaneously without conflicts",
+        "Changes are reflected in real-time for all users"
+      ],
+      "functional_requirements": [
+        "task_id",
+        "user_id",
+        "edit_data"
+      ],
+      "user_stories": []
+    },
+    {
+      "id": "password_reset",
+      "name": "Password Reset",
+      "description": "Allow users to reset their password using their email address.",
+      "priority": "medium",
+      "acceptance_criteria": [
+        "User receives a reset link for valid email.",
+        "Invalid email shows an error message."
+      ],
+      "functional_requirements": [
+        "email"
+      ],
+      "user_stories": []
+    },
+    {
+      "id": "session_management",
+      "name": "Session Management",
+      "description": "Manage user sessions to ensure security and allow users to stay logged in or log out.",
+      "priority": "medium",
+      "acceptance_criteria": [
+        "Active session is maintained for valid token.",
+        "Expired token shows an error message."
+      ],
+      "functional_requirements": [
+        "auth_token"
+      ],
+      "user_stories": []
+    },
+    {
+      "id": "list_tasks",
+      "name": "List Tasks",
+      "description": "Allow users to view a list of all tasks, with options to filter by status, due date, or priority.",
+      "priority": "medium",
+      "acceptance_criteria": [
+        "User can retrieve a list of tasks based on provided filters",
+        "Task list is displayed correctly according to filters"
+      ],
+      "functional_requirements": [
+        "filter_options"
+      ],
+      "user_stories": []
+    },
+    {
+      "id": "real_time_updates",
+      "name": "Real-Time Updates",
+      "description": "Provide users with real-time updates on task changes, such as creation, updates, and deletions.",
+      "priority": "medium",
+      "acceptance_criteria": [
+        "Users receive notifications for task changes in real time",
+        "Notifications are relevant to the user's tasks"
+      ],
+      "functional_requirements": [
+        "user_id"
+      ],
+      "user_stories": []
+    },
+    {
+      "id": "user_activity_feed",
+      "name": "User Activity Feed",
+      "description": "Display a real-time feed of user activities related to tasks, such as comments, edits, and status changes.",
+      "priority": "medium",
+      "acceptance_criteria": [
+        "Users can view a chronological feed of activities",
+        "Feed updates in real-time as new activities occur"
+      ],
+      "functional_requirements": [
+        "user_id"
+      ],
+      "user_stories": []
+    },
+    {
+      "id": "error_handling_updates",
+      "name": "Error Handling for Real-Time Updates",
+      "description": "Implement error handling to manage failures in real-time updates, ensuring users are informed.",
+      "priority": "medium",
+      "acceptance_criteria": [
+        "Users receive clear error messages when updates fail",
+        "System logs errors for further investigation"
+      ],
+      "functional_requirements": [
+        "error_code",
+        "task_id"
+      ],
+      "user_stories": []
+    }
+  ],
+  "data_models": [
+    {
+      "entity_name": "사용자",
+      "description": null,
+      "attributes": [
+        {
+          "name": "이메일",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "비밀번호",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "이름",
+          "type": "string",
+          "required": true
+        }
+      ],
+      "relationships": [
+        {
+          "type": "one-to-many",
+          "target": "사용자는 여러 작업을 가질 수 있습니다."
+        }
+      ],
+      "constraints": []
+    },
+    {
+      "entity_name": "작업",
+      "description": null,
+      "attributes": [
+        {
+          "name": "제목",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "상세 내용",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "상태",
+          "type": "string",
+          "required": true
+        }
+      ],
+      "relationships": [
+        {
+          "type": "one-to-many",
+          "target": "작업은 하나의 사용자에 속합니다."
+        }
+      ],
+      "constraints": []
+    }
+  ],
+  "ui_components": [
+    {
+      "id": "12e20e22-c777-48ea-90d0-cbf000920a4c",
+      "component_type": "form",
+      "page_name": "로그인 페이지",
+      "description": "사용자가 로그인할 수 있는 폼입니다.",
+      "purpose": null,
+      "data_source": null,
+      "interactions": [],
+      "related_features": []
+    },
+    {
+      "id": "09568b7e-4990-4844-9b92-127eb0dbde99",
+      "component_type": "table",
+      "page_name": "작업 목록 페이지",
+      "description": "사용자가 작업을 볼 수 있는 테이블입니다.",
+      "purpose": null,
+      "data_source": null,
+      "interactions": [],
+      "related_features": []
+    },
+    {
+      "id": "9d54ab1b-9f7b-4ae5-b4ad-ca298c3a40a3",
+      "component_type": "form",
+      "page_name": "작업 생성/수정 페이지",
+      "description": "사용자가 작업을 생성하거나 수정할 수 있는 폼입니다.",
+      "purpose": null,
+      "data_source": null,
+      "interactions": [],
+      "related_features": []
+    }
+  ],
+  "non_functional_requirements": {
+    "security": "사용자 데이터는 안전하게 암호화되어야 합니다.",
+    "scalability": "시스템은 사용자 수가 증가하더라도 원활하게 작동해야 합니다.",
+    "performance": "응답 시간은 2초 이내여야 합니다.",
+    "reliability": "시스템은 99.9%의 가용성을 유지해야 합니다."
+  },
+  "constraints": [],
+  "assumptions": [],
+  "success_criteria": [],
+  "domain": "CONVERSATIONAL_AI",
+  "workflow_type": "sequential",
+  "deployment_target": "docker",
+  "boundaries": {
+    "always_allowed": [
+      "읽기 작업",
+      "기본 CRUD 작업",
+      "로깅"
+    ],
+    "ask_first": [
+      "파일 작업",
+      "네트워크 호출",
+      "데이터베이스 변경",
+      "외부 API 호출"
+    ],
+    "never_allowed": [
+      "시스템 명령 실행",
+      "임의 코드 실행",
+      "rm -rf",
+      "파일 시스템 전체 삭제"
+    ]
+  },
+  "commands": {
+    "install": "pip install -r requirements.txt",
+    "test": "pytest tests/",
+    "run": "python main.py",
+    "lint": "pylint src/",
+    "format": "black src/",
+    "build": "도커 빌드 명령어가 필요하면",
+    "deploy": "배포 명령어가 필요하면"
+  },
+  "code_style": {
+    "formatter": "black",
+    "line_length": 88,
+    "use_type_hints": true,
+    "docstring_style": "google",
+    "import_order": "isort"
+  },
+  "git_workflow": {
+    "branch_naming": "feature/{issue-number}-{description}",
+    "commit_message_format": "<type>(<scope>): <subject>",
+    "requires_pr": true,
+    "main_branch": "main"
+  }
+}

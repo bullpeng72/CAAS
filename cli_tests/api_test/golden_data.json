@@ -1,0 +1,245 @@
+{
+  "system_scope": {
+    "project_name": "간단한 TODO REST API",
+    "purpose": "생성, 목록, 삭제 엔드포인트를 갖춘 간단한 TODO REST API입니다.",
+    "target_users": [],
+    "system_type": "web_app",
+    "scope_description": null,
+    "out_of_scope": []
+  },
+  "features": [
+    {
+      "id": "create_task",
+      "name": "Create Task",
+      "description": "Allow users to create a new task with a title and optional description.",
+      "priority": "high",
+      "acceptance_criteria": [],
+      "functional_requirements": [
+        "title",
+        "description (optional)"
+      ],
+      "user_stories": []
+    },
+    {
+      "id": "list_tasks",
+      "name": "List Tasks",
+      "description": "Retrieve a list of all tasks for the authenticated user.",
+      "priority": "high",
+      "acceptance_criteria": [],
+      "functional_requirements": [],
+      "user_stories": []
+    },
+    {
+      "id": "delete_task",
+      "name": "Delete Task",
+      "description": "Allow users to delete a specific task by its unique identifier.",
+      "priority": "high",
+      "acceptance_criteria": [],
+      "functional_requirements": [
+        "task_id"
+      ],
+      "user_stories": []
+    },
+    {
+      "id": "create_todo",
+      "name": "Create TODO Item",
+      "description": "Allow users to create a new TODO item through the API.",
+      "priority": "high",
+      "acceptance_criteria": [],
+      "functional_requirements": [
+        "title",
+        "description",
+        "due_date"
+      ],
+      "user_stories": []
+    },
+    {
+      "id": "list_todos",
+      "name": "List TODO Items",
+      "description": "Provide an endpoint to retrieve a list of all TODO items for a user.",
+      "priority": "high",
+      "acceptance_criteria": [],
+      "functional_requirements": [
+        "user_id"
+      ],
+      "user_stories": []
+    },
+    {
+      "id": "delete_todo",
+      "name": "Delete TODO Item",
+      "description": "Allow users to delete a specific TODO item using its ID.",
+      "priority": "high",
+      "acceptance_criteria": [],
+      "functional_requirements": [
+        "todo_id"
+      ],
+      "user_stories": []
+    },
+    {
+      "id": "auth_required",
+      "name": "User Authentication",
+      "description": "Implement user authentication to ensure that only authenticated users can create, list, or delete tasks.",
+      "priority": "high",
+      "acceptance_criteria": [
+        "Reason missed: The requirements imply that the API should be secure and user-specific, but no authentication feature is explicitly mentioned in the extracted features."
+      ],
+      "functional_requirements": [],
+      "user_stories": []
+    },
+    {
+      "id": "update_task",
+      "name": "Update Task",
+      "description": "Allow users to update an existing task's title and description.",
+      "priority": "high",
+      "acceptance_criteria": [
+        "Reason missed: The requirement for a simple TODO REST API typically includes the ability to update tasks, which is not captured in the extracted features."
+      ],
+      "functional_requirements": [],
+      "user_stories": []
+    },
+    {
+      "id": "error_handling",
+      "name": "Error Handling for API Requests",
+      "description": "Implement proper error handling for all API endpoints to ensure meaningful error messages are returned.",
+      "priority": "medium",
+      "acceptance_criteria": [],
+      "functional_requirements": [
+        "error_type",
+        "error_message"
+      ],
+      "user_stories": []
+    },
+    {
+      "id": "api_versioning",
+      "name": "API Versioning",
+      "description": "Implement versioning for the API to manage changes and maintain backward compatibility.",
+      "priority": "medium",
+      "acceptance_criteria": [],
+      "functional_requirements": [
+        "version_number"
+      ],
+      "user_stories": []
+    },
+    {
+      "id": "task_status",
+      "name": "Task Status Management",
+      "description": "Allow users to mark tasks as completed or pending.",
+      "priority": "medium",
+      "acceptance_criteria": [
+        "Reason missed: Managing the status of tasks is a common feature in TODO applications, which is not mentioned in the extracted features."
+      ],
+      "functional_requirements": [],
+      "user_stories": []
+    }
+  ],
+  "data_models": [
+    {
+      "entity_name": "할 일",
+      "description": null,
+      "attributes": [
+        {
+          "name": "ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "제목",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "상태",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "생성일",
+          "type": "string",
+          "required": true
+        }
+      ],
+      "relationships": [
+        {
+          "type": "one-to-many",
+          "target": "사용자와의 관계"
+        }
+      ],
+      "constraints": []
+    }
+  ],
+  "ui_components": [
+    {
+      "id": "4e330d52-260e-4ea9-a144-79f56abef26a",
+      "component_type": "table",
+      "page_name": "할 일 목록 페이지",
+      "description": "사용자가 할 일을 목록으로 볼 수 있는 테이블 컴포넌트입니다.",
+      "purpose": null,
+      "data_source": null,
+      "interactions": [],
+      "related_features": []
+    },
+    {
+      "id": "ffef9f67-b63a-40aa-be52-642648985516",
+      "component_type": "form",
+      "page_name": "할 일 생성 페이지",
+      "description": "사용자가 새로운 할 일을 입력하고 생성할 수 있는 폼 컴포넌트입니다.",
+      "purpose": null,
+      "data_source": null,
+      "interactions": [],
+      "related_features": []
+    }
+  ],
+  "non_functional_requirements": {
+    "security": "사용자 인증 및 권한 부여가 필요합니다.",
+    "scalability": "사용자가 증가할 경우 시스템이 확장 가능해야 합니다.",
+    "performance": "API 응답 시간이 200ms 이내여야 합니다.",
+    "reliability": "시스템은 99.9%의 가용성을 유지해야 합니다."
+  },
+  "constraints": [],
+  "assumptions": [],
+  "success_criteria": [],
+  "domain": "TASK_MANAGEMENT",
+  "workflow_type": "sequential",
+  "deployment_target": "docker",
+  "boundaries": {
+    "always_allowed": [
+      "읽기 작업",
+      "기본 CRUD 작업",
+      "로깅"
+    ],
+    "ask_first": [
+      "파일 작업",
+      "네트워크 호출",
+      "데이터베이스 변경",
+      "외부 API 호출"
+    ],
+    "never_allowed": [
+      "시스템 명령 실행",
+      "임의 코드 실행",
+      "rm -rf",
+      "파일 시스템 전체 삭제"
+    ]
+  },
+  "commands": {
+    "install": "pip install -r requirements.txt",
+    "test": "pytest tests/",
+    "run": "python main.py",
+    "lint": "pylint src/",
+    "format": "black src/",
+    "build": "도커 빌드 명령어가 필요하면",
+    "deploy": "배포 명령어가 필요하면"
+  },
+  "code_style": {
+    "formatter": "black",
+    "line_length": 88,
+    "use_type_hints": true,
+    "docstring_style": "google",
+    "import_order": "isort"
+  },
+  "git_workflow": {
+    "branch_naming": "feature/{issue-number}-{description}",
+    "commit_message_format": "<type>(<scope>): <subject>",
+    "requires_pr": true,
+    "main_branch": "main"
+  }
+}

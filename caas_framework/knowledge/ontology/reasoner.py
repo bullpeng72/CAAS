@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 from enum import Enum
 
 from caas_framework.utils.logger import get_logger, LoggerMixin
-from caas_app.knowledge.ontology.manager import OntologyManager, AgentRole, TaskType
+from caas_framework.knowledge.ontology.manager import OntologyManager, AgentRole, TaskType
 
 logger = get_logger("knowledge.reasoner")
 

@@ -27,7 +27,7 @@ except ImportError as e:
 
 from caas_app.utils.config import get_settings
 from caas_framework.utils.logger import get_logger, LoggerMixin
-from caas_app.utils.security import (
+from caas_framework.utils.security import (
     sanitize_neo4j_label,
     sanitize_neo4j_property_key,
     sanitize_neo4j_relationship_type,

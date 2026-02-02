@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 from enum import Enum
 
 from caas_framework.utils.logger import get_logger, LoggerMixin
-from caas_app.knowledge.ontology import OntologyManager, AgentRole
+from caas_framework.knowledge.ontology import OntologyManager, AgentRole
 
 
 logger = get_logger("knowledge.validator")
@@ -552,7 +552,7 @@ class OntologyValidator(LoggerMixin):
         Returns:
             str: 권장 태스크 설명
         """
-        from caas_app.knowledge.ontology import TaskType, AgentRole
+        from caas_framework.knowledge.ontology import TaskType, AgentRole
 
         # 원본 설명에서 핵심 키워드 추출
         original_lower = original_description.lower()

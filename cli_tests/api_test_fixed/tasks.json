@@ -1,0 +1,58 @@
+[
+  {
+    "id": "create_task",
+    "description": "사용자가 새로운 작업을 생성합니다. 제목, 설명 및 마감일을 포함합니다.",
+    "expected_output": "생성된 작업의 고유 task_id와 생성 타임스탬프",
+    "agent": "task_creator_agent",
+    "context": [],
+    "async_execution": false,
+    "output_file": null,
+    "human_input": false
+  },
+  {
+    "id": "read_task",
+    "description": "특정 작업의 고유 식별자를 사용하여 세부 정보를 조회합니다.",
+    "expected_output": "조회된 작업의 세부 정보",
+    "agent": "task_retriever_agent",
+    "context": [
+      "create_task"
+    ],
+    "async_execution": false,
+    "output_file": null,
+    "human_input": false
+  },
+  {
+    "id": "update_task",
+    "description": "기존 작업의 세부 정보를 업데이트합니다. 제목, 설명 및 마감일을 포함합니다.",
+    "expected_output": "업데이트된 작업의 세부 정보",
+    "agent": "task_updater_agent",
+    "context": [
+      "read_task"
+    ],
+    "async_execution": false,
+    "output_file": null,
+    "human_input": false
+  },
+  {
+    "id": "delete_task",
+    "description": "특정 작업을 고유 식별자를 사용하여 삭제합니다.",
+    "expected_output": "작업 삭제 성공 메시지",
+    "agent": "task_deleter_agent",
+    "context": [
+      "read_task"
+    ],
+    "async_execution": false,
+    "output_file": null,
+    "human_input": false
+  },
+  {
+    "id": "user_login",
+    "description": "사용자가 이메일과 비밀번호로 로그인합니다.",
+    "expected_output": "로그인 성공 또는 실패 메시지",
+    "agent": "user_auth_agent",
+    "context": [],
+    "async_execution": false,
+    "output_file": null,
+    "human_input": false
+  }
+]

@@ -150,14 +150,18 @@ class LLMJudge:
             prompt = self._build_evaluation_prompt(output, phase, criteria, context)
 
             # Get LLM evaluation
-            response = await self.llm.generate(
-                prompt=prompt,
+            messages = [{"role": "user", "content": prompt}]
+            response = await self.llm.ainvoke(
+                messages=messages,
                 temperature=0.3,  # Lower temperature for consistent evaluation
                 max_tokens=2000
             )
 
+            # Extract content from response
+            response_content = response.get("content", "") if isinstance(response, dict) else str(response)
+
             # Parse evaluation response
-            evaluation = self._parse_evaluation_response(response, phase, criteria)
+            evaluation = self._parse_evaluation_response(response_content, phase, criteria)
 
             self.logger.info(
                 f"✅ LLM Judge completed: {evaluation.overall_score:.1f}/10.0 "

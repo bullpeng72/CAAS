@@ -1,0 +1,355 @@
+{
+  "features": {
+    "user_login": {
+      "name": "User Login",
+      "status": "implemented",
+      "implementing_tasks": [],
+      "implementing_files": [
+        "agents.py",
+        "tasks.py"
+      ],
+      "coverage_percentage": 100.0
+    },
+    "user_registration": {
+      "name": "User Registration",
+      "status": "implemented",
+      "implementing_tasks": [],
+      "implementing_files": [
+        "agents.py",
+        "tasks.py"
+      ],
+      "coverage_percentage": 100.0
+    },
+    "user_logout": {
+      "name": "User Logout",
+      "status": "in_progress",
+      "implementing_tasks": [],
+      "implementing_files": [
+        "tasks.py"
+      ],
+      "coverage_percentage": 26
+    },
+    "two_factor_authentication": {
+      "name": "Two-Factor Authentication",
+      "status": "implemented",
+      "implementing_tasks": [],
+      "implementing_files": [
+        "agents.py",
+        "tasks.py"
+      ],
+      "coverage_percentage": 100.0
+    },
+    "create_task": {
+      "name": "Create Task",
+      "status": "implemented",
+      "implementing_tasks": [
+        "task_create_task"
+      ],
+      "implementing_files": [
+        "agents.py",
+        "tasks.py"
+      ],
+      "coverage_percentage": 100.0
+    },
+    "read_task": {
+      "name": "Read Task",
+      "status": "implemented",
+      "implementing_tasks": [
+        "task_read_task"
+      ],
+      "implementing_files": [
+        "agents.py",
+        "tasks.py"
+      ],
+      "coverage_percentage": 100.0
+    },
+    "update_task": {
+      "name": "Update Task",
+      "status": "implemented",
+      "implementing_tasks": [
+        "task_update_task"
+      ],
+      "implementing_files": [
+        "agents.py",
+        "tasks.py"
+      ],
+      "coverage_percentage": 100.0
+    },
+    "delete_task": {
+      "name": "Delete Task",
+      "status": "implemented",
+      "implementing_tasks": [
+        "task_delete_task"
+      ],
+      "implementing_files": [
+        "agents.py",
+        "tasks.py"
+      ],
+      "coverage_percentage": 100.0
+    },
+    "task_update_notifications": {
+      "name": "Task Update Notifications",
+      "status": "implemented",
+      "implementing_tasks": [
+        "task_task_update_notifications"
+      ],
+      "implementing_files": [
+        "agents.py",
+        "tasks.py"
+      ],
+      "coverage_percentage": 100.0
+    },
+    "live_task_status": {
+      "name": "Live Task Status Updates",
+      "status": "in_progress",
+      "implementing_tasks": [],
+      "implementing_files": [
+        "tasks.py"
+      ],
+      "coverage_percentage": 20
+    },
+    "real_time_collaboration": {
+      "name": "Real-Time Collaboration",
+      "status": "implemented",
+      "implementing_tasks": [
+        "task_real_time_collaboration"
+      ],
+      "implementing_files": [
+        "agents.py",
+        "tasks.py"
+      ],
+      "coverage_percentage": 100.0
+    },
+    "password_reset": {
+      "name": "Password Reset",
+      "status": "in_progress",
+      "implementing_tasks": [
+        "task_password_reset"
+      ],
+      "implementing_files": [
+        "tasks.py"
+      ],
+      "coverage_percentage": 25
+    },
+    "session_management": {
+      "name": "Session Management",
+      "status": "implemented",
+      "implementing_tasks": [
+        "task_session_management"
+      ],
+      "implementing_files": [
+        "agents.py",
+        "tasks.py"
+      ],
+      "coverage_percentage": 100.0
+    },
+    "list_tasks": {
+      "name": "List Tasks",
+      "status": "implemented",
+      "implementing_tasks": [
+        "task_list_tasks"
+      ],
+      "implementing_files": [
+        "agents.py",
+        "tasks.py"
+      ],
+      "coverage_percentage": 100.0
+    },
+    "real_time_updates": {
+      "name": "Real-Time Updates",
+      "status": "implemented",
+      "implementing_tasks": [],
+      "implementing_files": [
+        "agents.py",
+        "tasks.py"
+      ],
+      "coverage_percentage": 100.0
+    },
+    "user_activity_feed": {
+      "name": "User Activity Feed",
+      "status": "implemented",
+      "implementing_tasks": [
+        "task_user_activity_feed"
+      ],
+      "implementing_files": [
+        "agents.py",
+        "tasks.py"
+      ],
+      "coverage_percentage": 100.0
+    },
+    "error_handling_updates": {
+      "name": "Error Handling for Real-Time Updates",
+      "status": "implemented",
+      "implementing_tasks": [
+        "task_error_handling_updates"
+      ],
+      "implementing_files": [
+        "agents.py",
+        "tasks.py"
+      ],
+      "coverage_percentage": 100.0
+    }
+  },
+  "tasks": {
+    "task_login": {
+      "description": "사용자가 이메일과 비밀번호를 사용하여 로그인할 수 있도록 처리한다.",
+      "agent_id": "unknown",
+      "implements_features": [],
+      "generated_files": []
+    },
+    "task_registration": {
+      "description": "새 사용자가 이메일과 비밀번호를 사용하여 계정을 생성할 수 있도록 처리한다.",
+      "agent_id": "unknown",
+      "implements_features": [],
+      "generated_files": []
+    },
+    "task_logout": {
+      "description": "사용자가 로그아웃할 수 있도록 처리한다.",
+      "agent_id": "unknown",
+      "implements_features": [],
+      "generated_files": []
+    },
+    "task_two_factor_auth": {
+      "description": "로그인 시 2단계 인증을 처리하여 추가 보안을 제공한다.",
+      "agent_id": "unknown",
+      "implements_features": [],
+      "generated_files": []
+    },
+    "task_create_task": {
+      "description": "사용자가 새로운 작업을 생성할 수 있도록 처리한다.",
+      "agent_id": "unknown",
+      "implements_features": [
+        "create_task"
+      ],
+      "generated_files": []
+    },
+    "task_read_task": {
+      "description": "사용자가 기존 작업을 조회할 수 있도록 처리한다.",
+      "agent_id": "unknown",
+      "implements_features": [
+        "read_task"
+      ],
+      "generated_files": []
+    },
+    "task_update_task": {
+      "description": "사용자가 기존 작업을 수정할 수 있도록 처리한다.",
+      "agent_id": "unknown",
+      "implements_features": [
+        "update_task"
+      ],
+      "generated_files": []
+    },
+    "task_delete_task": {
+      "description": "사용자가 기존 작업을 삭제할 수 있도록 처리한다.",
+      "agent_id": "unknown",
+      "implements_features": [
+        "delete_task"
+      ],
+      "generated_files": []
+    },
+    "task_task_update_notifications": {
+      "description": "작업 업데이트에 대한 알림을 사용자에게 제공한다.",
+      "agent_id": "unknown",
+      "implements_features": [
+        "task_update_notifications"
+      ],
+      "generated_files": []
+    },
+    "task_live_task_status_updates": {
+      "description": "작업의 실시간 상태 업데이트를 제공한다.",
+      "agent_id": "unknown",
+      "implements_features": [],
+      "generated_files": []
+    },
+    "task_real_time_collaboration": {
+      "description": "사용자가 실시간으로 작업을 공동으로 수행할 수 있도록 지원한다.",
+      "agent_id": "unknown",
+      "implements_features": [
+        "real_time_collaboration"
+      ],
+      "generated_files": []
+    },
+    "task_password_reset": {
+      "description": "사용자가 비밀번호를 재설정할 수 있도록 처리한다.",
+      "agent_id": "unknown",
+      "implements_features": [
+        "password_reset"
+      ],
+      "generated_files": []
+    },
+    "task_session_management": {
+      "description": "사용자의 세션을 관리한다.",
+      "agent_id": "unknown",
+      "implements_features": [
+        "session_management"
+      ],
+      "generated_files": []
+    },
+    "task_list_tasks": {
+      "description": "사용자가 자신의 작업 목록을 조회할 수 있도록 처리한다.",
+      "agent_id": "unknown",
+      "implements_features": [
+        "list_tasks"
+      ],
+      "generated_files": []
+    },
+    "task_user_activity_feed": {
+      "description": "사용자의 활동 피드를 제공한다.",
+      "agent_id": "unknown",
+      "implements_features": [
+        "user_activity_feed"
+      ],
+      "generated_files": []
+    },
+    "task_error_handling_updates": {
+      "description": "실시간 업데이트에 대한 오류 처리를 수행한다.",
+      "agent_id": "unknown",
+      "implements_features": [
+        "error_handling_updates"
+      ],
+      "generated_files": []
+    }
+  },
+  "code_files": {
+    "main.py": {
+      "implements_features": [],
+      "generated_by_task": "project_manager"
+    },
+    "agents.py": {
+      "implements_features": [],
+      "generated_by_task": "unknown"
+    },
+    "tasks.py": {
+      "implements_features": [
+        "update_task",
+        "task_update_notifications",
+        "create_task",
+        "delete_task",
+        "read_task",
+        "list_tasks",
+        "real_time_collaboration",
+        "user_activity_feed",
+        "error_handling_updates",
+        "session_management",
+        "password_reset"
+      ],
+      "generated_by_task": "unknown"
+    },
+    "requirements.txt": {
+      "implements_features": [],
+      "generated_by_task": "unknown"
+    },
+    "README.md": {
+      "implements_features": [],
+      "generated_by_task": "unknown"
+    },
+    ".env.example": {
+      "implements_features": [],
+      "generated_by_task": "unknown"
+    },
+    "tools.py": {
+      "implements_features": [],
+      "generated_by_task": "unknown"
+    }
+  }
+}

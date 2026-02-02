@@ -9,7 +9,7 @@ from pathlib import Path
 
 from caas_app.utils.config import get_settings
 from caas_framework.utils.logger import get_logger
-from caas_app.knowledge.graph.embedded_graph import EmbeddedGraphClient
+from caas_framework.knowledge.graph.embedded_graph import EmbeddedGraphClient
 
 logger = get_logger("knowledge.graph.factory")
 
@@ -35,7 +35,7 @@ def get_graph_client() -> Union[EmbeddedGraphClient, "Neo4jClient"]:
     elif backend == "neo4j":
         logger.info("Using Neo4j graph backend")
         try:
-            from caas_app.knowledge.graph.neo4j_client import Neo4jClient
+            from caas_framework.knowledge.graph.neo4j_client import Neo4jClient
             return Neo4jClient()
         except ImportError as e:
             logger.error(f"Failed to import Neo4jClient: {e}")

@@ -100,27 +100,27 @@ class ValidationIssueFactory:
             for issue_data in evaluation.issues:
                 if isinstance(issue_data, dict):
                     issues.append(ValidationIssue(
-                        item_type=issue_data.get("type", "quality"),
-                        item_name=issue_data.get("name", "unnamed"),
+                        issue_type=issue_data.get("type", "quality"),
+                        message=issue_data.get("message", "Quality issue detected"),
                         severity=issue_data.get("severity", "medium"),
-                        message=issue_data.get("message", "Quality issue detected")
+                        field=issue_data.get("name", "unnamed")
                     ))
                 else:
                     # Handle string issues
                     issues.append(ValidationIssue(
-                        item_type="quality",
-                        item_name="llm_feedback",
+                        issue_type="quality",
+                        message=str(issue_data),
                         severity="medium",
-                        message=str(issue_data)
+                        field="llm_feedback"
                     ))
 
         # Low quality score
         if hasattr(evaluation, 'overall_score') and evaluation.overall_score < 7.0:
             issues.append(ValidationIssue(
-                item_type="quality",
-                item_name="overall_quality",
+                issue_type="quality",
+                message=f"Quality score below threshold: {evaluation.overall_score:.1f}/10.0",
                 severity="medium" if evaluation.overall_score >= 5.0 else "high",
-                message=f"Quality score below threshold: {evaluation.overall_score:.1f}/10.0"
+                field="overall_quality"
             ))
 
         # Specific quality dimensions
@@ -128,10 +128,10 @@ class ValidationIssueFactory:
             for dimension, score in evaluation.dimensions.items():
                 if score < 7.0:
                     issues.append(ValidationIssue(
-                        item_type="quality",
-                        item_name=dimension,
+                        issue_type="quality",
+                        message=f"{dimension.capitalize()} needs improvement: {score:.1f}/10.0",
                         severity="low" if score >= 5.0 else "medium",
-                        message=f"{dimension.capitalize()} needs improvement: {score:.1f}/10.0"
+                        field=dimension
                     ))
 
         return issues
@@ -170,20 +170,20 @@ class ValidationIssueFactory:
         if hasattr(validation_result, 'ontology_errors') and validation_result.ontology_errors:
             for error in validation_result.ontology_errors:
                 issues.append(ValidationIssue(
-                    item_type="ontology",
-                    item_name=error.get("entity", "unknown") if isinstance(error, dict) else "unknown",
+                    issue_type="ontology",
+                    message=str(error),
                     severity="medium",
-                    message=str(error)
+                    field=error.get("entity", "unknown") if isinstance(error, dict) else "unknown"
                 ))
 
         # Dependency errors
         if hasattr(validation_result, 'dependency_errors') and validation_result.dependency_errors:
             for error in validation_result.dependency_errors:
                 issues.append(ValidationIssue(
-                    item_type="dependency",
-                    item_name="circular" if "circular" in str(error).lower() else "dependency",
+                    issue_type="dependency",
+                    message=str(error),
                     severity="high",
-                    message=str(error)
+                    field="circular" if "circular" in str(error).lower() else "dependency"
                 ))
 
         return issues
@@ -234,10 +234,10 @@ class ValidationIssueFactory:
                     formatted += f"\n... and {remaining} more issues (truncated)\n"
                     return formatted
 
-                item_name = issue.item_name if hasattr(issue, 'item_name') else "unknown"
+                field_name = issue.field if hasattr(issue, 'field') else (issue.issue_type if hasattr(issue, 'issue_type') else "unknown")
                 message = issue.message if hasattr(issue, 'message') else str(issue)
 
-                formatted += f"{i + 1}. **{item_name}**: {message}\n"
+                formatted += f"{i + 1}. **{field_name}**: {message}\n"
                 total_shown += 1
 
             formatted += "\n"
@@ -272,13 +272,13 @@ class ValidationIssueFactory:
             summary["by_severity"][severity] = summary["by_severity"].get(severity, 0) + 1
 
             # By type
-            item_type = issue.item_type if hasattr(issue, 'item_type') else "unknown"
-            summary["by_type"][item_type] = summary["by_type"].get(item_type, 0) + 1
+            issue_type = issue.issue_type if hasattr(issue, 'issue_type') else "unknown"
+            summary["by_type"][issue_type] = summary["by_type"].get(issue_type, 0) + 1
 
             # Critical issues (high severity)
             if severity == "high":
                 summary["critical_issues"].append({
-                    "name": issue.item_name if hasattr(issue, 'item_name') else "unknown",
+                    "name": issue.field if hasattr(issue, 'field') else (issue.issue_type if hasattr(issue, 'issue_type') else "unknown"),
                     "message": issue.message if hasattr(issue, 'message') else str(issue)
                 })
 
@@ -327,5 +327,5 @@ class ValidationIssueFactory:
         """
         return [
             issue for issue in issues
-            if (hasattr(issue, 'item_type') and issue.item_type in item_types)
+            if (hasattr(issue, 'issue_type') and issue.issue_type in item_types)
         ]

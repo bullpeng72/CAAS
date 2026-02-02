@@ -118,7 +118,7 @@ class RequirementAnalysisChain(BaseChainFactory):
         Returns:
             str: 온톨로지 컨텍스트 문자열
         """
-        from caas_app.knowledge.ontology import (
+        from caas_framework.knowledge.ontology import (
             AgentRole,
             TaskType,
             ROLE_TASK_MAPPINGS,
@@ -200,7 +200,7 @@ class RequirementAnalysisChain(BaseChainFactory):
         Returns:
             Optional[Dict]: 매칭된 패턴 정보 (없으면 None)
         """
-        from caas_app.knowledge.graph.patterns import PatternMatcher
+        from caas_framework.knowledge.graph.patterns import PatternMatcher
 
         try:
             pattern_matcher = PatternMatcher()
@@ -281,7 +281,7 @@ class RequirementAnalysisChain(BaseChainFactory):
         Returns:
             str: 패턴 컨텍스트 문자열
         """
-        from caas_app.knowledge.graph.patterns import AgentPattern, PatternMatch
+        from caas_framework.knowledge.graph.patterns import AgentPattern, PatternMatch
 
         pattern: AgentPattern = pattern_info["pattern"]
         match: PatternMatch = pattern_info["match"]
@@ -398,7 +398,7 @@ class RequirementAnalysisChain(BaseChainFactory):
         Returns:
             RequirementAnalysis: 검증 및 보완된 결과
         """
-        from caas_app.knowledge.ontology import OntologyManager
+        from caas_framework.knowledge.ontology import OntologyManager
 
         ontology = OntologyManager()
 

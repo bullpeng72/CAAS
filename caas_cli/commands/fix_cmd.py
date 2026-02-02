@@ -173,7 +173,7 @@ async def fix(agents, tasks, golden_data, level, max_iterations, output, verbose
         echo_progress("Step 1/3: Validating design...")
 
         from caas_framework.validation.golden_validator import GoldenDataValidator
-        from caas_framework.models.golden_data import GoldenData
+        from caas_framework.models.specifications import ConcretizedRequirement as GoldenData
 
         golden = GoldenData(**golden_data_dict)
         validator = GoldenDataValidator(golden)

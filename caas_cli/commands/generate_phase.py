@@ -288,7 +288,7 @@ async def _execute_phase_1(framework, input_dir, output_path, verbose):
     golden_data_dict = load_json(Path(input_dir) / "golden_data.json")
 
     from caas_framework.bmad.engine import BMADEngine
-    from caas_framework.models.golden_data import GoldenData
+    from caas_framework.models.specifications import ConcretizedRequirement as GoldenData
 
     golden_data = GoldenData(**golden_data_dict)
 
@@ -319,7 +319,7 @@ async def _execute_phase_2(framework, input_dir, workflow_type, output_path, ver
     analysis = load_json(input_path / "requirement_analysis.json")
 
     from caas_framework.bmad.engine import BMADEngine
-    from caas_framework.models.golden_data import GoldenData
+    from caas_framework.models.specifications import ConcretizedRequirement as GoldenData
 
     golden_data = GoldenData(**golden_data_dict)
 
@@ -358,7 +358,7 @@ async def _execute_phase_3(framework, input_dir, output_path, verbose):
     tasks = load_json(input_path / "tasks.json")
 
     from caas_framework.bmad.engine import BMADEngine
-    from caas_framework.models.golden_data import GoldenData
+    from caas_framework.models.specifications import ConcretizedRequirement as GoldenData
 
     golden_data = GoldenData(**golden_data_dict)
 

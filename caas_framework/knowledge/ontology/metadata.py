@@ -5,7 +5,7 @@ Provides rich metadata for roles, tasks, and tools beyond basic enum definitions
 """
 
 from typing import Dict, List, Any
-from caas_app.knowledge.ontology.manager import AgentRole, TaskType
+from caas_framework.knowledge.ontology.manager import AgentRole, TaskType
 
 
 # =============================================================================
@@ -206,7 +206,7 @@ def get_task_metadata(task: TaskType) -> Dict[str, Any]:
 
 def get_all_roles_with_metadata() -> List[Dict[str, Any]]:
     """Get all roles with enriched metadata"""
-    from caas_app.knowledge.ontology.manager import AgentRole, ROLE_TASK_MAPPINGS
+    from caas_framework.knowledge.ontology.manager import AgentRole, ROLE_TASK_MAPPINGS
 
     roles = []
     for role_enum in AgentRole:
@@ -223,7 +223,7 @@ def get_all_roles_with_metadata() -> List[Dict[str, Any]]:
 
 def get_all_tasks_with_metadata() -> List[Dict[str, Any]]:
     """Get all tasks with enriched metadata"""
-    from caas_app.knowledge.ontology.manager import TaskType, TASK_TOOL_MAPPINGS
+    from caas_framework.knowledge.ontology.manager import TaskType, TASK_TOOL_MAPPINGS
 
     tasks = []
     for task_enum in TaskType:

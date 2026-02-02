@@ -9,13 +9,13 @@ Neo4j 기반 Knowledge Graph 관리를 제공합니다.
 - PatternMatcher: 패턴 검색 및 매칭
 """
 
-from caas_app.knowledge.graph.neo4j_client import (
+from caas_framework.knowledge.graph.neo4j_client import (
     Neo4jConfig,
     Neo4jClient,
     setup_schema,
     seed_initial_data,
 )
-from caas_app.knowledge.graph.queries import (
+from caas_framework.knowledge.graph.queries import (
     QueryTemplate,
     get_query,
     AGENT_QUERIES,
@@ -26,7 +26,7 @@ from caas_app.knowledge.graph.queries import (
     RELATIONSHIP_QUERIES,
     ANALYSIS_QUERIES,
 )
-from caas_app.knowledge.graph.patterns import (
+from caas_framework.knowledge.graph.patterns import (
     PatternMatcher,
     PatternMatch,
     AgentPattern,
