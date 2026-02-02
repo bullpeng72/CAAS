@@ -13,6 +13,8 @@ from caas_framework.config.settings import FrameworkConfig
 from caas_framework.config.loader import ConfigLoader
 from caas_framework.plugins.base import PluginRegistry, get_plugin_registry
 from caas_framework.plugins.llm.base import LLMPlugin
+# Import plugins module to trigger plugin registration
+import caas_framework.plugins  # noqa: F401
 from caas_framework.validation.orchestrator import (
     ValidationOrchestrator,
     ComprehensiveValidationResult

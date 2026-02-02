@@ -843,7 +843,7 @@ JSON으로 반환하세요 (모든 텍스트 필드는 한국어로)."""
         features = golden_data.features if golden_data and golden_data.features else []
 
         # Create tasks from features
-        for i, feature in enumerate(features):
+        for _, feature in enumerate(features):
             task = TaskSpecModel(
                 id=f"task_{feature.id.lower()}",
                 description=feature.description,

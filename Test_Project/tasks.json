@@ -1,0 +1,106 @@
+[
+  {
+    "id": "task_user_authentication",
+    "description": "사용자의 인증을 수행한다.",
+    "expected_output": "인증 성공 또는 실패 메시지",
+    "agent": "user_authentication_agent",
+    "context": [],
+    "async_execution": false,
+    "output_file": null,
+    "human_input": true
+  },
+  {
+    "id": "task_keyword_input",
+    "description": "사용자로부터 키워드를 입력받고 이를 저장한다.",
+    "expected_output": "입력된 키워드가 저장되었다는 메시지",
+    "agent": "keyword_input_agent",
+    "context": [
+      "task_user_authentication"
+    ],
+    "async_execution": false,
+    "output_file": null,
+    "human_input": true
+  },
+  {
+    "id": "task_keyword_validation",
+    "description": "입력된 키워드의 유효성을 검증한다.",
+    "expected_output": "유효성 검증 결과 및 오류 메시지",
+    "agent": "keyword_validation_agent",
+    "context": [
+      "task_keyword_input"
+    ],
+    "async_execution": false,
+    "output_file": null,
+    "human_input": false
+  },
+  {
+    "id": "task_keyword_error_handling",
+    "description": "유효성 검증 중 발생한 오류를 처리한다.",
+    "expected_output": "오류 처리 결과 메시지",
+    "agent": "keyword_error_handling_agent",
+    "context": [
+      "task_keyword_validation"
+    ],
+    "async_execution": false,
+    "output_file": null,
+    "human_input": false
+  },
+  {
+    "id": "task_data_collection",
+    "description": "유효한 키워드에 대해 관련 데이터를 수집한다.",
+    "expected_output": "수집된 데이터 목록",
+    "agent": "data_collection_agent",
+    "context": [
+      "task_keyword_validation"
+    ],
+    "async_execution": false,
+    "output_file": null,
+    "human_input": false
+  },
+  {
+    "id": "task_report_generation",
+    "description": "수집된 데이터를 바탕으로 동향 리포트를 생성한다.",
+    "expected_output": "생성된 리포트 파일",
+    "agent": "report_generation_agent",
+    "context": [
+      "task_data_collection"
+    ],
+    "async_execution": false,
+    "output_file": null,
+    "human_input": false
+  },
+  {
+    "id": "task_keyword_suggestion",
+    "description": "사용자에게 키워드 제안을 제공한다.",
+    "expected_output": "제안된 키워드 목록",
+    "agent": "keyword_suggestion_agent",
+    "context": [
+      "task_keyword_input"
+    ],
+    "async_execution": false,
+    "output_file": null,
+    "human_input": false
+  },
+  {
+    "id": "task_keyword_history_tracking",
+    "description": "입력된 키워드의 이력을 관리하고 저장한다.",
+    "expected_output": "키워드 이력 저장 완료 메시지",
+    "agent": "keyword_history_tracking_agent",
+    "context": [
+      "task_keyword_input"
+    ],
+    "async_execution": false,
+    "output_file": null,
+    "human_input": false
+  },
+  {
+    "id": "task_data_security",
+    "description": "데이터의 보안을 유지하고 접근을 관리한다.",
+    "expected_output": "보안 상태 보고서",
+    "agent": "data_security_agent",
+    "context": [],
+    "async_execution": false,
+    "output_file": null,
+    "human_input": false
+  }
+]

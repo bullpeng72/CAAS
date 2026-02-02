@@ -88,6 +88,7 @@ class LLMJudge:
         self,
         llm_plugin: LLMPlugin,
         approval_threshold: float = 7.0,
+        phase_thresholds: Optional[Dict[AgentPhase, float]] = None,
         logger: Optional[logging.Logger] = None
     ):
         """
@@ -95,11 +96,13 @@ class LLMJudge:
 
         Args:
             llm_plugin: LLM plugin for evaluation
-            approval_threshold: Minimum score for approval (0-10)
+            approval_threshold: Default minimum score for approval (0-10)
+            phase_thresholds: Optional phase-specific thresholds (overrides default)
             logger: Optional logger
         """
         self.llm = llm_plugin
         self.approval_threshold = approval_threshold
+        self.phase_thresholds = phase_thresholds or {}
         self.logger = logger or logging.getLogger(__name__)
 
         # Phase-specific evaluation criteria
@@ -110,6 +113,10 @@ class LLMJudge:
             AgentPhase.DELIVERY: self._get_delivery_criteria,
             AgentPhase.QUALITY_ASSURANCE: self._get_qa_criteria
         }
+
+    def get_threshold_for_phase(self, phase: AgentPhase) -> float:
+        """Get approval threshold for a specific phase."""
+        return self.phase_thresholds.get(phase, self.approval_threshold)
 
     async def evaluate_quality(
         self,
@@ -285,8 +292,9 @@ Evaluate now:"""
             if not dimension_scores and overall_score == 0.0:
                 overall_score = 5.0  # Neutral score as fallback
 
-            # Check approval
-            approved = overall_score >= self.approval_threshold
+            # Check approval using phase-specific threshold
+            threshold = self.get_threshold_for_phase(phase)
+            approved = overall_score >= threshold
 
             return EvaluationResult(
                 phase=phase,

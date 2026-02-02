@@ -1,573 +1,331 @@
 """
-Performance Metrics Collector
+Enhanced Metrics Collector
 
-Collects and tracks performance metrics for BMAD workflow execution:
-- Phase execution times
-- LLM API usage (calls, tokens, cost)
-- Validation runs
-- Feedback iterations
-- Success rates
-- Bottleneck identification
+Comprehensive metrics collection integrating:
+- LLM usage and costs
+- Cache hit rates
+- Quality scores
+- Performance metrics
+- Model usage
 """
 
 import time
-import json
-import sqlite3
-from dataclasses import dataclass, field, asdict
+import logging
+from typing import Dict, List, Any, Optional
+from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Dict, List, Optional, Any
-from pathlib import Path
 from enum import Enum
+from collections import defaultdict
 
 
-class MetricCategory(Enum):
-    """Metric category"""
-    PHASE_TIMING = "phase_timing"
-    LLM_USAGE = "llm_usage"
-    VALIDATION = "validation"
-    RESOURCE = "resource"
-
-
-@dataclass
-class PhaseMetrics:
-    """Metrics for a single phase execution"""
-    phase: str  # Phase name (e.g., "concretization", "discovery")
-    start_time: datetime
-    end_time: datetime
-    duration_seconds: float
-    llm_calls: int = 0
-    llm_tokens_input: int = 0
-    llm_tokens_output: int = 0
-    llm_tokens_total: int = 0
-    llm_cost_usd: float = 0.0
-    validation_runs: int = 0
-    feedback_iterations: int = 0
-    retry_count: int = 0
-    memory_mb: float = 0.0
-    success: bool = True
-    error: Optional[str] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
-
-    @property
-    def duration_ms(self) -> float:
-        """Duration in milliseconds"""
-        return self.duration_seconds * 1000
-
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary"""
-        data = asdict(self)
-        # Convert datetime to ISO format
-        data['start_time'] = self.start_time.isoformat()
-        data['end_time'] = self.end_time.isoformat()
-        return data
+class MetricType(str, Enum):
+    """Types of metrics"""
+    COUNTER = "counter"          # Incrementing count
+    GAUGE = "gauge"              # Current value
+    HISTOGRAM = "histogram"      # Distribution
+    TIMER = "timer"              # Duration measurement
 
 
 @dataclass
-class WorkflowMetrics:
-    """Metrics for entire workflow execution"""
-    workflow_id: str
-    requirement: str
-    start_time: datetime
-    end_time: datetime
-    total_duration_seconds: float
-    phases: List[PhaseMetrics] = field(default_factory=list)
-
-    # Aggregate LLM metrics
-    total_llm_calls: int = 0
-    total_tokens_input: int = 0
-    total_tokens_output: int = 0
-    total_tokens: int = 0
-    total_cost_usd: float = 0.0
-
-    # Workflow stats
-    total_phases: int = 0
-    successful_phases: int = 0
-    failed_phases: int = 0
-    success_rate: float = 1.0
-
-    # Performance analysis
-    bottleneck_phase: Optional[str] = None
-    slowest_phase_duration: float = 0.0
-    fastest_phase_duration: float = 0.0
-    avg_phase_duration: float = 0.0
-
-    # Resource usage
-    peak_memory_mb: float = 0.0
-
-    # Comparison with previous runs
-    speedup_vs_baseline: Optional[float] = None
-    cost_savings_vs_baseline: Optional[float] = None
-
-    metadata: Dict[str, Any] = field(default_factory=dict)
-
-    def calculate_aggregates(self):
-        """Calculate aggregate metrics from phase metrics"""
-        if not self.phases:
-            return
-
-        # Count phases
-        self.total_phases = len(self.phases)
-        self.successful_phases = sum(1 for p in self.phases if p.success)
-        self.failed_phases = self.total_phases - self.successful_phases
-        self.success_rate = self.successful_phases / self.total_phases if self.total_phases > 0 else 0.0
-
-        # Aggregate LLM metrics
-        self.total_llm_calls = sum(p.llm_calls for p in self.phases)
-        self.total_tokens_input = sum(p.llm_tokens_input for p in self.phases)
-        self.total_tokens_output = sum(p.llm_tokens_output for p in self.phases)
-        self.total_tokens = sum(p.llm_tokens_total for p in self.phases)
-        self.total_cost_usd = sum(p.llm_cost_usd for p in self.phases)
-
-        # Performance analysis
-        if self.phases:
-            durations = [p.duration_seconds for p in self.phases]
-            self.slowest_phase_duration = max(durations)
-            self.fastest_phase_duration = min(durations)
-            self.avg_phase_duration = sum(durations) / len(durations)
-
-            # Identify bottleneck (slowest phase)
-            slowest = max(self.phases, key=lambda p: p.duration_seconds)
-            self.bottleneck_phase = slowest.phase
-
-        # Peak memory
-        memory_values = [p.memory_mb for p in self.phases if p.memory_mb > 0]
-        if memory_values:
-            self.peak_memory_mb = max(memory_values)
+class Metric:
+    """Individual metric"""
+    name: str
+    type: MetricType
+    value: float
+    timestamp: datetime = field(default_factory=datetime.now)
+    labels: Dict[str, str] = field(default_factory=dict)
+    unit: str = ""
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""
-        data = asdict(self)
-        # Convert datetime
-        data['start_time'] = self.start_time.isoformat()
-        data['end_time'] = self.end_time.isoformat()
-        # Convert phase metrics
-        data['phases'] = [p.to_dict() for p in self.phases]
-        return data
+        return {
+            "name": self.name,
+            "type": self.type.value,
+            "value": self.value,
+            "timestamp": self.timestamp.isoformat(),
+            "labels": self.labels,
+            "unit": self.unit
+        }
 
 
-class MetricsCollector:
+class EnhancedMetricsCollector:
     """
-    Performance Metrics Collector
+    Enhanced metrics collector with comprehensive tracking.
 
-    Collects and manages performance metrics for BMAD workflow execution.
-    Supports real-time collection, storage, and analysis.
+    Collects:
+    - LLM metrics (calls, tokens, costs)
+    - Cache metrics (hits, misses, savings)
+    - Quality metrics (scores, issues, trends)
+    - Performance metrics (latency, throughput)
+    - Phase metrics (duration, success rate)
     """
 
-    def __init__(
+    def __init__(self, logger: Optional[logging.Logger] = None):
+        """Initialize metrics collector"""
+        self.logger = logger or logging.getLogger(__name__)
+        
+        # Metric storage
+        self.metrics: List[Metric] = []
+        self.counters: Dict[str, float] = defaultdict(float)
+        self.gauges: Dict[str, float] = {}
+        self.histograms: Dict[str, List[float]] = defaultdict(list)
+        self.timers: Dict[str, List[float]] = defaultdict(list)
+        
+        # Start time for uptime
+        self.start_time = datetime.now()
+
+    def increment(
         self,
-        workflow_id: Optional[str] = None,
-        requirement: str = "",
-        storage_path: Optional[Path] = None,
-        enable_sqlite: bool = False
+        name: str,
+        value: float = 1.0,
+        labels: Optional[Dict[str, str]] = None
     ):
         """
-        Initialize metrics collector
+        Increment a counter.
 
         Args:
-            workflow_id: Unique workflow identifier
-            requirement: Requirement being processed
-            storage_path: Path to store metrics (JSON/SQLite)
-            enable_sqlite: Enable SQLite storage (default: False, use JSON)
+            name: Counter name
+            value: Increment by this value
+            labels: Optional labels
         """
-        self.workflow_id = workflow_id or f"workflow_{int(time.time())}"
-        self.requirement = requirement
-        self.storage_path = storage_path or Path("./metrics")
-        self.enable_sqlite = enable_sqlite
+        key = self._make_key(name, labels)
+        self.counters[key] += value
+        
+        self.metrics.append(Metric(
+            name=name,
+            type=MetricType.COUNTER,
+            value=self.counters[key],
+            labels=labels or {}
+        ))
 
-        # Ensure storage directory exists
-        self.storage_path.mkdir(parents=True, exist_ok=True)
-
-        # Current workflow metrics
-        self.workflow_start_time: Optional[datetime] = None
-        self.workflow_end_time: Optional[datetime] = None
-        self.phase_metrics: List[PhaseMetrics] = []
-
-        # Phase timers
-        self.phase_timers: Dict[str, float] = {}
-        self.phase_counters: Dict[str, Dict[str, int]] = {}
-
-        # SQLite connection (if enabled)
-        self.db_conn: Optional[sqlite3.Connection] = None
-        if enable_sqlite:
-            self._init_sqlite()
-
-    def _init_sqlite(self):
-        """Initialize SQLite database"""
-        db_path = self.storage_path / "metrics.db"
-        self.db_conn = sqlite3.connect(str(db_path))
-
-        # Create tables
-        self.db_conn.execute('''
-            CREATE TABLE IF NOT EXISTS workflows (
-                workflow_id TEXT PRIMARY KEY,
-                requirement TEXT,
-                start_time TEXT,
-                end_time TEXT,
-                total_duration REAL,
-                total_llm_calls INTEGER,
-                total_tokens INTEGER,
-                total_cost REAL,
-                success_rate REAL,
-                bottleneck_phase TEXT,
-                metadata TEXT
-            )
-        ''')
-
-        self.db_conn.execute('''
-            CREATE TABLE IF NOT EXISTS phases (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                workflow_id TEXT,
-                phase TEXT,
-                start_time TEXT,
-                end_time TEXT,
-                duration REAL,
-                llm_calls INTEGER,
-                tokens_total INTEGER,
-                cost REAL,
-                success BOOLEAN,
-                error TEXT,
-                FOREIGN KEY (workflow_id) REFERENCES workflows(workflow_id)
-            )
-        ''')
-
-        self.db_conn.commit()
-
-    def start_workflow(self):
-        """Start workflow timing"""
-        self.workflow_start_time = datetime.now()
-
-    def end_workflow(self):
-        """End workflow timing"""
-        self.workflow_end_time = datetime.now()
-
-    def start_phase(self, phase: str):
+    def set_gauge(
+        self,
+        name: str,
+        value: float,
+        labels: Optional[Dict[str, str]] = None,
+        unit: str = ""
+    ):
         """
-        Start phase timing
+        Set a gauge value.
 
         Args:
-            phase: Phase name
+            name: Gauge name
+            value: Current value
+            labels: Optional labels
+            unit: Optional unit
         """
-        self.phase_timers[phase] = time.time()
+        key = self._make_key(name, labels)
+        self.gauges[key] = value
+        
+        self.metrics.append(Metric(
+            name=name,
+            type=MetricType.GAUGE,
+            value=value,
+            labels=labels or {},
+            unit=unit
+        ))
 
-        # Initialize counters
-        if phase not in self.phase_counters:
-            self.phase_counters[phase] = {
-                'llm_calls': 0,
-                'tokens_input': 0,
-                'tokens_output': 0,
-                'validation_runs': 0,
-                'feedback_iterations': 0,
-                'retry_count': 0
-            }
+    def observe(
+        self,
+        name: str,
+        value: float,
+        labels: Optional[Dict[str, str]] = None
+    ):
+        """
+        Observe a value (for histograms).
+
+        Args:
+            name: Histogram name
+            value: Observed value
+            labels: Optional labels
+        """
+        key = self._make_key(name, labels)
+        self.histograms[key].append(value)
+        
+        self.metrics.append(Metric(
+            name=name,
+            type=MetricType.HISTOGRAM,
+            value=value,
+            labels=labels or {}
+        ))
+
+    def time_operation(
+        self,
+        name: str,
+        duration_ms: float,
+        labels: Optional[Dict[str, str]] = None
+    ):
+        """
+        Record operation duration.
+
+        Args:
+            name: Operation name
+            duration_ms: Duration in milliseconds
+            labels: Optional labels
+        """
+        key = self._make_key(name, labels)
+        self.timers[key].append(duration_ms)
+        
+        self.metrics.append(Metric(
+            name=name,
+            type=MetricType.TIMER,
+            value=duration_ms,
+            labels=labels or {},
+            unit="ms"
+        ))
 
     def record_llm_call(
         self,
-        phase: str,
-        tokens_input: int,
-        tokens_output: int,
-        cost_usd: float
+        model: str,
+        tokens: int,
+        cost: float,
+        duration_ms: float,
+        phase: Optional[str] = None
     ):
         """
-        Record LLM API call
+        Record LLM API call metrics.
 
         Args:
-            phase: Phase name
-            tokens_input: Input tokens used
-            tokens_output: Output tokens generated
-            cost_usd: Cost in USD
+            model: Model name
+            tokens: Tokens used
+            cost: Cost in USD
+            duration_ms: Duration in ms
+            phase: Optional phase name
         """
-        if phase in self.phase_counters:
-            self.phase_counters[phase]['llm_calls'] += 1
-            self.phase_counters[phase]['tokens_input'] += tokens_input
-            self.phase_counters[phase]['tokens_output'] += tokens_output
+        labels = {"model": model}
+        if phase:
+            labels["phase"] = phase
 
-    def record_validation(self, phase: str):
-        """Record validation run"""
-        if phase in self.phase_counters:
-            self.phase_counters[phase]['validation_runs'] += 1
+        self.increment("llm_calls_total", labels=labels)
+        self.increment("llm_tokens_total", value=tokens, labels=labels)
+        self.increment("llm_cost_total", value=cost, labels=labels)
+        self.time_operation("llm_duration", duration_ms, labels=labels)
 
-    def record_feedback_iteration(self, phase: str):
-        """Record feedback iteration"""
-        if phase in self.phase_counters:
-            self.phase_counters[phase]['feedback_iterations'] += 1
+    def record_cache_hit(self, namespace: str):
+        """Record cache hit"""
+        self.increment("cache_hits_total", labels={"namespace": namespace})
 
-    def record_retry(self, phase: str):
-        """Record retry attempt"""
-        if phase in self.phase_counters:
-            self.phase_counters[phase]['retry_count'] += 1
+    def record_cache_miss(self, namespace: str):
+        """Record cache miss"""
+        self.increment("cache_misses_total", labels={"namespace": namespace})
 
-    def end_phase(
+    def record_quality_score(
         self,
         phase: str,
-        success: bool = True,
-        error: Optional[str] = None,
-        memory_mb: float = 0.0,
-        metadata: Optional[Dict[str, Any]] = None
-    ) -> PhaseMetrics:
+        score: float,
+        metric_name: str = "overall"
+    ):
         """
-        End phase and create metrics
+        Record quality score.
 
         Args:
             phase: Phase name
-            success: Whether phase succeeded
-            error: Error message if failed
-            memory_mb: Memory usage in MB
-            metadata: Additional metadata
-
-        Returns:
-            PhaseMetrics for this phase
+            score: Quality score (0-10)
+            metric_name: Metric name (e.g., "overall", "clarity")
         """
-        if phase not in self.phase_timers:
-            raise ValueError(f"Phase {phase} was not started")
-
-        end_time = datetime.now()
-        start_timestamp = self.phase_timers[phase]
-        start_time = datetime.fromtimestamp(start_timestamp)
-        duration = time.time() - start_timestamp
-
-        # Get counters
-        counters = self.phase_counters.get(phase, {})
-
-        # Calculate cost (OpenAI pricing example)
-        # Input: $0.01 per 1K tokens, Output: $0.03 per 1K tokens
-        tokens_input = counters.get('tokens_input', 0)
-        tokens_output = counters.get('tokens_output', 0)
-        cost = (tokens_input / 1000 * 0.01) + (tokens_output / 1000 * 0.03)
-
-        metric = PhaseMetrics(
-            phase=phase,
-            start_time=start_time,
-            end_time=end_time,
-            duration_seconds=duration,
-            llm_calls=counters.get('llm_calls', 0),
-            llm_tokens_input=tokens_input,
-            llm_tokens_output=tokens_output,
-            llm_tokens_total=tokens_input + tokens_output,
-            llm_cost_usd=cost,
-            validation_runs=counters.get('validation_runs', 0),
-            feedback_iterations=counters.get('feedback_iterations', 0),
-            retry_count=counters.get('retry_count', 0),
-            memory_mb=memory_mb,
-            success=success,
-            error=error,
-            metadata=metadata or {}
+        self.observe(
+            "quality_score",
+            score,
+            labels={"phase": phase, "metric": metric_name}
         )
 
-        self.phase_metrics.append(metric)
-
-        # Cleanup
-        del self.phase_timers[phase]
-
-        return metric
-
-    def get_workflow_metrics(self) -> WorkflowMetrics:
-        """
-        Get complete workflow metrics
-
-        Returns:
-            WorkflowMetrics with all aggregates calculated
-        """
-        if not self.workflow_start_time:
-            raise ValueError("Workflow was not started")
-
-        end_time = self.workflow_end_time or datetime.now()
-        duration = (end_time - self.workflow_start_time).total_seconds()
-
-        metrics = WorkflowMetrics(
-            workflow_id=self.workflow_id,
-            requirement=self.requirement,
-            start_time=self.workflow_start_time,
-            end_time=end_time,
-            total_duration_seconds=duration,
-            phases=self.phase_metrics
-        )
-
-        # Calculate aggregates
-        metrics.calculate_aggregates()
-
-        return metrics
-
-    def save_metrics(self, metrics: Optional[WorkflowMetrics] = None):
-        """
-        Save metrics to storage
-
-        Args:
-            metrics: WorkflowMetrics to save (default: get current)
-        """
-        if metrics is None:
-            metrics = self.get_workflow_metrics()
-
-        # Save to JSON
-        json_path = self.storage_path / f"{self.workflow_id}.json"
-        with open(json_path, 'w') as f:
-            json.dump(metrics.to_dict(), f, indent=2)
-
-        # Save to SQLite if enabled
-        if self.enable_sqlite and self.db_conn:
-            self._save_to_sqlite(metrics)
-
-    def _save_to_sqlite(self, metrics: WorkflowMetrics):
-        """Save metrics to SQLite database"""
-        # Insert workflow
-        self.db_conn.execute('''
-            INSERT OR REPLACE INTO workflows VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (
-            metrics.workflow_id,
-            metrics.requirement,
-            metrics.start_time.isoformat(),
-            metrics.end_time.isoformat(),
-            metrics.total_duration_seconds,
-            metrics.total_llm_calls,
-            metrics.total_tokens,
-            metrics.total_cost_usd,
-            metrics.success_rate,
-            metrics.bottleneck_phase,
-            json.dumps(metrics.metadata)
-        ))
-
-        # Insert phases
-        for phase in metrics.phases:
-            self.db_conn.execute('''
-                INSERT INTO phases (workflow_id, phase, start_time, end_time, duration,
-                                   llm_calls, tokens_total, cost, success, error)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (
-                metrics.workflow_id,
-                phase.phase,
-                phase.start_time.isoformat(),
-                phase.end_time.isoformat(),
-                phase.duration_seconds,
-                phase.llm_calls,
-                phase.llm_tokens_total,
-                phase.llm_cost_usd,
-                phase.success,
-                phase.error
-            ))
-
-        self.db_conn.commit()
-
-    @staticmethod
-    def load_metrics(workflow_id: str, storage_path: Path = Path("./metrics")) -> WorkflowMetrics:
-        """
-        Load metrics from storage
-
-        Args:
-            workflow_id: Workflow ID to load
-            storage_path: Path to storage directory
-
-        Returns:
-            WorkflowMetrics
-        """
-        json_path = storage_path / f"{workflow_id}.json"
-
-        if not json_path.exists():
-            raise FileNotFoundError(f"Metrics file not found: {json_path}")
-
-        with open(json_path, 'r') as f:
-            data = json.load(f)
-
-        # Reconstruct WorkflowMetrics
-        workflow_metrics = WorkflowMetrics(
-            workflow_id=data['workflow_id'],
-            requirement=data['requirement'],
-            start_time=datetime.fromisoformat(data['start_time']),
-            end_time=datetime.fromisoformat(data['end_time']),
-            total_duration_seconds=data['total_duration_seconds'],
-            phases=[
-                PhaseMetrics(
-                    phase=p['phase'],
-                    start_time=datetime.fromisoformat(p['start_time']),
-                    end_time=datetime.fromisoformat(p['end_time']),
-                    duration_seconds=p['duration_seconds'],
-                    llm_calls=p['llm_calls'],
-                    llm_tokens_input=p['llm_tokens_input'],
-                    llm_tokens_output=p['llm_tokens_output'],
-                    llm_tokens_total=p['llm_tokens_total'],
-                    llm_cost_usd=p['llm_cost_usd'],
-                    validation_runs=p['validation_runs'],
-                    feedback_iterations=p['feedback_iterations'],
-                    retry_count=p['retry_count'],
-                    memory_mb=p['memory_mb'],
-                    success=p['success'],
-                    error=p.get('error'),
-                    metadata=p.get('metadata', {})
-                )
-                for p in data['phases']
-            ],
-            total_llm_calls=data['total_llm_calls'],
-            total_tokens_input=data['total_tokens_input'],
-            total_tokens_output=data['total_tokens_output'],
-            total_tokens=data['total_tokens'],
-            total_cost_usd=data['total_cost_usd'],
-            total_phases=data['total_phases'],
-            successful_phases=data['successful_phases'],
-            failed_phases=data['failed_phases'],
-            success_rate=data['success_rate'],
-            bottleneck_phase=data.get('bottleneck_phase'),
-            slowest_phase_duration=data['slowest_phase_duration'],
-            fastest_phase_duration=data['fastest_phase_duration'],
-            avg_phase_duration=data['avg_phase_duration'],
-            peak_memory_mb=data['peak_memory_mb'],
-            metadata=data.get('metadata', {})
-        )
-
-        return workflow_metrics
-
-    def compare_with_baseline(
+    def record_phase_completion(
         self,
-        current: WorkflowMetrics,
-        baseline: WorkflowMetrics
-    ) -> Dict[str, Any]:
+        phase: str,
+        duration_ms: float,
+        success: bool
+    ):
         """
-        Compare current metrics with baseline
+        Record phase completion.
 
         Args:
-            current: Current workflow metrics
-            baseline: Baseline workflow metrics
+            phase: Phase name
+            duration_ms: Duration in ms
+            success: Whether phase succeeded
+        """
+        self.time_operation("phase_duration", duration_ms, labels={"phase": phase})
+        self.increment(
+            "phase_completions_total",
+            labels={"phase": phase, "status": "success" if success else "failure"}
+        )
+
+    def get_summary(self) -> Dict[str, Any]:
+        """
+        Get metrics summary.
 
         Returns:
-            Comparison dict with improvements/regressions
+            Summary dictionary
         """
-        duration_diff = current.total_duration_seconds - baseline.total_duration_seconds
-        duration_pct = (duration_diff / baseline.total_duration_seconds) * 100 if baseline.total_duration_seconds > 0 else 0
+        # Calculate uptime
+        uptime_seconds = (datetime.now() - self.start_time).total_seconds()
 
-        cost_diff = current.total_cost_usd - baseline.total_cost_usd
-        cost_pct = (cost_diff / baseline.total_cost_usd) * 100 if baseline.total_cost_usd > 0 else 0
+        # Aggregate counters
+        llm_calls = sum(v for k, v in self.counters.items() if "llm_calls_total" in k)
+        llm_tokens = sum(v for k, v in self.counters.items() if "llm_tokens_total" in k)
+        llm_cost = sum(v for k, v in self.counters.items() if "llm_cost_total" in k)
+        
+        cache_hits = sum(v for k, v in self.counters.items() if "cache_hits_total" in k)
+        cache_misses = sum(v for k, v in self.counters.items() if "cache_misses_total" in k)
+        cache_requests = cache_hits + cache_misses
+        cache_hit_rate = (cache_hits / cache_requests * 100) if cache_requests > 0 else 0
 
-        speedup = baseline.total_duration_seconds / current.total_duration_seconds if current.total_duration_seconds > 0 else 1.0
+        # Average quality scores
+        quality_scores = [
+            v for k, values in self.histograms.items()
+            if "quality_score" in k
+            for v in values
+        ]
+        avg_quality = sum(quality_scores) / len(quality_scores) if quality_scores else 0
 
         return {
-            "duration_improvement": {
-                "baseline_seconds": baseline.total_duration_seconds,
-                "current_seconds": current.total_duration_seconds,
-                "difference_seconds": duration_diff,
-                "difference_percent": duration_pct,
-                "improved": duration_diff < 0
+            "uptime_seconds": uptime_seconds,
+            "total_metrics": len(self.metrics),
+            "llm": {
+                "calls": int(llm_calls),
+                "tokens": int(llm_tokens),
+                "cost_usd": f"${llm_cost:.4f}",
+                "avg_cost_per_call": f"${llm_cost/llm_calls:.4f}" if llm_calls > 0 else "$0"
             },
-            "cost_improvement": {
-                "baseline_usd": baseline.total_cost_usd,
-                "current_usd": current.total_cost_usd,
-                "difference_usd": cost_diff,
-                "difference_percent": cost_pct,
-                "improved": cost_diff < 0
+            "cache": {
+                "hits": int(cache_hits),
+                "misses": int(cache_misses),
+                "hit_rate": f"{cache_hit_rate:.1f}%"
             },
-            "speedup": speedup,
-            "tokens_saved": baseline.total_tokens - current.total_tokens,
-            "llm_calls_saved": baseline.total_llm_calls - current.total_llm_calls
+            "quality": {
+                "avg_score": f"{avg_quality:.2f}/10.0",
+                "measurements": len(quality_scores)
+            }
         }
 
-    def close(self):
-        """Close collector and cleanup resources"""
-        if self.db_conn:
-            self.db_conn.close()
+    def get_metrics_by_type(self, metric_type: MetricType) -> List[Metric]:
+        """Get metrics filtered by type"""
+        return [m for m in self.metrics if m.type == metric_type]
 
-    def __enter__(self):
-        """Context manager entry"""
-        self.start_workflow()
-        return self
+    def get_metrics_by_name(self, name: str) -> List[Metric]:
+        """Get metrics filtered by name"""
+        return [m for m in self.metrics if m.name == name]
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        """Context manager exit"""
-        self.end_workflow()
-        self.save_metrics()
-        self.close()
+    def clear(self):
+        """Clear all metrics"""
+        self.metrics.clear()
+        self.counters.clear()
+        self.gauges.clear()
+        self.histograms.clear()
+        self.timers.clear()
+        self.start_time = datetime.now()
+
+    def _make_key(
+        self,
+        name: str,
+        labels: Optional[Dict[str, str]] = None
+    ) -> str:
+        """Make unique key for metric with labels"""
+        if not labels:
+            return name
+        
+        label_str = ",".join(f"{k}={v}" for k, v in sorted(labels.items()))
+        return f"{name}{{{label_str}}}"
+
+    def export_all(self) -> List[Dict[str, Any]]:
+        """Export all metrics as list of dicts"""
+        return [m.to_dict() for m in self.metrics]

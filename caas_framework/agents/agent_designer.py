@@ -15,6 +15,7 @@ from caas_framework.agents.base import (
     AgentPhase,
     ValidationIssue
 )
+from caas_framework.agents.executors import GoldenDataEnhancer
 from caas_framework.agents.registry import register_agent
 from caas_framework.models.specifications import (
     ConcretizedRequirement,
@@ -22,7 +23,7 @@ from caas_framework.models.specifications import (
     TaskSpecModel
 )
 from caas_framework.plugins.llm.base import LLMPlugin
-from caas_framework.utils import ResponseParser, PromptBuilder, GoldenDataMatcher, ObjectAccessor
+from caas_framework.utils import ResponseParser, PromptBuilder, ObjectAccessor
 from caas_framework.config.settings import LLMConstants
 
 
@@ -495,32 +496,13 @@ class AgentDesignerAgent(BaseExpertAgent):
 
     def _enhance_with_golden_data(self, result: Dict[str, Any]) -> Dict[str, Any]:
         """Enhance design with Golden Data traceability."""
-        if not self.golden_data:
-            return result
-
-        # Map tasks to features
-        tasks = result.get("tasks", [])
-        task_feature_map = GoldenDataMatcher.match_features_to_items(
-            features=self.golden_data.features,
-            items=tasks,
-            item_text_keys=["description"],
-            item_id_key="id"
+        enhancer = GoldenDataEnhancer(self.golden_data)
+        return enhancer.enhance_with_feature_task_mapping(
+            output=result,
+            agents_key="agents",
+            tasks_key="tasks",
+            alignment_key="golden_data_coverage"
         )
-
-        # Calculate coverage metrics
-        coverage_metrics = GoldenDataMatcher.calculate_coverage(
-            features=self.golden_data.features,
-            item_feature_map=task_feature_map
-        )
-
-        result["task_feature_map"] = task_feature_map
-        result["golden_data_coverage"] = {
-            "total_features": coverage_metrics["total_features"],
-            "covered_by_tasks": coverage_metrics["covered_features"],
-            "coverage_percentage": coverage_metrics["coverage_percentage"]
-        }
-
-        return result
 
     async def _refine_implementation(
         self,

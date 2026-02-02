@@ -31,6 +31,11 @@ from caas_cli.commands import (
     # Phase 2: Advanced Features
     generate_phase,
     test_cmd,
+    # Phase 2 Enhancement: Monitoring & Performance
+    cache_cmd,
+    monitor_cmd,
+    models_cmd,
+    profile_cmd,
     # Phase 3: Management Features
     session_cmd,
     workflow_cmd,
@@ -184,8 +189,15 @@ def show_comprehensive_help():
     console.print("  [green]test[/green]             Run syntax, import, and test validation")
     console.print("  [green]traceability[/green]     Track requirement → code coverage\n")
 
+    # Monitoring & Performance
+    console.print("[bold cyan]📊 MONITORING & PERFORMANCE[/bold cyan]")
+    console.print("  [green]cache[/green]            Cache management (stats, clear, config)")
+    console.print("  [green]monitor[/green]          Real-time monitoring (metrics, cost, quality, alerts)")
+    console.print("  [green]models[/green]           Multi-model router (list, metrics, switch, strategy)")
+    console.print("  [green]profile[/green]          Performance profiling (run, report, bottlenecks)\n")
+
     # Management & Workflow
-    console.print("[bold cyan]📊 MANAGEMENT[/bold cyan]")
+    console.print("[bold cyan]🔧 MANAGEMENT & WORKFLOW[/bold cyan]")
     console.print("  [green]session[/green]          Manage sessions (save/resume)")
     console.print("  [green]workflow[/green]         Control workflows (event-driven orchestration)")
     console.print("  [green]plugins[/green]          Manage LLM plugins (OpenAI, Anthropic, Google)\n")
@@ -359,17 +371,41 @@ def show_brief_help():
 
     brief_text.append("\n")
 
-    # Advanced & Management
-    brief_text.append("Advanced & Management:\n", style="bold yellow")
+    # Advanced Features
+    brief_text.append("Advanced Features:\n", style="bold yellow")
     advanced_commands = [
         ("generate-phase", "Generate specific BMAD phase"),
         ("test", "Run tests on generated code"),
         ("traceability", "Track requirement → code coverage"),
+    ]
+    for cmd, desc in advanced_commands:
+        brief_text.append(f"  {cmd:<16} ", style="cyan")
+        brief_text.append(f"{desc}\n", style="dim")
+
+    brief_text.append("\n")
+
+    # Monitoring & Performance
+    brief_text.append("Monitoring & Performance:\n", style="bold yellow")
+    monitoring_commands = [
+        ("cache", "Cache management"),
+        ("monitor", "Real-time monitoring & metrics"),
+        ("models", "Multi-model router management"),
+        ("profile", "Performance profiling"),
+    ]
+    for cmd, desc in monitoring_commands:
+        brief_text.append(f"  {cmd:<16} ", style="cyan")
+        brief_text.append(f"{desc}\n", style="dim")
+
+    brief_text.append("\n")
+
+    # Management & Workflow
+    brief_text.append("Management & Workflow:\n", style="bold yellow")
+    management_commands = [
         ("session", "Manage generation sessions"),
         ("workflow", "Control generation workflows"),
         ("plugins", "Manage LLM plugins"),
     ]
-    for cmd, desc in advanced_commands:
+    for cmd, desc in management_commands:
         brief_text.append(f"  {cmd:<16} ", style="cyan")
         brief_text.append(f"{desc}\n", style="dim")
 
@@ -579,7 +615,33 @@ def cli(ctx):
                          • Feature-to-code mapping
                          • Gap identification
 
-    📊 MANAGEMENT & WORKFLOW
+    📊 MONITORING & PERFORMANCE
+       cache             Cache management
+                         • View cache statistics
+                         • Clear cache by type
+                         • Configure cache settings
+
+       monitor           Real-time monitoring & metrics
+                         • System metrics tracking
+                         • Cost analysis & tracking
+                         • Quality metrics
+                         • Alert management
+                         • Export metrics (Prometheus, JSON)
+
+       models            Multi-model router management
+                         • List available models
+                         • View model performance metrics
+                         • Switch active model
+                         • Configure routing strategy
+                         • Manage fallback chain
+
+       profile           Performance profiling
+                         • Profile generation runs
+                         • Identify bottlenecks
+                         • Performance comparison
+                         • Optimization suggestions
+
+    🔧 MANAGEMENT & WORKFLOW
        session           Manage generation sessions
                          • Save/resume sessions
                          • Session history
@@ -729,6 +791,12 @@ cli.add_command(fix_cmd.fix)
 # Phase 2: Advanced Features
 cli.add_command(generate_phase.generate_phase)
 cli.add_command(test_cmd.test)
+
+# Phase 2 Enhancement: Monitoring & Performance
+cli.add_command(cache_cmd.cache)
+cli.add_command(monitor_cmd.monitor)
+cli.add_command(models_cmd.models)
+cli.add_command(profile_cmd.profile)
 
 # Phase 3: Management Features
 cli.add_command(session_cmd.session)

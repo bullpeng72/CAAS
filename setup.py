@@ -34,8 +34,8 @@ setup(
         "caas_cli.*",
         "caas_sdk",
         "caas_sdk.*",
-        "app",
-        "app.*",
+        "caas_app",
+        "caas_app.*",
     ]),
 
     package_data={

@@ -15,10 +15,11 @@ from caas_framework.agents.base import (
     AgentPhase,
     ValidationIssue
 )
+from caas_framework.agents.executors import RefinementExecutor, GoldenDataEnhancer
 from caas_framework.agents.registry import register_agent
 from caas_framework.models.specifications import ConcretizedRequirement
 from caas_framework.plugins.llm.base import LLMPlugin
-from caas_framework.utils import PromptBuilder, GoldenDataMatcher
+from caas_framework.utils import PromptBuilder
 
 
 @register_agent(phase=AgentPhase.DISCOVERY)
@@ -210,41 +211,13 @@ class RequirementAnalystAgent(BaseExpertAgent):
 
     def _enhance_with_golden_data(self, analysis: Dict[str, Any]) -> Dict[str, Any]:
         """Enhance analysis with Golden Data traceability."""
-        if not self.golden_data:
-            return analysis
-
-        # Check if golden_data has features
-        if not self.golden_data.features:
-            return analysis
-
-        # Build traceability map: feature -> functional requirements
-        functional_requirements = analysis.get("functional_requirements") or []
-        # Safety check: ensure functional_requirements is a list
-        if not isinstance(functional_requirements, list):
-            functional_requirements = []
-
-        traceability_map = GoldenDataMatcher.build_traceability_map(
-            features=self.golden_data.features,
-            items=functional_requirements,
+        enhancer = GoldenDataEnhancer(self.golden_data)
+        return enhancer.enhance_with_traceability(
+            output=analysis,
+            items_key="functional_requirements",
             item_text_keys=["description"],
             item_id_key="id"
         )
-
-        # Calculate coverage metrics
-        covered_features = len([frs for frs in traceability_map.values() if frs])
-        coverage_percentage = GoldenDataMatcher.calculate_percentage(
-            covered=covered_features,
-            total=len(self.golden_data.features)
-        )
-
-        analysis["traceability_map"] = traceability_map
-        analysis["golden_data_alignment"] = {
-            "total_features": len(self.golden_data.features),
-            "covered_features": covered_features,
-            "coverage_percentage": coverage_percentage
-        }
-
-        return analysis
 
     async def _refine_implementation(
         self,
@@ -255,40 +228,23 @@ class RequirementAnalystAgent(BaseExpertAgent):
     ) -> Dict[str, Any]:
         """
         Refine analysis based on validation feedback.
+
+        Uses RefinementExecutor for standardized refinement workflow.
         """
-        issues_summary = self._format_validation_issues(issues)
+        executor = RefinementExecutor.create_for_agent(
+            agent=self,
+            agent_role="Expert Requirements Analyst",
+            output_type="requirements analysis"
+        )
 
-        # Prepare Golden Data context if available
-        golden_data_info = None
-        if self.golden_data:
-            features = self.golden_data.features if self.golden_data.features else []
-            golden_data_info = {
-                "features": [f.name for f in features]
-            }
-
-        # Build refinement prompt using PromptBuilder
-        prompt = PromptBuilder.build_refinement_prompt(
-            agent_role="Requirements Analyst",
-            output_type="analysis",
-            current_output=output,
-            issues_summary=issues_summary,
-            golden_data=golden_data_info,
-            golden_data_context="Golden Data Features",
+        return await executor.refine_output(
+            output=output,
+            issues=issues,
+            iteration=iteration,
             guidelines=[
                 "Address each issue specifically",
                 "Maintain consistency with Golden Data features",
                 "Ensure all functional requirements have acceptance criteria",
                 "Verify traceability to Golden Data features"
-            ],
-            iteration=iteration
+            ]
         )
-
-        # Use unified LLM helper
-        refined = await self._invoke_llm_structured(
-            prompt=prompt,
-            expected_fields=list(output.keys()),
-            fallback_factory=lambda: output
-        )
-
-        # Use unified output merging helper
-        return self._merge_outputs(refined, output)

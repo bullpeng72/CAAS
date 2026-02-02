@@ -23,6 +23,11 @@ from caas_cli.commands import (
     # Phase 2: Advanced Features
     generate_phase,
     test_cmd,
+    # Phase 2 Enhancement: Monitoring & Performance
+    cache_cmd,
+    monitor_cmd,
+    models_cmd,
+    profile_cmd,
     # Phase 3: Management Features
     session_cmd,
     workflow_cmd,
@@ -52,6 +57,11 @@ __all__ = [
     # Phase 2
     "generate_phase",
     "test_cmd",
+    # Phase 2 Enhancement
+    "cache_cmd",
+    "monitor_cmd",
+    "models_cmd",
+    "profile_cmd",
     # Phase 3
     "session_cmd",
     "workflow_cmd",

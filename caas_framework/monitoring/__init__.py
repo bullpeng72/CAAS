@@ -1,25 +1,57 @@
 """
-Monitoring Module
+Enhanced Metrics and Monitoring
 
-Performance monitoring and metrics collection for CAAS workflows:
-- MetricsCollector: Collect and store performance metrics
-- PerformanceDashboard: Visualize metrics with Rich console
-- Report generation: Markdown and HTML reports
+Comprehensive monitoring system for tracking:
+- Real-time metrics
+- Cost tracking
+- Quality trends
+- Performance profiling
+- Alerts and anomalies
+- Export to monitoring tools
 """
 
 from caas_framework.monitoring.metrics_collector import (
-    MetricsCollector,
-    WorkflowMetrics,
-    PhaseMetrics,
-    MetricCategory
+    EnhancedMetricsCollector,
+    MetricType,
+    Metric
+)
+from caas_framework.monitoring.cost_tracker import (
+    CostTracker,
+    CostEntry,
+    CostSummary
+)
+from caas_framework.monitoring.quality_tracker import (
+    QualityTracker,
+    QualityMetric,
+    QualityTrend
+)
+from caas_framework.monitoring.alert_system import (
+    AlertSystem,
+    Alert,
+    AlertRule,
+    AlertSeverity
+)
+from caas_framework.monitoring.exporters import (
+    PrometheusExporter,
+    JSONExporter,
+    MetricsExporter
 )
 
-from caas_framework.monitoring.dashboard import PerformanceDashboard
-
 __all__ = [
-    "MetricsCollector",
-    "WorkflowMetrics",
-    "PhaseMetrics",
-    "MetricCategory",
-    "PerformanceDashboard"
+    "EnhancedMetricsCollector",
+    "MetricType",
+    "Metric",
+    "CostTracker",
+    "CostEntry",
+    "CostSummary",
+    "QualityTracker",
+    "QualityMetric",
+    "QualityTrend",
+    "AlertSystem",
+    "Alert",
+    "AlertRule",
+    "AlertSeverity",
+    "PrometheusExporter",
+    "JSONExporter",
+    "MetricsExporter"
 ]

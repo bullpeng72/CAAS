@@ -82,3 +82,7 @@ generated/
 *_UPDATE*.md
 CHANGELOG_*.md
 !CHANGELOG.md
+
+# Claude Code settings (local)
+.claude/settings.local.json
+.claude/techdebt-reports/

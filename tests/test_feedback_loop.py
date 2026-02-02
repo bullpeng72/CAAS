@@ -98,7 +98,7 @@ async def test_timeout_protection():
     # Run with timeout protection - should not hang
     start_time = asyncio.get_event_loop().time()
 
-    output = await loop.run_with_feedback(
+    output, llm_evaluation = await loop.run_with_feedback(
         agent=HangingAgent(),
         initial_output={"test": "data"},
         validator=MockValidator(),
@@ -112,6 +112,7 @@ async def test_timeout_protection():
     # Should timeout within ~1 second, not wait 5 seconds
     assert duration < 3, f"Operation should timeout quickly, but took {duration}s"
     assert output == {"test": "data"}, "Should return original output on timeout"
+    assert llm_evaluation is None, "Should return None for LLM evaluation when no LLM Judge"
 
 
 def test_collaboration_file_imports():

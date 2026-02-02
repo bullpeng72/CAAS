@@ -21,9 +21,11 @@ class TestCriticPatternIntegration:
 
     def test_critic_pattern_disabled_by_default(self):
         """Test that critic pattern is disabled by default"""
-        # Arrange
-        mock_llm = Mock(spec=LLMPlugin)
-        mock_golden = Mock(spec=ConcretizedRequirement)
+        # Arrange - Use MockFactory for consistent test data
+        from tests.helpers import MockFactory
+
+        mock_llm = MockFactory.create_llm_plugin()
+        mock_golden = MockFactory.create_golden_data()
 
         # Act
         collaboration = ExpertAgentCollaboration(
@@ -40,9 +42,11 @@ class TestCriticPatternIntegration:
 
     def test_critic_pattern_enabled_initialization(self):
         """Test that critic pattern initializes when enabled"""
-        # Arrange
-        mock_llm = Mock(spec=LLMPlugin)
-        mock_golden = Mock(spec=ConcretizedRequirement)
+        # Arrange - Use MockFactory for consistent test data
+        from tests.helpers import MockFactory
+
+        mock_llm = MockFactory.create_llm_plugin()
+        mock_golden = MockFactory.create_golden_data()
 
         # Act
         collaboration = ExpertAgentCollaboration(
@@ -81,9 +85,11 @@ class TestCriticPatternIntegration:
 
     def test_critic_pattern_configuration(self):
         """Test that critic pattern is configured correctly"""
-        # Arrange
-        mock_llm = Mock(spec=LLMPlugin)
-        mock_golden = Mock(spec=ConcretizedRequirement)
+        # Arrange - Use MockFactory for consistent test data
+        from tests.helpers import MockFactory
+
+        mock_llm = MockFactory.create_llm_plugin()
+        mock_golden = MockFactory.create_golden_data()
 
         # Act
         collaboration = ExpertAgentCollaboration(

@@ -15,6 +15,7 @@ from caas_framework.agents.base import (
     AgentPhase,
     ValidationIssue
 )
+from caas_framework.agents.executors import RefinementExecutor, GoldenDataEnhancer
 from caas_framework.agents.registry import register_agent
 from caas_framework.models.specifications import ConcretizedRequirement
 from caas_framework.plugins.llm.base import LLMPlugin
@@ -239,40 +240,30 @@ class SystemArchitectAgent(BaseExpertAgent):
         if not self.golden_data:
             return architecture
 
-        # Ensure data models are reflected in components
+        # Use GoldenDataEnhancer for data model alignment
+        enhancer = GoldenDataEnhancer(self.golden_data)
+        architecture = enhancer.enhance_with_data_models(
+            output=architecture,
+            components_key="components"
+        )
+
+        # Custom logic: Add database component if missing but data models exist
         components = architecture.get("components") or []
-        # Safety check: ensure components is a list
-        if not isinstance(components, list):
-            components = []
+        if isinstance(components, list):
+            db_components = [c for c in components if c.get("type") == "database"]
 
-        db_components = [
-            c for c in components
-            if c.get("type") == "database"
-        ]
+            if self.golden_data.data_models and not db_components:
+                data_models = self.golden_data.data_models
+                model_names = ', '.join(dm.entity_name for dm in data_models[:3]) if data_models else "data entities"
 
-        if self.golden_data.data_models and not db_components:
-            # Add database component if missing
-            data_models = self.golden_data.data_models if self.golden_data.data_models else []
-            model_names = ', '.join(dm.entity_name for dm in data_models[:3]) if data_models else "data entities"
-
-            architecture.setdefault("components", []).append({
-                "id": "database",
-                "name": "Data Layer",
-                "type": "database",
-                "responsibility": f"Stores {model_names}",
-                "interfaces": ["ORM"],
-                "dependencies": []
-            })
-
-        # Add alignment metadata
-        data_models = self.golden_data.data_models if self.golden_data.data_models else []
-        ui_components = self.golden_data.ui_components if self.golden_data.ui_components else []
-
-        architecture["golden_data_alignment"] = {
-            "data_models_covered": len(data_models),
-            "ui_components_supported": len(ui_components),
-            "deployment_target": self.golden_data.deployment_target
-        }
+                architecture.setdefault("components", []).append({
+                    "id": "database",
+                    "name": "Data Layer",
+                    "type": "database",
+                    "responsibility": f"Stores {model_names}",
+                    "interfaces": ["ORM"],
+                    "dependencies": []
+                })
 
         return architecture
 
@@ -283,41 +274,25 @@ class SystemArchitectAgent(BaseExpertAgent):
         context: Optional[Dict[str, Any]],
         iteration: int
     ) -> Dict[str, Any]:
-        """Refine architecture based on validation feedback."""
+        """
+        Refine architecture based on validation feedback.
 
-        issues_summary = self._format_validation_issues(issues)
+        Uses RefinementExecutor for standardized refinement workflow.
+        """
+        executor = RefinementExecutor.create_for_agent(
+            agent=self,
+            agent_role="Expert System Architect",
+            output_type="system architecture"
+        )
 
-        # Prepare Golden Data context if available
-        golden_data_info = None
-        if self.golden_data:
-            data_models = self.golden_data.data_models if self.golden_data.data_models else []
-            golden_data_info = {
-                "data_models": [dm.entity_name for dm in data_models]
-            }
-
-        # Build refinement prompt using PromptBuilder
-        prompt = PromptBuilder.build_refinement_prompt(
-            agent_role="System Architect",
-            output_type="architecture",
-            current_output=output,
-            issues_summary=issues_summary,
-            golden_data=golden_data_info,
-            golden_data_context="Golden Data Requirements",
+        return await executor.refine_output(
+            output=output,
+            issues=issues,
+            iteration=iteration,
             guidelines=[
                 "Address component dependencies",
                 "Ensure data flow covers all requirements",
                 "Verify technology stack alignment",
                 "Check scalability considerations"
-            ],
-            iteration=iteration
+            ]
         )
-
-        # Use unified LLM helper
-        refined = await self._invoke_llm_structured(
-            prompt=prompt,
-            expected_fields=list(output.keys()),
-            fallback_factory=lambda: output
-        )
-
-        # Use unified output merging helper
-        return self._merge_outputs(refined, output)

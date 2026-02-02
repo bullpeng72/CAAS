@@ -9,4 +9,9 @@ Provides pluggable architecture for:
 
 from caas_framework.plugins.base import Plugin, PluginRegistry
 
+# Import plugin modules to trigger registration
+from caas_framework.plugins import llm  # noqa: F401
+from caas_framework.plugins import graphdb  # noqa: F401
+from caas_framework.plugins import vectordb  # noqa: F401
+
 __all__ = ["Plugin", "PluginRegistry"]

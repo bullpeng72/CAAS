@@ -31,13 +31,10 @@ class TestFeedbackLoopIntegration:
     @pytest.fixture
     def mock_golden_data(self):
         """Create mock golden data for testing."""
-        return ConcretizedRequirement(
-            system_scope=SystemScope(
-                project_name="User Management API",
-                purpose="REST API for user management",
-                target_users=["developers", "administrators"],
-                system_type="rest_api"
-            ),
+        # Use centralized MockFactory to reduce duplication
+        from tests.helpers import MockFactory
+        return MockFactory.create_golden_data(
+            project_name="User Management API",
             features=[
                 FeatureSpec(
                     id="feat_001",
@@ -51,25 +48,30 @@ class TestFeedbackLoopIntegration:
                     description="Allow users to log in",
                     priority="high"
                 ),
-            ],
-            constraints=[],
-            assumptions=[]
+            ]
         )
 
     @pytest.fixture
     def mock_llm(self):
         """Create mock LLM plugin."""
-        llm = MagicMock()
-        llm.generate = AsyncMock(return_value={
-            "agents": [
+        # Use centralized MockFactory for consistency
+        from tests.helpers import MockFactory, LLMResponseBuilder
+
+        custom_response = (LLMResponseBuilder()
+            .with_agents([
                 {"name": "UserAgent", "role": "user_management", "capabilities": ["register", "login"]}
-            ],
-            "tasks": [
+            ])
+            .with_tasks([
                 {"name": "RegisterUser", "agent": "UserAgent", "description": "Handle user registration"},
                 {"name": "LoginUser", "agent": "UserAgent", "description": "Handle user login"}
-            ]
-        })
-        return llm
+            ])
+            .build())
+
+        from caas_framework.agents.base import AgentPhase
+        return MockFactory.create_llm_plugin(
+            model_name="test-model",
+            responses={AgentPhase.DESIGN: custom_response}
+        )
 
     @pytest.mark.asyncio
     async def test_feedback_loop_is_enabled(self, mock_llm, mock_golden_data):

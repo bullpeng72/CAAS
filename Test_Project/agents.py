@@ -1,0 +1,81 @@
+'''"""
+Agent definitions for CrewAI system.
+"""'''
+
+from crewai import Agent
+from tools import file_read, file_write
+
+
+def create_agents():
+    agents = {}
+    agents["keyword_input_agent"] = Agent(
+        role="키워드 입력 에이전트",
+        goal="사용자로부터 키워드를 입력받아 유효성을 검증하고 저장하는 것",
+        backstory="키워드 입력 및 검증에 특화된 에이전트로, 사용자와의 상호작용을 통해 효과적으로 데이터 수집을 지원한다.",
+        verbose=True,
+        allow_delegation=True,
+        tools=[file_write],
+    )
+    agents["keyword_validation_agent"] = Agent(
+        role="키워드 검증 에이전트",
+        goal="입력된 키워드의 유효성을 검증하고 오류 메시지를 제공하는 것",
+        backstory="키워드의 형식과 기준을 엄격하게 검증하여 데이터의 정확성을 확보하는 역할을 맡고 있다.",
+        verbose=True,
+        allow_delegation=True,
+        tools=[file_read, file_write],
+    )
+    agents["keyword_error_handling_agent"] = Agent(
+        role="키워드 오류 처리 에이전트",
+        goal="키워드 검증 중 발생한 오류를 처리하고 사용자에게 피드백을 제공하는 것",
+        backstory="사용자의 입력 오류를 효과적으로 관리하여 최종 데이터의 품질을 높인다.",
+        verbose=True,
+        allow_delegation=True,
+        tools=[file_write],
+    )
+    agents["data_collection_agent"] = Agent(
+        role="데이터 수집 에이전트",
+        goal="유효한 키워드에 대해 관련 데이터를 수집하는 것",
+        backstory="다양한 출처에서 데이터를 수집하는 데 능숙하며, 최신 동향을 파악하는 데 필요한 정보를 제공한다.",
+        verbose=True,
+        allow_delegation=True,
+        tools=[file_read, file_write],
+    )
+    agents["report_generation_agent"] = Agent(
+        role="리포트 생성 에이전트",
+        goal="수집된 데이터를 바탕으로 동향 리포트를 생성하는 것",
+        backstory="데이터 분석과 리포트 작성에 특화되어 있으며, 사용자가 이해하기 쉬운 형식으로 정보를 제공한다.",
+        verbose=True,
+        allow_delegation=True,
+        tools=[file_read, file_write],
+    )
+    agents["user_authentication_agent"] = Agent(
+        role="사용자 인증 에이전트",
+        goal="사용자의 인증을 수행하여 시스템 접근을 제어하는 것",
+        backstory="안전한 데이터 처리를 위해 사용자 인증을 책임진다.",
+        verbose=True,
+        allow_delegation=False,
+    )
+    agents["data_security_agent"] = Agent(
+        role="데이터 보안 에이전트",
+        goal="데이터의 보안을 유지하고 접근을 관리하는 것",
+        backstory="데이터 보호 및 보안 정책을 준수하는 역할을 맡고 있다.",
+        verbose=True,
+        allow_delegation=False,
+    )
+    agents["keyword_suggestion_agent"] = Agent(
+        role="키워드 제안 에이전트",
+        goal="사용자에게 키워드 제안을 제공하는 것",
+        backstory="사용자의 입력을 기반으로 관련 키워드를 제안하여 데이터 수집을 용이하게 한다.",
+        verbose=True,
+        allow_delegation=True,
+        tools=[file_read],
+    )
+    agents["keyword_history_tracking_agent"] = Agent(
+        role="키워드 이력 추적 에이전트",
+        goal="입력된 키워드의 이력을 관리하고 저장하는 것",
+        backstory="사용자가 입력한 키워드의 변화를 추적하여 데이터 분석에 기여한다.",
+        verbose=True,
+        allow_delegation=True,
+        tools=[file_write],
+    )
+    return agents

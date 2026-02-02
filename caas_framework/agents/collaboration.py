@@ -132,6 +132,8 @@ class SafeFeedbackLoop:
 
     Prevents hanging issues by applying timeouts to validation and refinement.
     This resolves the performance issue that caused feedback loops to be disabled.
+
+    Now uses TimeoutManager and RetryStrategy for consistent error handling.
     """
 
     def __init__(
@@ -153,9 +155,11 @@ class SafeFeedbackLoop:
         validator,
         phase: AgentPhase,
         context: Optional[Dict[str, Any]] = None
-    ) -> Dict[str, Any]:
+    ) -> tuple[Dict[str, Any], Optional[EvaluationResult]]:
         """
         Run feedback loop with timeout and retry protection.
+
+        Now uses RetryStrategy for consistent retry logic.
 
         Args:
             agent: The agent to refine output
@@ -165,95 +169,142 @@ class SafeFeedbackLoop:
             context: Optional context
 
         Returns:
-            Refined output (or original if refinement fails)
+            Tuple of (refined_output, llm_evaluation)
         """
+        from caas_framework.utils.async_helpers import RetryStrategy
+
         output = initial_output
+        llm_evaluation = None
 
-        for retry in range(self.max_retries):
-            try:
-                # Timeout-protected validation
-                validation_result = await asyncio.wait_for(
-                    self._validate_output(validator, output, phase),
-                    timeout=self.timeout_per_retry
-                )
+        # Use RetryStrategy for validation and refinement
+        success, result, _ = await RetryStrategy.execute_with_retry(
+            func=lambda: self._validate_and_refine_once(
+                agent, output, validator, phase, context
+            ),
+            max_retries=self.max_retries,
+            timeout_per_retry=self.timeout_per_retry,
+            operation_name=f"{phase.name} feedback loop",
+            logger_instance=self.logger
+        )
 
-                # Check if refinement is needed (Golden Data validation)
-                if not validation_result.needs_fixing:
-                    self.logger.info(f"✅ {phase.name} Golden Data validation passed")
+        if success:
+            # Unpack tuple result
+            refined_output, llm_evaluation = result
+            return refined_output, llm_evaluation
+        else:
+            self.logger.warning(
+                f"⚠️ Feedback loop failed after {self.max_retries} attempts, "
+                f"returning original output"
+            )
+            return output, None
 
-                    # Optional: LLM Judge quality evaluation (additional layer)
-                    if self.llm_judge:
-                        try:
-                            llm_eval = await asyncio.wait_for(
-                                self.llm_judge.evaluate_quality(
-                                    output=output,
-                                    phase=phase,
-                                    context=context
-                                ),
-                                timeout=self.timeout_per_retry
-                            )
+    async def _validate_and_refine_once(
+        self,
+        agent: BaseExpertAgent,
+        output: Dict[str, Any],
+        validator,
+        phase: AgentPhase,
+        context: Optional[Dict[str, Any]]
+    ) -> tuple[Dict[str, Any], Optional[EvaluationResult]]:
+        """
+        Single iteration of validate + refine.
 
-                            if llm_eval.approved:
-                                self.logger.info(
-                                    f"✅ {phase.name} LLM Judge approved "
-                                    f"(score: {llm_eval.overall_score:.1f}/10.0)"
-                                )
-                                return output
-                            else:
-                                self.logger.warning(
-                                    f"⚠️ {phase.name} LLM Judge suggests improvements "
-                                    f"(score: {llm_eval.overall_score:.1f}/10.0)"
-                                )
-                                # Add LLM feedback to issues
-                                issues.extend(self._extract_llm_issues(llm_eval))
-                        except asyncio.TimeoutError:
-                            self.logger.warning(f"⏱️ LLM Judge timed out, continuing with Golden Data validation")
+        Separated for cleaner retry logic.
 
-                    return output
+        Args:
+            agent: Agent to refine
+            output: Current output
+            validator: Validator
+            phase: Current phase
+            context: Optional context
 
-                # Extract issues
-                issues = self._extract_issues(validation_result)
+        Returns:
+            Tuple of (refined_output, llm_evaluation)
 
-                self.logger.warning(
-                    f"⚠️ {phase.name} validation failed "
-                    f"(attempt {retry + 1}/{self.max_retries}), "
-                    f"issues: {len(issues)}"
-                )
+        Raises:
+            Exception if refinement is needed but fails
+        """
+        from caas_framework.utils.async_helpers import TimeoutManager
+        from caas_framework.validation.issue_factory import ValidationIssueFactory
 
-                # Timeout-protected refinement
-                refined_result = await asyncio.wait_for(
-                    agent.refine(
-                        original_output=output,
-                        validation_issues=issues,
-                        context=context,
-                        max_iterations=1
-                    ),
-                    timeout=self.timeout_per_retry
-                )
+        # 1. Validation with timeout
+        val_success, validation_result, val_error = await TimeoutManager.execute_with_timeout(
+            self._validate_output(validator, output, phase),
+            timeout=self.timeout_per_retry,
+            operation_name=f"{phase.name} validation",
+            logger_instance=self.logger
+        )
 
-                if refined_result.success:
-                    output = refined_result.output
-                    self.logger.info(f"🔄 Refinement iteration {retry + 1} completed")
+        if not val_success:
+            raise RuntimeError(f"Validation failed: {val_error}")
+
+        # 2. LLM Judge quality evaluation (ALWAYS run, not just when validation passes)
+        llm_evaluation = None
+        if self.llm_judge:
+            llm_success, llm_eval, llm_error = await TimeoutManager.execute_with_timeout(
+                self.llm_judge.evaluate_quality(
+                    output=output,
+                    phase=phase,
+                    context=context
+                ),
+                timeout=self.timeout_per_retry,
+                operation_name=f"{phase.name} LLM Judge",
+                logger_instance=self.logger
+            )
+
+            if llm_success:
+                llm_evaluation = llm_eval
+                if llm_eval.approved:
+                    self.logger.info(
+                        f"✅ {phase.name} LLM Judge approved "
+                        f"(score: {llm_eval.overall_score:.1f}/10.0)"
+                    )
                 else:
-                    self.logger.error(f"❌ Refinement failed at iteration {retry + 1}")
-                    break
+                    self.logger.warning(
+                        f"⚠️ {phase.name} LLM Judge requires improvements "
+                        f"(score: {llm_eval.overall_score:.1f}/10.0)"
+                    )
 
-            except asyncio.TimeoutError:
-                self.logger.error(
-                    f"⏱️ {phase.name} validation/refinement timed out "
-                    f"after {self.timeout_per_retry}s (attempt {retry + 1})"
-                )
-                if retry < self.max_retries - 1:
-                    continue
-                else:
-                    self.logger.error("❌ Max retries exceeded, returning original output")
-                    break
+        # 3. Extract issues from both structural validation AND LLM Judge
+        issues = []
 
-            except Exception as e:
-                self.logger.exception(f"❌ Unexpected error in feedback loop: {e}")
-                break
+        # Structural validation issues
+        if validation_result.needs_fixing:
+            issues.extend(self._extract_issues(validation_result))
 
-        return output
+        # LLM Judge issues (semantic quality)
+        if llm_evaluation and not llm_evaluation.approved:
+            llm_issues = ValidationIssueFactory.from_llm_evaluation(llm_evaluation)
+            issues.extend(llm_issues)
+
+        # 4. If no issues, return output as-is
+        if not issues:
+            self.logger.info(f"✅ {phase.name} validation passed (structural + semantic)")
+            return output, llm_evaluation
+
+        self.logger.info(f"🔧 {phase.name} needs refinement: {len(issues)} issues")
+
+        # 5. Refinement with timeout
+        ref_success, refined_result, ref_error = await TimeoutManager.execute_with_timeout(
+            agent.refine(
+                original_output=output,
+                validation_issues=issues,
+                context=context,
+                max_iterations=1
+            ),
+            timeout=self.timeout_per_retry,
+            operation_name=f"{phase.name} refinement",
+            logger_instance=self.logger
+        )
+
+        if not ref_success:
+            raise RuntimeError(f"Refinement failed: {ref_error}")
+
+        if not refined_result.success:
+            raise RuntimeError("Refinement completed but marked as failed")
+
+        self.logger.info(f"✅ {phase.name} refinement completed")
+        return refined_result.output, llm_evaluation
 
     async def _validate_output(self, validator, output: Dict[str, Any], phase: AgentPhase):
         """Validate output (to be wrapped with timeout)."""
@@ -282,72 +333,31 @@ class SafeFeedbackLoop:
             return MockValidationResult()
 
     def _extract_issues(self, validation_result) -> List[ValidationIssue]:
-        """Extract issues from validation result."""
-        issues = []
+        """
+        Extract issues from validation result.
 
-        if hasattr(validation_result, 'golden_result') and validation_result.golden_result:
-            golden_result = validation_result.golden_result
+        Now uses ValidationIssueFactory for consistent issue extraction.
+        """
+        from caas_framework.validation.issue_factory import ValidationIssueFactory
 
-            # Missing items
-            for missing in golden_result.missing_items if hasattr(golden_result, 'missing_items') else []:
-                issues.append(ValidationIssue(
-                    issue_type=f"missing_{missing.item_type}",
-                    severity=missing.severity,
-                    message=f"Missing {missing.item_type}: {missing.item_name}",
-                    field=f"{missing.item_type}s"
-                ))
-
-            # Extra items
-            for extra in golden_result.extra_items if hasattr(golden_result, 'extra_items') else []:
-                issues.append(ValidationIssue(
-                    issue_type=f"extra_{extra.item_type}",
-                    severity=extra.severity,
-                    message=f"Extra {extra.item_type}: {extra.item_name}",
-                    field=f"{extra.item_type}s"
-                ))
-
-            # Mismatched items
-            for mismatch in golden_result.mismatched_items if hasattr(golden_result, 'mismatched_items') else []:
-                issues.append(ValidationIssue(
-                    issue_type=f"mismatched_{mismatch.item_type}",
-                    severity=mismatch.severity,
-                    message=f"Mismatch in {mismatch.item_type}: {mismatch.item_name}",
-                    field=f"{mismatch.item_type}s"
-                ))
-
-        return issues
+        return ValidationIssueFactory.from_comprehensive_validation(validation_result)
 
     def _extract_llm_issues(self, llm_evaluation: EvaluationResult) -> List[ValidationIssue]:
-        """Extract issues from LLM Judge evaluation result."""
-        issues = []
+        """
+        Extract issues from LLM Judge evaluation result.
 
-        # Add critical issues
-        for critical in llm_evaluation.critical_issues:
-            issues.append(ValidationIssue(
-                issue_type="llm_critical",
-                severity="high",
-                message=f"LLM Judge Critical: {critical}",
-                field="overall"
-            ))
+        Now uses ValidationIssueFactory for consistent issue extraction.
+        """
+        from caas_framework.validation.issue_factory import ValidationIssueFactory
 
-        # Add dimension-specific feedback for low scores
-        for dim_score in llm_evaluation.dimension_scores:
-            if dim_score.score < 7.0:  # Below approval threshold
-                issues.append(ValidationIssue(
-                    issue_type=f"llm_{dim_score.dimension.value}",
-                    severity="medium" if dim_score.score >= 5.0 else "high",
-                    message=f"{dim_score.dimension.value.capitalize()}: {dim_score.reasoning}",
-                    field=dim_score.dimension.value,
-                    suggested_fix="; ".join(dim_score.suggestions) if dim_score.suggestions else None
-                ))
-
-        return issues
+        return ValidationIssueFactory.from_llm_evaluation(llm_evaluation)
 
     async def _evaluate_quality_gate(
         self,
         phase: AgentPhase,
         output: Dict[str, Any],
-        context: Optional[Dict[str, Any]] = None
+        context: Optional[Dict[str, Any]] = None,
+        llm_evaluation: Optional[EvaluationResult] = None
     ) -> Optional[GateEvaluation]:
         """
         Evaluate quality gate for a phase.
@@ -356,25 +366,29 @@ class SafeFeedbackLoop:
             phase: Phase to evaluate
             output: Phase output
             context: Optional context with metrics
+            llm_evaluation: Optional LLM Judge evaluation result
 
         Returns:
             GateEvaluation if quality gates enabled, None otherwise
         """
-        try:
-            # TEMPORARY FIX: Disable quality gates to prevent hanging
-            # TODO: Fix the quality_gate_system.evaluate_gate() hanging issue
-            self.reporter.info(f"🚪 Quality gate check skipped for {phase.name} (temporary fix)")
-            return None
-        except Exception as e:
-            self.reporter.error(f"❌ Exception in quality gate: {str(e)}")
-            import traceback
-            self.reporter.error(f"Traceback: {traceback.format_exc()}")
-            return None
-
         if not self.quality_gate_system:
             return None
 
         self.reporter.info(f"🚪 Evaluating quality gate for {phase.name}")
+
+        # Enhance context with LLM Judge metrics
+        enhanced_context = context.copy() if context else {}
+        if llm_evaluation:
+            enhanced_context["llm_judge"] = {
+                "overall_score": llm_evaluation.overall_score,
+                "approved": llm_evaluation.approved,
+                "dimension_scores": {
+                    dim.dimension.value: dim.score
+                    for dim in llm_evaluation.dimension_scores
+                },
+                "critical_issues_count": len(llm_evaluation.critical_issues),
+                "warnings_count": len(llm_evaluation.warnings)
+            }
 
         # Evaluate gate with timeout to prevent hanging
         try:
@@ -383,7 +397,7 @@ class SafeFeedbackLoop:
                     self.quality_gate_system.evaluate_gate,
                     phase=phase,
                     output=output,
-                    context=context
+                    context=enhanced_context
                 ),
                 timeout=30.0  # 30 second timeout
             )
@@ -394,11 +408,12 @@ class SafeFeedbackLoop:
             self.reporter.error(f"❌ Quality gate evaluation failed for {phase.name}: {str(e)}")
             return None
 
-        # Log results
+        # Log results (including LLM Judge score if available)
         if gate_evaluation.can_proceed:
+            llm_score_str = f", LLM score: {llm_evaluation.overall_score:.1f}/10.0" if llm_evaluation else ""
             self.reporter.success(
                 f"✅ Quality gate passed for {phase.name} "
-                f"({gate_evaluation.pass_rate:.1f}% metrics passing)"
+                f"({gate_evaluation.pass_rate:.1f}% metrics passing{llm_score_str})"
             )
         else:
             self.reporter.warning(
@@ -408,16 +423,21 @@ class SafeFeedbackLoop:
             for rec in gate_evaluation.recommendations:
                 self.reporter.log_message(f"  💡 {rec}", "warning")
 
-        # Publish gate evaluation event
+        # Publish gate evaluation event with LLM Judge data
+        event_data = {
+            "gate_status": gate_evaluation.status.value,
+            "can_proceed": gate_evaluation.can_proceed,
+            "pass_rate": gate_evaluation.pass_rate,
+            "failed_metrics": gate_evaluation.failed_metrics
+        }
+        if llm_evaluation:
+            event_data["llm_judge_score"] = llm_evaluation.overall_score
+            event_data["llm_judge_approved"] = llm_evaluation.approved
+
         self.event_bus.publish(Event(
             type=PhaseEvent.VALIDATION_COMPLETED,
             phase=phase.name,
-            data={
-                "gate_status": gate_evaluation.status.value,
-                "can_proceed": gate_evaluation.can_proceed,
-                "pass_rate": gate_evaluation.pass_rate,
-                "failed_metrics": gate_evaluation.failed_metrics
-            },
+            data=event_data,
             timestamp=datetime.now().timestamp()
         ))
 
@@ -537,12 +557,25 @@ class ExpertAgentCollaboration:
         if enable_validation:
             self.validator = ValidationOrchestrator(golden_data=golden_data)
 
-        # LLM Judge for quality evaluation (optional)
-        llm_judge = LLMJudge(
-            llm_plugin=llm_plugin,
-            approval_threshold=7.0,  # Require 7.0/10.0 for approval
-            logger=logging.getLogger(__name__)
-        ) if enable_validation else None
+        # LLM Judge for quality evaluation with phase-specific thresholds
+        llm_judge = None
+        if enable_validation:
+            # Phase-specific thresholds for quality evaluation
+            phase_thresholds = {
+                AgentPhase.DISCOVERY: 6.5,          # Lower threshold (exploratory)
+                AgentPhase.ARCHITECTURE: 7.0,       # Standard threshold
+                AgentPhase.DESIGN: 7.5,             # Higher threshold (critical phase)
+                AgentPhase.DEVELOPMENT: 7.0,        # Standard threshold
+                AgentPhase.DELIVERY: 8.0,           # Highest threshold (production code)
+                AgentPhase.QUALITY_ASSURANCE: 7.0   # Standard threshold
+            }
+
+            llm_judge = LLMJudge(
+                llm_plugin=llm_plugin,
+                approval_threshold=7.0,  # Default threshold
+                phase_thresholds=phase_thresholds,  # Phase-specific overrides
+                logger=logging.getLogger(__name__)
+            )
 
         # Safe feedback loop (with timeout protection and LLM Judge)
         self.feedback_loop = SafeFeedbackLoop(
@@ -674,9 +707,13 @@ class ExpertAgentCollaboration:
                 ))
 
                 # QUALITY GATE: Discovery Phase
-                # TEMPORARY FIX: Skip quality gate evaluation entirely to prevent hanging
-                self.reporter.info("🔧 DEBUG: Quality gate evaluation skipped (temporary fix)")
-                gate_evaluation = None
+                # v1.1.0: Quality gate REACTIVATED with timeout protection
+                gate_evaluation = await self._evaluate_quality_gate_safe(
+                    phase=AgentPhase.DISCOVERY,
+                    output={"requirement_analysis": context.requirement_analysis},
+                    context={"golden_data": context.golden_data.model_dump() if context.golden_data else {}},
+                    llm_evaluation=None
+                )
 
                 # Check if can proceed
                 if gate_evaluation and not gate_evaluation.can_proceed:
@@ -817,8 +854,13 @@ class ExpertAgentCollaboration:
                 ))
 
                 # QUALITY GATE: Architecture Phase
-                # TEMPORARY FIX: Skip quality gate to prevent hanging
-                gate_evaluation = None
+                # v1.1.0: Quality gate REACTIVATED with timeout protection
+                gate_evaluation = await self._evaluate_quality_gate_safe(
+                    phase=AgentPhase.ARCHITECTURE,
+                    output={"architecture_design": context.architecture_design},
+                    context={"golden_data": context.golden_data.model_dump() if context.golden_data else {}},
+                    llm_evaluation=None
+                )
 
                 # Check if can proceed
                 if gate_evaluation and not gate_evaluation.can_proceed:
@@ -899,8 +941,13 @@ class ExpertAgentCollaboration:
                 ))
 
                 # QUALITY GATE: Design Phase
-                # TEMPORARY FIX: Skip quality gate to prevent hanging
-                gate_evaluation = None
+                # v1.1.0: Quality gate REACTIVATED with timeout protection
+                gate_evaluation = await self._evaluate_quality_gate_safe(
+                    phase=AgentPhase.DESIGN,
+                    output={"agent_task_design": context.agent_task_design},
+                    context={"golden_data": context.golden_data.model_dump() if context.golden_data else {}},
+                    llm_evaluation=None
+                )
 
                 # Check if can proceed
                 if gate_evaluation and not gate_evaluation.can_proceed:
@@ -1013,8 +1060,13 @@ class ExpertAgentCollaboration:
                 ))
 
                 # QUALITY GATE: Delivery Phase
-                # TEMPORARY FIX: Skip quality gate to prevent hanging
-                gate_evaluation = None
+                # v1.1.0: Quality gate REACTIVATED with timeout protection
+                gate_evaluation = await self._evaluate_quality_gate_safe(
+                    phase=AgentPhase.DELIVERY,
+                    output={"code_artifacts": context.code_artifacts},
+                    context={"golden_data": context.golden_data.model_dump() if context.golden_data else {}},
+                    llm_evaluation=None
+                )
 
                 # Check if can proceed
                 if gate_evaluation and not gate_evaluation.can_proceed:
@@ -1164,11 +1216,25 @@ class ExpertAgentCollaboration:
         # Get previous outputs
         previous_outputs = context.get_previous_outputs(phase)
 
+        # Build agent context with Golden Data and metadata
+        agent_context = {
+            "golden_data": context.golden_data,
+            "workflow_metadata": {
+                "phases_completed": [p.value for p in context.phases_completed],
+                "feedback_loops_executed": context.feedback_loops_executed,
+                "start_time": context.start_time.isoformat() if context.start_time else None
+            },
+            "validation_history": {
+                phase.value: result
+                for phase, result in context.validation_results.items()
+            }
+        }
+
         # Initial work
         self.reporter.agent_working(agent.agent_name, "Starting initial work")
         result = await agent.work(
             requirement=context.requirement,
-            context=None,
+            context=agent_context,
             previous_outputs=previous_outputs
         )
 
@@ -1182,46 +1248,62 @@ class ExpertAgentCollaboration:
             iterations=1
         )
 
-        # ✅ REACTIVATED: Safe Feedback Loop with Timeout Protection
-        # Previously disabled with "if False" due to performance issues
-        # Now uses SafeFeedbackLoop with timeout to prevent hanging
-        if self.enable_validation and self.validator and phase == AgentPhase.DESIGN:
-            # Special validation for Design phase (agents/tasks)
-            design_output = result.output
+        # ✅ Safe Feedback Loop with Timeout Protection - NOW ENABLED FOR ALL PHASES
+        # Uses SafeFeedbackLoop with timeout to prevent hanging
+        # Applies validation and refinement to Discovery, Architecture, Design, Development, and Delivery
+        if self.enable_validation and self.validator:
+            phase_output = result.output
 
-            if isinstance(design_output, dict):
-                agents_list = design_output.get("agents", [])
-                tasks_list = design_output.get("tasks", [])
-
-                self.reporter.validation_start("Design Validation", len(agents_list) + len(tasks_list))
+            if isinstance(phase_output, dict):
+                # Start validation with phase-appropriate message
+                validation_context = self._get_validation_context(phase, phase_output)
+                self.reporter.validation_start(
+                    validation_context["name"],
+                    validation_context["item_count"]
+                )
 
                 try:
-                    # Use SafeFeedbackLoop instead of manual loop
-                    refined_output = await self.feedback_loop.run_with_feedback(
+                    # Use SafeFeedbackLoop for all phases (now returns LLM evaluation too)
+                    refined_output, llm_evaluation = await self.feedback_loop.run_with_feedback(
                         agent=agent,
-                        initial_output=design_output,
+                        initial_output=phase_output,
                         validator=self.validator,
                         phase=phase,
-                        context=None
+                        context=agent_context
                     )
 
                     # Update result with refined output
-                    if refined_output != design_output:
+                    if refined_output != phase_output:
                         # Refinement occurred
                         context.feedback_loops_executed += 1
                         result.output = refined_output
-                        self.reporter.info(f"✅ Design refined successfully via safe feedback loop")
+                        self.reporter.info(f"✅ {phase.name} refined successfully via safe feedback loop")
                     else:
-                        self.reporter.info(f"✅ Design passed validation (no refinement needed)")
+                        self.reporter.info(f"✅ {phase.name} passed validation (no refinement needed)")
 
                     self.reporter.validation_result(
-                        validator_name="Design Validator (Safe Feedback Loop)",
+                        validator_name=f"{phase.name} Validator (Safe Feedback Loop)",
                         passed=True,
                         issues_count=0
                     )
 
+                    # ✅ NEW: Evaluate quality gate with LLM Judge integration
+                    gate_evaluation = await self._evaluate_quality_gate(
+                        phase=phase,
+                        output=refined_output,
+                        context=agent_context,
+                        llm_evaluation=llm_evaluation
+                    )
+
+                    # Store gate evaluation in context
+                    if gate_evaluation:
+                        context.validation_results[phase] = {
+                            "gate_evaluation": gate_evaluation,
+                            "llm_evaluation": llm_evaluation
+                        }
+
                 except Exception as e:
-                    self.reporter.error(f"Safe feedback loop failed: {e}")
+                    self.reporter.error(f"Safe feedback loop failed for {phase.name}: {e}")
                     # Return original result if feedback loop fails
                     self.reporter.info("Continuing with original output")
                     return result
@@ -1243,7 +1325,7 @@ class ExpertAgentCollaboration:
                     critic=self.critic_agent,
                     requirement=context.requirement,
                     phase=phase,
-                    context=None,
+                    context=agent_context,
                     previous_outputs=context.get_previous_outputs(phase)
                 )
 
@@ -1285,6 +1367,65 @@ class ExpertAgentCollaboration:
                 self.reporter.info("Continuing with output from feedback loop")
 
         return result
+
+    def _get_validation_context(
+        self,
+        phase: AgentPhase,
+        output: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Get validation context for different phases.
+
+        Returns dict with:
+        - name: Validation name for logging
+        - item_count: Number of items being validated
+        """
+        if phase == AgentPhase.DISCOVERY:
+            # Count functional requirements
+            requirements = output.get("functional_requirements", [])
+            return {
+                "name": "Requirements Validation",
+                "item_count": len(requirements) if isinstance(requirements, list) else 1
+            }
+
+        elif phase == AgentPhase.ARCHITECTURE:
+            # Count components
+            components = output.get("components", [])
+            return {
+                "name": "Architecture Validation",
+                "item_count": len(components) if isinstance(components, list) else 1
+            }
+
+        elif phase == AgentPhase.DESIGN:
+            # Count agents and tasks
+            agents_list = output.get("agents", [])
+            tasks_list = output.get("tasks", [])
+            return {
+                "name": "Design Validation",
+                "item_count": len(agents_list) + len(tasks_list)
+            }
+
+        elif phase == AgentPhase.DEVELOPMENT:
+            # Count specifications
+            return {
+                "name": "Specification Validation",
+                "item_count": 1
+            }
+
+        elif phase == AgentPhase.DELIVERY:
+            # Count generated files
+            files = output.get("files", {})
+            return {
+                "name": "Code Validation",
+                "item_count": len(files) if isinstance(files, dict) else 1
+            }
+
+        else:
+            # Generic validation
+            return {
+                "name": f"{phase.name} Validation",
+                "item_count": 1
+            }
 
     def _extract_validation_issues(
         self,
