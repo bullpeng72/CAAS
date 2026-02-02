@@ -5,9 +5,13 @@ Centralized configuration for all framework components.
 """
 
 import os
+from pathlib import Path
 from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, Field
 from enum import Enum
+from functools import lru_cache
+from pydantic import BaseModel, Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from dotenv import load_dotenv
 
 
 class LLMProvider(str, Enum):
@@ -292,3 +296,333 @@ class FrameworkConfig(BaseModel):
             f"graph={self.graph.backend}, "
             f"auto_fix={self.validation.auto_fix})>"
         )
+
+
+# =============================================================================
+# Legacy Settings (from caas_app/utils/config.py)
+# Provides pydantic-settings based configuration with .env file support
+# =============================================================================
+
+# Find project root
+def find_project_root() -> Path:
+    """Find project root directory."""
+    current = Path(__file__).resolve().parent
+    while current != current.parent:
+        if (current / "pyproject.toml").exists():
+            return current
+        current = current.parent
+    return Path(__file__).resolve().parent.parent.parent
+
+
+PROJECT_ROOT = find_project_root()
+ENV_FILE = PROJECT_ROOT / ".env"
+
+# Load .env file
+if ENV_FILE.exists():
+    load_dotenv(ENV_FILE, override=True)
+
+
+class LLMSettings(BaseSettings):
+    """LLM related settings (compatible with caas_app)"""
+
+    model_config = SettingsConfigDict(
+        extra="ignore",
+    )
+
+    # OpenAI
+    openai_api_key: Optional[str] = Field(
+        default=None,
+        validation_alias="OPENAI_API_KEY",
+    )
+
+    # Anthropic
+    anthropic_api_key: Optional[str] = Field(
+        default=None,
+        validation_alias="ANTHROPIC_API_KEY",
+    )
+
+    # Default LLM
+    default_llm_provider: str = Field(
+        default="openai",
+        validation_alias="DEFAULT_LLM_PROVIDER",
+    )
+    default_llm_model: str = Field(
+        default="gpt-4-turbo-preview",
+        validation_alias="DEFAULT_LLM_MODEL",
+    )
+
+    # Ollama
+    ollama_base_url: str = Field(
+        default="http://localhost:11434",
+        validation_alias="OLLAMA_BASE_URL",
+    )
+    ollama_model: str = Field(
+        default="qwen3:8b",
+        validation_alias="OLLAMA_MODEL",
+    )
+
+    def get_openai_api_key(self) -> str:
+        """Get OpenAI API key."""
+        if not self.openai_api_key:
+            raise ValueError("OPENAI_API_KEY not set. Please set it in .env file.")
+        return self.openai_api_key
+
+    def get_anthropic_api_key(self) -> str:
+        """Get Anthropic API key."""
+        if not self.anthropic_api_key:
+            raise ValueError("ANTHROPIC_API_KEY not set. Please set it in .env file.")
+        return self.anthropic_api_key
+
+
+class MCPSettings(BaseSettings):
+    """MCP (Model Context Protocol) settings"""
+
+    model_config = SettingsConfigDict(
+        env_file=str(ENV_FILE) if ENV_FILE.exists() else None,
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
+
+    mcp_enabled: bool = Field(default=False, alias="MCP_ENABLED")
+    mcp_transport_type: str = Field(default="http", alias="MCP_TRANSPORT_TYPE")
+    mcp_server_url: str = Field(default="http://localhost:3000", alias="MCP_SERVER_URL")
+    mcp_server_command: str = Field(default="python3", alias="MCP_SERVER_COMMAND")
+    mcp_server_args: str = Field(default="", alias="MCP_SERVER_ARGS")
+    mcp_connect_timeout: int = Field(default=30, alias="MCP_CONNECT_TIMEOUT")
+    mcp_tools: str = Field(default="", alias="MCP_TOOLS")
+
+    @property
+    def mcp_tools_list(self) -> List[str]:
+        """Return MCP tools as list."""
+        if not self.mcp_tools:
+            return []
+        return [tool.strip() for tool in self.mcp_tools.split(",") if tool.strip()]
+
+    @property
+    def mcp_server_args_list(self) -> List[str]:
+        """Return MCP server args as list."""
+        if not self.mcp_server_args:
+            return []
+        return [arg.strip() for arg in self.mcp_server_args.split(",") if arg.strip()]
+
+
+class Neo4jSettings(BaseSettings):
+    """Neo4j database settings"""
+
+    model_config = SettingsConfigDict(
+        env_file=str(ENV_FILE) if ENV_FILE.exists() else None,
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
+
+    graph_backend: str = Field(default="embedded", alias="GRAPH_BACKEND")
+    neo4j_uri: str = Field(default="bolt://localhost:7687", alias="NEO4J_URI")
+    neo4j_user: str = Field(default="neo4j", alias="NEO4J_USER")
+    neo4j_password: str = Field(default="password", alias="NEO4J_PASSWORD")
+    embedded_graph_storage: str = Field(
+        default="./data/embedded_graph.json",
+        alias="EMBEDDED_GRAPH_STORAGE"
+    )
+
+
+class AppSettings(BaseSettings):
+    """Application settings"""
+
+    model_config = SettingsConfigDict(
+        env_file=str(ENV_FILE) if ENV_FILE.exists() else None,
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
+
+    app_name: str = Field(default="CAAS", alias="APP_NAME")
+    app_env: str = Field(default="development", alias="APP_ENV")
+    debug: bool = Field(default=True, alias="DEBUG")
+    log_level: str = Field(default="INFO", alias="LOG_LEVEL")
+
+    # Streamlit
+    streamlit_server_port: int = Field(default=8501, alias="STREAMLIT_SERVER_PORT")
+    streamlit_server_address: str = Field(default="localhost", alias="STREAMLIT_SERVER_ADDRESS")
+
+    # Directories
+    output_dir: str = Field(default="./generated", alias="OUTPUT_DIR")
+    template_dir: str = Field(default="./data/templates", alias="TEMPLATE_DIR")
+
+    @property
+    def is_development(self) -> bool:
+        return self.app_env == "development"
+
+    @property
+    def is_production(self) -> bool:
+        return self.app_env == "production"
+
+
+class ArtifactSettings(BaseSettings):
+    """Artifact generation settings"""
+
+    model_config = SettingsConfigDict(
+        extra="ignore",
+    )
+
+    enabled: bool = Field(
+        default=True,
+        validation_alias="ARTIFACT_GENERATION_ENABLED",
+        description="Enable artifact auto-generation"
+    )
+
+    # Artifact types to generate
+    generate_project_proposal: bool = Field(default=True)
+    generate_requirements_spec: bool = Field(default=True)
+    generate_architecture_design: bool = Field(default=True)
+    generate_data_design: bool = Field(default=True)
+    generate_api_design: bool = Field(default=False)
+    generate_agent_design: bool = Field(default=True)
+    generate_test_plan: bool = Field(default=False)
+    generate_test_report: bool = Field(default=False)
+    generate_code_review: bool = Field(default=False)
+    generate_deployment_guide: bool = Field(default=False)
+
+    # Output settings
+    output_format: str = Field(
+        default="markdown",
+        validation_alias="ARTIFACT_OUTPUT_FORMAT"
+    )
+    output_directory: str = Field(
+        default="./artifacts",
+        validation_alias="ARTIFACT_OUTPUT_DIR"
+    )
+
+    # Additional options
+    include_diagrams: bool = Field(default=True)
+    include_code_samples: bool = Field(default=True)
+    language: str = Field(default="ko")
+
+
+class Settings(BaseSettings):
+    """
+    Unified settings class (compatible with caas_app/utils/config.py).
+    
+    Provides pydantic-settings based configuration with .env file support.
+    This is the legacy settings system that loads from environment variables.
+    
+    For new code, prefer using FrameworkConfig for programmatic configuration.
+    """
+
+    model_config = SettingsConfigDict(
+        env_file=str(ENV_FILE) if ENV_FILE.exists() else None,
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
+
+    # Sub-settings
+    llm: LLMSettings = Field(default_factory=LLMSettings)
+    mcp: MCPSettings = Field(default_factory=MCPSettings)
+    neo4j: Neo4jSettings = Field(default_factory=Neo4jSettings)
+    app: AppSettings = Field(default_factory=AppSettings)
+    artifacts: ArtifactSettings = Field(default_factory=ArtifactSettings)
+
+    # Project paths
+    project_root: Path = PROJECT_ROOT
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        # SECURITY: Store API keys in SecretManager
+        try:
+            from caas_framework.config.secrets import get_secret_manager
+            secret_manager = get_secret_manager()
+
+            if self.llm.openai_api_key:
+                secret_manager.set_secret("OPENAI_API_KEY", self.llm.openai_api_key)
+                self.llm.openai_api_key = None
+
+            if self.llm.anthropic_api_key:
+                secret_manager.set_secret("ANTHROPIC_API_KEY", self.llm.anthropic_api_key)
+                self.llm.anthropic_api_key = None
+        except ImportError:
+            # SecretManager not available, skip
+            pass
+
+
+@lru_cache()
+def get_settings() -> Settings:
+    """
+    Return settings singleton instance.
+    
+    Returns:
+        Settings: Application settings object
+    """
+    return Settings()
+
+
+# Global settings object for convenience
+settings = get_settings()
+
+
+def reload_settings() -> Settings:
+    """Reload settings."""
+    get_settings.cache_clear()
+    return get_settings()
+
+
+def get_api_key(key_name: str) -> Optional[str]:
+    """
+    Safely retrieve API key.
+    
+    Args:
+        key_name: Key name (e.g., "OPENAI_API_KEY")
+    
+    Returns:
+        str: API key value or None
+    """
+    try:
+        from caas_framework.config.secrets import get_secret_manager
+        secret_manager = get_secret_manager()
+
+        # Try SecretManager first
+        value = secret_manager.get_secret(key_name)
+        if value:
+            return value
+    except ImportError:
+        pass
+
+    # Fallback to environment variable
+    env_value = os.getenv(key_name)
+    if env_value:
+        return env_value
+
+    # Final fallback: read directly from .env file
+    if ENV_FILE.exists():
+        try:
+            from dotenv import dotenv_values
+            env_dict = dotenv_values(ENV_FILE)
+            return env_dict.get(key_name)
+        except Exception:
+            pass
+
+    return None
+
+
+def set_subprocess_env(base_env: Optional[Dict[str, str]] = None) -> Dict[str, str]:
+    """
+    Create environment dict for subprocess with secrets.
+    
+    Args:
+        base_env: Base environment dict
+    
+    Returns:
+        dict: Environment dict with secrets
+    """
+    env = base_env.copy() if base_env else os.environ.copy()
+
+    try:
+        from caas_framework.config.secrets import get_secret_manager
+        secret_manager = get_secret_manager()
+
+        # Add secrets only if explicitly needed for subprocess
+        for key in ["OPENAI_API_KEY", "ANTHROPIC_API_KEY"]:
+            if secret_manager.has_secret(key):
+                env.update(secret_manager.get_for_subprocess(key))
+    except ImportError:
+        pass
+
+    return env

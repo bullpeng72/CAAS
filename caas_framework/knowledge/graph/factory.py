@@ -7,7 +7,7 @@ CAAS Graph Client Factory
 from typing import Union
 from pathlib import Path
 
-from caas_app.utils.config import get_settings
+from caas_framework.config.settings import get_settings
 from caas_framework.utils.logger import get_logger
 from caas_framework.knowledge.graph.embedded_graph import EmbeddedGraphClient
 

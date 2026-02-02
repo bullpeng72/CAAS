@@ -273,8 +273,8 @@ async def _execute_phase_0(framework, requirement, domain, output_path, verbose)
     if verbose:
         click.echo()
         echo_info(f"Features extracted: {len(golden_data.features)}")
-        echo_info(f"Functional requirements: {len(golden_data.functional_requirements)}")
-        echo_info(f"Non-functional requirements: {len(golden_data.non_functional_requirements)}")
+        echo_info(f"Data models: {len(golden_data.data_models)}")
+        echo_info(f"Non-functional requirements: {len(golden_data.non_functional_requirements)} categories")
 
     # Save golden data
     save_json(output_path / "golden_data.json", golden_data)
@@ -301,7 +301,12 @@ async def _execute_phase_1(framework, input_dir, output_path, verbose):
         use_expert_agents=True
     )
 
-    analysis = await engine._phase_1_discovery(golden_data)
+    # Extract requirement from golden data
+    requirement = (golden_data.system_scope.scope_description or
+                   golden_data.system_scope.purpose or
+                   golden_data.system_scope.project_name)
+
+    analysis = await engine._phase_1_discovery(requirement, golden_data)
 
     if verbose:
         click.echo()

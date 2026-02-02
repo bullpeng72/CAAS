@@ -25,7 +25,7 @@ except ImportError as e:
     Session = None
     NEO4J_AVAILABLE = False
 
-from caas_app.utils.config import get_settings
+from caas_framework.config.settings import get_settings
 from caas_framework.utils.logger import get_logger, LoggerMixin
 from caas_framework.utils.security import (
     sanitize_neo4j_label,
