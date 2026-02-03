@@ -1,0 +1,22 @@
+[flake8]
+exclude =
+    .git,
+    __pycache__,
+    .venv,
+    venv,
+    build,
+    dist,
+    *.egg-info,
+    .eggs
+
+max-line-length = 100
+
+# Ignore specific errors
+ignore =
+    E203,  # Whitespace before ':'
+    E501,  # Line too long (handled by black)
+    W503,  # Line break before binary operator
+    
+# Custom rules to prevent print() statements
+# T001: print() found (use logger instead)
+enable-extensions = T

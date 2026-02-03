@@ -23,6 +23,9 @@ from typing import Any, Dict, List, Optional
 from pydantic import BaseModel
 
 from caas_framework.models.specifications import AgentSpecModel, TaskSpecModel
+from caas_framework.utils.logger import get_logger
+
+logger = get_logger()
 
 
 class TestCase(BaseModel):
@@ -1354,7 +1357,7 @@ def {name}(input_data: Any = None, error_condition: bool = False) -> Any:
         impl_file = f"{output_dir}/src/{name}.py"
 
         # Phase 1: RED - Generate failing tests
-        print(f"🔴 RED Phase: Generating tests for {name}...")
+        logger.info(f"🔴 RED Phase: Generating tests for {name}...")
         test_code = self.generate_test_code(feature_spec)
 
         with open(test_file, "w") as f:
@@ -1363,7 +1366,7 @@ def {name}(input_data: Any = None, error_condition: bool = False) -> Any:
         red_phase = {"status": "generated", "test_count": test_code.count("def test_")}
 
         # Phase 2: GREEN - Generate implementation
-        print(f"🟢 GREEN Phase: Generating implementation for {name}...")
+        logger.info(f"🟢 GREEN Phase: Generating implementation for {name}...")
         impl_code = self.generate_implementation(feature_spec, test_code)
 
         with open(impl_file, "w") as f:
@@ -1380,12 +1383,12 @@ def {name}(input_data: Any = None, error_condition: bool = False) -> Any:
         }
 
         # Phase 3: REFACTOR - Iteratively improve until tests pass
-        print(f"🔵 REFACTOR Phase: Refining implementation...")
+        logger.info(f"🔵 REFACTOR Phase: Refining implementation...")
         iterations = 0
 
         while test_results.get("failed", 0) > 0 and iterations < self.max_iterations:
             iterations += 1
-            print(f"  Iteration {iterations}/{self.max_iterations}...")
+            logger.info(f"  Iteration {iterations}/{self.max_iterations}...")
 
             # Refine implementation
             impl_code = self.refine_implementation(feature_spec, impl_code, test_results)
@@ -1397,7 +1400,7 @@ def {name}(input_data: Any = None, error_condition: bool = False) -> Any:
             test_results = self.run_tests(test_file, impl_file)
 
             if test_results.get("failed", 0) == 0:
-                print(f"  ✅ All tests passed after {iterations} iterations!")
+                logger.info(f"  ✅ All tests passed after {iterations} iterations!")
                 break
 
         refactor_phase = {

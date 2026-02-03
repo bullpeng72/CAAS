@@ -1,0 +1,44 @@
+# Ruff configuration for CAAS project
+# Ruff is a fast Python linter (replaces flake8, isort, etc.)
+
+[lint]
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes
+    "I",   # isort
+    "T20", # flake8-print (detects print statements)
+]
+
+ignore = [
+    "E501", # Line too long (handled by formatter)
+]
+
+# Exclude auto-generated files and templates
+exclude = [
+    ".git",
+    "__pycache__",
+    ".venv",
+    "venv",
+    "build",
+    "dist",
+    "*.egg-info",
+    ".eggs",
+    "data/templates/*",  # Exclude code generation templates
+]
+
+[lint.per-file-ignores]
+# Allow print() in CLI commands (user-facing output)
+"caas_cli/commands/*.py" = ["T20"]
+# Allow print() in example/demo files
+"*/examples/*.py" = ["T20"]
+"*/demos/*.py" = ["T20"]
+# Allow print() in interactive guides
+"caas_framework/examples/interactive_guide.py" = ["T20"]
+"caas_framework/execution/plan_mode.py" = ["T20"]
+# Allow print() in test files
+"tests/**/*.py" = ["T201"]
+
+[format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
