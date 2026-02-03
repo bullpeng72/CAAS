@@ -795,7 +795,7 @@ class GenerationResult:
         with open(manifest_file, "w", encoding="utf-8") as f:
             json.dump(manifest, f, indent=2, ensure_ascii=False)
 
-        print(f"✅ Artifacts saved to {output_path}")
+        logger.info(f"✅ Artifacts saved to {output_path}")
 
 
 class CodeGenerationResult:

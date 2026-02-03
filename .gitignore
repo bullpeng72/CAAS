@@ -74,14 +74,27 @@ generated/
 *.bak
 *~
 
+# Test directories
+Test_Project/
+cli_tests/
+artifacts/
+
 # Temporary analysis documents (keep docs/ directory clean)
 *_ANALYSIS.md
 *_REPORT.md
 *_SUMMARY.md
 *_COVERAGE*.md
 *_UPDATE*.md
+*_IMPROVEMENTS*.md
+*_FIX_REPORT*.md
 CHANGELOG_*.md
 !CHANGELOG.md
+
+# Test result documents
+docs/*_TESTING*.md
+docs/*_테스트*.md
+docs/*IMPROVEMENTS*.md
+docs/*REPORT*.md
 
 # Claude Code settings (local)
 .claude/settings.local.json

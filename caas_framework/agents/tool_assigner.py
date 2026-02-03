@@ -7,6 +7,10 @@ reducing overhead and improving performance.
 
 from typing import Dict, List, Set
 
+from caas_framework.utils.logger import get_logger
+
+logger = get_logger()
+
 
 class MinimalToolAssigner:
     """Assigns only the minimum necessary tools to each agent based on their tasks."""
@@ -395,15 +399,15 @@ def optimize_agent_tools(
     # Print report if verbose
     if verbose:
         report = assigner.get_tool_usage_report(agents, tasks)
-        print("\n" + "=" * 70)
-        print("Tool Assignment Optimization Report")
-        print("=" * 70)
-        print(f"Total Agents: {report['total_agents']}")
-        print(f"Total Tools Assigned: {report['total_tools_assigned']}")
-        print(f"Average Tools per Agent: {report['avg_tools_per_agent']}")
-        print("\nMost Common Tools:")
+        logger.info("\n" + "=" * 70)
+        logger.info("Tool Assignment Optimization Report")
+        logger.info("=" * 70)
+        logger.info(f"Total Agents: {report['total_agents']}")
+        logger.info(f"Total Tools Assigned: {report['total_tools_assigned']}")
+        logger.info(f"Average Tools per Agent: {report['avg_tools_per_agent']}")
+        logger.info("\nMost Common Tools:")
         for tool, count in report["most_common_tools"]:
-            print(f"  - {tool}: {count} agents")
-        print("=" * 70 + "\n")
+            logger.info(f"  - {tool}: {count} agents")
+        logger.info("=" * 70 + "\n")
 
     return optimized_agents
