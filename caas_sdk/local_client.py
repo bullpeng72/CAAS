@@ -9,6 +9,8 @@ import asyncio
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
+from caas_framework.utils.logger import get_logger
+
 logger = get_logger()
 
 
