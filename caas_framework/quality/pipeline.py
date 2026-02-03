@@ -373,39 +373,39 @@ class CodeQualityPipeline:
 
     def print_report(self, report: QualityReport) -> None:
         """Print quality report to console."""
-        print("\n" + "=" * 70)
-        print("CODE QUALITY REPORT")
-        print("=" * 70)
+        self.logger.info("\n" + "=" * 70)
+        self.logger.info("CODE QUALITY REPORT")
+        self.logger.info("=" * 70)
 
-        print(f"\n📊 Summary:")
-        print(f"  Files Checked: {report.files_checked}")
-        print(f"  Total Duration: {report.total_duration:.2f}s")
-        print(f"  Errors: {report.total_errors}")
-        print(f"  Warnings: {report.total_warnings}")
+        self.logger.info(f"\n📊 Summary:")
+        self.logger.info(f"  Files Checked: {report.files_checked}")
+        self.logger.info(f"  Total Duration: {report.total_duration:.2f}s")
+        self.logger.info(f"  Errors: {report.total_errors}")
+        self.logger.info(f"  Warnings: {report.total_warnings}")
 
-        print(f"\n✅ Overall: {'PASSED' if report.overall_passed else 'FAILED'}")
+        self.logger.info(f"\n✅ Overall: {'PASSED' if report.overall_passed else 'FAILED'}")
 
-        print("\n📋 Check Results:")
+        self.logger.info("\n📋 Check Results:")
         for check in report.checks:
             status_icon = (
                 "✅"
                 if check.status == CheckStatus.PASSED
                 else "⚠️" if check.status == CheckStatus.WARNING else "❌"
             )
-            print(f"\n  {status_icon} {check.name} ({check.duration:.2f}s)")
+            self.logger.info(f"\n  {status_icon} {check.name} ({check.duration:.2f}s)")
 
             if check.errors:
-                print(f"    Errors ({len(check.errors)}):")
+                self.logger.info(f"    Errors ({len(check.errors)}):")
                 for error in check.errors[:5]:  # Limit to 5
-                    print(f"      - {error}")
+                    self.logger.info(f"      - {error}")
                 if len(check.errors) > 5:
-                    print(f"      ... and {len(check.errors) - 5} more")
+                    self.logger.info(f"      ... and {len(check.errors) - 5} more")
 
             if check.warnings:
-                print(f"    Warnings ({len(check.warnings)}):")
+                self.logger.info(f"    Warnings ({len(check.warnings)}):")
                 for warning in check.warnings[:3]:  # Limit to 3
-                    print(f"      - {warning}")
+                    self.logger.info(f"      - {warning}")
                 if len(check.warnings) > 3:
-                    print(f"      ... and {len(check.warnings) - 3} more")
+                    self.logger.info(f"      ... and {len(check.warnings) - 3} more")
 
-        print("\n" + "=" * 70)
+        self.logger.info("\n" + "=" * 70)

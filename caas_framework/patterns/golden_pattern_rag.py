@@ -13,6 +13,9 @@ from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
+from caas_framework.models.specifications import ConcretizedRequirement, FeatureSpec
+from caas_framework.utils.logger import get_logger
+
 try:
     import chromadb
     from chromadb.config import Settings
@@ -28,7 +31,7 @@ try:
 except ImportError:
     SENTENCE_TRANSFORMERS_AVAILABLE = False
 
-from caas_framework.models.specifications import ConcretizedRequirement, FeatureSpec
+logger = get_logger()
 
 
 @dataclass
@@ -99,8 +102,8 @@ class GoldenPatternLibrary:
             except Exception:
                 self.collection = self.chroma_client.create_collection(name=self.collection_name)
         except Exception as e:
-            print(f"Warning: ChromaDB initialization failed: {e}")
-            print("Falling back to in-memory storage")
+            logger.warning(f"ChromaDB initialization failed: {e}")
+            logger.info("Falling back to in-memory storage")
             self.use_fallback = True
 
     def _init_encoder(self):
@@ -108,8 +111,8 @@ class GoldenPatternLibrary:
         try:
             self.encoder = SentenceTransformer(self.embedding_model_name)
         except Exception as e:
-            print(f"Warning: Sentence transformer initialization failed: {e}")
-            print("Falling back to simple text matching")
+            logger.warning(f"Sentence transformer initialization failed: {e}")
+            logger.info("Falling back to simple text matching")
             self.use_fallback = True
 
     def store_successful_generation(
@@ -191,7 +194,7 @@ class GoldenPatternLibrary:
 
             return True
         except Exception as e:
-            print(f"Error storing pattern: {e}")
+            logger.error(f"Error storing pattern: {e}")
             return False
 
     def _store_fallback(self, user_request: str, metadata: Dict[str, Any], pattern_id: str) -> bool:
@@ -202,7 +205,7 @@ class GoldenPatternLibrary:
             )
             return True
         except Exception as e:
-            print(f"Error storing pattern: {e}")
+            logger.error(f"Error storing pattern: {e}")
             return False
 
     def _generate_id(self, text: str) -> str:
@@ -268,7 +271,7 @@ class GoldenPatternLibrary:
 
             return matches
         except Exception as e:
-            print(f"Error retrieving patterns: {e}")
+            logger.error(f"Error retrieving patterns: {e}")
             return []
 
     def _retrieve_fallback(self, user_request: str, top_k: int) -> List[PatternMatch]:
@@ -329,7 +332,7 @@ class GoldenPatternLibrary:
 
         if not similar_patterns:
             if verbose:
-                print("\n✓ No similar patterns found in library")
+                logger.info("✓ No similar patterns found in library")
             return concretized
 
         # Get current feature names
@@ -345,8 +348,8 @@ class GoldenPatternLibrary:
 
         if not suggested_features:
             if verbose:
-                print(f"\n✓ Found similar pattern (similarity: {best_match.similarity:.2%})")
-                print("  All features already included")
+                logger.info(f"✓ Found similar pattern (similarity: {best_match.similarity:.2%})")
+                logger.info("  All features already included")
             return concretized
 
         # Display suggestions
@@ -372,25 +375,25 @@ class GoldenPatternLibrary:
                 concretized.features.append(new_feature)
 
             if verbose:
-                print(f"\n✓ Added {len(suggested_features)} features from pattern library")
+                logger.info(f"✓ Added {len(suggested_features)} features from pattern library")
 
         return concretized
 
     def _print_suggestions(self, pattern: PatternMatch, suggested_features: List[Dict[str, Any]]):
         """Print pattern suggestions to user."""
-        print("\n" + "=" * 70)
-        print("💡 PATTERN SUGGESTION")
-        print("=" * 70)
-        print(f"Found similar project (similarity: {pattern.similarity:.1%})")
-        print(f'Original request: "{pattern.request}"')
-        print(f"User satisfaction: {pattern.satisfaction}/5 ⭐")
-        print(f"\nSuggested features from this pattern:")
+        logger.info("\n" + "=" * 70)
+        logger.info("💡 PATTERN SUGGESTION")
+        logger.info("=" * 70)
+        logger.info(f"Found similar project (similarity: {pattern.similarity:.1%})")
+        logger.info(f'Original request: "{pattern.request}"')
+        logger.info(f"User satisfaction: {pattern.satisfaction}/5 ⭐")
+        logger.info(f"\nSuggested features from this pattern:")
 
         for feature in suggested_features:
-            print(f"  • {feature['name']}")
-            print(f"    └─ {feature['description']}")
+            logger.info(f"  • {feature['name']}")
+            logger.info(f"    └─ {feature['description']}")
 
-        print("=" * 70)
+        logger.info("=" * 70)
 
     def get_statistics(self) -> Dict[str, Any]:
         """
