@@ -470,7 +470,7 @@ class JSONFormatter(logging.Formatter):
 
         return json.dumps(log_data)
 
-logger = get_logger(name="{logger_name}")
+logger = logging.getLogger("{logger_name}")
 handler = logging.StreamHandler()
 handler.setFormatter(JSONFormatter())
 logger.addHandler(handler)
@@ -480,7 +480,7 @@ logger.setLevel(logging.INFO)
             else:
                 logging_import = f"""import logging
 
-logger = get_logger(name="{logger_name}")
+logger = logging.getLogger("{logger_name}")
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
