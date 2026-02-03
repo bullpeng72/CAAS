@@ -65,7 +65,8 @@ def setup_logger(
         # Basic stream handler (fallback)
         handler = logging.StreamHandler(sys.stdout)
         formatter = logging.Formatter(
-            "%(asctime)s - %(name)s - %(levelname)s - %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S",
         )
 
     handler.setLevel(getattr(logging, log_level.upper()))
@@ -77,7 +78,9 @@ def setup_logger(
         log_file.parent.mkdir(parents=True, exist_ok=True)
         file_handler = logging.FileHandler(log_file, encoding="utf-8")
         file_handler.setLevel(getattr(logging, log_level.upper()))
-        file_formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+        file_formatter = logging.Formatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        )
         file_handler.setFormatter(file_formatter)
         logger.addHandler(file_handler)
 
@@ -157,7 +160,9 @@ class LoggerMixin:
 
     def log_error(self, message: str, exc_info: bool = False, **context):
         """Error log"""
-        self.logger.error(f"❌ {message}" + (f" | {context}" if context else ""), exc_info=exc_info)
+        self.logger.error(
+            f"❌ {message}" + (f" | {context}" if context else ""), exc_info=exc_info
+        )
 
     def log_success(self, message: str, **context):
         """Success log"""

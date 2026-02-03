@@ -306,7 +306,9 @@ def generate_execution_tasks_from_domain(
         return []
 
 
-def convert_agent_to_spec(agent: AgentRequirement, tools: List[str] = None) -> AgentSpecModel:
+def convert_agent_to_spec(
+    agent: AgentRequirement, tools: List[str] = None
+) -> AgentSpecModel:
     """
     AgentRequirement를 AgentSpecModel로 변환
 
@@ -336,7 +338,9 @@ You work efficiently and deliver high-quality results."""
     )
 
 
-def convert_task_to_spec(task: TaskRequirement, agent_map: Dict[str, str]) -> TaskSpecModel:
+def convert_task_to_spec(
+    task: TaskRequirement, agent_map: Dict[str, str]
+) -> TaskSpecModel:
     """
     TaskRequirement를 TaskSpecModel로 변환
 
@@ -428,7 +432,9 @@ def convert_analysis_to_multi_spec(
     else:
         project_name = clean_name(project_name)
 
-    project = ProjectSpec(name=project_name, description=analysis.summary, domain=analysis.domain)
+    project = ProjectSpec(
+        name=project_name, description=analysis.summary, domain=analysis.domain
+    )
 
     # 2. Agent와 Task 변환
     # Domain Classification이 있으면 Execution Agents 생성
@@ -442,7 +448,8 @@ def convert_analysis_to_multi_spec(
 
         # Execution Agents 생성
         execution_agents = generate_execution_agents_from_domain(
-            domain_classification=analysis.domain_classification, tools=analysis.suggested_tools
+            domain_classification=analysis.domain_classification,
+            tools=analysis.suggested_tools,
         )
 
         if execution_agents:
@@ -463,7 +470,9 @@ def convert_analysis_to_multi_spec(
                 )
                 tasks_to_use = execution_tasks
         else:
-            logger.warning("⚠️ Execution agents generation failed, using original build agents")
+            logger.warning(
+                "⚠️ Execution agents generation failed, using original build agents"
+            )
     else:
         logger.info("ℹ️ No domain classification found, using original agents")
 
@@ -541,7 +550,9 @@ def convert_analysis_to_multi_spec(
     # 5. BackendSpec 생성 (Backend 필요한 경우)
     backend_spec = None
     if analysis.requires_backend:
-        logger.info(f"  Creating BackendSpec with {len(analysis.backend_apis)} endpoints")
+        logger.info(
+            f"  Creating BackendSpec with {len(analysis.backend_apis)} endpoints"
+        )
 
         endpoints = []
         for api_req in analysis.backend_apis:
@@ -565,7 +576,10 @@ def convert_analysis_to_multi_spec(
             api_endpoints=endpoints,
             middlewares=["cors", "logging"],
             dependencies=[],
-            agent_integration={"import_path": "agents.crew", "run_function": "run_crew"},
+            agent_integration={
+                "import_path": "agents.crew",
+                "run_function": "run_crew",
+            },
             database_url="sqlite:///./app.db",
             use_async=True,
         )
@@ -573,7 +587,9 @@ def convert_analysis_to_multi_spec(
     # 6. DatabaseSpec 생성 (Database 필요한 경우)
     database_spec = None
     if analysis.requires_database:
-        logger.info(f"  Creating DatabaseSpec with {len(analysis.database_tables)} tables")
+        logger.info(
+            f"  Creating DatabaseSpec with {len(analysis.database_tables)} tables"
+        )
 
         models = []
         for table_name in analysis.database_tables:

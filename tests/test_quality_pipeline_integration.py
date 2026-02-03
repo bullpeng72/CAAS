@@ -10,9 +10,7 @@ from caas_framework.quality.pipeline import CodeQualityPipeline, QualityReport
 def test_quality_pipeline_exists():
     """Test CodeQualityPipeline can be created"""
     pipeline = CodeQualityPipeline(
-        enable_syntax=True,
-        enable_imports=True,
-        enable_style=True
+        enable_syntax=True, enable_imports=True, enable_style=True
     )
 
     assert pipeline is not None
@@ -37,7 +35,7 @@ def main():
 if __name__ == "__main__":
     main()
 """,
-        "requirements.txt": "crewai>=0.65.0\n"
+        "requirements.txt": "crewai>=0.65.0\n",
     }
 
     report = pipeline.verify(valid_code)
@@ -105,44 +103,34 @@ from crewai import Agent
 
 def create_agent():
     return Agent(role="Researcher", goal="Research")
-"""
+""",
         },
-        {
-            "path": "requirements.txt",
-            "content": "crewai>=0.65.0\n"
-        }
+        {"path": "requirements.txt", "content": "crewai>=0.65.0\n"},
     ]
 
     # 2. Prepare code files for quality checks
-    code_files = {
-        file["path"]: file.get("content", "")
-        for file in generated_code
-    }
+    code_files = {file["path"]: file.get("content", "") for file in generated_code}
 
     # 3. Run quality pipeline
     pipeline = CodeQualityPipeline(
-        enable_syntax=True,
-        enable_imports=True,
-        enable_style=True
+        enable_syntax=True, enable_imports=True, enable_style=True
     )
 
     report = pipeline.verify(code_files)
 
     # 4. Check results
     assert isinstance(report, QualityReport)
-    assert hasattr(report, 'overall_passed')
-    assert hasattr(report, 'total_errors')
-    assert hasattr(report, 'total_warnings')
-    assert hasattr(report, 'checks')
+    assert hasattr(report, "overall_passed")
+    assert hasattr(report, "total_errors")
+    assert hasattr(report, "total_warnings")
+    assert hasattr(report, "checks")
 
 
 def test_quality_report_structure():
     """Test that quality report has expected structure for history"""
     pipeline = CodeQualityPipeline()
 
-    code = {
-        "test.py": "print('hello')\n"
-    }
+    code = {"test.py": "print('hello')\n"}
 
     report = pipeline.verify(code)
 
@@ -175,6 +163,6 @@ if __name__ == "__main__":
     test_quality_pipeline_integration_pattern()
     test_quality_report_structure()
 
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("✅ All Quality Pipeline Integration tests passed!")
-    print("="*70)
+    print("=" * 70)

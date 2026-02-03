@@ -44,7 +44,9 @@ class InputDetector:
     }
 
     @classmethod
-    def detect_input_requirements(cls, tasks: List[Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
+    def detect_input_requirements(
+        cls, tasks: List[Dict[str, Any]]
+    ) -> Dict[str, Dict[str, Any]]:
         """
         Detect which tasks require user input.
 
@@ -128,7 +130,9 @@ class InputDetector:
         }
 
     @classmethod
-    def generate_input_collection_code(cls, input_requirements: Dict[str, Dict[str, Any]]) -> str:
+    def generate_input_collection_code(
+        cls, input_requirements: Dict[str, Dict[str, Any]]
+    ) -> str:
         """
         Generate Python code to collect user inputs.
 

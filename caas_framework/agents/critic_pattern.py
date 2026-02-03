@@ -36,7 +36,9 @@ class CritiqueResponse(BaseModel):
     suggestions: List[str] = Field(
         default_factory=list, description="Specific suggestions for improvement"
     )
-    issues: List[str] = Field(default_factory=list, description="Issues or problems found")
+    issues: List[str] = Field(
+        default_factory=list, description="Issues or problems found"
+    )
 
 
 class ProducerAgent(Protocol):
@@ -139,7 +141,9 @@ class CriticAgentPattern:
             # Check if approved
             if critique.approved or critique.score >= self.min_score_threshold:
                 if verbose:
-                    logger.info(f"\n✅ Output approved after {iteration + 1} iteration(s)")
+                    logger.info(
+                        f"\n✅ Output approved after {iteration + 1} iteration(s)"
+                    )
                 break
 
             # Check if max iterations reached
@@ -197,7 +201,9 @@ class CriticAgentPattern:
             "initial_score": initial_score,
             "final_score": final_score,
             "improvement": improvement,
-            "improvement_percent": (improvement / initial_score * 100) if initial_score > 0 else 0,
+            "improvement_percent": (improvement / initial_score * 100)
+            if initial_score > 0
+            else 0,
             "approved": critiques[-1].approved,
             "total_issues_found": sum(len(c.issues) for c in critiques),
             "total_suggestions": sum(len(c.suggestions) for c in critiques),
@@ -211,14 +217,18 @@ class SimpleSyncCriticPattern:
     Same functionality as CriticAgentPattern but uses sync methods.
     """
 
-    def __init__(self, producer, critic, max_iterations: int = 3, min_score_threshold: int = 7):
+    def __init__(
+        self, producer, critic, max_iterations: int = 3, min_score_threshold: int = 7
+    ):
         """Initialize sync critic pattern."""
         self.producer = producer
         self.critic = critic
         self.max_iterations = max_iterations
         self.min_score_threshold = min_score_threshold
 
-    def produce_with_critique(self, task: str, verbose: bool = True) -> Tuple[Any, List[Critique]]:
+    def produce_with_critique(
+        self, task: str, verbose: bool = True
+    ) -> Tuple[Any, List[Critique]]:
         """
         Execute producer-critic loop synchronously.
 
@@ -265,7 +275,9 @@ class SimpleSyncCriticPattern:
             # Check if approved
             if critique.approved or critique.score >= self.min_score_threshold:
                 if verbose:
-                    logger.info(f"\n✅ Output approved after {iteration + 1} iteration(s)")
+                    logger.info(
+                        f"\n✅ Output approved after {iteration + 1} iteration(s)"
+                    )
                 break
 
             # Check if max iterations reached
@@ -315,7 +327,9 @@ class SimpleSyncCriticPattern:
             "initial_score": initial_score,
             "final_score": final_score,
             "improvement": improvement,
-            "improvement_percent": (improvement / initial_score * 100) if initial_score > 0 else 0,
+            "improvement_percent": (improvement / initial_score * 100)
+            if initial_score > 0
+            else 0,
             "approved": critiques[-1].approved,
             "total_issues_found": sum(len(c.issues) for c in critiques),
             "total_suggestions": sum(len(c.suggestions) for c in critiques),
@@ -323,7 +337,11 @@ class SimpleSyncCriticPattern:
 
 
 def create_critic_pattern(
-    producer, critic, max_iterations: int = 3, min_score_threshold: int = 7, async_mode: bool = True
+    producer,
+    critic,
+    max_iterations: int = 3,
+    min_score_threshold: int = 7,
+    async_mode: bool = True,
 ) -> Any:
     """
     Factory function to create appropriate critic pattern.

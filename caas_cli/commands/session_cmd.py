@@ -92,7 +92,9 @@ def list_sessions(active_only):
             name = sess.metadata.get("name", "N/A") if sess.metadata else "N/A"
             status = sess.status
             created = sess.created_at.strftime("%Y-%m-%d %H:%M")
-            phase = sess.metadata.get("current_phase", "N/A") if sess.metadata else "N/A"
+            phase = (
+                sess.metadata.get("current_phase", "N/A") if sess.metadata else "N/A"
+            )
 
             rows.append([session_id, name, status, created, phase])
 

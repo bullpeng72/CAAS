@@ -23,9 +23,7 @@ class TestCICDGenerator:
         generator = CICDGenerator()
 
         workflow_path = generator.generate_github_actions(
-            project_dir=tmp_path,
-            python_version="3.11",
-            verbose=False
+            project_dir=tmp_path, python_version="3.11", verbose=False
         )
 
         # Check file was created
@@ -47,9 +45,7 @@ class TestCICDGenerator:
         generator = CICDGenerator()
 
         workflow_path = generator.generate_github_actions(
-            project_dir=tmp_path,
-            include_coverage=True,
-            verbose=False
+            project_dir=tmp_path, include_coverage=True, verbose=False
         )
 
         content = workflow_path.read_text()
@@ -64,9 +60,7 @@ class TestCICDGenerator:
         generator = CICDGenerator()
 
         workflow_path = generator.generate_github_actions(
-            project_dir=tmp_path,
-            include_coverage=False,
-            verbose=False
+            project_dir=tmp_path, include_coverage=False, verbose=False
         )
 
         content = workflow_path.read_text()
@@ -80,9 +74,7 @@ class TestCICDGenerator:
         generator = CICDGenerator()
 
         workflow_path = generator.generate_github_actions(
-            project_dir=tmp_path,
-            include_docker=True,
-            verbose=False
+            project_dir=tmp_path, include_docker=True, verbose=False
         )
 
         content = workflow_path.read_text()
@@ -97,9 +89,7 @@ class TestCICDGenerator:
         generator = CICDGenerator()
 
         workflow_path = generator.generate_github_actions(
-            project_dir=tmp_path,
-            include_docker=False,
-            verbose=False
+            project_dir=tmp_path, include_docker=False, verbose=False
         )
 
         content = workflow_path.read_text()
@@ -113,9 +103,7 @@ class TestCICDGenerator:
         generator = CICDGenerator()
 
         workflow_path = generator.generate_github_actions(
-            project_dir=tmp_path,
-            python_version="3.10",
-            verbose=False
+            project_dir=tmp_path, python_version="3.10", verbose=False
         )
 
         content = workflow_path.read_text()
@@ -126,8 +114,7 @@ class TestCICDGenerator:
         generator = CICDGenerator()
 
         dockerfile_path, _ = generator.generate_docker_files(
-            project_dir=tmp_path,
-            verbose=False
+            project_dir=tmp_path, verbose=False
         )
 
         # Check file was created
@@ -148,8 +135,7 @@ class TestCICDGenerator:
         generator = CICDGenerator()
 
         _, docker_compose_path = generator.generate_docker_files(
-            project_dir=tmp_path,
-            verbose=False
+            project_dir=tmp_path, verbose=False
         )
 
         # Check file was created
@@ -170,9 +156,7 @@ class TestCICDGenerator:
         generator = CICDGenerator()
 
         dockerfile_path, _ = generator.generate_docker_files(
-            project_dir=tmp_path,
-            base_image="python:3.10-alpine",
-            verbose=False
+            project_dir=tmp_path, base_image="python:3.10-alpine", verbose=False
         )
 
         content = dockerfile_path.read_text()
@@ -183,9 +167,7 @@ class TestCICDGenerator:
         generator = CICDGenerator()
 
         dockerfile_path, docker_compose_path = generator.generate_docker_files(
-            project_dir=tmp_path,
-            port=5000,
-            verbose=False
+            project_dir=tmp_path, port=5000, verbose=False
         )
 
         dockerfile_content = dockerfile_path.read_text()
@@ -199,18 +181,16 @@ class TestCICDGenerator:
         generator = CICDGenerator()
 
         generated = generator.generate_all(
-            project_dir=tmp_path,
-            include_docker=False,
-            verbose=False
+            project_dir=tmp_path, include_docker=False, verbose=False
         )
 
         # Should have CI workflow
-        assert 'ci_workflow' in generated
-        assert generated['ci_workflow'].exists()
+        assert "ci_workflow" in generated
+        assert generated["ci_workflow"].exists()
 
         # Should not have Docker files
-        assert 'dockerfile' not in generated
-        assert 'docker_compose' not in generated
+        assert "dockerfile" not in generated
+        assert "docker_compose" not in generated
 
     def test_generate_all_complete(self, tmp_path):
         """Test generating all CI/CD files (complete)"""
@@ -220,33 +200,31 @@ class TestCICDGenerator:
             project_dir=tmp_path,
             include_docker=True,
             include_coverage=True,
-            verbose=False
+            verbose=False,
         )
 
         # Should have all files
-        assert 'ci_workflow' in generated
-        assert 'dockerfile' in generated
-        assert 'docker_compose' in generated
+        assert "ci_workflow" in generated
+        assert "dockerfile" in generated
+        assert "docker_compose" in generated
 
         # All files should exist
-        assert generated['ci_workflow'].exists()
-        assert generated['dockerfile'].exists()
-        assert generated['docker_compose'].exists()
+        assert generated["ci_workflow"].exists()
+        assert generated["dockerfile"].exists()
+        assert generated["docker_compose"].exists()
 
     def test_generate_all_returns_paths(self, tmp_path):
         """Test that generate_all returns correct paths"""
         generator = CICDGenerator()
 
         generated = generator.generate_all(
-            project_dir=tmp_path,
-            include_docker=True,
-            verbose=False
+            project_dir=tmp_path, include_docker=True, verbose=False
         )
 
         # Check paths
-        assert generated['ci_workflow'] == tmp_path / '.github' / 'workflows' / 'ci.yml'
-        assert generated['dockerfile'] == tmp_path / 'Dockerfile'
-        assert generated['docker_compose'] == tmp_path / 'docker-compose.yml'
+        assert generated["ci_workflow"] == tmp_path / ".github" / "workflows" / "ci.yml"
+        assert generated["dockerfile"] == tmp_path / "Dockerfile"
+        assert generated["docker_compose"] == tmp_path / "docker-compose.yml"
 
     def test_generates_valid_yaml(self, tmp_path):
         """Test that generated YAML is valid"""
@@ -256,8 +234,7 @@ class TestCICDGenerator:
 
         # Generate workflow
         workflow_path = generator.generate_github_actions(
-            project_dir=tmp_path,
-            verbose=False
+            project_dir=tmp_path, verbose=False
         )
 
         # Parse YAML to verify it's valid
@@ -265,10 +242,10 @@ class TestCICDGenerator:
         parsed = yaml.safe_load(content)
 
         assert parsed is not None
-        assert 'name' in parsed
+        assert "name" in parsed
         # YAML parses "on:" as boolean True
-        assert True in parsed or 'on' in parsed
-        assert 'jobs' in parsed
+        assert True in parsed or "on" in parsed
+        assert "jobs" in parsed
 
     def test_workflow_has_required_steps(self, tmp_path):
         """Test that workflow includes all required steps"""
@@ -277,25 +254,25 @@ class TestCICDGenerator:
         generator = CICDGenerator()
 
         workflow_path = generator.generate_github_actions(
-            project_dir=tmp_path,
-            include_coverage=True,
-            verbose=False
+            project_dir=tmp_path, include_coverage=True, verbose=False
         )
 
         content = workflow_path.read_text()
         parsed = yaml.safe_load(content)
 
         # Check test job exists
-        assert 'test' in parsed['jobs']
-        test_job = parsed['jobs']['test']
+        assert "test" in parsed["jobs"]
+        test_job = parsed["jobs"]["test"]
 
         # Check required steps
-        step_names = [step.get('name', step.get('uses', '')) for step in test_job['steps']]
+        step_names = [
+            step.get("name", step.get("uses", "")) for step in test_job["steps"]
+        ]
 
-        assert any('checkout' in s for s in step_names)
-        assert any('Python' in s for s in step_names)
-        assert any('Install dependencies' in s for s in step_names)
-        assert any('Run tests' in s for s in step_names)
+        assert any("checkout" in s for s in step_names)
+        assert any("Python" in s for s in step_names)
+        assert any("Install dependencies" in s for s in step_names)
+        assert any("Run tests" in s for s in step_names)
 
 
 if __name__ == "__main__":

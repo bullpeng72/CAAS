@@ -56,7 +56,9 @@ def init():
     config = get_config()
 
     # API URL
-    api_url = prompt_text("API URL", default=config.get("api_url", "http://localhost:8000"))
+    api_url = prompt_text(
+        "API URL", default=config.get("api_url", "http://localhost:8000")
+    )
     config.set("api_url", api_url)
 
     # API Key
@@ -77,7 +79,9 @@ def init():
         "CONTENT_CREATION",
     ]
 
-    default_domain = prompt_choice("Default domain (optional)", choices=domains, default="NONE")
+    default_domain = prompt_choice(
+        "Default domain (optional)", choices=domains, default="NONE"
+    )
     if default_domain != "NONE":
         config.set("default_domain", default_domain)
 
@@ -91,7 +95,8 @@ def init():
 
     # Output directory
     output_dir = prompt_text(
-        "Output directory for generated code", default=config.get("output_dir", "./generated")
+        "Output directory for generated code",
+        default=config.get("output_dir", "./generated"),
     )
     config.set("output_dir", output_dir)
 
@@ -107,11 +112,14 @@ def init():
         )
         config.set("enable_auto_fix", enable_auto_fix)
 
-        enable_tests = click.confirm("Generate tests?", default=config.get("enable_tests", True))
+        enable_tests = click.confirm(
+            "Generate tests?", default=config.get("enable_tests", True)
+        )
         config.set("enable_tests", enable_tests)
 
         use_expert_agents = click.confirm(
-            "Use expert agent collaboration?", default=config.get("use_expert_agents", True)
+            "Use expert agent collaboration?",
+            default=config.get("use_expert_agents", True),
         )
         config.set("use_expert_agents", use_expert_agents)
 

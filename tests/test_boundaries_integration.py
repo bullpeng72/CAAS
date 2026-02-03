@@ -12,7 +12,7 @@ def test_boundaries_spec_exists():
     boundaries = BoundariesSpec(
         always_allowed=["Read files in project folder"],
         ask_first=["API calls", "Database operations"],
-        never_allowed=["sudo commands", "rm -rf /", "os.system"]
+        never_allowed=["sudo commands", "rm -rf /", "os.system"],
     )
 
     assert boundaries is not None
@@ -23,9 +23,7 @@ def test_boundaries_spec_exists():
 
 def test_boundaries_validation_logic():
     """Test boundary validation logic"""
-    boundaries = BoundariesSpec(
-        never_allowed=["sudo", "os.system", "eval"]
-    )
+    boundaries = BoundariesSpec(never_allowed=["sudo", "os.system", "eval"])
 
     # Test code with violations
     code_with_sudo = """
@@ -74,27 +72,21 @@ def test_boundaries_integration_pattern():
 
     # 1. Mock concretized requirement with boundaries
     mock_concretized = {
-        "system_scope": {
-            "project_name": "Test Project",
-            "purpose": "Test"
-        },
+        "system_scope": {"project_name": "Test Project", "purpose": "Test"},
         "boundaries": {
             "always_allowed": ["Read files"],
             "ask_first": ["Write files"],
-            "never_allowed": ["sudo", "rm -rf"]
-        }
+            "never_allowed": ["sudo", "rm -rf"],
+        },
     }
 
     # 2. Mock generated code files
     generated_code = [
-        {
-            "path": "main.py",
-            "content": "print('Hello World')\nimport os\n"
-        },
+        {"path": "main.py", "content": "print('Hello World')\nimport os\n"},
         {
             "path": "dangerous.py",
-            "content": "import os\nos.system('sudo dangerous command')\n"
-        }
+            "content": "import os\nos.system('sudo dangerous command')\n",
+        },
     ]
 
     # 3. Validate boundaries
@@ -108,13 +100,13 @@ def test_boundaries_integration_pattern():
             filename = file_info["path"]
             content = file_info.get("content", "")
 
-            if not filename.endswith('.py'):
+            if not filename.endswith(".py"):
                 continue
 
             content_lower = content.lower()
 
             # Check never_allowed patterns
-            for pattern in (boundaries.never_allowed or []):
+            for pattern in boundaries.never_allowed or []:
                 if pattern.lower() in content_lower:
                     violation = f"NEVER_ALLOWED: {filename} contains '{pattern}'"
                     violations.append(violation)
@@ -127,9 +119,7 @@ def test_boundaries_integration_pattern():
 
 def test_no_violations_on_clean_code():
     """Test that clean code has no boundary violations"""
-    boundaries = BoundariesSpec(
-        never_allowed=["sudo", "rm -rf", "eval", "exec"]
-    )
+    boundaries = BoundariesSpec(never_allowed=["sudo", "rm -rf", "eval", "exec"])
 
     clean_code = {
         "main.py": """
@@ -145,12 +135,12 @@ def main():
 if __name__ == "__main__":
     main()
 """,
-        "requirements.txt": "crewai>=0.65.0\n"
+        "requirements.txt": "crewai>=0.65.0\n",
     }
 
     violations = []
     for filename, content in clean_code.items():
-        if not filename.endswith('.py'):
+        if not filename.endswith(".py"):
             continue
 
         content_lower = content.lower()
@@ -158,7 +148,9 @@ if __name__ == "__main__":
             if pattern.lower() in content_lower:
                 violations.append(f"{filename}: {pattern}")
 
-    assert len(violations) == 0, f"Clean code should have no violations, but found: {violations}"
+    assert (
+        len(violations) == 0
+    ), f"Clean code should have no violations, but found: {violations}"
 
 
 if __name__ == "__main__":
@@ -167,6 +159,6 @@ if __name__ == "__main__":
     test_boundaries_integration_pattern()
     test_no_violations_on_clean_code()
 
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("✅ All Boundaries Integration tests passed!")
-    print("="*70)
+    print("=" * 70)

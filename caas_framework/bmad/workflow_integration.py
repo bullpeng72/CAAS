@@ -47,7 +47,8 @@ class BMADWorkflowEngine:
         """
         self.bmad = bmad_engine
         self.orchestrator = WorkflowOrchestrator(
-            auto_checkpoint=enable_checkpoints, checkpoint_every_phase=enable_checkpoints
+            auto_checkpoint=enable_checkpoints,
+            checkpoint_every_phase=enable_checkpoints,
         )
 
         self.enable_git = enable_git
@@ -99,7 +100,9 @@ class BMADWorkflowEngine:
             if self.enable_git and self.git and bmad_result.success:
                 self.git.commit_checkpoint(
                     checkpoint_id=(
-                        workflow_result.checkpoints[-1] if workflow_result.checkpoints else "final"
+                        workflow_result.checkpoints[-1]
+                        if workflow_result.checkpoints
+                        else "final"
                     ),
                     phase="complete",
                     metadata={"requirement": requirement},
@@ -115,7 +118,9 @@ class BMADWorkflowEngine:
 
             raise
 
-    async def _execute_bmad_with_tracking(self, session: Session, requirement: str) -> BMADResult:
+    async def _execute_bmad_with_tracking(
+        self, session: Session, requirement: str
+    ) -> BMADResult:
         """Execute BMAD with phase tracking"""
 
         # Phase 0: Concretization
@@ -164,7 +169,9 @@ class BMADWorkflowEngine:
             return {"agents": agents, "tasks": tasks}
 
         await self.orchestrator.execute_phase(
-            session_id=session.session_id, phase=WorkflowPhase.DESIGN, phase_function=phase_3_design
+            session_id=session.session_id,
+            phase=WorkflowPhase.DESIGN,
+            phase_function=phase_3_design,
         )
 
         state = self.orchestrator.state_manager.get_state(session.session_id)
@@ -174,7 +181,9 @@ class BMADWorkflowEngine:
         # Phase 4: Development (Testing/Validation)
         async def phase_4_development(state, **kwargs):
             # Validation phase
-            validation_result = self.bmad.validator.validate_all(agents, tasks, golden_data)
+            validation_result = self.bmad.validator.validate_all(
+                agents, tasks, golden_data
+            )
             return {"validation_result": validation_result}
 
         await self.orchestrator.execute_phase(
@@ -226,13 +235,17 @@ class BMADWorkflowEngine:
         Returns:
             tuple[Session, Dict[str, Any]]: Session and resumed state
         """
-        session = await self.orchestrator.resume_from_checkpoint(checkpoint_id, create_new_session)
+        session = await self.orchestrator.resume_from_checkpoint(
+            checkpoint_id, create_new_session
+        )
 
         state = self.orchestrator.state_manager.get_state(session.session_id)
 
         return session, state
 
-    def rollback_to_phase(self, session_id: str, phase: WorkflowPhase) -> Optional[Dict[str, Any]]:
+    def rollback_to_phase(
+        self, session_id: str, phase: WorkflowPhase
+    ) -> Optional[Dict[str, Any]]:
         """
         Rollback to a specific phase.
 
@@ -279,7 +292,9 @@ class BMADWorkflowEngine:
 
     # ========== Git Integration ==========
 
-    def create_git_branch(self, session_id: str, branch_name: Optional[str] = None) -> bool:
+    def create_git_branch(
+        self, session_id: str, branch_name: Optional[str] = None
+    ) -> bool:
         """
         Create a Git branch for a session.
 
@@ -296,7 +311,9 @@ class BMADWorkflowEngine:
         branch = branch_name or f"bmad-{session_id[:8]}"
         return self.git.create_branch(branch)
 
-    def commit_session_state(self, session_id: str, message: Optional[str] = None) -> Optional[str]:
+    def commit_session_state(
+        self, session_id: str, message: Optional[str] = None
+    ) -> Optional[str]:
         """
         Commit current session state to Git.
 

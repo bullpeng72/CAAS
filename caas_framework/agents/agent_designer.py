@@ -33,7 +33,11 @@ class AgentDesignerAgent(BaseExpertAgent):
     that implement the architecture and fulfill requirements.
     """
 
-    def __init__(self, llm_plugin: LLMPlugin, golden_data: Optional[ConcretizedRequirement] = None):
+    def __init__(
+        self,
+        llm_plugin: LLMPlugin,
+        golden_data: Optional[ConcretizedRequirement] = None,
+    ):
         super().__init__(llm_plugin, golden_data, AgentPhase.DESIGN)
 
     @property
@@ -75,10 +79,16 @@ class AgentDesignerAgent(BaseExpertAgent):
         context_summary = self._build_context_summary(context, previous_outputs)
 
         # Get previous phase outputs
-        req_analysis = previous_outputs.get(AgentPhase.DISCOVERY) if previous_outputs else None
-        architecture = previous_outputs.get(AgentPhase.ARCHITECTURE) if previous_outputs else None
+        req_analysis = (
+            previous_outputs.get(AgentPhase.DISCOVERY) if previous_outputs else None
+        )
+        architecture = (
+            previous_outputs.get(AgentPhase.ARCHITECTURE) if previous_outputs else None
+        )
 
-        prompt = self._build_design_prompt(requirement, req_analysis, architecture, context_summary)
+        prompt = self._build_design_prompt(
+            requirement, req_analysis, architecture, context_summary
+        )
 
         response = await self.llm.ainvoke(
             messages=[{"role": "user", "content": prompt}],
@@ -96,7 +106,12 @@ class AgentDesignerAgent(BaseExpertAgent):
 
         design = ResponseParser.parse_structured_response(
             response,
-            expected_fields=["agents", "tasks", "workflow_type", "agent_collaboration_pattern"],
+            expected_fields=[
+                "agents",
+                "tasks",
+                "workflow_type",
+                "agent_collaboration_pattern",
+            ],
             fallback_factory=self._create_fallback_design,
         )
 
@@ -216,7 +231,9 @@ class AgentDesignerAgent(BaseExpertAgent):
                 prompt_parts.append("")
 
             if self.golden_data.workflow_type:
-                prompt_parts.append(f"## 워크플로우 타입: {self.golden_data.workflow_type}")
+                prompt_parts.append(
+                    f"## 워크플로우 타입: {self.golden_data.workflow_type}"
+                )
                 prompt_parts.append("")
 
         # Add previous outputs
@@ -263,9 +280,13 @@ class AgentDesignerAgent(BaseExpertAgent):
         prompt_parts.append("- vision: 이미지 분석")
         prompt_parts.append("- youtube_search: 유튜브 동영상 검색")
         prompt_parts.append("")
-        prompt_parts.append("**중요:** 에이전트의 역할과 목표에 맞는 도구를 선택하세요.")
+        prompt_parts.append(
+            "**중요:** 에이전트의 역할과 목표에 맞는 도구를 선택하세요."
+        )
         prompt_parts.append('예: 웹 검색 에이전트 → ["web_search", "scrape_website"]')
-        prompt_parts.append('예: 데이터 분석 에이전트 → ["code_interpreter", "csv_search"]')
+        prompt_parts.append(
+            '예: 데이터 분석 에이전트 → ["code_interpreter", "csv_search"]'
+        )
         prompt_parts.append(
             '예: 파일 관리 에이전트 → ["file_read", "file_write", "directory_read"]'
         )
@@ -313,15 +334,25 @@ class AgentDesignerAgent(BaseExpertAgent):
         prompt_parts.append("- 에이전트는 명확하고 구별되는 역할을 가져야 합니다")
         prompt_parts.append("- 작업은 적절한 의존성(context)을 가져야 합니다")
         prompt_parts.append("- 계층적 워크플로우의 경우 관리자 에이전트를 포함하세요")
-        prompt_parts.append("- **각 에이전트에 반드시 적절한 도구를 선택하세요** (빈 리스트 금지)")
+        prompt_parts.append(
+            "- **각 에이전트에 반드시 적절한 도구를 선택하세요** (빈 리스트 금지)"
+        )
         prompt_parts.append("- 도구는 에이전트의 역할과 목표에 정확히 맞아야 합니다")
-        prompt_parts.append("- 웹 검색이 필요하면 web_search 또는 scrape_website 도구를 추가하세요")
-        prompt_parts.append("- 데이터 분석이 필요하면 code_interpreter 도구를 추가하세요")
+        prompt_parts.append(
+            "- 웹 검색이 필요하면 web_search 또는 scrape_website 도구를 추가하세요"
+        )
+        prompt_parts.append(
+            "- 데이터 분석이 필요하면 code_interpreter 도구를 추가하세요"
+        )
         prompt_parts.append("- 작업이 모든 기능 요구사항을 다루는지 확인하세요")
         prompt_parts.append("")
         prompt_parts.append("**중요: 사용자 입력 처리 방법**")
-        prompt_parts.append("- ❌ human_input을 사용자 입력 수집 용도로 사용하지 마세요")
-        prompt_parts.append("- ✅ human_input=true는 태스크 완료 후 '피드백'을 받을 때만 사용")
+        prompt_parts.append(
+            "- ❌ human_input을 사용자 입력 수집 용도로 사용하지 마세요"
+        )
+        prompt_parts.append(
+            "- ✅ human_input=true는 태스크 완료 후 '피드백'을 받을 때만 사용"
+        )
         prompt_parts.append(
             "- ✅ 사용자 입력이 필요하면 태스크 설명에서 '입력'을 빼고 '처리/분석/검증'만 명시"
         )
@@ -389,7 +420,9 @@ class AgentDesignerAgent(BaseExpertAgent):
         features = self.golden_data.features if self.golden_data.features else []
 
         # Determine agent types based on project type
-        has_ui = bool(self.golden_data.ui_components if self.golden_data.ui_components else [])
+        has_ui = bool(
+            self.golden_data.ui_components if self.golden_data.ui_components else []
+        )
         has_api = (
             "api" in self.golden_data.project_name.lower()
             or "rest" in self.golden_data.project_name.lower()
@@ -472,7 +505,9 @@ class AgentDesignerAgent(BaseExpertAgent):
             # Determine which agent should handle this task
             if has_ui and "ui" in feature.name.lower():
                 agent_id = "ui_developer"
-            elif has_api and ("api" in feature.name.lower() or "endpoint" in feature.name.lower()):
+            elif has_api and (
+                "api" in feature.name.lower() or "endpoint" in feature.name.lower()
+            ):
                 agent_id = "api_developer"
             else:
                 agent_id = "senior_developer"
@@ -584,7 +619,12 @@ class AgentDesignerAgent(BaseExpertAgent):
         try:
             refined = ResponseParser.parse_structured_response(
                 response,
-                expected_fields=["agents", "tasks", "workflow_type", "agent_collaboration_pattern"],
+                expected_fields=[
+                    "agents",
+                    "tasks",
+                    "workflow_type",
+                    "agent_collaboration_pattern",
+                ],
                 fallback_factory=lambda: output,
             )
 

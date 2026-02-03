@@ -24,7 +24,9 @@ class GenerationConfig:
     requirement: str
     domain: Optional[str] = None
     deployment_target: str = "docker"
-    workflow_type: Optional[str] = None  # "sequential", "hierarchical", or None for auto
+    workflow_type: Optional[
+        str
+    ] = None  # "sequential", "hierarchical", or None for auto
     enable_validation: bool = True
     enable_auto_fix: bool = True
     enable_tests: bool = True

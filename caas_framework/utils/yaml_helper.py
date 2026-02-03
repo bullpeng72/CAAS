@@ -188,7 +188,11 @@ class YAMLHelper:
         result = base.copy()
 
         for key, value in override.items():
-            if key in result and isinstance(result[key], dict) and isinstance(value, dict):
+            if (
+                key in result
+                and isinstance(result[key], dict)
+                and isinstance(value, dict)
+            ):
                 # 재귀적 병합
                 result[key] = YAMLHelper.merge_yaml(result[key], value, deep=True)
             else:

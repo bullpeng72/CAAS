@@ -30,31 +30,26 @@ class MockProducerAgent:
         """Generate initial output."""
         self.execution_count += 1
         return {
-            'task': task,
-            'quality': self.initial_quality,
-            'iteration': 0,
-            'content': f"Initial solution for: {task}"
+            "task": task,
+            "quality": self.initial_quality,
+            "iteration": 0,
+            "content": f"Initial solution for: {task}",
         }
 
-    async def refine(
-        self,
-        task: str,
-        previous_output: Any,
-        critique: Critique
-    ) -> dict:
+    async def refine(self, task: str, previous_output: Any, critique: Critique) -> dict:
         """Refine output based on critique."""
         self.refinement_count += 1
 
         # Simulate improvement
-        new_quality = min(10, previous_output['quality'] + 2)
+        new_quality = min(10, previous_output["quality"] + 2)
 
         return {
-            'task': task,
-            'quality': new_quality,
-            'iteration': previous_output['iteration'] + 1,
-            'content': f"Refined solution (v{previous_output['iteration'] + 1}) for: {task}",
-            'addressed_issues': critique.issues[:],
-            'applied_suggestions': critique.suggestions[:]
+            "task": task,
+            "quality": new_quality,
+            "iteration": previous_output["iteration"] + 1,
+            "content": f"Refined solution (v{previous_output['iteration'] + 1}) for: {task}",
+            "addressed_issues": critique.issues[:],
+            "applied_suggestions": critique.suggestions[:],
         }
 
 
@@ -70,7 +65,7 @@ class MockCriticAgent:
         """Review output and provide critique."""
         self.review_count += 1
 
-        quality = output.get('quality', 0)
+        quality = output.get("quality", 0)
         approved = quality >= self.approval_threshold
 
         issues = []
@@ -96,7 +91,7 @@ class MockCriticAgent:
             score=quality,
             feedback=feedback,
             suggestions=suggestions,
-            issues=issues
+            issues=issues,
         )
 
 
@@ -113,27 +108,22 @@ class SyncMockProducerAgent:
         """Generate initial output."""
         self.execution_count += 1
         return {
-            'task': task,
-            'quality': self.initial_quality,
-            'iteration': 0,
-            'content': f"Initial solution for: {task}"
+            "task": task,
+            "quality": self.initial_quality,
+            "iteration": 0,
+            "content": f"Initial solution for: {task}",
         }
 
-    def refine(
-        self,
-        task: str,
-        previous_output: Any,
-        critique: Critique
-    ) -> dict:
+    def refine(self, task: str, previous_output: Any, critique: Critique) -> dict:
         """Refine output based on critique."""
         self.refinement_count += 1
-        new_quality = min(10, previous_output['quality'] + 2)
+        new_quality = min(10, previous_output["quality"] + 2)
 
         return {
-            'task': task,
-            'quality': new_quality,
-            'iteration': previous_output['iteration'] + 1,
-            'content': f"Refined solution (v{previous_output['iteration'] + 1}) for: {task}"
+            "task": task,
+            "quality": new_quality,
+            "iteration": previous_output["iteration"] + 1,
+            "content": f"Refined solution (v{previous_output['iteration'] + 1}) for: {task}",
         }
 
 
@@ -148,7 +138,7 @@ class SyncMockCriticAgent:
         """Review output and provide critique."""
         self.review_count += 1
 
-        quality = output.get('quality', 0)
+        quality = output.get("quality", 0)
         approved = quality >= self.approval_threshold
 
         issues = []
@@ -165,7 +155,7 @@ class SyncMockCriticAgent:
             score=quality,
             feedback=f"Quality: {quality}/10",
             suggestions=suggestions,
-            issues=issues
+            issues=issues,
         )
 
 
@@ -180,7 +170,7 @@ class TestCritique:
             feedback="Excellent work",
             suggestions=["Add more tests"],
             issues=[],
-            iteration=1
+            iteration=1,
         )
 
         assert critique.approved is True
@@ -191,11 +181,7 @@ class TestCritique:
 
     def test_critique_default_values(self):
         """Test critique default values."""
-        critique = Critique(
-            approved=False,
-            score=5,
-            feedback="Needs work"
-        )
+        critique = Critique(approved=False, score=5, feedback="Needs work")
 
         assert critique.suggestions == []
         assert critique.issues == []
@@ -212,7 +198,7 @@ class TestCritiqueResponse:
             score=8,
             feedback="Good quality",
             suggestions=["Add comments"],
-            issues=[]
+            issues=[],
         )
 
         assert response.approved is True
@@ -224,14 +210,14 @@ class TestCritiqueResponse:
             CritiqueResponse(
                 approved=False,
                 score=11,  # > 10
-                feedback="Invalid"
+                feedback="Invalid",
             )
 
         with pytest.raises(Exception):
             CritiqueResponse(
                 approved=False,
                 score=0,  # < 1
-                feedback="Invalid"
+                feedback="Invalid",
             )
 
 
@@ -244,11 +230,7 @@ class TestCriticAgentPattern:
         producer = MockProducerAgent()
         critic = MockCriticAgent()
 
-        pattern = CriticAgentPattern(
-            producer=producer,
-            critic=critic,
-            max_iterations=3
-        )
+        pattern = CriticAgentPattern(producer=producer, critic=critic, max_iterations=3)
 
         assert pattern.producer == producer
         assert pattern.critic == critic
@@ -264,8 +246,7 @@ class TestCriticAgentPattern:
         pattern = CriticAgentPattern(producer, critic, max_iterations=3)
 
         output, critiques = await pattern.produce_with_critique(
-            "Create a simple function",
-            verbose=False
+            "Create a simple function", verbose=False
         )
 
         # Should approve on first iteration
@@ -289,12 +270,11 @@ class TestCriticAgentPattern:
             producer,
             critic,
             max_iterations=5,
-            min_score_threshold=10  # Prevent early stopping at score 7
+            min_score_threshold=10,  # Prevent early stopping at score 7
         )
 
         output, critiques = await pattern.produce_with_critique(
-            "Create a complex system",
-            verbose=False
+            "Create a complex system", verbose=False
         )
 
         # Should take 3 iterations
@@ -317,8 +297,7 @@ class TestCriticAgentPattern:
         pattern = CriticAgentPattern(producer, critic, max_iterations=2)
 
         output, critiques = await pattern.produce_with_critique(
-            "Create something",
-            verbose=False
+            "Create something", verbose=False
         )
 
         # Should stop at max iterations
@@ -337,12 +316,11 @@ class TestCriticAgentPattern:
             producer,
             critic,
             max_iterations=5,
-            min_score_threshold=7  # But auto-approve at 7+
+            min_score_threshold=7,  # But auto-approve at 7+
         )
 
         output, critiques = await pattern.produce_with_critique(
-            "Create something",
-            verbose=False
+            "Create something", verbose=False
         )
 
         # Should stop when score reaches 7
@@ -360,18 +338,17 @@ class TestCriticAgentPattern:
         pattern = CriticAgentPattern(producer, critic, max_iterations=5)
 
         output, critiques = await pattern.produce_with_critique(
-            "Create something",
-            verbose=False
+            "Create something", verbose=False
         )
 
         summary = pattern.get_improvement_summary(critiques)
 
-        assert summary['iterations'] > 0
-        assert summary['initial_score'] == 4
-        assert summary['final_score'] > 4
-        assert summary['improvement'] > 0
-        assert 'improvement_percent' in summary
-        assert 'total_issues_found' in summary
+        assert summary["iterations"] > 0
+        assert summary["initial_score"] == 4
+        assert summary["final_score"] > 4
+        assert summary["improvement"] > 0
+        assert "improvement_percent" in summary
+        assert "total_issues_found" in summary
 
     @pytest.mark.asyncio
     async def test_empty_critiques_summary(self):
@@ -383,10 +360,10 @@ class TestCriticAgentPattern:
 
         summary = pattern.get_improvement_summary([])
 
-        assert summary['iterations'] == 0
-        assert summary['initial_score'] == 0
-        assert summary['final_score'] == 0
-        assert summary['improvement'] == 0
+        assert summary["iterations"] == 0
+        assert summary["initial_score"] == 0
+        assert summary["final_score"] == 0
+        assert summary["improvement"] == 0
 
 
 class TestSimpleSyncCriticPattern:
@@ -398,9 +375,7 @@ class TestSimpleSyncCriticPattern:
         critic = SyncMockCriticAgent()
 
         pattern = SimpleSyncCriticPattern(
-            producer=producer,
-            critic=critic,
-            max_iterations=3
+            producer=producer, critic=critic, max_iterations=3
         )
 
         assert pattern.producer == producer
@@ -414,8 +389,7 @@ class TestSimpleSyncCriticPattern:
         pattern = SimpleSyncCriticPattern(producer, critic)
 
         output, critiques = pattern.produce_with_critique(
-            "Create a function",
-            verbose=False
+            "Create a function", verbose=False
         )
 
         assert len(critiques) == 1
@@ -430,8 +404,7 @@ class TestSimpleSyncCriticPattern:
         pattern = SimpleSyncCriticPattern(producer, critic, max_iterations=5)
 
         output, critiques = pattern.produce_with_critique(
-            "Create something",
-            verbose=False
+            "Create something", verbose=False
         )
 
         # Should improve over iterations
@@ -446,8 +419,7 @@ class TestSimpleSyncCriticPattern:
         pattern = SimpleSyncCriticPattern(producer, critic, max_iterations=2)
 
         output, critiques = pattern.produce_with_critique(
-            "Create something",
-            verbose=False
+            "Create something", verbose=False
         )
 
         assert len(critiques) == 2
@@ -460,14 +432,13 @@ class TestSimpleSyncCriticPattern:
         pattern = SimpleSyncCriticPattern(producer, critic, max_iterations=5)
 
         output, critiques = pattern.produce_with_critique(
-            "Create something",
-            verbose=False
+            "Create something", verbose=False
         )
 
         summary = pattern.get_improvement_summary(critiques)
 
-        assert summary['iterations'] > 0
-        assert summary['final_score'] >= summary['initial_score']
+        assert summary["iterations"] > 0
+        assert summary["final_score"] >= summary["initial_score"]
 
 
 class TestFactoryFunction:
@@ -480,9 +451,7 @@ class TestFactoryFunction:
         critic = MockCriticAgent()
 
         pattern = create_critic_pattern(
-            producer=producer,
-            critic=critic,
-            async_mode=True
+            producer=producer, critic=critic, async_mode=True
         )
 
         assert isinstance(pattern, CriticAgentPattern)
@@ -493,9 +462,7 @@ class TestFactoryFunction:
         critic = SyncMockCriticAgent()
 
         pattern = create_critic_pattern(
-            producer=producer,
-            critic=critic,
-            async_mode=False
+            producer=producer, critic=critic, async_mode=False
         )
 
         assert isinstance(pattern, SimpleSyncCriticPattern)
@@ -512,10 +479,7 @@ class TestEdgeCases:
 
         pattern = CriticAgentPattern(producer, critic)
 
-        output, critiques = await pattern.produce_with_critique(
-            "",
-            verbose=False
-        )
+        output, critiques = await pattern.produce_with_critique("", verbose=False)
 
         # Should still work
         assert len(critiques) > 0
@@ -529,8 +493,7 @@ class TestEdgeCases:
         pattern = CriticAgentPattern(producer, critic, max_iterations=10)
 
         output, critiques = await pattern.produce_with_critique(
-            "Create something",
-            verbose=False
+            "Create something", verbose=False
         )
 
         # Should eventually approve or hit max iterations
@@ -545,8 +508,7 @@ class TestEdgeCases:
         pattern = CriticAgentPattern(producer, critic)
 
         output, critiques = await pattern.produce_with_critique(
-            "Create something",
-            verbose=False
+            "Create something", verbose=False
         )
 
         # Should approve immediately
@@ -561,8 +523,7 @@ class TestEdgeCases:
         pattern = SimpleSyncCriticPattern(producer, critic, max_iterations=3)
 
         output, critiques = pattern.produce_with_critique(
-            "Difficult task",
-            verbose=False
+            "Difficult task", verbose=False
         )
 
         # Should reach max iterations
@@ -579,16 +540,12 @@ class TestIntegration:
         critic = MockCriticAgent(approval_threshold=8)
 
         pattern = CriticAgentPattern(
-            producer=producer,
-            critic=critic,
-            max_iterations=5,
-            min_score_threshold=7
+            producer=producer, critic=critic, max_iterations=5, min_score_threshold=7
         )
 
         # Execute pattern
         output, critiques = await pattern.produce_with_critique(
-            "Design a blog system with posts and comments",
-            verbose=False
+            "Design a blog system with posts and comments", verbose=False
         )
 
         # Verify improvement
@@ -598,13 +555,13 @@ class TestIntegration:
         # Generate summary
         summary = pattern.get_improvement_summary(critiques)
 
-        assert summary['iterations'] == len(critiques)
-        assert summary['improvement'] >= 0
+        assert summary["iterations"] == len(critiques)
+        assert summary["improvement"] >= 0
 
         # Verify output contains refinements
         if len(critiques) > 1:
-            assert 'iteration' in output
-            assert output['iteration'] > 0
+            assert "iteration" in output
+            assert output["iteration"] > 0
 
     @pytest.mark.asyncio
     async def test_critic_catches_issues(self):
@@ -615,8 +572,7 @@ class TestIntegration:
         pattern = CriticAgentPattern(producer, critic, max_iterations=5)
 
         output, critiques = await pattern.produce_with_critique(
-            "Create something",
-            verbose=False
+            "Create something", verbose=False
         )
 
         # First critique should have issues
@@ -632,14 +588,13 @@ class TestIntegration:
         pattern = CriticAgentPattern(producer, critic, max_iterations=5)
 
         output, critiques = await pattern.produce_with_critique(
-            "Create something complex",
-            verbose=False
+            "Create something complex", verbose=False
         )
 
         # If multiple iterations, verify refinement happened
         if len(critiques) > 1:
-            assert 'addressed_issues' in output
-            assert 'applied_suggestions' in output
+            assert "addressed_issues" in output
+            assert "applied_suggestions" in output
 
 
 if __name__ == "__main__":

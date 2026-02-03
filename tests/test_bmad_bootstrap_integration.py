@@ -24,12 +24,18 @@ class MockLLM:
     async def ainvoke(self, messages, **kwargs):
         """Return mock response based on prompt content"""
 
-        prompt = messages[0].get("content", "") if isinstance(messages, list) else str(messages)
+        prompt = (
+            messages[0].get("content", "")
+            if isinstance(messages, list)
+            else str(messages)
+        )
 
         # Mock response class
         class MockResponse:
             def __init__(self, content):
-                self.content = content if isinstance(content, str) else json.dumps(content)
+                self.content = (
+                    content if isinstance(content, str) else json.dumps(content)
+                )
 
         # Golden Data generation
         if "Golden Data" in prompt or "구조화된 요구사항" in prompt:
@@ -42,11 +48,11 @@ class MockLLM:
                         "id": "feature_1",
                         "name": "기본 기능",
                         "description": "테스트용 기본 기능",
-                        "priority": "high"
+                        "priority": "high",
                     }
                 ],
                 "constraints": [],
-                "success_criteria": []
+                "success_criteria": [],
             }
             return MockResponse(response_data)
 
@@ -55,7 +61,7 @@ class MockLLM:
             response_data = {
                 "analysis": "테스트 분석",
                 "requirements": ["기본 요구사항"],
-                "success_criteria": ["성공 기준"]
+                "success_criteria": ["성공 기준"],
             }
             return MockResponse(response_data)
 
@@ -64,7 +70,7 @@ class MockLLM:
             response_data = {
                 "components": ["Component1"],
                 "data_models": ["Model1"],
-                "apis": ["API1"]
+                "apis": ["API1"],
             }
             return MockResponse(response_data)
 
@@ -78,7 +84,7 @@ class MockLLM:
                         "goal": "Run tests",
                         "backstory": "Expert tester",
                         "tools": [],
-                        "allow_delegation": False
+                        "allow_delegation": False,
                     }
                 ],
                 "tasks": [
@@ -87,9 +93,9 @@ class MockLLM:
                         "description": "Execute tests",
                         "expected_output": "Test results",
                         "agent": "test_agent",
-                        "human_input": False
+                        "human_input": False,
                     }
-                ]
+                ],
             }
             return MockResponse(response_data)
 
@@ -106,19 +112,19 @@ def sample_golden_data():
             purpose="Automated test system",
             target_users=["Testers", "Developers"],
             system_type="cli_tool",
-            scope_description="A simple test automation system"
+            scope_description="A simple test automation system",
         ),
         features=[
             FeatureSpec(
                 id="feature_1",
                 name="기본 기능",
                 description="테스트용 기본 기능",
-                priority="high"
+                priority="high",
             )
         ],
         constraints=[],
         success_criteria=[],
-        domain="automation"
+        domain="automation",
     )
 
 
@@ -131,7 +137,7 @@ class TestBMADBootstrapIntegration:
         mock_llm = MockLLM()
         engine = BMADEngine(
             llm_plugin=mock_llm,
-            use_expert_agents=False  # Use legacy path for simpler test
+            use_expert_agents=False,  # Use legacy path for simpler test
         )
 
         # Run without bootstrap
@@ -139,7 +145,7 @@ class TestBMADBootstrapIntegration:
             requirement="테스트 시스템을 만들어주세요",
             domain="automation",
             golden_data=sample_golden_data,  # Use pre-existing golden data
-            bootstrap_project=False  # Explicitly disable
+            bootstrap_project=False,  # Explicitly disable
         )
 
         # Should complete without bootstrap
@@ -153,7 +159,7 @@ class TestBMADBootstrapIntegration:
         mock_llm = MockLLM()
         engine = BMADEngine(
             llm_plugin=mock_llm,
-            use_expert_agents=False  # Use legacy path
+            use_expert_agents=False,  # Use legacy path
         )
 
         # Run with bootstrap enabled
@@ -163,7 +169,7 @@ class TestBMADBootstrapIntegration:
             golden_data=sample_golden_data,
             bootstrap_project=True,
             project_name="test_project",
-            bootstrap_dir=tmp_path
+            bootstrap_dir=tmp_path,
         )
 
         # Should complete successfully
@@ -181,20 +187,19 @@ class TestBMADBootstrapIntegration:
         assert bootstrap.files_created > 0
 
     @pytest.mark.asyncio
-    async def test_bootstrap_creates_project_structure(self, tmp_path, sample_golden_data):
+    async def test_bootstrap_creates_project_structure(
+        self, tmp_path, sample_golden_data
+    ):
         """Test that bootstrap creates expected project structure"""
         mock_llm = MockLLM()
-        engine = BMADEngine(
-            llm_plugin=mock_llm,
-            use_expert_agents=False
-        )
+        engine = BMADEngine(llm_plugin=mock_llm, use_expert_agents=False)
 
         result = await engine.run(
             requirement="테스트 시스템",
             golden_data=sample_golden_data,
             bootstrap_project=True,
             project_name="test_project",
-            bootstrap_dir=tmp_path
+            bootstrap_dir=tmp_path,
         )
 
         project_dir = result.bootstrap_result.project_dir
@@ -214,23 +219,21 @@ class TestBMADBootstrapIntegration:
         """Test that bootstrap initializes git repository"""
         # Skip if git is not available
         import subprocess
+
         try:
-            subprocess.run(['git', '--version'], check=True, capture_output=True)
+            subprocess.run(["git", "--version"], check=True, capture_output=True)
         except (subprocess.CalledProcessError, FileNotFoundError):
             pytest.skip("git not available")
 
         mock_llm = MockLLM()
-        engine = BMADEngine(
-            llm_plugin=mock_llm,
-            use_expert_agents=False
-        )
+        engine = BMADEngine(llm_plugin=mock_llm, use_expert_agents=False)
 
         result = await engine.run(
             requirement="테스트 시스템",
             golden_data=sample_golden_data,
             bootstrap_project=True,
             project_name="test_project",
-            bootstrap_dir=tmp_path
+            bootstrap_dir=tmp_path,
         )
 
         project_dir = result.bootstrap_result.project_dir
@@ -244,17 +247,14 @@ class TestBMADBootstrapIntegration:
     async def test_bootstrap_creates_venv(self, tmp_path, sample_golden_data):
         """Test that bootstrap creates virtual environment"""
         mock_llm = MockLLM()
-        engine = BMADEngine(
-            llm_plugin=mock_llm,
-            use_expert_agents=False
-        )
+        engine = BMADEngine(llm_plugin=mock_llm, use_expert_agents=False)
 
         result = await engine.run(
             requirement="테스트 시스템",
             golden_data=sample_golden_data,
             bootstrap_project=True,
             project_name="test_project",
-            bootstrap_dir=tmp_path
+            bootstrap_dir=tmp_path,
         )
 
         project_dir = result.bootstrap_result.project_dir
@@ -264,20 +264,19 @@ class TestBMADBootstrapIntegration:
         assert (project_dir / "venv").is_dir()
 
     @pytest.mark.asyncio
-    async def test_bootstrap_with_default_project_name(self, tmp_path, sample_golden_data):
+    async def test_bootstrap_with_default_project_name(
+        self, tmp_path, sample_golden_data
+    ):
         """Test bootstrap with default project name"""
         mock_llm = MockLLM()
-        engine = BMADEngine(
-            llm_plugin=mock_llm,
-            use_expert_agents=False
-        )
+        engine = BMADEngine(llm_plugin=mock_llm, use_expert_agents=False)
 
         result = await engine.run(
             requirement="테스트 시스템",
             golden_data=sample_golden_data,
             bootstrap_project=True,
             # No project_name provided - should use default
-            bootstrap_dir=tmp_path
+            bootstrap_dir=tmp_path,
         )
 
         # Should use default name
@@ -285,20 +284,19 @@ class TestBMADBootstrapIntegration:
         assert result.bootstrap_result.project_dir.name == "generated_project"
 
     @pytest.mark.asyncio
-    async def test_bootstrap_only_runs_with_generated_code(self, tmp_path, sample_golden_data):
+    async def test_bootstrap_only_runs_with_generated_code(
+        self, tmp_path, sample_golden_data
+    ):
         """Test that bootstrap only runs if code was generated"""
         mock_llm = MockLLM()
-        engine = BMADEngine(
-            llm_plugin=mock_llm,
-            use_expert_agents=False
-        )
+        engine = BMADEngine(llm_plugin=mock_llm, use_expert_agents=False)
 
         result = await engine.run(
             requirement="테스트 시스템",
             golden_data=sample_golden_data,
             bootstrap_project=True,
             project_name="test_project",
-            bootstrap_dir=tmp_path
+            bootstrap_dir=tmp_path,
         )
 
         # If code generation failed, bootstrap should not run

@@ -70,9 +70,13 @@ class CrewAIValidator:
                     # Check if right side is Agent() call
                     if isinstance(node.value, ast.Call):
                         if self._is_agent_call(node.value):
-                            agent_name = node.targets[0].id if node.targets else "unknown"
+                            agent_name = (
+                                node.targets[0].id if node.targets else "unknown"
+                            )
                             issues.extend(
-                                self._validate_agent_call(node.value, agent_name, node.lineno)
+                                self._validate_agent_call(
+                                    node.value, agent_name, node.lineno
+                                )
                             )
 
         except SyntaxError as e:
@@ -86,7 +90,8 @@ class CrewAIValidator:
             )
 
         return ValidationResult(
-            is_valid=len([i for i in issues if i.severity == "error"]) == 0, issues=issues
+            is_valid=len([i for i in issues if i.severity == "error"]) == 0,
+            issues=issues,
         )
 
     def validate_task_code(self, task_file_content: str) -> ValidationResult:
@@ -108,9 +113,13 @@ class CrewAIValidator:
                 if isinstance(node, ast.Assign):
                     if isinstance(node.value, ast.Call):
                         if self._is_task_call(node.value):
-                            task_name = node.targets[0].id if node.targets else "unknown"
+                            task_name = (
+                                node.targets[0].id if node.targets else "unknown"
+                            )
                             issues.extend(
-                                self._validate_task_call(node.value, task_name, node.lineno)
+                                self._validate_task_call(
+                                    node.value, task_name, node.lineno
+                                )
                             )
 
         except SyntaxError as e:
@@ -124,7 +133,8 @@ class CrewAIValidator:
             )
 
         return ValidationResult(
-            is_valid=len([i for i in issues if i.severity == "error"]) == 0, issues=issues
+            is_valid=len([i for i in issues if i.severity == "error"]) == 0,
+            issues=issues,
         )
 
     def validate_crew_code(self, crew_file_content: str) -> ValidationResult:
@@ -146,7 +156,9 @@ class CrewAIValidator:
                 if isinstance(node, ast.Assign):
                     if isinstance(node.value, ast.Call):
                         if self._is_crew_call(node.value):
-                            issues.extend(self._validate_crew_call(node.value, node.lineno))
+                            issues.extend(
+                                self._validate_crew_call(node.value, node.lineno)
+                            )
 
         except SyntaxError as e:
             issues.append(
@@ -159,7 +171,8 @@ class CrewAIValidator:
             )
 
         return ValidationResult(
-            is_valid=len([i for i in issues if i.severity == "error"]) == 0, issues=issues
+            is_valid=len([i for i in issues if i.severity == "error"]) == 0,
+            issues=issues,
         )
 
     def validate_runtime(self, temp_dir: str) -> ExecutionResult:
@@ -407,7 +420,9 @@ print("=" * 70)
         # Validate tools parameter
         for keyword in node.keywords:
             if keyword.arg == "tools":
-                issues.extend(self._validate_tools_param(keyword.value, agent_name, line))
+                issues.extend(
+                    self._validate_tools_param(keyword.value, agent_name, line)
+                )
 
             # Validate memory parameter (should be boolean)
             if keyword.arg == "memory":
@@ -499,7 +514,9 @@ print("=" * 70)
         # Validate context parameter
         for keyword in node.keywords:
             if keyword.arg == "context":
-                issues.extend(self._validate_context_param(keyword.value, task_name, line))
+                issues.extend(
+                    self._validate_context_param(keyword.value, task_name, line)
+                )
 
         return issues
 

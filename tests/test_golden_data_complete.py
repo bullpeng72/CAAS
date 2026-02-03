@@ -40,7 +40,7 @@ class MockLLM(LLMPlugin):
         return LLMResponse(
             content=json.dumps(self.mock_json_response, ensure_ascii=False),
             model="mock",
-            usage={"total_tokens": 100}
+            usage={"total_tokens": 100},
         )
 
     async def generate(self, prompt: str, **kwargs) -> str:
@@ -70,8 +70,8 @@ def complete_golden_data_response():
                 "priority": "high",
                 "acceptance_criteria": [
                     "키워드 입력 시 관련 상품이 표시된다",
-                    "검색 결과가 0.5초 이내에 표시된다"
-                ]
+                    "검색 결과가 0.5초 이내에 표시된다",
+                ],
             },
             {
                 "id": "F2",
@@ -80,39 +80,39 @@ def complete_golden_data_response():
                 "priority": "critical",
                 "acceptance_criteria": [
                     "상품을 장바구니에 추가할 수 있다",
-                    "장바구니 수량을 변경할 수 있다"
-                ]
-            }
+                    "장바구니 수량을 변경할 수 있다",
+                ],
+            },
         ],
         "data_models": [
             {
                 "entity_name": "Product",
                 "attributes": ["name", "price", "stock"],
-                "relationships": ["belongs to Category"]
+                "relationships": ["belongs to Category"],
             },
             {
                 "entity_name": "Cart",
                 "attributes": ["user_id", "items", "total_price"],
-                "relationships": ["has many CartItem"]
-            }
+                "relationships": ["has many CartItem"],
+            },
         ],
         "ui_components": [
             {
                 "page_name": "상품 목록 페이지",
                 "component_type": "table",
-                "description": "상품 목록을 보여주는 테이블"
+                "description": "상품 목록을 보여주는 테이블",
             },
             {
                 "page_name": "장바구니 페이지",
                 "component_type": "form",
-                "description": "장바구니 내용을 보여주고 수정할 수 있는 폼"
-            }
+                "description": "장바구니 내용을 보여주고 수정할 수 있는 폼",
+            },
         ],
         "non_functional_requirements": {
             "security": "사용자 인증 및 결제 정보 암호화",
             "scalability": "동시 사용자 1000명 처리 가능",
             "performance": "페이지 로딩 시간 2초 이내",
-            "reliability": "99.9% 가동률"
+            "reliability": "99.9% 가동률",
         },
         "workflow_type": "sequential",
         "deployment_target": "kubernetes",
@@ -123,20 +123,20 @@ def complete_golden_data_response():
                 "데이터베이스 읽기",
                 "상품 정보 조회",
                 "사용자 정보 조회",
-                "로깅 및 모니터링"
+                "로깅 및 모니터링",
             ],
             "ask_first": [
                 "데이터베이스 쓰기",
                 "결제 API 호출",
                 "이메일 발송",
-                "외부 API 호출"
+                "외부 API 호출",
             ],
             "never_allowed": [
                 "시스템 명령 실행",
                 "파일 시스템 전체 삭제",
                 "SQL 인젝션",
-                "XSS 공격"
-            ]
+                "XSS 공격",
+            ],
         },
         # 1. Commands
         "commands": {
@@ -146,7 +146,7 @@ def complete_golden_data_response():
             "lint": "pylint src/ --rcfile=.pylintrc",
             "format": "black src/ && isort src/",
             "build": "docker build -t ecommerce:latest .",
-            "deploy": "kubectl apply -f k8s/"
+            "deploy": "kubectl apply -f k8s/",
         },
         # 4. Code Style
         "code_style": {
@@ -154,15 +154,15 @@ def complete_golden_data_response():
             "line_length": 100,
             "use_type_hints": True,
             "docstring_style": "google",
-            "import_order": "isort"
+            "import_order": "isort",
         },
         # 5. Git Workflow
         "git_workflow": {
             "branch_naming": "feature/{issue-number}-{description}",
             "commit_message_format": "feat(scope): subject",
             "requires_pr": True,
-            "main_branch": "main"
-        }
+            "main_branch": "main",
+        },
     }
 
 
@@ -176,8 +176,7 @@ async def test_requirement_concretizer_with_all_specs(complete_golden_data_respo
 
     # Act
     golden_data = await concretizer.concretize(
-        requirement="온라인 쇼핑몰을 만들어주세요",
-        domain="E-COMMERCE"
+        requirement="온라인 쇼핑몰을 만들어주세요", domain="E-COMMERCE"
     )
 
     # Assert - Basic fields
@@ -232,7 +231,9 @@ async def test_requirement_concretizer_with_all_specs(complete_golden_data_respo
     # 5. GIT WORKFLOW
     assert golden_data.git_workflow is not None
     assert isinstance(golden_data.git_workflow, GitWorkflowSpec)
-    assert golden_data.git_workflow.branch_naming == "feature/{issue-number}-{description}"
+    assert (
+        golden_data.git_workflow.branch_naming == "feature/{issue-number}-{description}"
+    )
     assert golden_data.git_workflow.commit_message_format == "feat(scope): subject"
     assert golden_data.git_workflow.requires_pr is True
     assert golden_data.git_workflow.main_branch == "main"
@@ -246,14 +247,12 @@ async def test_golden_data_pipeline_with_all_specs(complete_golden_data_response
     mock_llm = MockLLM(complete_golden_data_response)
     pipeline = GoldenDataPipeline(
         llm_plugin=mock_llm,
-        use_hierarchical_extraction=False  # Disable to avoid extra LLM calls
+        use_hierarchical_extraction=False,  # Disable to avoid extra LLM calls
     )
 
     # Act
     golden_data = await pipeline.generate(
-        requirement="온라인 쇼핑몰을 만들어주세요",
-        domain="E-COMMERCE",
-        validate=True
+        requirement="온라인 쇼핑몰을 만들어주세요", domain="E-COMMERCE", validate=True
     )
 
     # Assert all 6 spec areas are populated
@@ -283,14 +282,14 @@ async def test_default_boundaries_when_llm_omits_them():
                 "name": "Basic Feature",
                 "description": "A basic feature",
                 "priority": "medium",
-                "acceptance_criteria": ["It works"]
+                "acceptance_criteria": ["It works"],
             }
         ],
         "data_models": [],
         "ui_components": [],
         "non_functional_requirements": {},
         "workflow_type": "sequential",
-        "deployment_target": "docker"
+        "deployment_target": "docker",
         # NOTE: No boundaries, commands, code_style, git_workflow
     }
 
@@ -299,8 +298,7 @@ async def test_default_boundaries_when_llm_omits_them():
 
     # Act
     golden_data = await concretizer.concretize(
-        requirement="Simple app",
-        domain="GENERAL"
+        requirement="Simple app", domain="GENERAL"
     )
 
     # Assert - Default boundaries should be set
@@ -336,7 +334,7 @@ async def test_security_boundaries_are_enforced():
         "domain": "GENERAL",
         "project_name": "Test",
         "description": "Test",
-        "features": []
+        "features": [],
     }
 
     mock_llm = MockLLM(empty_response)
@@ -346,12 +344,19 @@ async def test_security_boundaries_are_enforced():
     golden_data = await concretizer.concretize("test", "GENERAL")
 
     # Assert - Boundaries MUST be set (security critical)
-    assert golden_data.boundaries is not None, "Boundaries must NEVER be None (security critical)"
-    assert len(golden_data.boundaries.never_allowed) > 0, "Must have forbidden operations"
-    assert any("rm -rf" in op or "삭제" in op for op in golden_data.boundaries.never_allowed), \
-        "Must forbid dangerous file operations"
-    assert any("명령 실행" in op or "코드 실행" in op for op in golden_data.boundaries.never_allowed), \
-        "Must forbid arbitrary code execution"
+    assert (
+        golden_data.boundaries is not None
+    ), "Boundaries must NEVER be None (security critical)"
+    assert (
+        len(golden_data.boundaries.never_allowed) > 0
+    ), "Must have forbidden operations"
+    assert any(
+        "rm -rf" in op or "삭제" in op for op in golden_data.boundaries.never_allowed
+    ), "Must forbid dangerous file operations"
+    assert any(
+        "명령 실행" in op or "코드 실행" in op
+        for op in golden_data.boundaries.never_allowed
+    ), "Must forbid arbitrary code execution"
 
 
 if __name__ == "__main__":

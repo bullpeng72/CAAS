@@ -40,7 +40,8 @@ class RichReviewHandler:
         self.console.print(f"\n{'='*70}")
         self.console.print(
             Panel.fit(
-                f"[bold cyan]{phase_name} COMPLETE[/bold cyan]\n" f"[dim]{description}[/dim]",
+                f"[bold cyan]{phase_name} COMPLETE[/bold cyan]\n"
+                f"[dim]{description}[/dim]",
                 border_style="cyan",
                 box=box.DOUBLE,
             )
@@ -89,7 +90,9 @@ class RichReviewHandler:
         # Request choice
         while True:
             choice = Prompt.ask(
-                "\n[bold]Your decision[/bold]", choices=list(opts.keys()), default="approve"
+                "\n[bold]Your decision[/bold]",
+                choices=list(opts.keys()),
+                default="approve",
             )
 
             if choice in ["approve", "a", "y", "yes"]:
@@ -118,7 +121,9 @@ class RichReviewHandler:
             Tuple of (edited_output, feedback_text)
         """
         self.console.print("\n[bold cyan]Provide feedback for refinement:[/bold cyan]")
-        self.console.print("[dim]Enter your feedback (press Ctrl+D or Ctrl+Z when done)[/dim]\n")
+        self.console.print(
+            "[dim]Enter your feedback (press Ctrl+D or Ctrl+Z when done)[/dim]\n"
+        )
 
         feedback_lines = []
         try:
@@ -131,10 +136,14 @@ class RichReviewHandler:
         feedback = "\n".join(feedback_lines)
 
         if not feedback.strip():
-            self.console.print("[yellow]No feedback provided, using original output[/yellow]")
+            self.console.print(
+                "[yellow]No feedback provided, using original output[/yellow]"
+            )
             return current_output, ""
 
-        self.console.print(f"\n[green]Feedback recorded ({len(feedback)} chars)[/green]")
+        self.console.print(
+            f"\n[green]Feedback recorded ({len(feedback)} chars)[/green]"
+        )
 
         # TODO: In future, could use LLM to apply feedback to output
         # For now, just return original output with feedback
@@ -154,9 +163,12 @@ class RichReviewHandler:
         table.add_column("Edited", justify="center")
 
         for gate_info in summary_data["gates"]:
-            decision_emoji = {"approve": "✅", "reject": "❌", "edit": "✏️", "skip": "⏭️"}.get(
-                gate_info["decision"], "❓"
-            )
+            decision_emoji = {
+                "approve": "✅",
+                "reject": "❌",
+                "edit": "✏️",
+                "skip": "⏭️",
+            }.get(gate_info["decision"], "❓")
 
             table.add_row(
                 gate_info["phase"],
@@ -205,7 +217,10 @@ class RichReviewHandler:
         if "features" in output:
             features = output["features"]
             table = Table(
-                title="Features", box=box.ROUNDED, show_header=True, header_style="bold magenta"
+                title="Features",
+                box=box.ROUNDED,
+                show_header=True,
+                header_style="bold magenta",
             )
             table.add_column("Name", style="cyan")
             table.add_column("Priority", style="yellow")
@@ -227,13 +242,17 @@ class RichReviewHandler:
             self.console.print()
 
             if len(features) > 10:
-                self.console.print(f"[dim]... and {len(features) - 10} more features[/dim]\n")
+                self.console.print(
+                    f"[dim]... and {len(features) - 10} more features[/dim]\n"
+                )
 
         # Data models
         if "data_models" in output:
             data_models = output["data_models"]
             if data_models:
-                self.console.print(f"[bold]Data Models:[/bold] {len(data_models)} entities")
+                self.console.print(
+                    f"[bold]Data Models:[/bold] {len(data_models)} entities"
+                )
                 for dm in data_models[:5]:
                     if isinstance(dm, dict):
                         self.console.print(f"  • {dm.get('entity_name', 'N/A')}")
@@ -259,7 +278,10 @@ class RichReviewHandler:
         # Agents table
         if agents:
             agent_table = Table(
-                title="Agents", box=box.ROUNDED, show_header=True, header_style="bold magenta"
+                title="Agents",
+                box=box.ROUNDED,
+                show_header=True,
+                header_style="bold magenta",
             )
             agent_table.add_column("ID", style="cyan", no_wrap=True)
             agent_table.add_column("Role", style="yellow")
@@ -277,14 +299,19 @@ class RichReviewHandler:
                     goal_short = goal[:40] + "..." if len(goal) > 40 else goal
 
                     agent_table.add_row(
-                        agent.get("id", "N/A"), agent.get("role", "N/A"), tools_str, goal_short
+                        agent.get("id", "N/A"),
+                        agent.get("role", "N/A"),
+                        tools_str,
+                        goal_short,
                     )
 
             self.console.print(agent_table)
             self.console.print()
 
             if len(agents) > 5:
-                self.console.print(f"[dim]... and {len(agents) - 5} more agents[/dim]\n")
+                self.console.print(
+                    f"[dim]... and {len(agents) - 5} more agents[/dim]\n"
+                )
 
         # Tasks summary
         if tasks:
@@ -324,7 +351,11 @@ class RichReviewHandler:
             syntax = Syntax(preview, "python", theme="monokai", line_numbers=True)
 
             self.console.print(
-                Panel(syntax, title="main.py Preview (first 30 lines)", border_style="green")
+                Panel(
+                    syntax,
+                    title="main.py Preview (first 30 lines)",
+                    border_style="green",
+                )
             )
             self.console.print()
 
@@ -351,7 +382,9 @@ class RichReviewHandler:
 
         syntax = Syntax(preview, "json", theme="monokai", line_numbers=True)
 
-        self.console.print(Panel(syntax, title="Phase Output (JSON)", border_style="blue"))
+        self.console.print(
+            Panel(syntax, title="Phase Output (JSON)", border_style="blue")
+        )
         self.console.print()
 
 

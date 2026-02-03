@@ -45,7 +45,8 @@ class QdrantPlugin(VectorDBPlugin):
 
         except ImportError:
             raise ImportError(
-                "Qdrant package not installed. " "Install with: pip install qdrant-client"
+                "Qdrant package not installed. "
+                "Install with: pip install qdrant-client"
             )
 
     async def create_index(self) -> bool:
@@ -115,7 +116,9 @@ class QdrantPlugin(VectorDBPlugin):
             points.append(PointStruct(id=doc.id, vector=doc.embedding, payload=payload))
 
         # Upsert
-        result = await self._client.upsert(collection_name=self.collection_name, points=points)
+        result = await self._client.upsert(
+            collection_name=self.collection_name, points=points
+        )
 
         return {"upserted_count": len(points), "status": result.status}
 
@@ -144,7 +147,9 @@ class QdrantPlugin(VectorDBPlugin):
 
             if filter:
                 for key, value in filter.items():
-                    conditions.append(FieldCondition(key=key, match=MatchValue(value=value)))
+                    conditions.append(
+                        FieldCondition(key=key, match=MatchValue(value=value))
+                    )
 
             qdrant_filter = Filter(must=conditions)
 
@@ -159,7 +164,9 @@ class QdrantPlugin(VectorDBPlugin):
         # Convert to VectorSearchResult
         search_results = []
         for hit in results:
-            metadata = {k: v for k, v in hit.payload.items() if k not in ["text", "namespace"]}
+            metadata = {
+                k: v for k, v in hit.payload.items() if k not in ["text", "namespace"]
+            }
             search_results.append(
                 VectorSearchResult(
                     id=str(hit.id),
@@ -171,7 +178,9 @@ class QdrantPlugin(VectorDBPlugin):
 
         return search_results
 
-    async def delete(self, ids: List[str], namespace: Optional[str] = None) -> Dict[str, Any]:
+    async def delete(
+        self, ids: List[str], namespace: Optional[str] = None
+    ) -> Dict[str, Any]:
         """Delete vectors by ID"""
         if not self._initialized:
             await self.initialize()
@@ -182,24 +191,33 @@ class QdrantPlugin(VectorDBPlugin):
         qdrant_filter = None
         if namespace:
             qdrant_filter = Filter(
-                must=[FieldCondition(key="namespace", match=MatchValue(value=namespace))]
+                must=[
+                    FieldCondition(key="namespace", match=MatchValue(value=namespace))
+                ]
             )
 
         # Delete points
         await self._client.delete(
-            collection_name=self.collection_name, points_selector=ids, points_filter=qdrant_filter
+            collection_name=self.collection_name,
+            points_selector=ids,
+            points_filter=qdrant_filter,
         )
 
         return {"deleted_ids": ids}
 
-    async def get(self, ids: List[str], namespace: Optional[str] = None) -> List[VectorDocument]:
+    async def get(
+        self, ids: List[str], namespace: Optional[str] = None
+    ) -> List[VectorDocument]:
         """Retrieve vectors by ID"""
         if not self._initialized:
             await self.initialize()
 
         # Retrieve points
         results = await self._client.retrieve(
-            collection_name=self.collection_name, ids=ids, with_vectors=True, with_payload=True
+            collection_name=self.collection_name,
+            ids=ids,
+            with_vectors=True,
+            with_payload=True,
         )
 
         # Convert to VectorDocument
@@ -209,7 +227,9 @@ class QdrantPlugin(VectorDBPlugin):
             if namespace and point.payload.get("namespace") != namespace:
                 continue
 
-            metadata = {k: v for k, v in point.payload.items() if k not in ["text", "namespace"]}
+            metadata = {
+                k: v for k, v in point.payload.items() if k not in ["text", "namespace"]
+            }
             documents.append(
                 VectorDocument(
                     id=str(point.id),

@@ -33,12 +33,16 @@ class OpenAIPlugin(LLMPlugin):
             from openai import AsyncOpenAI
 
             self._client = AsyncOpenAI(
-                api_key=self.api_key, base_url=self.api_base, organization=self.organization
+                api_key=self.api_key,
+                base_url=self.api_base,
+                organization=self.organization,
             )
             self._initialized = True
 
         except ImportError:
-            raise ImportError("OpenAI package not installed. " "Install with: pip install openai")
+            raise ImportError(
+                "OpenAI package not installed. " "Install with: pip install openai"
+            )
 
     async def ainvoke(
         self,

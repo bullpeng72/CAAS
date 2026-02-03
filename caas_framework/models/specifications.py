@@ -102,7 +102,11 @@ class FeatureSpec(BaseModel):
         """Convert string fields to lists if needed"""
         if isinstance(values, dict):
             # Convert string to single-item list for list fields
-            for field_name in ["acceptance_criteria", "functional_requirements", "user_stories"]:
+            for field_name in [
+                "acceptance_criteria",
+                "functional_requirements",
+                "user_stories",
+            ]:
                 if field_name in values and isinstance(values[field_name], str):
                     # If it's a non-empty string, wrap it in a list
                     if values[field_name].strip():
@@ -147,14 +151,18 @@ class DataModel(BaseModel):
                 for attr in values["attributes"]:
                     if isinstance(attr, str):
                         # Old format: just a string
-                        converted_attrs.append({"name": attr, "type": "string", "required": True})
+                        converted_attrs.append(
+                            {"name": attr, "type": "string", "required": True}
+                        )
                     elif isinstance(attr, dict):
                         # New format: already a dict, ensure 'required' is bool
                         attr_copy = attr.copy()
                         if "required" in attr_copy:
                             # Convert "true"/"false" strings to boolean
                             if isinstance(attr_copy["required"], str):
-                                attr_copy["required"] = attr_copy["required"].lower() in (
+                                attr_copy["required"] = attr_copy[
+                                    "required"
+                                ].lower() in (
                                     "true",
                                     "1",
                                     "yes",
@@ -181,7 +189,9 @@ class DataModel(BaseModel):
 class UIComponent(BaseModel):
     """UI component specification"""
 
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))  # Auto-generate UUID if not provided
+    id: str = Field(
+        default_factory=lambda: str(uuid.uuid4())
+    )  # Auto-generate UUID if not provided
     component_type: str
     page_name: str
     description: Optional[str] = None  # Made optional
@@ -206,15 +216,17 @@ class UIComponent(BaseModel):
             # Normalize data_source: convert list to comma-separated string
             if "data_source" in values and isinstance(values["data_source"], list):
                 if values["data_source"]:  # Non-empty list
-                    values["data_source"] = ", ".join(str(item) for item in values["data_source"])
+                    values["data_source"] = ", ".join(
+                        str(item) for item in values["data_source"]
+                    )
                 else:  # Empty list
                     values["data_source"] = None
 
             # If neither description nor purpose exists, create a default description
             if not values.get("description") and not values.get("purpose"):
-                values["description"] = (
-                    f"{values.get('component_type', 'UI component')} in {values.get('page_name', 'unknown page')}"
-                )
+                values[
+                    "description"
+                ] = f"{values.get('component_type', 'UI component')} in {values.get('page_name', 'unknown page')}"
 
         return values
 
@@ -248,7 +260,8 @@ class BoundariesSpec(BaseModel):
         description="Operations that are always permitted without user approval",
     )
     ask_first: List[str] = Field(
-        default_factory=list, description="Operations that require user approval before execution"
+        default_factory=list,
+        description="Operations that require user approval before execution",
     )
     never_allowed: List[str] = Field(
         default_factory=list, description="Operations that are strictly forbidden"
@@ -374,7 +387,9 @@ class ConcretizedRequirement(BaseModel):
                 nfr = values["non_functional_requirements"]
                 # If it's a NonFunctionalRequirements object, convert to dict
                 if not isinstance(nfr, dict) and hasattr(nfr, "model_dump"):
-                    values["non_functional_requirements"] = nfr.model_dump(exclude_none=True)
+                    values["non_functional_requirements"] = nfr.model_dump(
+                        exclude_none=True
+                    )
                 elif not isinstance(nfr, dict) and hasattr(nfr, "__dict__"):
                     # Fallback for non-Pydantic objects
                     values["non_functional_requirements"] = {

@@ -35,7 +35,9 @@ class AsyncBatchExecutor:
     """
 
     def __init__(
-        self, config: Optional[BatchConfig] = None, logger: Optional[logging.Logger] = None
+        self,
+        config: Optional[BatchConfig] = None,
+        logger: Optional[logging.Logger] = None,
     ):
         """
         Initialize batch executor.
@@ -132,7 +134,10 @@ class AsyncBatchExecutor:
                 raise
 
     async def map_parallel(
-        self, items: List[T], async_fn: Callable[[T], Awaitable[Any]], filter_errors: bool = True
+        self,
+        items: List[T],
+        async_fn: Callable[[T], Awaitable[Any]],
+        filter_errors: bool = True,
     ) -> List[Any]:
         """
         Map async function over items in parallel (like asyncio.gather but with control).
@@ -155,7 +160,9 @@ class AsyncBatchExecutor:
             return [result for _, result, _ in batch_results]
 
     async def execute_parallel(
-        self, tasks: List[Callable[[], Awaitable[T]]], max_concurrent: Optional[int] = None
+        self,
+        tasks: List[Callable[[], Awaitable[T]]],
+        max_concurrent: Optional[int] = None,
     ) -> List[T]:
         """
         Execute multiple async tasks in parallel.
@@ -229,7 +236,8 @@ async def run_parallel(
             return await coro
 
     return await asyncio.gather(
-        *[run_with_semaphore(coro) for coro in coroutines], return_exceptions=return_exceptions
+        *[run_with_semaphore(coro) for coro in coroutines],
+        return_exceptions=return_exceptions,
     )
 
 

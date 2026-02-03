@@ -19,7 +19,9 @@ class FileUtils:
     """파일 처리 유틸리티 (JSON, YAML 공통)"""
 
     @staticmethod
-    def safe_load_file(file_path: Path, file_type: str = "auto") -> Optional[Dict[str, Any]]:
+    def safe_load_file(
+        file_path: Path, file_type: str = "auto"
+    ) -> Optional[Dict[str, Any]]:
         """
         파일에서 안전하게 데이터 로드
 
@@ -63,7 +65,9 @@ class FileUtils:
             return None
 
     @staticmethod
-    def safe_dump_file(data: Any, file_path: Path, file_type: str = "auto", **kwargs) -> bool:
+    def safe_dump_file(
+        data: Any, file_path: Path, file_type: str = "auto", **kwargs
+    ) -> bool:
         """
         파일에 안전하게 데이터 저장
 

@@ -81,7 +81,9 @@ class GoldenDataEnhancer:
         # Step 1: Safety check - ensure items is a list
         items = output.get(items_key)
         if not isinstance(items, list):
-            logger.warning(f"Expected list for {items_key}, got {type(items)}. Using empty list.")
+            logger.warning(
+                f"Expected list for {items_key}, got {type(items)}. Using empty list."
+            )
             items = []
 
         if not items:
@@ -113,7 +115,9 @@ class GoldenDataEnhancer:
             )
         except:
             coverage_percentage = (
-                (covered_features / total_features * 100.0) if total_features > 0 else 0.0
+                (covered_features / total_features * 100.0)
+                if total_features > 0
+                else 0.0
             )
 
         # Step 4: Add metadata
@@ -161,7 +165,10 @@ class GoldenDataEnhancer:
         if not self.golden_data:
             return output
 
-        if not hasattr(self.golden_data, "data_models") or not self.golden_data.data_models:
+        if (
+            not hasattr(self.golden_data, "data_models")
+            or not self.golden_data.data_models
+        ):
             return output
 
         # Extract component names from architecture
@@ -189,7 +196,9 @@ class GoldenDataEnhancer:
 
         total_models = len(self.golden_data.data_models)
         covered_models = len(matched_models)
-        coverage_percentage = (covered_models / total_models * 100.0) if total_models > 0 else 0.0
+        coverage_percentage = (
+            (covered_models / total_models * 100.0) if total_models > 0 else 0.0
+        )
 
         # Add alignment info
         output[alignment_key] = {
@@ -268,7 +277,9 @@ class GoldenDataEnhancer:
             )
 
             # Calculate coverage
-            covered_features = len([items for items in traceability_map.values() if items])
+            covered_features = len(
+                [items for items in traceability_map.values() if items]
+            )
             total_features = len(self.golden_data.features)
             coverage_percentage = GoldenDataMatcher.calculate_percentage(
                 covered=covered_features, total=total_features
@@ -290,7 +301,9 @@ class GoldenDataEnhancer:
             )
 
         except ImportError:
-            logger.warning("GoldenDataMatcher not available, skipping feature-task mapping")
+            logger.warning(
+                "GoldenDataMatcher not available, skipping feature-task mapping"
+            )
 
         return output
 

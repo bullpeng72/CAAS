@@ -57,7 +57,9 @@ for env_path in env_paths:
     help="Disable all validation (syntax, traceability, completeness) - faster but risky",
 )
 @click.option(
-    "--no-auto-fix", is_flag=True, help="Disable automatic error fixing - will fail fast on errors"
+    "--no-auto-fix",
+    is_flag=True,
+    help="Disable automatic error fixing - will fail fast on errors",
 )
 @click.option(
     "--golden-data",
@@ -115,7 +117,9 @@ for env_path in env_paths:
     help="Enable distributed parallel execution for large projects (30-50%% speedup)",
 )
 @click.option(
-    "--workers", type=int, help="Number of workers for distributed execution (default: CPU count)"
+    "--workers",
+    type=int,
+    help="Number of workers for distributed execution (default: CPU count)",
 )
 @handle_keyboard_interrupt
 def generate(
@@ -339,8 +343,12 @@ def generate(
     echo_info(f"Verbosity: {verbosity}")
     echo_info(f"Validation: {'Enabled' if not no_validation else 'Disabled'}")
     echo_info(f"Auto-fix: {'Enabled' if not no_auto_fix else 'Disabled'}")
-    echo_info(f"Phase 2 Traceability: {'Enabled' if not no_traceability else 'Disabled'}")
-    echo_info(f"Phase 3 Completeness: {'Enabled' if not no_completeness else 'Disabled'}")
+    echo_info(
+        f"Phase 2 Traceability: {'Enabled' if not no_traceability else 'Disabled'}"
+    )
+    echo_info(
+        f"Phase 3 Completeness: {'Enabled' if not no_completeness else 'Disabled'}"
+    )
     echo_info(f"Gap Filling: {'Enabled' if gap_filling else 'Disabled'}")
     if distributed:
         workers_str = f"{workers} workers" if workers else "auto workers"
@@ -357,7 +365,9 @@ def generate(
         config = load_config()
 
         # Override validation settings from CLI flags
-        config.validation = ValidationConfig(enabled=not no_validation, auto_fix=not no_auto_fix)
+        config.validation = ValidationConfig(
+            enabled=not no_validation, auto_fix=not no_auto_fix
+        )
 
         # Run generation
         async def run_generation():
@@ -436,9 +446,15 @@ def generate(
             if result.traceability_matrix:
                 click.echo()
                 click.echo(click.style("Phase 2 - Traceability:", bold=True))
-                click.echo(f"  Features tracked:  {len(result.traceability_matrix.features)}")
-                click.echo(f"  Tasks tracked:     {len(result.traceability_matrix.tasks)}")
-                click.echo(f"  Code files tracked: {len(result.traceability_matrix.code_files)}")
+                click.echo(
+                    f"  Features tracked:  {len(result.traceability_matrix.features)}"
+                )
+                click.echo(
+                    f"  Tasks tracked:     {len(result.traceability_matrix.tasks)}"
+                )
+                click.echo(
+                    f"  Code files tracked: {len(result.traceability_matrix.code_files)}"
+                )
 
             # Phase 3: Completeness
             if result.completeness_report:
@@ -450,7 +466,9 @@ def generate(
                 click.echo(f"  Partial:            {report.partially_implemented}")
                 click.echo(f"  Not implemented:    {report.not_implemented}")
                 click.echo(f"  Implementation rate: {report.implementation_rate:.1f}%")
-                click.echo(f"  Completeness score:  {report.completeness_score:.1f}/100")
+                click.echo(
+                    f"  Completeness score:  {report.completeness_score:.1f}/100"
+                )
                 if report.is_complete:
                     echo_success("  Status: ✅ COMPLETE")
                 else:
@@ -466,7 +484,9 @@ def generate(
                 if gap_result.success:
                     echo_success("  Status: ✅ SUCCESS")
                 else:
-                    echo_warning(f"  Status: ⚠️  PARTIAL ({len(gap_result.errors)} errors)")
+                    echo_warning(
+                        f"  Status: ⚠️  PARTIAL ({len(gap_result.errors)} errors)"
+                    )
 
             # Validation summary
             if result.validation_reports:
@@ -521,7 +541,9 @@ def generate(
                     if quality.get("passed", False):
                         echo_success(f"✅ Quality Score: {score:.1f}/10")
                     else:
-                        echo_warning(f"⚠️  Quality Score: {score:.1f}/10 (Below threshold)")
+                        echo_warning(
+                            f"⚠️  Quality Score: {score:.1f}/10 (Below threshold)"
+                        )
                     click.echo()
 
                 # Display security scan results
@@ -554,14 +576,18 @@ def generate(
                         # Show first 3 critical/high issues
                         issues = security.get("issues", [])
                         critical_high = [
-                            i for i in issues if i.get("severity") in ("critical", "high")
+                            i
+                            for i in issues
+                            if i.get("severity") in ("critical", "high")
                         ]
                         if critical_high:
                             click.echo()
                             echo_warning("  Top security issues:")
                             for issue in critical_high[:3]:
                                 severity_emoji = (
-                                    "🔴" if issue.get("severity") == "critical" else "🟠"
+                                    "🔴"
+                                    if issue.get("severity") == "critical"
+                                    else "🟠"
                                 )
                                 file_path = issue.get("file_path", "unknown")
                                 line = issue.get("line_number", "?")
@@ -598,24 +624,34 @@ def generate(
 
                                 # Display first 5 errors/warnings
                                 issues = validation.get("issues", [])
-                                errors = [i for i in issues if i.get("severity") == "error"]
-                                warnings = [i for i in issues if i.get("severity") == "warning"]
+                                errors = [
+                                    i for i in issues if i.get("severity") == "error"
+                                ]
+                                warnings = [
+                                    i for i in issues if i.get("severity") == "warning"
+                                ]
 
                                 for error in errors[:3]:
-                                    file_loc = (
-                                        f"{error.get('file', 'unknown')}:{error.get('line', '?')}"
+                                    file_loc = f"{error.get('file', 'unknown')}:{error.get('line', '?')}"
+                                    click.echo(
+                                        f"  ❌ [{file_loc}] {error.get('message', '')}"
                                     )
-                                    click.echo(f"  ❌ [{file_loc}] {error.get('message', '')}")
 
                                 if len(errors) > 3:
-                                    click.echo(f"  ... and {len(errors) - 3} more errors")
+                                    click.echo(
+                                        f"  ... and {len(errors) - 3} more errors"
+                                    )
 
                                 for warning in warnings[:2]:
                                     file_loc = f"{warning.get('file', 'unknown')}:{warning.get('line', '?')}"
-                                    click.echo(f"  ⚠️  [{file_loc}] {warning.get('message', '')}")
+                                    click.echo(
+                                        f"  ⚠️  [{file_loc}] {warning.get('message', '')}"
+                                    )
 
                                 if len(warnings) > 2:
-                                    click.echo(f"  ... and {len(warnings) - 2} more warnings")
+                                    click.echo(
+                                        f"  ... and {len(warnings) - 2} more warnings"
+                                    )
 
                             click.echo()
             else:
@@ -631,7 +667,12 @@ def generate(
                 golden_file = output_path / "golden_data.json"
                 try:
                     with open(golden_file, "w", encoding="utf-8") as f:
-                        json.dump(result.golden_data.model_dump(), f, indent=2, ensure_ascii=False)
+                        json.dump(
+                            result.golden_data.model_dump(),
+                            f,
+                            indent=2,
+                            ensure_ascii=False,
+                        )
                     artifacts_saved.append("golden_data.json (Phase 0)")
                 except Exception as e:
                     echo_warning(f"Failed to save golden_data.json: {e}")
@@ -641,7 +682,9 @@ def generate(
                 req_file = output_path / "requirement_analysis.json"
                 try:
                     with open(req_file, "w", encoding="utf-8") as f:
-                        json.dump(result.requirement_analysis, f, indent=2, ensure_ascii=False)
+                        json.dump(
+                            result.requirement_analysis, f, indent=2, ensure_ascii=False
+                        )
                     artifacts_saved.append("requirement_analysis.json (Phase 0)")
                 except Exception as e:
                     echo_warning(f"Failed to save requirement_analysis.json: {e}")
@@ -673,7 +716,9 @@ def generate(
                 arch_file = output_path / "architecture.json"
                 try:
                     with open(arch_file, "w", encoding="utf-8") as f:
-                        json.dump(result.architecture_design, f, indent=2, ensure_ascii=False)
+                        json.dump(
+                            result.architecture_design, f, indent=2, ensure_ascii=False
+                        )
                     artifacts_saved.append("architecture.json (Phase 2)")
                 except Exception as e:
                     echo_warning(f"Failed to save architecture.json: {e}")
@@ -733,7 +778,9 @@ def generate(
                 validation_file = output_path / "validation_reports.json"
                 try:
                     with open(validation_file, "w", encoding="utf-8") as f:
-                        json.dump(result.validation_reports, f, indent=2, ensure_ascii=False)
+                        json.dump(
+                            result.validation_reports, f, indent=2, ensure_ascii=False
+                        )
                     artifacts_saved.append("validation_reports.json (Quality)")
                 except Exception as e:
                     echo_warning(f"Failed to save validation_reports.json: {e}")
@@ -743,7 +790,9 @@ def generate(
                 security_file = output_path / "security_report.json"
                 try:
                     with open(security_file, "w", encoding="utf-8") as f:
-                        json.dump(result.security_report, f, indent=2, ensure_ascii=False)
+                        json.dump(
+                            result.security_report, f, indent=2, ensure_ascii=False
+                        )
                     artifacts_saved.append("security_report.json (Security)")
                 except Exception as e:
                     echo_warning(f"Failed to save security_report.json: {e}")

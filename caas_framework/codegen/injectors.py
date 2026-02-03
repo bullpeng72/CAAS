@@ -321,7 +321,8 @@ class RetryDecoratorTransformer(ast.NodeTransformer):
 
         # Skip if already has retry decorator
         if any(
-            "retry" in dec.id if isinstance(dec, ast.Name) else False for dec in node.decorator_list
+            "retry" in dec.id if isinstance(dec, ast.Name) else False
+            for dec in node.decorator_list
         ):
             return node
 
@@ -366,11 +367,17 @@ class ErrorHandlingTransformer(ast.NodeTransformer):
                                 args=[
                                     ast.JoinedStr(
                                         values=[
-                                            ast.Constant(value=f"Error in {node.name}: "),
+                                            ast.Constant(
+                                                value=f"Error in {node.name}: "
+                                            ),
                                             ast.FormattedValue(
                                                 value=ast.Call(
-                                                    func=ast.Name(id="str", ctx=ast.Load()),
-                                                    args=[ast.Name(id="e", ctx=ast.Load())],
+                                                    func=ast.Name(
+                                                        id="str", ctx=ast.Load()
+                                                    ),
+                                                    args=[
+                                                        ast.Name(id="e", ctx=ast.Load())
+                                                    ],
                                                     keywords=[],
                                                 ),
                                                 conversion=-1,
@@ -416,7 +423,9 @@ class LoggingInjector:
         """
         self.use_json_format = use_json_format
 
-    def inject(self, code: str, logger_name: str = "app", log_level: str = "info") -> str:
+    def inject(
+        self, code: str, logger_name: str = "app", log_level: str = "info"
+    ) -> str:
         """
         Inject structured logging into Python code.
 
@@ -716,7 +725,9 @@ class LoggingTransformer(ast.NodeTransformer):
         entry_log = ast.Expr(
             value=ast.Call(
                 func=ast.Attribute(
-                    value=ast.Name(id="logger", ctx=ast.Load()), attr=self.log_level, ctx=ast.Load()
+                    value=ast.Name(id="logger", ctx=ast.Load()),
+                    attr=self.log_level,
+                    ctx=ast.Load(),
                 ),
                 args=[ast.Constant(value=f"Entering {node.name}")],
                 keywords=[],

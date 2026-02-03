@@ -72,27 +72,47 @@ def show_comprehensive_help():
 
     method_text = Text()
     method_text.append("1. BMAD (Build-Measure-Analyze-Deploy)\n", style="bold green")
-    method_text.append("   • Phase 0: Requirement Concretization (Golden Data)\n", style="dim")
-    method_text.append("   • Phase 1: Discovery (Tool & capability analysis)\n", style="dim")
+    method_text.append(
+        "   • Phase 0: Requirement Concretization (Golden Data)\n", style="dim"
+    )
+    method_text.append(
+        "   • Phase 1: Discovery (Tool & capability analysis)\n", style="dim"
+    )
     method_text.append("   • Phase 2: Architecture (System design)\n", style="dim")
     method_text.append("   • Phase 3: Design (Agent & task design)\n", style="dim")
     method_text.append("   • Phase 4: Measurement (Quality validation)\n", style="dim")
     method_text.append("   • Phase 5: Deployment (Code generation)\n\n", style="dim")
 
-    method_text.append("2. SDD (Specification-Driven Development)\n", style="bold green")
-    method_text.append("   • Golden Data: Complete, unambiguous specifications\n", style="dim")
-    method_text.append("   • Boundaries: Always/Ask/Never security model\n", style="dim")
+    method_text.append(
+        "2. SDD (Specification-Driven Development)\n", style="bold green"
+    )
+    method_text.append(
+        "   • Golden Data: Complete, unambiguous specifications\n", style="dim"
+    )
+    method_text.append(
+        "   • Boundaries: Always/Ask/Never security model\n", style="dim"
+    )
     method_text.append("   • Commands: install, test, run, lint, format\n", style="dim")
-    method_text.append("   • Code Style: Formatter, type hints, docstrings\n", style="dim")
-    method_text.append("   • Testing: Unit, integration, e2e requirements\n\n", style="dim")
+    method_text.append(
+        "   • Code Style: Formatter, type hints, docstrings\n", style="dim"
+    )
+    method_text.append(
+        "   • Testing: Unit, integration, e2e requirements\n\n", style="dim"
+    )
 
     method_text.append("3. TDD (Test-Driven Development)\n", style="bold green")
     method_text.append("   • Red: Generate test code first\n", style="dim")
-    method_text.append("   • Green: Minimal implementation to pass tests\n", style="dim")
-    method_text.append("   • Refactor: Improve quality while maintaining tests\n", style="dim")
+    method_text.append(
+        "   • Green: Minimal implementation to pass tests\n", style="dim"
+    )
+    method_text.append(
+        "   • Refactor: Improve quality while maintaining tests\n", style="dim"
+    )
     method_text.append("   • Coverage: Ensure 80%+ test coverage\n", style="dim")
 
-    console.print(Panel(method_text, border_style="yellow", title="Methodologies", padding=(1, 2)))
+    console.print(
+        Panel(method_text, border_style="yellow", title="Methodologies", padding=(1, 2))
+    )
     console.print("\n")
 
     # Quality Assurance
@@ -102,9 +122,12 @@ def show_comprehensive_help():
     qa_table.add_column("Layer", style="cyan", width=20)
     qa_table.add_column("Description", style="white")
 
-    qa_table.add_row("1. Feedback Loop", "Golden Data validation • 60s timeout • Max 3 retries")
     qa_table.add_row(
-        "2. Quality Gates", "Phase exit criteria • Metrics validation • Failure blocking"
+        "1. Feedback Loop", "Golden Data validation • 60s timeout • Max 3 retries"
+    )
+    qa_table.add_row(
+        "2. Quality Gates",
+        "Phase exit criteria • Metrics validation • Failure blocking",
     )
     qa_table.add_row(
         "3. Producer-Critic", "LLM peer review • Max 3 iterations • Threshold 7.0/10.0"
@@ -136,7 +159,9 @@ def show_comprehensive_help():
     quick_start.append("  $ caas examples list\n", style="green")
     quick_start.append("  $ caas generate --from-example web_app\n", style="green")
 
-    console.print(Panel(quick_start, border_style="green", title="Quick Start", padding=(1, 2)))
+    console.print(
+        Panel(quick_start, border_style="green", title="Quick Start", padding=(1, 2))
+    )
     console.print("\n")
 
     # Command Categories
@@ -144,8 +169,12 @@ def show_comprehensive_help():
 
     # Production-Ready
     console.print("[bold cyan]🚀 PRODUCTION-READY[/bold cyan]")
-    console.print("  [green]auto-deploy[/green]      Full automation: requirement → deployed code")
-    console.print("                    • BMAD workflow • Quality gates • Git & CI/CD setup\n")
+    console.print(
+        "  [green]auto-deploy[/green]      Full automation: requirement → deployed code"
+    )
+    console.print(
+        "                    • BMAD workflow • Quality gates • Git & CI/CD setup\n"
+    )
 
     # Code Generation
     console.print("[bold cyan]🎨 CODE GENERATION[/bold cyan]")
@@ -155,14 +184,18 @@ def show_comprehensive_help():
     console.print(
         "  [green]generate-code[/green]    Fast generation from existing specs (AST-based)"
     )
-    console.print("  [green]codegen[/green]          Specific components (agents, tasks, tools)\n")
+    console.print(
+        "  [green]codegen[/green]          Specific components (agents, tasks, tools)\n"
+    )
 
     # Validation & Quality
     console.print("[bold cyan]✅ VALIDATION & QUALITY[/bold cyan]")
     console.print(
         "  [green]validate[/green]         Multi-layer validation (Golden Data, ontology, semantics)"
     )
-    console.print("  [green]fix[/green]              Auto-fix with LLM-powered issue resolution\n")
+    console.print(
+        "  [green]fix[/green]              Auto-fix with LLM-powered issue resolution\n"
+    )
 
     # Setup & Configuration
     console.print("[bold cyan]⚙️  SETUP & CONFIGURATION[/bold cyan]")
@@ -174,9 +207,15 @@ def show_comprehensive_help():
 
     # Requirement Refinement
     console.print("[bold cyan]🔍 REQUIREMENT REFINEMENT[/bold cyan]")
-    console.print("  [green]analyze-gaps[/green]     Identify missing features and ambiguities")
-    console.print("  [green]expand[/green]           Add acceptance criteria and data models")
-    console.print("  [green]questions[/green]        Interactive LLM-guided clarification")
+    console.print(
+        "  [green]analyze-gaps[/green]     Identify missing features and ambiguities"
+    )
+    console.print(
+        "  [green]expand[/green]           Add acceptance criteria and data models"
+    )
+    console.print(
+        "  [green]questions[/green]        Interactive LLM-guided clarification"
+    )
     console.print(
         "  [green]examples[/green]         Browse 11 curated examples (web, API, data, ML)\n"
     )
@@ -184,12 +223,18 @@ def show_comprehensive_help():
     # Advanced Features
     console.print("[bold cyan]🧪 ADVANCED FEATURES[/bold cyan]")
     console.print("  [green]generate-phase[/green]   Generate specific BMAD phase")
-    console.print("  [green]test[/green]             Run syntax, import, and test validation")
-    console.print("  [green]traceability[/green]     Track requirement → code coverage\n")
+    console.print(
+        "  [green]test[/green]             Run syntax, import, and test validation"
+    )
+    console.print(
+        "  [green]traceability[/green]     Track requirement → code coverage\n"
+    )
 
     # Monitoring & Performance
     console.print("[bold cyan]📊 MONITORING & PERFORMANCE[/bold cyan]")
-    console.print("  [green]cache[/green]            Cache management (stats, clear, config)")
+    console.print(
+        "  [green]cache[/green]            Cache management (stats, clear, config)"
+    )
     console.print(
         "  [green]monitor[/green]          Real-time monitoring (metrics, cost, quality, alerts)"
     )
@@ -227,9 +272,13 @@ def show_comprehensive_help():
 
     patterns.add_row("Full Automation", 'caas auto-deploy "Build an API"')
     patterns.add_row("Guided (Learning)", 'caas generate "Build blog" --plan-mode')
-    patterns.add_row("Iterative Refinement", "caas generate → validate → fix → generate-code")
+    patterns.add_row(
+        "Iterative Refinement", "caas generate → validate → fix → generate-code"
+    )
     patterns.add_row("From Examples", "caas examples list → generate --from-example")
-    patterns.add_row("Phase-by-Phase", "caas generate-phase [concretize|discover|design|deliver]")
+    patterns.add_row(
+        "Phase-by-Phase", "caas generate-phase [concretize|discover|design|deliver]"
+    )
 
     console.print(patterns)
     console.print("\n")
@@ -270,23 +319,41 @@ def show_comprehensive_help():
     deep_dive.append(
         "  Complete specifications: System scope, features, data models,\n", style="dim"
     )
-    deep_dive.append("  UI components, NFRs, testing strategy, Git workflow\n\n", style="dim")
+    deep_dive.append(
+        "  UI components, NFRs, testing strategy, Git workflow\n\n", style="dim"
+    )
 
     deep_dive.append("Quality Gates (BMAD)\n", style="bold green")
-    deep_dive.append("  • Concretization: 95%+ completeness, <10% ambiguity\n", style="dim")
+    deep_dive.append(
+        "  • Concretization: 95%+ completeness, <10% ambiguity\n", style="dim"
+    )
     deep_dive.append("  • Discovery: All required tools identified\n", style="dim")
-    deep_dive.append("  • Architecture: 90%+ role clarity, 0 circular dependencies\n", style="dim")
-    deep_dive.append("  • Design: 0 undefined tools, valid dependency graph\n", style="dim")
-    deep_dive.append("  • Delivery: 0 syntax errors, 0 import failures\n\n", style="dim")
+    deep_dive.append(
+        "  • Architecture: 90%+ role clarity, 0 circular dependencies\n", style="dim"
+    )
+    deep_dive.append(
+        "  • Design: 0 undefined tools, valid dependency graph\n", style="dim"
+    )
+    deep_dive.append(
+        "  • Delivery: 0 syntax errors, 0 import failures\n\n", style="dim"
+    )
 
     deep_dive.append("Multi-Agent Collaboration\n", style="bold green")
-    deep_dive.append("  1. RequirementAnalyst: Analyzes & concretizes requirements\n", style="dim")
+    deep_dive.append(
+        "  1. RequirementAnalyst: Analyzes & concretizes requirements\n", style="dim"
+    )
     deep_dive.append("  2. SystemArchitect: Designs system architecture\n", style="dim")
     deep_dive.append("  3. AgentDesigner: Designs CrewAI agents & tasks\n", style="dim")
-    deep_dive.append("  4. CodeGenerator: Generates production-ready code\n", style="dim")
-    deep_dive.append("  5. QASpecialist: Validates quality at each phase\n", style="dim")
+    deep_dive.append(
+        "  4. CodeGenerator: Generates production-ready code\n", style="dim"
+    )
+    deep_dive.append(
+        "  5. QASpecialist: Validates quality at each phase\n", style="dim"
+    )
 
-    console.print(Panel(deep_dive, border_style="blue", title="Deep Dive", padding=(1, 2)))
+    console.print(
+        Panel(deep_dive, border_style="blue", title="Deep Dive", padding=(1, 2))
+    )
     console.print("\n")
 
     # Footer
@@ -296,7 +363,10 @@ def show_comprehensive_help():
     footer.append("🤔 For interactive help: ", style="bold")
     footer.append("caas questions\n", style="green")
     footer.append("📚 Documentation: ", style="bold")
-    footer.append("https://github.com/bullpeng72/CrewAI-Agent-Autogeneration-System\n", style="cyan underline")
+    footer.append(
+        "https://github.com/bullpeng72/CrewAI-Agent-Autogeneration-System\n",
+        style="cyan underline",
+    )
 
     console.print(Panel(footer, border_style="cyan", padding=(0, 2)))
     console.print("\n")

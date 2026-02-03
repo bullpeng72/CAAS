@@ -81,7 +81,10 @@ class BackendSpec(BaseModel):
 
     # CrewAI 통합
     agent_integration: Dict[str, str] = Field(
-        default_factory=lambda: {"import_path": "agents.crew", "run_function": "run_crew"}
+        default_factory=lambda: {
+            "import_path": "agents.crew",
+            "run_function": "run_crew",
+        }
     )
 
     # Database 연결
@@ -287,7 +290,8 @@ class MultiProjectSpec(BaseModel):
 
     # Domain Classification (for frontend/backend logic generation)
     domain_classification: Optional[Dict[str, Any]] = Field(
-        default=None, description="Domain classification 결과 (DomainType, confidence, etc.)"
+        default=None,
+        description="Domain classification 결과 (DomainType, confidence, etc.)",
     )
 
     def has_backend(self) -> bool:

@@ -23,10 +23,16 @@ from caas_cli.utils import (
 
 @click.command()
 @click.option(
-    "--agents", type=click.Path(exists=True), required=True, help="Path to agents.json file"
+    "--agents",
+    type=click.Path(exists=True),
+    required=True,
+    help="Path to agents.json file",
 )
 @click.option(
-    "--tasks", type=click.Path(exists=True), required=True, help="Path to tasks.json file"
+    "--tasks",
+    type=click.Path(exists=True),
+    required=True,
+    help="Path to tasks.json file",
 )
 @click.option(
     "--golden-data",
@@ -44,7 +50,9 @@ from caas_cli.utils import (
     Level 2: Rule-based (medium, pattern-matching)
     Level 3: LLM-based (slow, intelligent)""",
 )
-@click.option("--max-iterations", type=int, default=3, help="Maximum fix iterations (default: 3)")
+@click.option(
+    "--max-iterations", type=int, default=3, help="Maximum fix iterations (default: 3)"
+)
 @click.option(
     "--output",
     "-o",
@@ -152,7 +160,9 @@ async def fix(agents, tasks, golden_data, level, max_iterations, output, verbose
         if verbose:
             echo_info(f"Agents: {len(agents_list)}")
             echo_info(f"Tasks: {len(tasks_list)}")
-            echo_info(f"Golden Data features: {len(golden_data_dict.get('features', []))}")
+            echo_info(
+                f"Golden Data features: {len(golden_data_dict.get('features', []))}"
+            )
 
         # Step 1: Validate to identify issues
         click.echo()
@@ -186,7 +196,12 @@ async def fix(agents, tasks, golden_data, level, max_iterations, output, verbose
         if level == 3:
             # LLM-based fixing
             fixed_result = await _fix_with_llm(
-                agents_list, tasks_list, golden, validation_report, max_iterations, verbose
+                agents_list,
+                tasks_list,
+                golden,
+                validation_report,
+                max_iterations,
+                verbose,
             )
         elif level == 2:
             # Rule-based fixing
@@ -278,7 +293,9 @@ async def _fix_with_llm(
         fixer = AutoFixer(golden_data=golden_data, llm_plugin=llm_plugin)
 
         # Apply fixes
-        result = await fixer.fix_design(agents_list, tasks_list, validation_report, max_iterations)
+        result = await fixer.fix_design(
+            agents_list, tasks_list, validation_report, max_iterations
+        )
 
         if verbose:
             click.echo()
@@ -301,7 +318,9 @@ async def _fix_with_llm(
         raise e
 
 
-async def _fix_with_rules(agents_list, tasks_list, golden_data, validation_report, verbose):
+async def _fix_with_rules(
+    agents_list, tasks_list, golden_data, validation_report, verbose
+):
     """Fix using rules (Level 2)"""
     from caas_framework.fixing.auto_fixer import AutoFixer
 
@@ -310,10 +329,14 @@ async def _fix_with_rules(agents_list, tasks_list, golden_data, validation_repor
     fixer = AutoFixer(golden_data=golden_data, llm_plugin=None)
 
     # Apply template fixes first
-    result = await fixer._apply_template_fixes(agents_list, tasks_list, validation_report)
+    result = await fixer._apply_template_fixes(
+        agents_list, tasks_list, validation_report
+    )
 
     # Then apply rule-based fixes
-    result = await fixer._apply_rule_fixes(result["agents"], result["tasks"], validation_report)
+    result = await fixer._apply_rule_fixes(
+        result["agents"], result["tasks"], validation_report
+    )
 
     if verbose:
         click.echo()
@@ -339,7 +362,9 @@ async def _fix_with_templates(agents_list, tasks_list, validation_report, verbos
     fixer = AutoFixer(golden_data=None, llm_plugin=None)
 
     # Apply only template fixes
-    result = await fixer._apply_template_fixes(agents_list, tasks_list, validation_report)
+    result = await fixer._apply_template_fixes(
+        agents_list, tasks_list, validation_report
+    )
 
     if verbose:
         click.echo()

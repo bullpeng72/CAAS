@@ -23,9 +23,7 @@ class TestFrontendConfig:
     def test_config_creation(self):
         """Test creating FrontendConfig"""
         config = FrontendConfig(
-            framework=FrontendFramework.REACT,
-            project_name="TestProject",
-            port=3000
+            framework=FrontendFramework.REACT, project_name="TestProject", port=3000
         )
 
         assert config.framework == FrontendFramework.REACT
@@ -41,7 +39,7 @@ class TestFrontendConfig:
             framework=FrontendFramework.STREAMLIT,
             project_name="TestProject",
             port=8501,
-            backend_url="http://api.example.com:8080"
+            backend_url="http://api.example.com:8080",
         )
 
         assert config.backend_url == "http://api.example.com:8080"
@@ -53,7 +51,7 @@ class TestFrontendConfig:
             project_name="TestProject",
             port=3000,
             enable_auth=True,
-            enable_metrics=True
+            enable_metrics=True,
         )
 
         assert config.enable_auth is True
@@ -73,9 +71,7 @@ class TestFrontendGenerator:
         """Test generating Streamlit frontend"""
         generator = FrontendGenerator()
         config = FrontendConfig(
-            framework=FrontendFramework.STREAMLIT,
-            project_name="TestApp",
-            port=8501
+            framework=FrontendFramework.STREAMLIT, project_name="TestApp", port=8501
         )
 
         files = generator.generate(config)
@@ -91,9 +87,7 @@ class TestFrontendGenerator:
         """Test generating React frontend"""
         generator = FrontendGenerator()
         config = FrontendConfig(
-            framework=FrontendFramework.REACT,
-            project_name="TestApp",
-            port=3000
+            framework=FrontendFramework.REACT, project_name="TestApp", port=3000
         )
 
         files = generator.generate(config)
@@ -115,9 +109,7 @@ class TestFrontendGenerator:
 
         # Create invalid config by manually setting framework
         config = FrontendConfig(
-            framework=FrontendFramework.REACT,
-            project_name="TestApp",
-            port=3000
+            framework=FrontendFramework.REACT, project_name="TestApp", port=3000
         )
         # Trick to test unsupported framework
         config.framework = "invalid"
@@ -132,9 +124,7 @@ class TestStreamlitTemplateGenerator:
     def test_streamlit_generator_creation(self):
         """Test creating Streamlit generator"""
         config = FrontendConfig(
-            framework=FrontendFramework.STREAMLIT,
-            project_name="TestApp",
-            port=8501
+            framework=FrontendFramework.STREAMLIT, project_name="TestApp", port=8501
         )
         generator = StreamlitTemplateGenerator(config)
 
@@ -147,7 +137,7 @@ class TestStreamlitTemplateGenerator:
             framework=FrontendFramework.STREAMLIT,
             project_name="TestApp",
             port=8501,
-            backend_url="http://localhost:8000"
+            backend_url="http://localhost:8000",
         )
         generator = StreamlitTemplateGenerator(config)
 
@@ -162,9 +152,7 @@ class TestStreamlitTemplateGenerator:
     def test_generate_agent_runner_page(self):
         """Test generating agent runner page"""
         config = FrontendConfig(
-            framework=FrontendFramework.STREAMLIT,
-            project_name="TestApp",
-            port=8501
+            framework=FrontendFramework.STREAMLIT, project_name="TestApp", port=8501
         )
         generator = StreamlitTemplateGenerator(config)
 
@@ -182,7 +170,7 @@ class TestStreamlitTemplateGenerator:
             framework=FrontendFramework.STREAMLIT,
             project_name="TestApp",
             port=8501,
-            backend_url="http://api.example.com"
+            backend_url="http://api.example.com",
         )
         generator = StreamlitTemplateGenerator(config)
 
@@ -199,9 +187,7 @@ class TestStreamlitTemplateGenerator:
     def test_generate_config_toml(self):
         """Test generating Streamlit config"""
         config = FrontendConfig(
-            framework=FrontendFramework.STREAMLIT,
-            project_name="TestApp",
-            port=8501
+            framework=FrontendFramework.STREAMLIT, project_name="TestApp", port=8501
         )
         generator = StreamlitTemplateGenerator(config)
 
@@ -216,9 +202,7 @@ class TestStreamlitTemplateGenerator:
     def test_generate_requirements(self):
         """Test generating requirements.txt"""
         config = FrontendConfig(
-            framework=FrontendFramework.STREAMLIT,
-            project_name="TestApp",
-            port=8501
+            framework=FrontendFramework.STREAMLIT, project_name="TestApp", port=8501
         )
         generator = StreamlitTemplateGenerator(config)
 
@@ -236,7 +220,7 @@ class TestStreamlitTemplateGenerator:
             project_name="TestApp",
             port=8501,
             enable_auth=True,
-            enable_metrics=True
+            enable_metrics=True,
         )
         generator = StreamlitTemplateGenerator(config)
 
@@ -250,9 +234,7 @@ class TestStreamlitTemplateGenerator:
     def test_generate_readme(self):
         """Test generating README"""
         config = FrontendConfig(
-            framework=FrontendFramework.STREAMLIT,
-            project_name="TestApp",
-            port=8501
+            framework=FrontendFramework.STREAMLIT, project_name="TestApp", port=8501
         )
         generator = StreamlitTemplateGenerator(config)
 
@@ -272,9 +254,7 @@ class TestReactTemplateGenerator:
     def test_react_generator_creation(self):
         """Test creating React generator"""
         config = FrontendConfig(
-            framework=FrontendFramework.REACT,
-            project_name="TestApp",
-            port=3000
+            framework=FrontendFramework.REACT, project_name="TestApp", port=3000
         )
         generator = ReactTemplateGenerator(config)
 
@@ -285,9 +265,7 @@ class TestReactTemplateGenerator:
     def test_generate_package_json(self):
         """Test generating package.json"""
         config = FrontendConfig(
-            framework=FrontendFramework.REACT,
-            project_name="Test App",
-            port=3000
+            framework=FrontendFramework.REACT, project_name="Test App", port=3000
         )
         generator = ReactTemplateGenerator(config)
 
@@ -316,9 +294,7 @@ class TestReactTemplateGenerator:
     def test_generate_tsconfig(self):
         """Test generating tsconfig.json"""
         config = FrontendConfig(
-            framework=FrontendFramework.REACT,
-            project_name="TestApp",
-            port=3000
+            framework=FrontendFramework.REACT, project_name="TestApp", port=3000
         )
         generator = ReactTemplateGenerator(config)
 
@@ -338,7 +314,7 @@ class TestReactTemplateGenerator:
             framework=FrontendFramework.REACT,
             project_name="TestApp",
             port=3000,
-            backend_url="http://localhost:8000"
+            backend_url="http://localhost:8000",
         )
         generator = ReactTemplateGenerator(config)
 
@@ -354,9 +330,7 @@ class TestReactTemplateGenerator:
     def test_generate_index_html(self):
         """Test generating index.html"""
         config = FrontendConfig(
-            framework=FrontendFramework.REACT,
-            project_name="TestApp",
-            port=3000
+            framework=FrontendFramework.REACT, project_name="TestApp", port=3000
         )
         generator = ReactTemplateGenerator(config)
 
@@ -371,9 +345,7 @@ class TestReactTemplateGenerator:
     def test_generate_main_tsx(self):
         """Test generating main.tsx"""
         config = FrontendConfig(
-            framework=FrontendFramework.REACT,
-            project_name="TestApp",
-            port=3000
+            framework=FrontendFramework.REACT, project_name="TestApp", port=3000
         )
         generator = ReactTemplateGenerator(config)
 
@@ -389,9 +361,7 @@ class TestReactTemplateGenerator:
     def test_generate_app_tsx(self):
         """Test generating App.tsx"""
         config = FrontendConfig(
-            framework=FrontendFramework.REACT,
-            project_name="TestApp",
-            port=3000
+            framework=FrontendFramework.REACT, project_name="TestApp", port=3000
         )
         generator = ReactTemplateGenerator(config)
 
@@ -408,7 +378,7 @@ class TestReactTemplateGenerator:
             framework=FrontendFramework.REACT,
             project_name="TestApp",
             port=3000,
-            backend_url="http://localhost:8000"
+            backend_url="http://localhost:8000",
         )
         generator = ReactTemplateGenerator(config)
 
@@ -425,9 +395,7 @@ class TestReactTemplateGenerator:
     def test_generate_api_types(self):
         """Test generating API types"""
         config = FrontendConfig(
-            framework=FrontendFramework.REACT,
-            project_name="TestApp",
-            port=3000
+            framework=FrontendFramework.REACT, project_name="TestApp", port=3000
         )
         generator = ReactTemplateGenerator(config)
 
@@ -442,9 +410,7 @@ class TestReactTemplateGenerator:
     def test_generate_agent_runner_component(self):
         """Test generating AgentRunner component"""
         config = FrontendConfig(
-            framework=FrontendFramework.REACT,
-            project_name="TestApp",
-            port=3000
+            framework=FrontendFramework.REACT, project_name="TestApp", port=3000
         )
         generator = ReactTemplateGenerator(config)
 
@@ -462,9 +428,7 @@ class TestReactTemplateGenerator:
     def test_generate_health_check_component(self):
         """Test generating HealthCheck component"""
         config = FrontendConfig(
-            framework=FrontendFramework.REACT,
-            project_name="TestApp",
-            port=3000
+            framework=FrontendFramework.REACT, project_name="TestApp", port=3000
         )
         generator = ReactTemplateGenerator(config)
 
@@ -481,9 +445,7 @@ class TestReactTemplateGenerator:
     def test_generate_with_backend_spec(self):
         """Test generating with backend specification"""
         config = FrontendConfig(
-            framework=FrontendFramework.REACT,
-            project_name="TestApp",
-            port=3000
+            framework=FrontendFramework.REACT, project_name="TestApp", port=3000
         )
 
         backend_spec = {
@@ -492,7 +454,7 @@ class TestReactTemplateGenerator:
                     "name": "getUsers",
                     "path": "/users",
                     "method": "GET",
-                    "return_type": "User[]"
+                    "return_type": "User[]",
                 }
             ],
             "types": [
@@ -501,15 +463,11 @@ class TestReactTemplateGenerator:
                     "fields": [
                         {"name": "id", "type": "string"},
                         {"name": "name", "type": "string"},
-                        {"name": "email", "type": "string"}
-                    ]
+                        {"name": "email", "type": "string"},
+                    ],
                 }
             ],
-            "entities": [
-                {
-                    "name": "User"
-                }
-            ]
+            "entities": [{"name": "User"}],
         }
 
         generator = ReactTemplateGenerator(config, backend_spec)
@@ -532,7 +490,7 @@ class TestReactTemplateGenerator:
             framework=FrontendFramework.REACT,
             project_name="TestApp",
             port=3000,
-            backend_url="http://localhost:8000"
+            backend_url="http://localhost:8000",
         )
         generator = ReactTemplateGenerator(config)
 
@@ -551,20 +509,18 @@ class TestReactTemplateGenerator:
     def test_all_generated_files_are_typescript(self):
         """Test that all React files use TypeScript extensions"""
         config = FrontendConfig(
-            framework=FrontendFramework.REACT,
-            project_name="TestApp",
-            port=3000
+            framework=FrontendFramework.REACT, project_name="TestApp", port=3000
         )
         generator = ReactTemplateGenerator(config)
 
         files = generator.generate()
 
         # Check TypeScript files
-        typescript_files = [k for k in files.keys() if k.endswith(('.ts', '.tsx'))]
+        typescript_files = [k for k in files.keys() if k.endswith((".ts", ".tsx"))]
         assert len(typescript_files) > 0
 
         # Check no JSX files
-        jsx_files = [k for k in files.keys() if k.endswith('.jsx')]
+        jsx_files = [k for k in files.keys() if k.endswith(".jsx")]
         assert len(jsx_files) == 0
 
 
@@ -580,7 +536,7 @@ class TestIntegration:
             port=8501,
             backend_url="http://localhost:8000",
             enable_auth=True,
-            enable_metrics=True
+            enable_metrics=True,
         )
 
         files = generator.generate(config)
@@ -600,7 +556,7 @@ class TestIntegration:
             framework=FrontendFramework.REACT,
             project_name="FullReactApp",
             port=3000,
-            backend_url="http://localhost:8000"
+            backend_url="http://localhost:8000",
         )
 
         files = generator.generate(config)
@@ -617,7 +573,7 @@ class TestIntegration:
             "src/types/api.ts",
             "src/components/AgentRunner.tsx",
             "src/components/HealthCheck.tsx",
-            "README.md"
+            "README.md",
         ]
 
         for expected_file in expected_files:

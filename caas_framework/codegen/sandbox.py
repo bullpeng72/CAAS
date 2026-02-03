@@ -306,7 +306,10 @@ class Sandbox:
         logger.info(f"Sandbox initialized: type={self.config.sandbox_type}")
 
     def execute(
-        self, files: Dict[str, str], command: Optional[str] = None, entry_point: str = "main.py"
+        self,
+        files: Dict[str, str],
+        command: Optional[str] = None,
+        entry_point: str = "main.py",
     ) -> ExecutionResult:
         """
         Execute code in sandbox.

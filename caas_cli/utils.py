@@ -73,7 +73,9 @@ def prompt_choice(message: str, choices: list, default: Optional[str] = None) ->
     Returns:
         str: Selected choice
     """
-    return click.prompt(message, type=click.Choice(choices, case_sensitive=False), default=default)
+    return click.prompt(
+        message, type=click.Choice(choices, case_sensitive=False), default=default
+    )
 
 
 def print_table(headers: list, rows: list):
@@ -120,7 +122,9 @@ class ProgressBar:
             total: Total steps
             label: Progress bar label
         """
-        self.bar = click.progressbar(length=total, label=label, show_percent=True, show_pos=True)
+        self.bar = click.progressbar(
+            length=total, label=label, show_percent=True, show_pos=True
+        )
 
     def __enter__(self):
         self.bar.__enter__()
@@ -322,7 +326,9 @@ def get_or_create_session_manager():
             session_dir = Path.home() / ".caas"
             session_dir.mkdir(exist_ok=True)
 
-            _session_manager = SessionManager(storage_path=session_dir / "sessions.json")
+            _session_manager = SessionManager(
+                storage_path=session_dir / "sessions.json"
+            )
         except ImportError:
             echo_error("Failed to import SessionManager from caas_framework")
             sys.exit(1)

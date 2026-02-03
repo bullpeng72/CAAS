@@ -27,7 +27,11 @@ class SystemArchitectAgent(BaseExpertAgent):
     all requirements and aligns with Golden Data structure.
     """
 
-    def __init__(self, llm_plugin: LLMPlugin, golden_data: Optional[ConcretizedRequirement] = None):
+    def __init__(
+        self,
+        llm_plugin: LLMPlugin,
+        golden_data: Optional[ConcretizedRequirement] = None,
+    ):
         super().__init__(llm_plugin, golden_data, AgentPhase.ARCHITECTURE)
 
     @property
@@ -75,12 +79,19 @@ class SystemArchitectAgent(BaseExpertAgent):
         if previous_outputs and AgentPhase.DISCOVERY in previous_outputs:
             req_analysis = previous_outputs[AgentPhase.DISCOVERY]
 
-        prompt = self._build_architecture_prompt(requirement, req_analysis, context_summary)
+        prompt = self._build_architecture_prompt(
+            requirement, req_analysis, context_summary
+        )
 
         # Use unified LLM helper (uses TEMPERATURE_CREATIVE by default for ARCHITECTURE phase)
         architecture = await self._invoke_llm_structured(
             prompt=prompt,
-            expected_fields=["components", "data_flow", "integration_points", "technology_stack"],
+            expected_fields=[
+                "components",
+                "data_flow",
+                "integration_points",
+                "technology_stack",
+            ],
             fallback_factory=self._create_fallback_architecture,
         )
 
@@ -158,7 +169,12 @@ class SystemArchitectAgent(BaseExpertAgent):
                     "infrastructure": ["docker", "kubernetes"],
                     "tools": ["tool1", "tool2"],
                 },
-                "architecture_patterns": ["Microservices", "Event-driven", "CQRS", "etc"],
+                "architecture_patterns": [
+                    "Microservices",
+                    "Event-driven",
+                    "CQRS",
+                    "etc",
+                ],
                 "deployment_architecture": {
                     "environment": "cloud|on-premise|hybrid",
                     "containers": ["container1", "container2"],
@@ -271,7 +287,9 @@ class SystemArchitectAgent(BaseExpertAgent):
         Uses RefinementExecutor for standardized refinement workflow.
         """
         executor = RefinementExecutor.create_for_agent(
-            agent=self, agent_role="Expert System Architect", output_type="system architecture"
+            agent=self,
+            agent_role="Expert System Architect",
+            output_type="system architecture",
         )
 
         return await executor.refine_output(

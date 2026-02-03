@@ -149,6 +149,7 @@ class TestAgentRegistry:
 
         # Try to register another agent for same phase
         with pytest.raises(ValueError, match="already has registered agent"):
+
             @register_agent(phase=AgentPhase.DISCOVERY)
             class Agent2(BaseExpertAgent):
                 @property
@@ -166,7 +167,9 @@ class TestAgentRegistry:
                 async def _do_work(self, requirement, context, previous_outputs):
                     return {}
 
-                async def _refine_implementation(self, output, issues, context, iteration):
+                async def _refine_implementation(
+                    self, output, issues, context, iteration
+                ):
                     return output
 
     def test_registry_allows_override(self):
@@ -339,9 +342,7 @@ class TestCreateAgentFactory:
 
         # Create agent via factory
         agent = create_agent(
-            phase=AgentPhase.DISCOVERY,
-            llm_plugin=llm_plugin,
-            golden_data=None
+            phase=AgentPhase.DISCOVERY, llm_plugin=llm_plugin, golden_data=None
         )
 
         assert isinstance(agent, BaseExpertAgent)
@@ -366,11 +367,11 @@ class TestRealAgentRegistration:
 
         # Reload all agent modules to trigger decorators
         for module_name in [
-            'caas_framework.agents.requirement_analyst',
-            'caas_framework.agents.system_architect',
-            'caas_framework.agents.agent_designer',
-            'caas_framework.agents.code_generator',
-            'caas_framework.agents.qa_specialist'
+            "caas_framework.agents.requirement_analyst",
+            "caas_framework.agents.system_architect",
+            "caas_framework.agents.agent_designer",
+            "caas_framework.agents.code_generator",
+            "caas_framework.agents.qa_specialist",
         ]:
             if module_name in sys.modules:
                 importlib.reload(sys.modules[module_name])
@@ -380,18 +381,40 @@ class TestRealAgentRegistration:
         # Now import the classes
 
         # Check all 5 phases are covered
-        assert registry.is_registered(AgentPhase.DISCOVERY), "DISCOVERY phase not registered"
-        assert registry.is_registered(AgentPhase.ARCHITECTURE), "ARCHITECTURE phase not registered"
+        assert registry.is_registered(
+            AgentPhase.DISCOVERY
+        ), "DISCOVERY phase not registered"
+        assert registry.is_registered(
+            AgentPhase.ARCHITECTURE
+        ), "ARCHITECTURE phase not registered"
         assert registry.is_registered(AgentPhase.DESIGN), "DESIGN phase not registered"
-        assert registry.is_registered(AgentPhase.DELIVERY), "DELIVERY phase not registered"
-        assert registry.is_registered(AgentPhase.QUALITY_ASSURANCE), "QA phase not registered"
+        assert registry.is_registered(
+            AgentPhase.DELIVERY
+        ), "DELIVERY phase not registered"
+        assert registry.is_registered(
+            AgentPhase.QUALITY_ASSURANCE
+        ), "QA phase not registered"
 
         # Check correct agent classes
-        assert registry.get_agent_class(AgentPhase.DISCOVERY).__name__ == "RequirementAnalystAgent"
-        assert registry.get_agent_class(AgentPhase.ARCHITECTURE).__name__ == "SystemArchitectAgent"
-        assert registry.get_agent_class(AgentPhase.DESIGN).__name__ == "AgentDesignerAgent"
-        assert registry.get_agent_class(AgentPhase.DELIVERY).__name__ == "CodeGeneratorAgent"
-        assert registry.get_agent_class(AgentPhase.QUALITY_ASSURANCE).__name__ == "QASpecialistAgent"
+        assert (
+            registry.get_agent_class(AgentPhase.DISCOVERY).__name__
+            == "RequirementAnalystAgent"
+        )
+        assert (
+            registry.get_agent_class(AgentPhase.ARCHITECTURE).__name__
+            == "SystemArchitectAgent"
+        )
+        assert (
+            registry.get_agent_class(AgentPhase.DESIGN).__name__ == "AgentDesignerAgent"
+        )
+        assert (
+            registry.get_agent_class(AgentPhase.DELIVERY).__name__
+            == "CodeGeneratorAgent"
+        )
+        assert (
+            registry.get_agent_class(AgentPhase.QUALITY_ASSURANCE).__name__
+            == "QASpecialistAgent"
+        )
 
     def test_discover_agents_function(self):
         """Test that discover_agents imports all agents"""
@@ -403,11 +426,11 @@ class TestRealAgentRegistration:
 
         # Force reload to trigger registration
         for module_name in [
-            'caas_framework.agents.requirement_analyst',
-            'caas_framework.agents.system_architect',
-            'caas_framework.agents.agent_designer',
-            'caas_framework.agents.code_generator',
-            'caas_framework.agents.qa_specialist'
+            "caas_framework.agents.requirement_analyst",
+            "caas_framework.agents.system_architect",
+            "caas_framework.agents.agent_designer",
+            "caas_framework.agents.code_generator",
+            "caas_framework.agents.qa_specialist",
         ]:
             if module_name in sys.modules:
                 importlib.reload(sys.modules[module_name])
@@ -416,8 +439,12 @@ class TestRealAgentRegistration:
 
         # Should have all 5 agents registered
         info = registry.get_registry_info()
-        assert info["total_agents"] >= 5, f"Expected >= 5 agents, got {info['total_agents']}: {info}"
-        assert info["phases_covered"] >= 5, f"Expected >= 5 phases, got {info['phases_covered']}: {info}"
+        assert (
+            info["total_agents"] >= 5
+        ), f"Expected >= 5 agents, got {info['total_agents']}: {info}"
+        assert (
+            info["phases_covered"] >= 5
+        ), f"Expected >= 5 phases, got {info['phases_covered']}: {info}"
 
 
 class TestDependencyInversionPrinciple:
@@ -432,27 +459,38 @@ class TestDependencyInversionPrinciple:
     def test_collaboration_uses_registry_not_imports(self):
         """Test that ExpertAgentCollaboration module uses registry, not hard-coded imports"""
         # Read the source file directly to check module-level imports
-        with open('caas_framework/agents/collaboration.py', 'r') as f:
+        with open("caas_framework/agents/collaboration.py", "r") as f:
             source = f.read()
 
         # Get just the import section (first 50 lines typically contain all imports)
-        import_section = '\n'.join(source.split('\n')[:50])
+        import_section = "\n".join(source.split("\n")[:50])
 
         # Check that collaboration.py no longer imports concrete agent classes at module level
-        assert "from caas_framework.agents.requirement_analyst import RequirementAnalystAgent" not in import_section, \
-            "RequirementAnalystAgent should not be imported"
-        assert "from caas_framework.agents.system_architect import SystemArchitectAgent" not in import_section, \
-            "SystemArchitectAgent should not be imported"
-        assert "from caas_framework.agents.agent_designer import AgentDesignerAgent" not in import_section, \
-            "AgentDesignerAgent should not be imported"
-        assert "from caas_framework.agents.code_generator import CodeGeneratorAgent" not in import_section, \
-            "CodeGeneratorAgent should not be imported"
-        assert "from caas_framework.agents.qa_specialist import QASpecialistAgent" not in import_section, \
-            "QASpecialistAgent should not be imported"
+        assert (
+            "from caas_framework.agents.requirement_analyst import RequirementAnalystAgent"
+            not in import_section
+        ), "RequirementAnalystAgent should not be imported"
+        assert (
+            "from caas_framework.agents.system_architect import SystemArchitectAgent"
+            not in import_section
+        ), "SystemArchitectAgent should not be imported"
+        assert (
+            "from caas_framework.agents.agent_designer import AgentDesignerAgent"
+            not in import_section
+        ), "AgentDesignerAgent should not be imported"
+        assert (
+            "from caas_framework.agents.code_generator import CodeGeneratorAgent"
+            not in import_section
+        ), "CodeGeneratorAgent should not be imported"
+        assert (
+            "from caas_framework.agents.qa_specialist import QASpecialistAgent"
+            not in import_section
+        ), "QASpecialistAgent should not be imported"
 
         # Check that it DOES import registry
-        assert "from caas_framework.agents.registry import" in import_section, \
-            "Registry should be imported"
+        assert (
+            "from caas_framework.agents.registry import" in import_section
+        ), "Registry should be imported"
 
     def test_collaboration_creates_agents_via_factory(self):
         """Test that collaboration uses create_agent factory"""

@@ -110,7 +110,9 @@ class CAASLocalClient:
 
         logger.info("CAAS Local Client initialized")
 
-    def generate(self, requirement: str, golden_data: Optional[Any] = None) -> Dict[str, Any]:
+    def generate(
+        self, requirement: str, golden_data: Optional[Any] = None
+    ) -> Dict[str, Any]:
         """
         Generate code from natural language requirement (synchronous).
 
@@ -149,7 +151,9 @@ class CAASLocalClient:
         logger.info(f"Generating code for: {requirement[:100]}...")
 
         # Run async API call in event loop
-        result = self.loop.run_until_complete(self.api.generate(requirement, golden_data))
+        result = self.loop.run_until_complete(
+            self.api.generate(requirement, golden_data)
+        )
 
         # Convert GenerationResult to dict
         return self._result_to_dict(result)
@@ -210,7 +214,9 @@ class CAASLocalClient:
 
             print(result['files']['main.py'])
         """
-        logger.info(f"Generating code from design: {len(agents)} agents, {len(tasks)} tasks")
+        logger.info(
+            f"Generating code from design: {len(agents)} agents, {len(tasks)} tasks"
+        )
 
         # Run async API call
         result = self.loop.run_until_complete(
@@ -248,7 +254,9 @@ class CAASLocalClient:
         """
         self.api.unsubscribe_event(event_type, callback)
 
-    def save_files(self, files: Dict[str, str], output_dir: str, overwrite: bool = False):
+    def save_files(
+        self, files: Dict[str, str], output_dir: str, overwrite: bool = False
+    ):
         """
         Save generated files to disk.
 
@@ -341,7 +349,9 @@ class CAASLocalClient:
 
 # Convenience function for quick usage
 def generate(
-    requirement: str, api_key: Optional[str] = None, config: Optional[Dict[str, Any]] = None
+    requirement: str,
+    api_key: Optional[str] = None,
+    config: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """
     Quick generation function (convenience wrapper).

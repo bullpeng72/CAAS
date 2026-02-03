@@ -62,8 +62,14 @@ class MockLLMPlugin:
     async def health_check(self) -> bool:
         return True
 
-    async def ainvoke(self, messages, temperature=None, max_tokens=None,
-                      response_format=None, phase=None):
+    async def ainvoke(
+        self,
+        messages,
+        temperature=None,
+        max_tokens=None,
+        response_format=None,
+        phase=None,
+    ):
         """Simulate LLM call with delay"""
         self.call_count += 1
 
@@ -100,9 +106,9 @@ class MockLLMPlugin:
             "usage": {
                 "prompt_tokens": 100,
                 "completion_tokens": 50,
-                "total_tokens": 150
+                "total_tokens": 150,
             },
-            "model": self.model_name
+            "model": self.model_name,
         }
 
 
@@ -121,22 +127,22 @@ async def enhanced_system():
             plugin=primary_llm,
             cost_per_1k_tokens=0.01,
             suitable_phases=[AgentPhase.DESIGN, AgentPhase.DEVELOPMENT],
-            priority=2
+            priority=2,
         ),
         ModelConfig(
             name="gpt-3.5-turbo",
             plugin=fallback_llm,
             cost_per_1k_tokens=0.001,
             suitable_phases=[AgentPhase.DISCOVERY, AgentPhase.DELIVERY],
-            priority=1
-        )
+            priority=1,
+        ),
     ]
 
     router = MultiModelRouter(
         name="test-router",
         models=models,
         strategy=ModelSelectionStrategy.PHASE_BASED,
-        enable_fallback=True
+        enable_fallback=True,
     )
     await router.initialize()
 
@@ -149,7 +155,7 @@ async def enhanced_system():
         llm_plugin=router,
         cache_manager=cache_manager,
         enable_cache=True,
-        cache_ttl=3600
+        cache_ttl=3600,
     )
 
     # 4. Set up monitoring
@@ -174,15 +180,13 @@ async def enhanced_system():
             AgentPhase.ARCHITECTURE: 7.0,
             AgentPhase.DESIGN: 7.5,
             AgentPhase.DEVELOPMENT: 7.5,
-            AgentPhase.DELIVERY: 8.0
-        }
+            AgentPhase.DELIVERY: 8.0,
+        },
     )
 
     # 7. Create Safe Feedback Loop with all components
     feedback_loop = SafeFeedbackLoop(
-        max_retries=3,
-        timeout_per_retry=60,
-        llm_judge=llm_judge
+        max_retries=3, timeout_per_retry=60, llm_judge=llm_judge
     )
 
     # Package everything
@@ -196,7 +200,7 @@ async def enhanced_system():
         "alert_system": alert_system,
         "profiler": profiler,
         "llm_judge": llm_judge,
-        "feedback_loop": feedback_loop
+        "feedback_loop": feedback_loop,
     }
 
     yield system
@@ -233,10 +237,7 @@ async def test_integrated_enhancements_work_together(enhanced_system):
     start_time = datetime.now()
 
     async with profiler.profile("llm_call_discovery", {"phase": "discovery"}):
-        response_1 = await cached_llm.ainvoke(
-            test_messages,
-            phase=AgentPhase.DISCOVERY
-        )
+        response_1 = await cached_llm.ainvoke(test_messages, phase=AgentPhase.DISCOVERY)
 
     duration_1 = (datetime.now() - start_time).total_seconds()
 
@@ -246,14 +247,11 @@ async def test_integrated_enhancements_work_together(enhanced_system):
         tokens=150,
         cost=0.0001,
         duration_ms=int(duration_1 * 1000),
-        phase="discovery"
+        phase="discovery",
     )
 
     cost_tracker.record_llm_usage(
-        model="gpt-3.5-turbo",
-        tokens_input=100,
-        tokens_output=50,
-        phase="discovery"
+        model="gpt-3.5-turbo", tokens_input=100, tokens_output=50, phase="discovery"
     )
 
     # ==== Second call (should hit cache) ====
@@ -261,10 +259,7 @@ async def test_integrated_enhancements_work_together(enhanced_system):
     start_time_2 = datetime.now()
 
     async with profiler.profile("llm_call_discovery_cached", {"phase": "discovery"}):
-        response_2 = await cached_llm.ainvoke(
-            test_messages,
-            phase=AgentPhase.DISCOVERY
-        )
+        response_2 = await cached_llm.ainvoke(test_messages, phase=AgentPhase.DISCOVERY)
 
     duration_2 = (datetime.now() - start_time_2).total_seconds()
 
@@ -288,8 +283,10 @@ async def test_integrated_enhancements_work_together(enhanced_system):
 
     print("\n=== Multi-Model Routing ===")
     for model_name, stats in router_metrics.items():
-        print(f"{model_name}: {stats['total_requests']} requests, "
-              f"{stats['success_rate']:.1f}% success")
+        print(
+            f"{model_name}: {stats['total_requests']} requests, "
+            f"{stats['success_rate']:.1f}% success"
+        )
 
     # 3. Performance profiling works
     profiler_summary = profiler.get_summary()
@@ -321,7 +318,9 @@ async def test_integrated_enhancements_work_together(enhanced_system):
     # ==== Overall Verification ====
     print("\n=== Integration Test Results ===")
     print("✅ Multi-model routing active")
-    print(f"✅ Caching working (hit rate: {(cache_stats['hits'] / cache_stats['requests'] * 100):.1f}%)")
+    print(
+        f"✅ Caching working (hit rate: {(cache_stats['hits'] / cache_stats['requests'] * 100):.1f}%)"
+    )
     print("✅ Performance profiling enabled")
     print("✅ Metrics collection working")
     print("✅ Cost tracking functional")
@@ -349,16 +348,18 @@ async def test_cache_effectiveness(enhanced_system):
         cache_stats = cache_manager.get_stats()
         if i == 0:  # First call (miss)
             cost_tracker.record_llm_usage(
-                model="gpt-3.5-turbo",
-                tokens_input=100,
-                tokens_output=50
+                model="gpt-3.5-turbo", tokens_input=100, tokens_output=50
             )
 
         print(f"Run {i+1}: Hits={cache_stats['hits']}, Misses={cache_stats['misses']}")
 
     # Get final stats
     cache_stats = cache_manager.get_stats()
-    hit_rate = (cache_stats["hits"] / cache_stats["requests"] * 100) if cache_stats["requests"] > 0 else 0
+    hit_rate = (
+        (cache_stats["hits"] / cache_stats["requests"] * 100)
+        if cache_stats["requests"] > 0
+        else 0
+    )
 
     print("\n=== Cache Effectiveness ===")
     print(f"Total Requests: {cache_stats['requests']}")
@@ -382,7 +383,7 @@ async def test_multi_model_phase_based_selection(enhanced_system):
     # Test different phases
     phases_to_test = [
         (AgentPhase.DISCOVERY, "gpt-3.5-turbo"),  # Cheaper model for discovery
-        (AgentPhase.DESIGN, "gpt-4-turbo"),       # Premium model for design
+        (AgentPhase.DESIGN, "gpt-4-turbo"),  # Premium model for design
     ]
 
     for phase, expected_model in phases_to_test:
@@ -436,8 +437,10 @@ async def test_performance_profiling(enhanced_system):
 
     print("\nBottlenecks:")
     for bottleneck in bottlenecks[:3]:
-        print(f"  - {bottleneck['operation']}: {bottleneck['total_time_seconds']:.2f}s "
-              f"({bottleneck['percent_of_total']:.1f}%)")
+        print(
+            f"  - {bottleneck['operation']}: {bottleneck['total_time_seconds']:.2f}s "
+            f"({bottleneck['percent_of_total']:.1f}%)"
+        )
 
     # Verify profiling works
     assert summary["total_operations"] >= 2, "Should have profiled operations"
@@ -454,7 +457,9 @@ async def test_comprehensive_monitoring(enhanced_system):
     alert_system = enhanced_system["alert_system"]
 
     # Simulate some activity
-    metrics.record_llm_call(model="gpt-4-turbo", tokens=200, cost=0.006, duration_ms=1500)
+    metrics.record_llm_call(
+        model="gpt-4-turbo", tokens=200, cost=0.006, duration_ms=1500
+    )
     metrics.record_cache_hit("llm_response")
     metrics.record_cache_miss("llm_response")
     metrics.record_quality_score("discovery", 8.5)
@@ -462,10 +467,7 @@ async def test_comprehensive_monitoring(enhanced_system):
     cost_tracker.record_llm_usage("gpt-4-turbo", tokens_input=150, tokens_output=50)
 
     quality_tracker.record_quality(
-        phase="discovery",
-        metric_name="overall",
-        score=8.5,
-        approved=True
+        phase="discovery", metric_name="overall", score=8.5, approved=True
     )
 
     # Check metrics

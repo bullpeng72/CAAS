@@ -319,7 +319,10 @@ class MinimalToolAssigner:
             agent_role = agent.get("role", "")
 
             tools = self.assign_tools(
-                agent_id=agent_id, agent_role=agent_role, tasks=tasks, agent_specs=agents
+                agent_id=agent_id,
+                agent_role=agent_role,
+                tasks=tasks,
+                agent_specs=agents,
             )
 
             result[agent_id] = tools
@@ -353,7 +356,9 @@ class MinimalToolAssigner:
                 tool_frequency[tool] = tool_frequency.get(tool, 0) + 1
 
         # Most common tools
-        most_common = sorted(tool_frequency.items(), key=lambda x: x[1], reverse=True)[:5]
+        most_common = sorted(tool_frequency.items(), key=lambda x: x[1], reverse=True)[
+            :5
+        ]
 
         return {
             "total_agents": len(agents),

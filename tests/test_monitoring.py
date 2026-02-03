@@ -33,6 +33,7 @@ from caas_framework.monitoring.quality_tracker import (
 
 # ==================== Metrics Collector Tests ====================
 
+
 def test_metrics_collector_counter():
     """Test counter metrics"""
     collector = EnhancedMetricsCollector()
@@ -78,11 +79,7 @@ def test_metrics_collector_llm_call():
     collector = EnhancedMetricsCollector()
 
     collector.record_llm_call(
-        model="gpt-4",
-        tokens=100,
-        cost=0.01,
-        duration_ms=1500,
-        phase="discovery"
+        model="gpt-4", tokens=100, cost=0.01, duration_ms=1500, phase="discovery"
     )
 
     summary = collector.get_summary()
@@ -129,6 +126,7 @@ def test_metrics_collector_labels():
 
 # ==================== Cost Tracker Tests ====================
 
+
 def test_cost_tracker_record():
     """Test cost recording"""
     tracker = CostTracker()
@@ -138,7 +136,7 @@ def test_cost_tracker_record():
         tokens_input=100,
         tokens_output=50,
         operation="llm_call",
-        phase="discovery"
+        phase="discovery",
     )
 
     assert cost > 0
@@ -188,6 +186,7 @@ def test_cost_tracker_budget():
 
 # ==================== Quality Tracker Tests ====================
 
+
 def test_quality_tracker_record():
     """Test quality recording"""
     tracker = QualityTracker()
@@ -197,7 +196,7 @@ def test_quality_tracker_record():
         metric_name="overall",
         score=8.5,
         approved=True,
-        issues_count=2
+        issues_count=2,
     )
 
     assert len(tracker.metrics) == 1
@@ -227,7 +226,7 @@ def test_quality_tracker_trend():
         score=6.0,
         approved=False,
         issues_count=5,
-        metadata={}
+        metadata={},
     )
     tracker.metrics.append(old_metric)
 
@@ -255,6 +254,7 @@ def test_quality_tracker_approval_rate():
 
 # ==================== Alert System Tests ====================
 
+
 def test_alert_system_add_rule():
     """Test adding alert rules"""
     system = AlertSystem()
@@ -264,7 +264,7 @@ def test_alert_system_add_rule():
         metric_name="test_metric",
         condition=lambda x: x > 10,
         severity=AlertSeverity.WARNING,
-        message_template="Value too high: {value}"
+        message_template="Value too high: {value}",
     )
 
     system.add_rule(rule)
@@ -286,7 +286,7 @@ def test_alert_system_trigger():
         metric_name="cost",
         condition=lambda x: x > 100,
         severity=AlertSeverity.WARNING,
-        message_template="Cost exceeded: ${value}"
+        message_template="Cost exceeded: ${value}",
     )
 
     system.add_rule(rule)
@@ -310,7 +310,7 @@ def test_alert_system_cooldown():
         condition=lambda x: x > 10,
         severity=AlertSeverity.WARNING,
         message_template="Value: {value}",
-        cooldown_seconds=10
+        cooldown_seconds=10,
     )
 
     system.add_rule(rule)
@@ -343,6 +343,7 @@ def test_create_quality_alert_rule():
 
 
 # ==================== Exporter Tests ====================
+
 
 def test_prometheus_exporter():
     """Test Prometheus exporter"""
@@ -394,7 +395,7 @@ def test_metric_to_dict():
         type=MetricType.COUNTER,
         value=42.0,
         labels={"env": "test"},
-        unit="count"
+        unit="count",
     )
 
     data = metric.to_dict()

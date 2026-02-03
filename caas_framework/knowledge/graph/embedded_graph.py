@@ -120,7 +120,9 @@ class EmbeddedGraphClient(LoggerMixin):
         if storage_path and storage_path.exists():
             self.load()
 
-        self.logger.info(f"Embedded graph initialized (storage: {storage_path or 'memory-only'})")
+        self.logger.info(
+            f"Embedded graph initialized (storage: {storage_path or 'memory-only'})"
+        )
 
     def verify_connectivity(self) -> bool:
         """연결성 검증 (항상 True)"""
@@ -140,7 +142,9 @@ class EmbeddedGraphClient(LoggerMixin):
 
         data = {
             "nodes": {nid: node.to_dict() for nid, node in self.nodes.items()},
-            "relationships": {rid: rel.to_dict() for rid, rel in self.relationships.items()},
+            "relationships": {
+                rid: rel.to_dict() for rid, rel in self.relationships.items()
+            },
             "counters": {
                 "node": self._node_counter,
                 "rel": self._rel_counter,
@@ -150,7 +154,9 @@ class EmbeddedGraphClient(LoggerMixin):
         with open(self.storage_path, "w") as f:
             json.dump(data, f, indent=2)
 
-        self.logger.debug(f"Saved {len(self.nodes)} nodes, {len(self.relationships)} relationships")
+        self.logger.debug(
+            f"Saved {len(self.nodes)} nodes, {len(self.relationships)} relationships"
+        )
 
     def load(self):
         """파일에서 데이터 로드"""
@@ -162,7 +168,8 @@ class EmbeddedGraphClient(LoggerMixin):
 
         # 노드 로드
         self.nodes = {
-            nid: EmbeddedGraphNode.from_dict(ndata) for nid, ndata in data["nodes"].items()
+            nid: EmbeddedGraphNode.from_dict(ndata)
+            for nid, ndata in data["nodes"].items()
         }
 
         # 관계 로드
@@ -179,7 +186,9 @@ class EmbeddedGraphClient(LoggerMixin):
         # 인덱스 재구축
         self._rebuild_indexes()
 
-        self.logger.info(f"Loaded {len(self.nodes)} nodes, {len(self.relationships)} relationships")
+        self.logger.info(
+            f"Loaded {len(self.nodes)} nodes, {len(self.relationships)} relationships"
+        )
 
     def _rebuild_indexes(self):
         """인덱스 재구축"""
@@ -274,7 +283,9 @@ class EmbeddedGraphClient(LoggerMixin):
 
         return rel_id
 
-    def run_query(self, query: str, parameters: Dict[str, Any] = None) -> List[Dict[str, Any]]:
+    def run_query(
+        self, query: str, parameters: Dict[str, Any] = None
+    ) -> List[Dict[str, Any]]:
         """
         쿼리 실행 (제한된 Cypher 지원)
 
@@ -322,7 +333,9 @@ class EmbeddedGraphClient(LoggerMixin):
         self.logger.warning(f"Unsupported query: {query[:100]}")
         return []
 
-    def find_nodes_by_label(self, label: str, limit: int = 100) -> List[EmbeddedGraphNode]:
+    def find_nodes_by_label(
+        self, label: str, limit: int = 100
+    ) -> List[EmbeddedGraphNode]:
         """
         레이블로 노드 검색
 

@@ -111,21 +111,27 @@ def list_examples(domain: Optional[str], complexity: Optional[str], tag: Optiona
         click.echo(click.style("🟢 SIMPLE", fg="green", bold=True))
         for ex in simple:
             click.echo(f"  • {ex.title}")
-            click.echo(f"    Domain: {ex.domain.value} | Tags: {', '.join(ex.tags[:3])}")
+            click.echo(
+                f"    Domain: {ex.domain.value} | Tags: {', '.join(ex.tags[:3])}"
+            )
         click.echo()
 
     if moderate:
         click.echo(click.style("🟡 MODERATE", fg="yellow", bold=True))
         for ex in moderate:
             click.echo(f"  • {ex.title}")
-            click.echo(f"    Domain: {ex.domain.value} | Tags: {', '.join(ex.tags[:3])}")
+            click.echo(
+                f"    Domain: {ex.domain.value} | Tags: {', '.join(ex.tags[:3])}"
+            )
         click.echo()
 
     if complex_ex:
         click.echo(click.style("🔴 COMPLEX", fg="red", bold=True))
         for ex in complex_ex:
             click.echo(f"  • {ex.title}")
-            click.echo(f"    Domain: {ex.domain.value} | Tags: {', '.join(ex.tags[:3])}")
+            click.echo(
+                f"    Domain: {ex.domain.value} | Tags: {', '.join(ex.tags[:3])}"
+            )
         click.echo()
 
     # Show usage hint
@@ -217,7 +223,13 @@ def show_example(title: str):
 
 @examples_group.command(name="search")
 @click.argument("query")
-@click.option("--limit", "-n", type=int, default=10, help="Maximum number of results (default: 10)")
+@click.option(
+    "--limit",
+    "-n",
+    type=int,
+    default=10,
+    help="Maximum number of results (default: 10)",
+)
 def search_examples_cmd(query: str, limit: int):
     """
     Search examples by keyword
@@ -248,7 +260,9 @@ def search_examples_cmd(query: str, limit: int):
             Complexity.COMPLEX: "🔴",
         }
 
-        click.echo(f"{i}. {complexity_emoji[ex.complexity]} {click.style(ex.title, bold=True)}")
+        click.echo(
+            f"{i}. {complexity_emoji[ex.complexity]} {click.style(ex.title, bold=True)}"
+        )
         click.echo(f"   {ex.description}")
         click.echo(f"   Domain: {ex.domain.value} | Tags: {', '.join(ex.tags[:3])}")
         click.echo()
@@ -257,7 +271,9 @@ def search_examples_cmd(query: str, limit: int):
 
 
 @examples_group.command(name="by-domain")
-@click.argument("domain", type=click.Choice([d.value for d in Domain], case_sensitive=False))
+@click.argument(
+    "domain", type=click.Choice([d.value for d in Domain], case_sensitive=False)
+)
 def filter_by_domain(domain: str):
     """
     Filter examples by domain
@@ -394,7 +410,11 @@ def show_stats():
 @examples_group.command(name="suggest")
 @click.argument("keywords", nargs=-1, required=True)
 @click.option(
-    "--limit", "-n", type=int, default=3, help="Maximum number of suggestions (default: 3)"
+    "--limit",
+    "-n",
+    type=int,
+    default=3,
+    help="Maximum number of suggestions (default: 3)",
 )
 def suggest_examples_cmd(keywords: tuple, limit: int):
     """

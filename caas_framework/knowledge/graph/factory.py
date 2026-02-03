@@ -50,4 +50,6 @@ def get_graph_client() -> Union[EmbeddedGraphClient, "Neo4jClient"]:
             return EmbeddedGraphClient(storage_path=storage_path)
 
     else:
-        raise ValueError(f"Invalid graph backend: {backend}. Must be 'neo4j' or 'embedded'")
+        raise ValueError(
+            f"Invalid graph backend: {backend}. Must be 'neo4j' or 'embedded'"
+        )

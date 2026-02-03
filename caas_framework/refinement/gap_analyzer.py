@@ -36,7 +36,9 @@ class RequirementGap(BaseModel):
 
     gap_type: GapType
     description: str
-    severity: str = Field(..., description="Severity level: critical, high, medium, low")
+    severity: str = Field(
+        ..., description="Severity level: critical, high, medium, low"
+    )
     suggestions: List[str] = Field(default_factory=list)
     auto_fixable: bool = False
     related_feature_id: Optional[str] = None
@@ -128,7 +130,9 @@ class RequirementGapAnalyzer:
 
         return result
 
-    def _generate_cache_key(self, requirement: str, concretized: ConcretizedRequirement) -> str:
+    def _generate_cache_key(
+        self, requirement: str, concretized: ConcretizedRequirement
+    ) -> str:
         """
         캐시 키 생성 (요구사항 + Golden Data 해시)
 
@@ -143,7 +147,9 @@ class RequirementGapAnalyzer:
         content = f"{requirement}_{concretized.model_dump_json()}"
         return hashlib.md5(content.encode()).hexdigest()
 
-    def _check_nfr_gaps(self, concretized: ConcretizedRequirement) -> List[RequirementGap]:
+    def _check_nfr_gaps(
+        self, concretized: ConcretizedRequirement
+    ) -> List[RequirementGap]:
         """비기능 요구사항 갭 체크"""
         gaps = []
         nfr = concretized.non_functional_requirements
@@ -214,7 +220,9 @@ class RequirementGapAnalyzer:
 
         return gaps
 
-    def _check_data_model_gaps(self, concretized: ConcretizedRequirement) -> List[RequirementGap]:
+    def _check_data_model_gaps(
+        self, concretized: ConcretizedRequirement
+    ) -> List[RequirementGap]:
         """데이터 모델 갭 체크"""
         gaps = []
 
@@ -242,14 +250,18 @@ class RequirementGapAnalyzer:
                             gap_type=GapType.MISSING_DATA_MODEL,
                             description=f"데이터 모델 '{dm.entity_name}'의 속성이 정의되지 않았습니다",
                             severity="high",
-                            suggestions=[f"{dm.entity_name}은(는) 어떤 정보를 가지고 있나요?"],
+                            suggestions=[
+                                f"{dm.entity_name}은(는) 어떤 정보를 가지고 있나요?"
+                            ],
                             auto_fixable=True,
                         )
                     )
 
         return gaps
 
-    def _check_ui_gaps(self, concretized: ConcretizedRequirement) -> List[RequirementGap]:
+    def _check_ui_gaps(
+        self, concretized: ConcretizedRequirement
+    ) -> List[RequirementGap]:
         """UI 갭 체크"""
         gaps = []
 
@@ -352,7 +364,9 @@ class RequirementGapAnalyzer:
         # 에러 처리 확인
         features = concretized.features if concretized.features else []
         error_handling_mentioned = any(
-            "에러" in f.description or "오류" in f.description or "error" in f.description.lower()
+            "에러" in f.description
+            or "오류" in f.description
+            or "error" in f.description.lower()
             for f in features
         )
 
@@ -531,7 +545,9 @@ class RequirementGapAnalyzer:
             completeness_score=completeness_score,
         )
 
-    def _load_domain_checklists(self, checklists_path: Optional[Path]) -> Dict[str, List[Dict]]:
+    def _load_domain_checklists(
+        self, checklists_path: Optional[Path]
+    ) -> Dict[str, List[Dict]]:
         """도메인별 체크리스트 로드"""
         if checklists_path and checklists_path.exists():
             with open(checklists_path, "r", encoding="utf-8") as f:

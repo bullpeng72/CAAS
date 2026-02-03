@@ -241,7 +241,9 @@ class OntologyReasoner(LoggerMixin):
                                 f"Task type '{task_type.value}' → Tool '{tool.name}' (keyword match)"
                             )
         except Exception as e:
-            self.logger.warning(f"Failed to use Tool Ontology Manager: {e}, falling back to legacy")
+            self.logger.warning(
+                f"Failed to use Tool Ontology Manager: {e}, falling back to legacy"
+            )
 
             # Fallback to old method
             for task_type in task_types:
@@ -371,9 +373,32 @@ class OntologyReasoner(LoggerMixin):
                 "건강",
                 "병원",
             ],
-            "education": ["education", "learning", "teaching", "student", "course", "교육", "학습"],
-            "marketing": ["marketing", "advertisement", "campaign", "brand", "마케팅", "광고"],
-            "legal": ["legal", "law", "compliance", "regulation", "contract", "법률", "규정"],
+            "education": [
+                "education",
+                "learning",
+                "teaching",
+                "student",
+                "course",
+                "교육",
+                "학습",
+            ],
+            "marketing": [
+                "marketing",
+                "advertisement",
+                "campaign",
+                "brand",
+                "마케팅",
+                "광고",
+            ],
+            "legal": [
+                "legal",
+                "law",
+                "compliance",
+                "regulation",
+                "contract",
+                "법률",
+                "규정",
+            ],
             "research": ["research", "study", "analysis", "experiment", "연구", "분석"],
         }
 

@@ -21,13 +21,27 @@ USER_CONCEPT = Concept(
         "has_many": ["Post", "Comment", "Like"],
         "belongs_to": ["Group", "Organization"],
     },
-    typical_operations=["register", "login", "logout", "update_profile", "delete_account"],
+    typical_operations=[
+        "register",
+        "login",
+        "logout",
+        "update_profile",
+        "delete_account",
+    ],
     description="Represents a user in the system",
 )
 
 POST_CONCEPT = Concept(
     name="Post",
-    properties=["id", "title", "content", "created_at", "updated_at", "author_id", "published"],
+    properties=[
+        "id",
+        "title",
+        "content",
+        "created_at",
+        "updated_at",
+        "author_id",
+        "published",
+    ],
     relationships={"belongs_to": ["User"], "has_many": ["Comment", "Like", "Tag"]},
     typical_operations=["create", "read", "update", "delete", "publish", "unpublish"],
     description="Represents a blog post or article",
@@ -61,7 +75,14 @@ GROUP_CONCEPT = Concept(
     name="Group",
     properties=["id", "name", "description", "created_at", "owner_id"],
     relationships={"has_many": ["User", "Post"], "belongs_to": ["User"]},
-    typical_operations=["create", "read", "update", "delete", "add_member", "remove_member"],
+    typical_operations=[
+        "create",
+        "read",
+        "update",
+        "delete",
+        "add_member",
+        "remove_member",
+    ],
     description="Represents a user group or community",
 )
 
@@ -113,7 +134,12 @@ USER_MANAGEMENT_PATTERN = DesignPattern(
 SOCIAL_FEATURES_PATTERN = DesignPattern(
     name="Social_Features",
     applies_to=["Post", "Comment", "Like"],
-    required_components=["like_system", "comment_system", "notification_system", "activity_feed"],
+    required_components=[
+        "like_system",
+        "comment_system",
+        "notification_system",
+        "activity_feed",
+    ],
     description="Social interaction features",
     benefits=["User engagement", "Community building", "Real-time updates"],
 )

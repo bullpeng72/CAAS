@@ -207,7 +207,9 @@ class CLIReviewHandler:
 • Total Files: [cyan]{total_files}[/cyan]
 • Total Lines: [cyan]{total_lines}[/cyan]
 """
-        self.console.print(Panel(stats_panel, title="📊 Code Statistics", border_style="green"))
+        self.console.print(
+            Panel(stats_panel, title="📊 Code Statistics", border_style="green")
+        )
         self.console.print()
 
         # Files table
@@ -269,7 +271,11 @@ class CLIReviewHandler:
 
         if panel_content:
             self.console.print(
-                Panel("\n".join(panel_content), title="🔒 Security Boundaries", border_style="cyan")
+                Panel(
+                    "\n".join(panel_content),
+                    title="🔒 Security Boundaries",
+                    border_style="cyan",
+                )
             )
             self.console.print()
 
@@ -289,7 +295,9 @@ class CLIReviewHandler:
         options_str = " / ".join([f"[cyan]{opt}[/cyan]" for opt in options])
 
         while True:
-            self.console.print(f"\n[bold]Your Decision ({options_str}):[/bold] ", end="")
+            self.console.print(
+                f"\n[bold]Your Decision ({options_str}):[/bold] ", end=""
+            )
 
             # Get input (Rich doesn't have input method, use built-in)
             try:
@@ -320,5 +328,7 @@ class AutoApproveHandler:
 
     def handle_review(self, request: ReviewRequest) -> str:
         """Always approve without user interaction."""
-        self.console.print(f"[dim]Auto-approving {request.review_type.value} review...[/dim]")
+        self.console.print(
+            f"[dim]Auto-approving {request.review_type.value} review...[/dim]"
+        )
         return "approve"

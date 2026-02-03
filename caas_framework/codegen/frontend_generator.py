@@ -48,7 +48,9 @@ class FrontendGenerator:
         template_dir = Path(__file__).parent / "templates" / "frontend"
         if template_dir.exists():
             self.jinja_env = Environment(
-                loader=FileSystemLoader(str(template_dir)), trim_blocks=True, lstrip_blocks=True
+                loader=FileSystemLoader(str(template_dir)),
+                trim_blocks=True,
+                lstrip_blocks=True,
             )
         else:
             self.jinja_env = None
@@ -145,7 +147,9 @@ class StreamlitTemplateGenerator:
         # Fallback to hardcoded templates
         return self._get_fallback_template(template_name, context)
 
-    def _get_fallback_template(self, template_name: str, context: Dict[str, Any]) -> str:
+    def _get_fallback_template(
+        self, template_name: str, context: Dict[str, Any]
+    ) -> str:
         """Get fallback template content when Jinja2 templates are not available.
 
         Args:
@@ -587,7 +591,9 @@ class ReactTemplateGenerator:
         )
         files["tsconfig.json"] = self.templates.tsconfig_json_template()
         files["vite.config.ts"] = self._generate_vite_config()
-        files["index.html"] = self.templates.index_html_template(self.config.project_name)
+        files["index.html"] = self.templates.index_html_template(
+            self.config.project_name
+        )
 
         # Generate entry files
         files["src/main.tsx"] = self.templates.main_tsx_template()
@@ -718,7 +724,9 @@ export default defineConfig({{
             for type_def in self.backend_spec["types"]:
                 custom_types.append(
                     self.templates.typescript_interface(
-                        name=type_def["name"], fields=type_def.get("fields", []), export=True
+                        name=type_def["name"],
+                        fields=type_def.get("fields", []),
+                        export=True,
                     )
                 )
 
@@ -729,19 +737,23 @@ export default defineConfig({{
         files = {}
 
         # Generate AgentRunner component
-        files["src/components/AgentRunner.tsx"] = self._generate_agent_runner_component()
+        files[
+            "src/components/AgentRunner.tsx"
+        ] = self._generate_agent_runner_component()
 
         # Generate HealthCheck component
-        files["src/components/HealthCheck.tsx"] = self._generate_health_check_component()
+        files[
+            "src/components/HealthCheck.tsx"
+        ] = self._generate_health_check_component()
 
         # Generate additional components based on backend spec
         if self.backend_spec and "entities" in self.backend_spec:
             for entity in self.backend_spec["entities"]:
                 entity_name = entity.get("name", "Item")
-                files[f"src/components/{entity_name}List.tsx"] = (
-                    self.templates.list_component_template(
-                        name=f"{entity_name}List", item_type=entity_name, item_render="item"
-                    )
+                files[
+                    f"src/components/{entity_name}List.tsx"
+                ] = self.templates.list_component_template(
+                    name=f"{entity_name}List", item_type=entity_name, item_render="item"
                 )
 
         return files

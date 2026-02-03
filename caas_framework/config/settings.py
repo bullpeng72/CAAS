@@ -66,8 +66,12 @@ class LLMConstants:
     """
 
     # Temperature settings by task type
-    TEMPERATURE_CREATIVE = 0.7  # For architecture, design (system_architect, agent_designer)
-    TEMPERATURE_BALANCED = 0.5  # For analysis, refinement (requirement_analyst, gap_analyzer)
+    TEMPERATURE_CREATIVE = (
+        0.7  # For architecture, design (system_architect, agent_designer)
+    )
+    TEMPERATURE_BALANCED = (
+        0.5  # For analysis, refinement (requirement_analyst, gap_analyzer)
+    )
     TEMPERATURE_PRECISE = 0.3  # For code generation, BMAD (code_generator, bmad/engine)
     TEMPERATURE_DEFAULT = 0.5
 
@@ -466,7 +470,9 @@ class AppSettings(BaseSettings):
 
     # Streamlit
     streamlit_server_port: int = Field(default=8501, alias="STREAMLIT_SERVER_PORT")
-    streamlit_server_address: str = Field(default="localhost", alias="STREAMLIT_SERVER_ADDRESS")
+    streamlit_server_address: str = Field(
+        default="localhost", alias="STREAMLIT_SERVER_ADDRESS"
+    )
 
     # Directories
     output_dir: str = Field(default="./generated", alias="OUTPUT_DIR")
@@ -507,8 +513,12 @@ class ArtifactSettings(BaseSettings):
     generate_deployment_guide: bool = Field(default=False)
 
     # Output settings
-    output_format: str = Field(default="markdown", validation_alias="ARTIFACT_OUTPUT_FORMAT")
-    output_directory: str = Field(default="./artifacts", validation_alias="ARTIFACT_OUTPUT_DIR")
+    output_format: str = Field(
+        default="markdown", validation_alias="ARTIFACT_OUTPUT_FORMAT"
+    )
+    output_directory: str = Field(
+        default="./artifacts", validation_alias="ARTIFACT_OUTPUT_DIR"
+    )
 
     # Additional options
     include_diagrams: bool = Field(default=True)
@@ -556,7 +566,9 @@ class Settings(BaseSettings):
                 self.llm.openai_api_key = None
 
             if self.llm.anthropic_api_key:
-                secret_manager.set_secret("ANTHROPIC_API_KEY", self.llm.anthropic_api_key)
+                secret_manager.set_secret(
+                    "ANTHROPIC_API_KEY", self.llm.anthropic_api_key
+                )
                 self.llm.anthropic_api_key = None
         except ImportError:
             # SecretManager not available, skip

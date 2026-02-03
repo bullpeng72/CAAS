@@ -120,10 +120,22 @@ class ToolCapability(str, Enum):
 ROLE_TASK_MAPPINGS: Dict[AgentRole, List[TaskType]] = {
     # Core roles
     AgentRole.RESEARCHER: [TaskType.RESEARCH, TaskType.ANALYSIS, TaskType.UX_RESEARCH],
-    AgentRole.ANALYST: [TaskType.ANALYSIS, TaskType.SYNTHESIS, TaskType.DATA_PROCESSING],
+    AgentRole.ANALYST: [
+        TaskType.ANALYSIS,
+        TaskType.SYNTHESIS,
+        TaskType.DATA_PROCESSING,
+    ],
     AgentRole.WRITER: [TaskType.WRITING, TaskType.SYNTHESIS, TaskType.DOCUMENTATION],
-    AgentRole.REVIEWER: [TaskType.REVIEW, TaskType.ANALYSIS, TaskType.QUALITY_ASSURANCE],
-    AgentRole.CODER: [TaskType.CODING, TaskType.EXECUTION, TaskType.BACKEND_DEVELOPMENT],
+    AgentRole.REVIEWER: [
+        TaskType.REVIEW,
+        TaskType.ANALYSIS,
+        TaskType.QUALITY_ASSURANCE,
+    ],
+    AgentRole.CODER: [
+        TaskType.CODING,
+        TaskType.EXECUTION,
+        TaskType.BACKEND_DEVELOPMENT,
+    ],
     AgentRole.MANAGER: [TaskType.PLANNING, TaskType.REVIEW, TaskType.TEAM_COORDINATION],
     AgentRole.PLANNER: [TaskType.PLANNING, TaskType.ANALYSIS, TaskType.SPRINT_PLANNING],
     AgentRole.EXECUTOR: [TaskType.EXECUTION, TaskType.CODING, TaskType.DEPLOYMENT],
@@ -216,11 +228,23 @@ TASK_TOOL_MAPPINGS: Dict[TaskType, List[ToolCapability]] = {
     TaskType.EXECUTION: [ToolCapability.COMPUTE, ToolCapability.WRITE],
     TaskType.SYNTHESIS: [ToolCapability.READ, ToolCapability.WRITE],
     # BMAD specialized tasks
-    TaskType.SYSTEM_DESIGN: [ToolCapability.READ, ToolCapability.WRITE, ToolCapability.VISUALIZE],
+    TaskType.SYSTEM_DESIGN: [
+        ToolCapability.READ,
+        ToolCapability.WRITE,
+        ToolCapability.VISUALIZE,
+    ],
     TaskType.API_DESIGN: [ToolCapability.READ, ToolCapability.WRITE],
-    TaskType.DATABASE_DESIGN: [ToolCapability.READ, ToolCapability.WRITE, ToolCapability.COMPUTE],
+    TaskType.DATABASE_DESIGN: [
+        ToolCapability.READ,
+        ToolCapability.WRITE,
+        ToolCapability.COMPUTE,
+    ],
     TaskType.UI_DESIGN: [ToolCapability.VISUALIZE, ToolCapability.WRITE],
-    TaskType.UX_RESEARCH: [ToolCapability.SEARCH, ToolCapability.READ, ToolCapability.VISUALIZE],
+    TaskType.UX_RESEARCH: [
+        ToolCapability.SEARCH,
+        ToolCapability.READ,
+        ToolCapability.VISUALIZE,
+    ],
     TaskType.PROTOTYPING: [ToolCapability.WRITE, ToolCapability.VISUALIZE],
     TaskType.TEST_PLANNING: [ToolCapability.READ, ToolCapability.WRITE],
     TaskType.TEST_AUTOMATION: [ToolCapability.COMPUTE, ToolCapability.WRITE],
@@ -229,7 +253,11 @@ TASK_TOOL_MAPPINGS: Dict[TaskType, List[ToolCapability]] = {
     TaskType.PERFORMANCE_TESTING: [ToolCapability.COMPUTE, ToolCapability.VISUALIZE],
     TaskType.FRONTEND_DEVELOPMENT: [ToolCapability.WRITE, ToolCapability.COMPUTE],
     TaskType.BACKEND_DEVELOPMENT: [ToolCapability.WRITE, ToolCapability.COMPUTE],
-    TaskType.DATA_PROCESSING: [ToolCapability.COMPUTE, ToolCapability.READ, ToolCapability.WRITE],
+    TaskType.DATA_PROCESSING: [
+        ToolCapability.COMPUTE,
+        ToolCapability.READ,
+        ToolCapability.WRITE,
+    ],
     TaskType.DATA_PIPELINE: [ToolCapability.COMPUTE, ToolCapability.WRITE],
     TaskType.SPRINT_PLANNING: [ToolCapability.READ, ToolCapability.WRITE],
     TaskType.RETROSPECTIVE: [ToolCapability.READ, ToolCapability.WRITE],
@@ -357,14 +385,21 @@ class OntologyManager:
                 role.value.replace("_", "-"),
             ]
             for variant in role_variants:
-                if f" {variant} " in f" {description_lower} " or description_lower.startswith(
-                    f"{variant} "
+                if (
+                    f" {variant} " in f" {description_lower} "
+                    or description_lower.startswith(f"{variant} ")
                 ):
                     return role
 
         # Priority 2: Keyword matching
         role_keywords = {
-            AgentRole.RESEARCHER: ["research", "investigate", "find", "search", "discover"],
+            AgentRole.RESEARCHER: [
+                "research",
+                "investigate",
+                "find",
+                "search",
+                "discover",
+            ],
             AgentRole.ANALYST: ["analyze", "analyse", "examine", "study", "evaluate"],
             AgentRole.WRITER: ["write", "create", "compose", "draft", "document"],
             AgentRole.REVIEWER: ["review", "check", "verify", "validate", "audit"],
@@ -372,10 +407,32 @@ class OntologyManager:
             AgentRole.MANAGER: ["manage", "coordinate", "oversee", "lead", "supervise"],
             AgentRole.PLANNER: ["plan", "schedule", "organize", "strategize", "design"],
             AgentRole.EXECUTOR: ["execute", "run", "perform", "accomplish", "complete"],
-            AgentRole.FRONTEND_DEVELOPER: ["frontend", "ui", "react", "vue", "streamlit"],
-            AgentRole.BACKEND_DEVELOPER: ["backend", "api", "server", "fastapi", "endpoint"],
-            AgentRole.DATA_ENGINEER: ["data engineer", "etl", "data pipeline", "storage"],
-            AgentRole.UX_DESIGNER: ["ux", "user experience", "interface design", "wireframe"],
+            AgentRole.FRONTEND_DEVELOPER: [
+                "frontend",
+                "ui",
+                "react",
+                "vue",
+                "streamlit",
+            ],
+            AgentRole.BACKEND_DEVELOPER: [
+                "backend",
+                "api",
+                "server",
+                "fastapi",
+                "endpoint",
+            ],
+            AgentRole.DATA_ENGINEER: [
+                "data engineer",
+                "etl",
+                "data pipeline",
+                "storage",
+            ],
+            AgentRole.UX_DESIGNER: [
+                "ux",
+                "user experience",
+                "interface design",
+                "wireframe",
+            ],
             AgentRole.ARCHITECT: ["architect", "architecture", "system design"],
             AgentRole.QA_ENGINEER: ["qa", "quality assurance", "tester", "testing"],
             AgentRole.DEVOPS_ENGINEER: ["devops", "deployment", "ci/cd", "kubernetes"],
@@ -414,11 +471,19 @@ class OntologyManager:
                 "backend api",
                 "server development",
             ],
-            TaskType.FRONTEND_DEVELOPMENT: ["frontend development", "ui development", "streamlit"],
+            TaskType.FRONTEND_DEVELOPMENT: [
+                "frontend development",
+                "ui development",
+                "streamlit",
+            ],
             TaskType.DATA_PIPELINE: ["data pipeline", "etl pipeline"],
             TaskType.UI_DESIGN: ["ui design", "interface design", "ux design"],
             TaskType.API_DESIGN: ["api design", "endpoint design", "rest api"],
-            TaskType.DATABASE_DESIGN: ["database design", "schema design", "data model"],
+            TaskType.DATABASE_DESIGN: [
+                "database design",
+                "schema design",
+                "data model",
+            ],
             TaskType.SYSTEM_DESIGN: ["system design", "architecture design"],
             TaskType.TEST_AUTOMATION: ["test automation", "automated testing"],
         }

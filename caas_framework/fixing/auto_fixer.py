@@ -104,9 +104,12 @@ class AutoFixer:
         # Iterate through fix attempts
         for iteration in range(max_iterations):
             # Level 1: Template-based fixes
-            agents_dict, tasks_dict, template_fixes, template_errors = self._apply_template_fixes(
-                agents_dict, tasks_dict, validation_report
-            )
+            (
+                agents_dict,
+                tasks_dict,
+                template_fixes,
+                template_errors,
+            ) = self._apply_template_fixes(agents_dict, tasks_dict, validation_report)
             fixes_applied.extend(template_fixes)
             errors.extend(template_errors)
             if template_fixes:
@@ -123,7 +126,12 @@ class AutoFixer:
 
             # Level 3: LLM-based fixes (if available and previous levels didn't fix everything)
             if self.llm_plugin and validation_report.needs_fixing:
-                agents_dict, tasks_dict, llm_fixes, llm_errors = await self._apply_llm_fixes(
+                (
+                    agents_dict,
+                    tasks_dict,
+                    llm_fixes,
+                    llm_errors,
+                ) = await self._apply_llm_fixes(
                     agents_dict, tasks_dict, validation_report
                 )
                 fixes_applied.extend(llm_fixes)
@@ -146,7 +154,10 @@ class AutoFixer:
         )
 
     def _apply_template_fixes(
-        self, agents: List[Dict], tasks: List[Dict], validation_report: GoldenValidationReport
+        self,
+        agents: List[Dict],
+        tasks: List[Dict],
+        validation_report: GoldenValidationReport,
     ) -> tuple[List[Dict], List[Dict], List[str], List[str]]:
         """
         Level 1: Apply template-based fixes.
@@ -166,7 +177,8 @@ class AutoFixer:
                         (
                             f
                             for f in self.golden_data.features
-                            if f.id == missing_item.item_id or f.name == missing_item.item_name
+                            if f.id == missing_item.item_id
+                            or f.name == missing_item.item_name
                         ),
                         None,
                     )
@@ -218,12 +230,17 @@ class AutoFixer:
                         )
 
                 except Exception as e:
-                    errors.append(f"Failed to add task {missing_item.item_name}: {str(e)}")
+                    errors.append(
+                        f"Failed to add task {missing_item.item_name}: {str(e)}"
+                    )
 
         return agents, tasks, fixes_applied, errors
 
     def _apply_rule_fixes(
-        self, agents: List[Dict], tasks: List[Dict], validation_report: GoldenValidationReport
+        self,
+        agents: List[Dict],
+        tasks: List[Dict],
+        validation_report: GoldenValidationReport,
     ) -> tuple[List[Dict], List[Dict], List[str], List[str]]:
         """
         Level 2: Apply rule-based fixes.
@@ -244,7 +261,9 @@ class AutoFixer:
             for missing_item in high_priority_missing[:2]:  # Limit to 2 new agents
                 try:
                     # Check if agent exists
-                    agent_id = f"agent_{missing_item.item_name.lower().replace(' ', '_')}"
+                    agent_id = (
+                        f"agent_{missing_item.item_name.lower().replace(' ', '_')}"
+                    )
                     if not any(a.get("id") == agent_id for a in agents):
                         new_agent = {
                             "id": agent_id,
@@ -267,7 +286,10 @@ class AutoFixer:
         return agents, tasks, fixes_applied, errors
 
     async def _apply_llm_fixes(
-        self, agents: List[Dict], tasks: List[Dict], validation_report: GoldenValidationReport
+        self,
+        agents: List[Dict],
+        tasks: List[Dict],
+        validation_report: GoldenValidationReport,
     ) -> tuple[List[Dict], List[Dict], List[str], List[str]]:
         """
         Level 3: Apply LLM-based fixes.
@@ -366,7 +388,9 @@ Return ONLY valid JSON, no additional text."""
                 import json
 
                 response_text = (
-                    response.get("content", "") if isinstance(response, dict) else str(response)
+                    response.get("content", "")
+                    if isinstance(response, dict)
+                    else str(response)
                 )
 
                 try:
@@ -375,7 +399,9 @@ Return ONLY valid JSON, no additional text."""
                     # Try to extract JSON from markdown
                     import re
 
-                    json_match = re.search(r"```json\s*(.*?)\s*```", response_text, re.DOTALL)
+                    json_match = re.search(
+                        r"```json\s*(.*?)\s*```", response_text, re.DOTALL
+                    )
                     if json_match:
                         llm_output = json.loads(json_match.group(1))
                     else:
@@ -402,7 +428,9 @@ Return ONLY valid JSON, no additional text."""
                             "max_iter": 15,
                         }
                         agents.append(agent)
-                        fixes_applied.append(f"✅ Added agent '{new_agent['id']}' (LLM-based)")
+                        fixes_applied.append(
+                            f"✅ Added agent '{new_agent['id']}' (LLM-based)"
+                        )
 
                 # Add new tasks (with duplicate check)
                 existing_task_ids = {t["id"] for t in tasks}
@@ -421,10 +449,14 @@ Return ONLY valid JSON, no additional text."""
                             "human_input": False,
                         }
                         tasks.append(task)
-                        fixes_applied.append(f"✅ Added task '{new_task['id']}' (LLM-based)")
+                        fixes_applied.append(
+                            f"✅ Added task '{new_task['id']}' (LLM-based)"
+                        )
 
                 if not fixes_applied:
-                    fixes_applied.append("✅ LLM analysis completed (no new items needed)")
+                    fixes_applied.append(
+                        "✅ LLM analysis completed (no new items needed)"
+                    )
 
             except Exception as e:
                 errors.append(f"LLM fix failed: {str(e)}")
@@ -445,7 +477,9 @@ Return ONLY valid JSON, no additional text."""
             FixResult: Fix results
         """
         if not validation_report.needs_fixing:
-            return FixResult(success=True, fixed_output=generated_spec, fixes_applied=[], errors=[])
+            return FixResult(
+                success=True, fixed_output=generated_spec, fixes_applied=[], errors=[]
+            )
 
         # Code-level fixes require regeneration - log for now
         fixes_applied = []
@@ -453,7 +487,9 @@ Return ONLY valid JSON, no additional text."""
 
         for missing_item in validation_report.missing_items:
             if missing_item.item_type == "task_implementation":
-                fixes_applied.append(f"⚠️ Code regeneration needed for: {missing_item.item_name}")
+                fixes_applied.append(
+                    f"⚠️ Code regeneration needed for: {missing_item.item_name}"
+                )
 
         return FixResult(
             success=True,

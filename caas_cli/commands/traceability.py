@@ -16,7 +16,9 @@ from caas_cli.utils import (
 
 
 @click.command()
-@click.option("--requirement", "-r", required=True, help="Original requirement text to trace")
+@click.option(
+    "--requirement", "-r", required=True, help="Original requirement text to trace"
+)
 @click.option(
     "--golden-data",
     "-g",
@@ -38,14 +40,21 @@ from caas_cli.utils import (
     required=True,
     help="[Phase 1] Tasks JSON file (task specifications)",
 )
-@click.option("--output", "-o", type=click.Path(), help="Output report file path (default: stdout)")
+@click.option(
+    "--output",
+    "-o",
+    type=click.Path(),
+    help="Output report file path (default: stdout)",
+)
 @click.option(
     "--format",
     type=click.Choice(["text", "json", "markdown"]),
     default="text",
     help="Output format: text (human-readable), json (structured), markdown (documentation)",
 )
-@click.option("--api-url", type=str, help="API URL (overrides config) - for remote API mode")
+@click.option(
+    "--api-url", type=str, help="API URL (overrides config) - for remote API mode"
+)
 @handle_keyboard_interrupt
 def traceability(requirement, golden_data, agents, tasks, output, format, api_url):
     """

@@ -26,7 +26,7 @@ import pytest
 # Skip E2E tests by default (too expensive for CI)
 pytestmark = pytest.mark.skipif(
     not os.getenv("RUN_E2E_TESTS"),
-    reason="E2E tests require RUN_E2E_TESTS=1 environment variable"
+    reason="E2E tests require RUN_E2E_TESTS=1 environment variable",
 )
 
 
@@ -101,7 +101,7 @@ class TestE2EFullWorkflow:
             enable_auto_fix=True,
             use_expert_agents=True,
             progress_reporter=reporter,
-            verbosity=VerbosityLevel.VERBOSE
+            verbosity=VerbosityLevel.VERBOSE,
         )
 
         reporter.info("🚀 Starting E2E test: Simple TODO app")
@@ -118,7 +118,7 @@ class TestE2EFullWorkflow:
                 deployment_target="docker",
                 enable_traceability=True,
                 enable_completeness_validation=True,
-                bootstrap_project=False  # Don't bootstrap for test
+                bootstrap_project=False,  # Don't bootstrap for test
             )
 
             duration = (datetime.now() - start_time).total_seconds()
@@ -132,13 +132,14 @@ class TestE2EFullWorkflow:
 
             # Verify all phases completed
             from caas_framework.bmad.engine import BMADPhase
+
             expected_phases = [
                 BMADPhase.CONCRETIZATION,
                 BMADPhase.DISCOVERY,
                 BMADPhase.ARCHITECTURE,
                 BMADPhase.DESIGN,
                 BMADPhase.DEVELOPMENT,
-                BMADPhase.DELIVERY
+                BMADPhase.DELIVERY,
             ]
 
             for phase in expected_phases:
@@ -149,7 +150,9 @@ class TestE2EFullWorkflow:
             reporter.info(f"📊 Phases: {len(result.phases_completed)}/6")
             reporter.info(f"🤖 Agents: {len(result.agent_specs)}")
             reporter.info(f"📋 Tasks: {len(result.task_specs)}")
-            reporter.info(f"📁 Files: {len(result.generated_code) if result.generated_code else 0}")
+            reporter.info(
+                f"📁 Files: {len(result.generated_code) if result.generated_code else 0}"
+            )
 
             # Quality metrics
             if result.validation_reports:
@@ -193,10 +196,9 @@ class TestE2EFullWorkflow:
 
         # Wrap LLM with cache
         from caas_framework.caching.llm_cache import LLMCacheWrapper
+
         cached_llm = LLMCacheWrapper(
-            llm_plugin=real_llm_plugin,
-            cache_manager=cache_manager,
-            enable_cache=True
+            llm_plugin=real_llm_plugin, cache_manager=cache_manager, enable_cache=True
         )
 
         # Create engine with cached LLM
@@ -204,7 +206,7 @@ class TestE2EFullWorkflow:
             llm_plugin=cached_llm,
             enable_validation=True,
             use_expert_agents=True,
-            progress_reporter=reporter
+            progress_reporter=reporter,
         )
 
         reporter.info("🚀 Starting E2E test with Phase 2 enhancements")
@@ -219,7 +221,7 @@ class TestE2EFullWorkflow:
                     domain="USER_MANAGEMENT",
                     enable_traceability=False,  # Minimize work
                     enable_completeness_validation=False,
-                    bootstrap_project=False
+                    bootstrap_project=False,
                 )
 
             duration = (datetime.now() - start_time).total_seconds()
@@ -232,16 +234,26 @@ class TestE2EFullWorkflow:
             profiler_summary = profiler.get_summary()
             metrics_summary = metrics.get_summary()
 
-            reporter.success(f"✅ E2E test with enhancements completed in {duration:.2f}s")
+            reporter.success(
+                f"✅ E2E test with enhancements completed in {duration:.2f}s"
+            )
 
             # Phase 2 enhancement results
-            reporter.info(f"📦 Cache: {cache_stats.get('requests', 0)} requests, "
-                         f"{cache_stats.get('hits', 0)} hits")
-            reporter.info(f"📊 Profiled: {profiler_summary.get('total_operations', 0)} operations")
-            reporter.info(f"📈 Metrics: {metrics_summary.get('llm', {}).get('calls', 0)} LLM calls")
+            reporter.info(
+                f"📦 Cache: {cache_stats.get('requests', 0)} requests, "
+                f"{cache_stats.get('hits', 0)} hits"
+            )
+            reporter.info(
+                f"📊 Profiled: {profiler_summary.get('total_operations', 0)} operations"
+            )
+            reporter.info(
+                f"📈 Metrics: {metrics_summary.get('llm', {}).get('calls', 0)} LLM calls"
+            )
 
             # Verify enhancements added value
-            assert profiler_summary["total_operations"] > 0, "Profiler didn't track operations"
+            assert (
+                profiler_summary["total_operations"] > 0
+            ), "Profiler didn't track operations"
             # Cache may not have hits on first run, but should have requests
             assert cache_stats["requests"] > 0, "Cache not being used"
 
@@ -269,9 +281,9 @@ class TestE2EFullWorkflow:
         engine = BMADEngine(
             llm_plugin=real_llm_plugin,
             enable_validation=True,  # Enable validation
-            enable_auto_fix=True,     # Allow auto-fix to improve
+            enable_auto_fix=True,  # Allow auto-fix to improve
             use_expert_agents=True,
-            progress_reporter=reporter
+            progress_reporter=reporter,
         )
 
         reporter.info("🚀 Testing quality gates with poor requirement")
@@ -282,7 +294,7 @@ class TestE2EFullWorkflow:
                 domain=None,  # No domain hint
                 enable_traceability=False,
                 enable_completeness_validation=True,  # Enable completeness checks
-                bootstrap_project=False
+                bootstrap_project=False,
             )
 
             # Even with a poor requirement, auto-fix should improve it
@@ -312,9 +324,9 @@ class TestE2EFullWorkflow:
 
         if os.getenv("RUN_E2E_TESTS"):
             # E2E enabled - verify we can access LLM
-            assert (os.getenv("OPENAI_API_KEY") or
-                   os.getenv("ANTHROPIC_API_KEY")), \
-                "E2E tests enabled but no API key found"
+            assert os.getenv("OPENAI_API_KEY") or os.getenv(
+                "ANTHROPIC_API_KEY"
+            ), "E2E tests enabled but no API key found"
         else:
             # E2E not enabled - verify tests would be skipped
             # (This test itself always runs to verify the logic)
@@ -330,9 +342,9 @@ def estimate_e2e_cost(model: str = "gpt-3.5-turbo") -> float:
     """
     model_costs = {
         "gpt-3.5-turbo": 0.10,  # ~$0.10 per full workflow
-        "gpt-4": 1.50,           # ~$1.50 per full workflow
+        "gpt-4": 1.50,  # ~$1.50 per full workflow
         "claude-3-haiku": 0.05,  # ~$0.05 per full workflow
-        "claude-3-sonnet": 0.50  # ~$0.50 per full workflow
+        "claude-3-sonnet": 0.50,  # ~$0.50 per full workflow
     }
 
     return model_costs.get(model, 0.50)

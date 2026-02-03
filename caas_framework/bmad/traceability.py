@@ -167,7 +167,9 @@ class TraceabilityMatrix:
     # Task Registration and Mapping
     # ============================================================================
 
-    def register_task(self, task: TaskSpecModel, implements_features: List[str]) -> None:
+    def register_task(
+        self, task: TaskSpecModel, implements_features: List[str]
+    ) -> None:
         """
         Register a task and its feature mappings
 
@@ -195,7 +197,9 @@ class TraceabilityMatrix:
                 if self.features[feature_id].status == ImplementationStatus.NOT_STARTED:
                     self.features[feature_id].status = ImplementationStatus.IN_PROGRESS
             else:
-                self.logger.warning(f"Task {task.id} references unknown feature: {feature_id}")
+                self.logger.warning(
+                    f"Task {task.id} references unknown feature: {feature_id}"
+                )
 
         self.logger.debug(
             f"Registered task {task.id} implementing {len(implements_features)} features"
@@ -234,7 +238,9 @@ class TraceabilityMatrix:
                 # Update feature status
                 self.features[feature_id].status = ImplementationStatus.IMPLEMENTED
             else:
-                self.logger.warning(f"Code {file_path} references unknown feature: {feature_id}")
+                self.logger.warning(
+                    f"Code {file_path} references unknown feature: {feature_id}"
+                )
 
         # Update task → code mappings
         if generated_by_task in self.tasks:
@@ -259,16 +265,24 @@ class TraceabilityMatrix:
 
         # Count features by status
         not_started = sum(
-            1 for f in self.features.values() if f.status == ImplementationStatus.NOT_STARTED
+            1
+            for f in self.features.values()
+            if f.status == ImplementationStatus.NOT_STARTED
         )
         in_progress = sum(
-            1 for f in self.features.values() if f.status == ImplementationStatus.IN_PROGRESS
+            1
+            for f in self.features.values()
+            if f.status == ImplementationStatus.IN_PROGRESS
         )
         implemented = sum(
-            1 for f in self.features.values() if f.status == ImplementationStatus.IMPLEMENTED
+            1
+            for f in self.features.values()
+            if f.status == ImplementationStatus.IMPLEMENTED
         )
         verified = sum(
-            1 for f in self.features.values() if f.status == ImplementationStatus.VERIFIED
+            1
+            for f in self.features.values()
+            if f.status == ImplementationStatus.VERIFIED
         )
 
         # Calculate percentages
@@ -281,7 +295,8 @@ class TraceabilityMatrix:
         unimplemented_features = [
             {"id": f.feature_id, "name": f.feature_name, "status": f.status.value}
             for f in self.features.values()
-            if f.status in (ImplementationStatus.NOT_STARTED, ImplementationStatus.IN_PROGRESS)
+            if f.status
+            in (ImplementationStatus.NOT_STARTED, ImplementationStatus.IN_PROGRESS)
         ]
 
         report = {
@@ -335,7 +350,11 @@ class TraceabilityMatrix:
 
     def find_unimplemented_features(self) -> List[FeatureTrace]:
         """Find features that have not been implemented yet"""
-        return [f for f in self.features.values() if f.status == ImplementationStatus.NOT_STARTED]
+        return [
+            f
+            for f in self.features.values()
+            if f.status == ImplementationStatus.NOT_STARTED
+        ]
 
     # ============================================================================
     # Reporting
@@ -394,7 +413,9 @@ class TraceabilityMatrix:
                     "-" * 80,
                 ]
             )
-            for feature in coverage["gaps"]["features_without_tests"][:10]:  # Limit to 10
+            for feature in coverage["gaps"]["features_without_tests"][
+                :10
+            ]:  # Limit to 10
                 report_lines.append(f"  ⚠ {feature['name']} ({feature['id']})")
             if len(coverage["gaps"]["features_without_tests"]) > 10:
                 report_lines.append(

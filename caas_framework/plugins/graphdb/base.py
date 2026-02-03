@@ -70,7 +70,9 @@ class GraphDBPlugin(Plugin):
         """
 
     @abstractmethod
-    async def create_node(self, labels: List[str], properties: Dict[str, Any]) -> GraphNode:
+    async def create_node(
+        self, labels: List[str], properties: Dict[str, Any]
+    ) -> GraphNode:
         """
         Create a new node
 
@@ -190,4 +192,6 @@ class GraphDBPlugin(Plugin):
             return False
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}(name={self.name}, database={self.database})>"
+        return (
+            f"<{self.__class__.__name__}(name={self.name}, database={self.database})>"
+        )

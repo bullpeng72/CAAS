@@ -23,7 +23,9 @@ class RichProgressReporter:
     """
 
     def __init__(
-        self, verbosity: VerbosityLevel = VerbosityLevel.NORMAL, console: Optional[Console] = None
+        self,
+        verbosity: VerbosityLevel = VerbosityLevel.NORMAL,
+        console: Optional[Console] = None,
     ):
         """
         Initialize Rich progress reporter.
@@ -62,7 +64,9 @@ class RichProgressReporter:
 
         if self.verbosity.value >= VerbosityLevel.NORMAL.value:
             self.console.print(f"{'='*70}")
-            self.console.print(f"[bold blue]🔄 Starting:[/bold blue] [cyan]{phase_name}[/cyan]")
+            self.console.print(
+                f"[bold blue]🔄 Starting:[/bold blue] [cyan]{phase_name}[/cyan]"
+            )
             self.console.print(f"[dim]Agent:[/dim] {agent_name}")
             self.console.print(f"[dim]Task:[/dim] {description}")
             self.console.print(f"{'='*70}\n")
@@ -117,7 +121,9 @@ class RichProgressReporter:
         """Log validation result."""
         if self.verbosity.value >= VerbosityLevel.VERBOSE.value:
             if passed:
-                self.console.print(f"  [green]✓ Validation passed for {phase_name}[/green]")
+                self.console.print(
+                    f"  [green]✓ Validation passed for {phase_name}[/green]"
+                )
             else:
                 self.console.print(f"  [red]✗ Validation failed for {phase_name}[/red]")
                 if issues:
@@ -155,7 +161,9 @@ class RichProgressReporter:
                 status_emoji = "✅" if phase_info["success"] else "❌"
                 status = f"{status_emoji} {'OK' if phase_info['success'] else 'Failed'}"
 
-                table.add_row(phase_info["phase_name"], status, f"{phase_info['duration']:.1f}s")
+                table.add_row(
+                    phase_info["phase_name"], status, f"{phase_info['duration']:.1f}s"
+                )
 
             self.console.print()
             self.console.print(table)
@@ -173,12 +181,18 @@ class RichProgressReporter:
             )
 
             if success:
-                overall_status = "[bold green]✅ Workflow completed successfully![/bold green]"
+                overall_status = (
+                    "[bold green]✅ Workflow completed successfully![/bold green]"
+                )
             else:
                 overall_status = "[bold red]❌ Workflow failed[/bold red]"
 
             self.console.print(
-                Panel(status_text + f"\n\n{overall_status}", border_style="cyan", box=box.ROUNDED)
+                Panel(
+                    status_text + f"\n\n{overall_status}",
+                    border_style="cyan",
+                    box=box.ROUNDED,
+                )
             )
             self.console.print()
 

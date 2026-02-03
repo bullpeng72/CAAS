@@ -69,7 +69,9 @@ class PlanMode:
                 priority_emoji = (
                     "🔴"
                     if feature.priority == "high"
-                    else "🟡" if feature.priority == "medium" else "⚪"
+                    else "🟡"
+                    if feature.priority == "medium"
+                    else "⚪"
                 )
                 print(f"  {i}. [{priority_emoji} {feature.priority}] {feature.name}")
                 if len(feature.description) <= 80:
@@ -89,7 +91,9 @@ class PlanMode:
                     f"  ❌ Never Allowed: {len(concretized.boundaries.never_allowed)} restrictions"
                 )
             if concretized.boundaries.ask_first:
-                print(f"  ⚠️ Ask First: {len(concretized.boundaries.ask_first)} operations")
+                print(
+                    f"  ⚠️ Ask First: {len(concretized.boundaries.ask_first)} operations"
+                )
 
         # Get approval
         print("\n" + "=" * 70)
@@ -152,7 +156,9 @@ class PlanMode:
 
         # Get approval
         print("\n" + "=" * 70)
-        choice = input("Proceed to code generation? (approve/reject/redesign): ").lower()
+        choice = input(
+            "Proceed to code generation? (approve/reject/redesign): "
+        ).lower()
 
         if choice in ["a", "approve", "yes", "y"]:
             return ApprovalDecision.APPROVE

@@ -162,10 +162,22 @@ class OntologyRelation(BaseModel):
 ROLE_TASK_MAPPINGS: Dict[AgentRole, List[TaskType]] = {
     # 기존 역할
     AgentRole.RESEARCHER: [TaskType.RESEARCH, TaskType.ANALYSIS, TaskType.UX_RESEARCH],
-    AgentRole.ANALYST: [TaskType.ANALYSIS, TaskType.SYNTHESIS, TaskType.DATA_PROCESSING],
+    AgentRole.ANALYST: [
+        TaskType.ANALYSIS,
+        TaskType.SYNTHESIS,
+        TaskType.DATA_PROCESSING,
+    ],
     AgentRole.WRITER: [TaskType.WRITING, TaskType.SYNTHESIS, TaskType.DOCUMENTATION],
-    AgentRole.REVIEWER: [TaskType.REVIEW, TaskType.ANALYSIS, TaskType.QUALITY_ASSURANCE],
-    AgentRole.CODER: [TaskType.CODING, TaskType.EXECUTION, TaskType.BACKEND_DEVELOPMENT],
+    AgentRole.REVIEWER: [
+        TaskType.REVIEW,
+        TaskType.ANALYSIS,
+        TaskType.QUALITY_ASSURANCE,
+    ],
+    AgentRole.CODER: [
+        TaskType.CODING,
+        TaskType.EXECUTION,
+        TaskType.BACKEND_DEVELOPMENT,
+    ],
     AgentRole.MANAGER: [TaskType.PLANNING, TaskType.REVIEW, TaskType.TEAM_COORDINATION],
     AgentRole.PLANNER: [TaskType.PLANNING, TaskType.ANALYSIS, TaskType.SPRINT_PLANNING],
     AgentRole.EXECUTOR: [TaskType.EXECUTION, TaskType.CODING, TaskType.DEPLOYMENT],
@@ -262,11 +274,23 @@ TASK_TOOL_MAPPINGS: Dict[TaskType, List[ToolCapability]] = {
     TaskType.EXECUTION: [ToolCapability.COMPUTE, ToolCapability.WRITE],
     TaskType.SYNTHESIS: [ToolCapability.READ, ToolCapability.WRITE],
     # BMAD 전문 태스크
-    TaskType.SYSTEM_DESIGN: [ToolCapability.READ, ToolCapability.WRITE, ToolCapability.VISUALIZE],
+    TaskType.SYSTEM_DESIGN: [
+        ToolCapability.READ,
+        ToolCapability.WRITE,
+        ToolCapability.VISUALIZE,
+    ],
     TaskType.API_DESIGN: [ToolCapability.READ, ToolCapability.WRITE],
-    TaskType.DATABASE_DESIGN: [ToolCapability.READ, ToolCapability.WRITE, ToolCapability.COMPUTE],
+    TaskType.DATABASE_DESIGN: [
+        ToolCapability.READ,
+        ToolCapability.WRITE,
+        ToolCapability.COMPUTE,
+    ],
     TaskType.UI_DESIGN: [ToolCapability.VISUALIZE, ToolCapability.WRITE],
-    TaskType.UX_RESEARCH: [ToolCapability.SEARCH, ToolCapability.READ, ToolCapability.VISUALIZE],
+    TaskType.UX_RESEARCH: [
+        ToolCapability.SEARCH,
+        ToolCapability.READ,
+        ToolCapability.VISUALIZE,
+    ],
     TaskType.PROTOTYPING: [ToolCapability.WRITE, ToolCapability.VISUALIZE],
     TaskType.TEST_PLANNING: [ToolCapability.READ, ToolCapability.WRITE],
     TaskType.TEST_AUTOMATION: [ToolCapability.COMPUTE, ToolCapability.WRITE],
@@ -275,7 +299,11 @@ TASK_TOOL_MAPPINGS: Dict[TaskType, List[ToolCapability]] = {
     TaskType.PERFORMANCE_TESTING: [ToolCapability.COMPUTE, ToolCapability.VISUALIZE],
     TaskType.FRONTEND_DEVELOPMENT: [ToolCapability.WRITE, ToolCapability.COMPUTE],
     TaskType.BACKEND_DEVELOPMENT: [ToolCapability.WRITE, ToolCapability.COMPUTE],
-    TaskType.DATA_PROCESSING: [ToolCapability.COMPUTE, ToolCapability.READ, ToolCapability.WRITE],
+    TaskType.DATA_PROCESSING: [
+        ToolCapability.COMPUTE,
+        ToolCapability.READ,
+        ToolCapability.WRITE,
+    ],
     TaskType.DATA_PIPELINE: [ToolCapability.COMPUTE, ToolCapability.WRITE],
     TaskType.SPRINT_PLANNING: [ToolCapability.READ, ToolCapability.WRITE],
     TaskType.RETROSPECTIVE: [ToolCapability.READ, ToolCapability.WRITE],
@@ -425,8 +453,9 @@ class OntologyManager(LoggerMixin):
             ]
             for variant in role_variants:
                 # 단어 경계를 고려하여 정확히 매칭
-                if f" {variant} " in f" {description_lower} " or description_lower.startswith(
-                    f"{variant} "
+                if (
+                    f" {variant} " in f" {description_lower} "
+                    or description_lower.startswith(f"{variant} ")
                 ):
                     return role
 
@@ -1004,13 +1033,17 @@ class OntologyManager(LoggerMixin):
         }
 
         # Level 1: 구체적인 전문 타입 우선 확인
-        priority_scores: Dict[TaskType, int] = {tt: 0 for tt in priority_keywords.keys()}
+        priority_scores: Dict[TaskType, int] = {
+            tt: 0 for tt in priority_keywords.keys()
+        }
         for task_type, keywords in priority_keywords.items():
             for keyword in keywords:
                 if keyword in description_lower:
                     priority_scores[task_type] += 1
 
-        best_priority = max(priority_scores, key=priority_scores.get) if priority_scores else None
+        best_priority = (
+            max(priority_scores, key=priority_scores.get) if priority_scores else None
+        )
         if best_priority and priority_scores[best_priority] > 0:
             return best_priority
 
@@ -1021,7 +1054,9 @@ class OntologyManager(LoggerMixin):
                 if keyword in description_lower:
                     general_scores[task_type] += 1
 
-        best_general = max(general_scores, key=general_scores.get) if general_scores else None
+        best_general = (
+            max(general_scores, key=general_scores.get) if general_scores else None
+        )
         if best_general and general_scores[best_general] > 0:
             return best_general
 
@@ -1072,7 +1107,9 @@ class OntologyManager(LoggerMixin):
                 )
                 capabilities_map[tool.name] = capabilities
 
-            self.logger.info(f"Tool capabilities 동적 생성 완료: {len(capabilities_map)}개 도구")
+            self.logger.info(
+                f"Tool capabilities 동적 생성 완료: {len(capabilities_map)}개 도구"
+            )
 
         except Exception as e:
             self.logger.warning(f"Tool Ontology 로드 실패: {e}, 기본 추론 사용")
@@ -1086,7 +1123,11 @@ class OntologyManager(LoggerMixin):
         return capabilities_map
 
     def _infer_tool_capabilities_from_metadata(
-        self, tool_name: str, category: str, tags: List[str], compatible_tasks: List[str]
+        self,
+        tool_name: str,
+        category: str,
+        tags: List[str],
+        compatible_tasks: List[str],
     ) -> List[ToolCapability]:
         """
         도구 메타데이터에서 capability를 추론합니다.
@@ -1123,9 +1164,14 @@ class OntologyManager(LoggerMixin):
 
         if any(kw in all_keywords for kw in ["search", "find", "query", "lookup"]):
             capabilities.add(ToolCapability.SEARCH)
-        if any(kw in all_keywords for kw in ["read", "fetch", "get", "load", "extract"]):
+        if any(
+            kw in all_keywords for kw in ["read", "fetch", "get", "load", "extract"]
+        ):
             capabilities.add(ToolCapability.READ)
-        if any(kw in all_keywords for kw in ["write", "save", "create", "update", "generate"]):
+        if any(
+            kw in all_keywords
+            for kw in ["write", "save", "create", "update", "generate"]
+        ):
             capabilities.add(ToolCapability.WRITE)
         # NOTE: "calculation", "computation"만 COMPUTE로 매핑 ("analysis"는 제외)
         if any(
@@ -1133,9 +1179,14 @@ class OntologyManager(LoggerMixin):
             for kw in ["calculation", "compute", "computation", "execute", "interpret"]
         ):
             capabilities.add(ToolCapability.COMPUTE)
-        if any(kw in all_keywords for kw in ["visual", "chart", "graph", "plot", "image"]):
+        if any(
+            kw in all_keywords for kw in ["visual", "chart", "graph", "plot", "image"]
+        ):
             capabilities.add(ToolCapability.VISUALIZE)
-        if any(kw in all_keywords for kw in ["communicate", "send", "notify", "message", "slack"]):
+        if any(
+            kw in all_keywords
+            for kw in ["communicate", "send", "notify", "message", "slack"]
+        ):
             capabilities.add(ToolCapability.COMMUNICATE)
 
         # 기본값: READ (최소한의 capability)

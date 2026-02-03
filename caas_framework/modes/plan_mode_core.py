@@ -54,7 +54,9 @@ class PlanModeCore:
     This core class is UI-independent and works with any ReviewHandler implementation.
     """
 
-    def __init__(self, review_handler: Optional[ReviewHandler] = None, auto_approve: bool = False):
+    def __init__(
+        self, review_handler: Optional[ReviewHandler] = None, auto_approve: bool = False
+    ):
         """
         Initialize Plan Mode Core.
 
@@ -67,7 +69,11 @@ class PlanModeCore:
         self.approval_history: List[ApprovalGate] = []
 
     def request_approval(
-        self, phase: AgentPhase, phase_name: str, description: str, output: Dict[str, Any]
+        self,
+        phase: AgentPhase,
+        phase_name: str,
+        description: str,
+        output: Dict[str, Any],
     ) -> ApprovalGate:
         """
         Request user approval for phase output.
@@ -140,9 +146,15 @@ class PlanModeCore:
             Dictionary with approval statistics
         """
         total = len(self.approval_history)
-        approved = sum(1 for g in self.approval_history if g.decision == ApprovalDecision.APPROVE)
-        rejected = sum(1 for g in self.approval_history if g.decision == ApprovalDecision.REJECT)
-        skipped = sum(1 for g in self.approval_history if g.decision == ApprovalDecision.SKIP)
+        approved = sum(
+            1 for g in self.approval_history if g.decision == ApprovalDecision.APPROVE
+        )
+        rejected = sum(
+            1 for g in self.approval_history if g.decision == ApprovalDecision.REJECT
+        )
+        skipped = sum(
+            1 for g in self.approval_history if g.decision == ApprovalDecision.SKIP
+        )
         edited = sum(1 for g in self.approval_history if g.edited_output is not None)
 
         return {

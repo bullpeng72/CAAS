@@ -211,7 +211,9 @@ class AgentFactory(BaseFactory[AgentSpecModel, AgentDefinition]):
         return used_tools
 
     def _generate_from_template(
-        self, definitions: List[AgentDefinition], project_info: Optional[Dict[str, str]] = None
+        self,
+        definitions: List[AgentDefinition],
+        project_info: Optional[Dict[str, str]] = None,
     ) -> str:
         """템플릿 기반 코드 생성 (에러 핸들링 포함)"""
         # Load template

@@ -66,7 +66,9 @@ class DependencyGraph:
     """
 
     phases: List[str]
-    dependencies: Dict[str, List[str]] = field(default_factory=dict)  # phase_id -> [dependency_ids]
+    dependencies: Dict[str, List[str]] = field(
+        default_factory=dict
+    )  # phase_id -> [dependency_ids]
 
     def add_dependency(self, phase_id: str, depends_on: List[str]) -> None:
         """Add dependencies for a phase"""
@@ -138,7 +140,11 @@ class DependencyGraph:
             level += 1
 
         max_parallel = max(len(phases) for phases in levels.values()) if levels else 1
-        avg_parallel = sum(len(phases) for phases in levels.values()) / len(levels) if levels else 1
+        avg_parallel = (
+            sum(len(phases) for phases in levels.values()) / len(levels)
+            if levels
+            else 1
+        )
 
         return {
             "levels": levels,
@@ -203,14 +209,20 @@ class DistributedPhaseExecutor:
         if self._executor is None:
             if self.strategy == ExecutionStrategy.PROCESS_POOL:
                 self._executor = ProcessPoolExecutor(max_workers=self.max_workers)
-                logger.info(f"Created ProcessPoolExecutor with {self.max_workers} workers")
+                logger.info(
+                    f"Created ProcessPoolExecutor with {self.max_workers} workers"
+                )
             elif self.strategy == ExecutionStrategy.THREAD_POOL:
                 self._executor = ThreadPoolExecutor(max_workers=self.max_workers)
-                logger.info(f"Created ThreadPoolExecutor with {self.max_workers} workers")
+                logger.info(
+                    f"Created ThreadPoolExecutor with {self.max_workers} workers"
+                )
             elif self.strategy == ExecutionStrategy.AUTO:
                 # Auto-select: use ProcessPool for better isolation
                 self._executor = ProcessPoolExecutor(max_workers=self.max_workers)
-                logger.info(f"Auto-selected ProcessPoolExecutor with {self.max_workers} workers")
+                logger.info(
+                    f"Auto-selected ProcessPoolExecutor with {self.max_workers} workers"
+                )
             else:  # SEQUENTIAL
                 self._executor = None
 
@@ -260,9 +272,13 @@ class DistributedPhaseExecutor:
 
         # Execute phases
         if self.strategy == ExecutionStrategy.SEQUENTIAL:
-            await self._execute_sequential(dependency_graph, phase_functions, phase_inputs)
+            await self._execute_sequential(
+                dependency_graph, phase_functions, phase_inputs
+            )
         else:
-            await self._execute_parallel(dependency_graph, phase_functions, phase_inputs)
+            await self._execute_parallel(
+                dependency_graph, phase_functions, phase_inputs
+            )
 
         self.total_end_time = datetime.now()
 
@@ -293,7 +309,10 @@ class DistributedPhaseExecutor:
 
             # Execute phase
             result = await self._execute_single_phase(
-                phase_id, phase_functions[phase_id], phase_inputs.get(phase_id), dep_outputs
+                phase_id,
+                phase_functions[phase_id],
+                phase_inputs.get(phase_id),
+                dep_outputs,
             )
 
             self.results[phase_id] = result
@@ -322,7 +341,9 @@ class DistributedPhaseExecutor:
             ready_phases = dependency_graph.get_ready_phases(self.completed)
 
             if not ready_phases:
-                if len(self.completed) + len(self.failed) < len(dependency_graph.phases):
+                if len(self.completed) + len(self.failed) < len(
+                    dependency_graph.phases
+                ):
                     logger.error(
                         "No ready phases but not all completed - possible deadlock or failed dependencies"
                     )
@@ -359,7 +380,9 @@ class DistributedPhaseExecutor:
 
                     if result.success:
                         self.completed.add(phase_id)
-                        logger.info(f"✅ Phase {phase_id} completed in {result.duration_ms:.1f}ms")
+                        logger.info(
+                            f"✅ Phase {phase_id} completed in {result.duration_ms:.1f}ms"
+                        )
                     else:
                         self.failed.add(phase_id)
                         logger.error(f"❌ Phase {phase_id} failed: {result.error}")
@@ -372,7 +395,11 @@ class DistributedPhaseExecutor:
                     self.failed.add(phase_id)
 
     def _execute_phase_sync(
-        self, phase_id: str, phase_function: Callable, phase_input: Any, dep_outputs: Dict[str, Any]
+        self,
+        phase_id: str,
+        phase_function: Callable,
+        phase_input: Any,
+        dep_outputs: Dict[str, Any],
     ) -> PhaseExecutionResult:
         """Execute a single phase synchronously (for ProcessPoolExecutor)"""
         import traceback
@@ -385,7 +412,9 @@ class DistributedPhaseExecutor:
                 # Handle async functions
                 loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)
-                output = loop.run_until_complete(phase_function(phase_input, dep_outputs))
+                output = loop.run_until_complete(
+                    phase_function(phase_input, dep_outputs)
+                )
                 loop.close()
             else:
                 # Sync function
@@ -422,7 +451,11 @@ class DistributedPhaseExecutor:
             )
 
     async def _execute_single_phase(
-        self, phase_id: str, phase_function: Callable, phase_input: Any, dep_outputs: Dict[str, Any]
+        self,
+        phase_id: str,
+        phase_function: Callable,
+        phase_input: Any,
+        dep_outputs: Dict[str, Any],
     ) -> PhaseExecutionResult:
         """Execute a single phase asynchronously"""
         start_time = datetime.now()
@@ -501,7 +534,9 @@ class DistributedPhaseExecutor:
             "failed": len(self.failed),
             "total_duration_seconds": total_duration,
             "cumulative_phase_time": cumulative_duration,
-            "speedup": cumulative_duration / total_duration if total_duration > 0 else 1.0,
+            "speedup": cumulative_duration / total_duration
+            if total_duration > 0
+            else 1.0,
             "efficiency": (
                 (cumulative_duration / total_duration) / self.max_workers
                 if total_duration > 0

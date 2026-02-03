@@ -109,7 +109,10 @@ class CodeSecurityScanner:
             "Hardcoded password detected",
         ),
         "aws_key": (r"AKIA[0-9A-Z]{16}", "AWS Access Key ID detected"),
-        "private_key": (r"-----BEGIN (RSA |EC )?PRIVATE KEY-----", "Private key detected"),
+        "private_key": (
+            r"-----BEGIN (RSA |EC )?PRIVATE KEY-----",
+            "Private key detected",
+        ),
         "github_token": (r"gh[pousr]_[A-Za-z0-9_]{36,255}", "GitHub token detected"),
         "generic_secret": (
             r'(?i)(secret|token|bearer)\s*[=:]\s*["\']([a-zA-Z0-9_\-]{20,})["\']',
@@ -172,7 +175,9 @@ class CodeSecurityScanner:
         """Check if required tools are available"""
         if self.use_bandit:
             try:
-                subprocess.run(["bandit", "--version"], capture_output=True, check=True, timeout=5)
+                subprocess.run(
+                    ["bandit", "--version"], capture_output=True, check=True, timeout=5
+                )
             except (subprocess.CalledProcessError, FileNotFoundError):
                 self.use_bandit = False
                 # Bandit not available, will use pattern matching instead
@@ -367,8 +372,12 @@ class CodeSecurityScanner:
                                 severity=severity,
                                 file_path=relative_path,
                                 line_number=result_item.get("line_number"),
-                                issue_text=result_item.get("issue_text", "Unknown issue"),
-                                confidence=result_item.get("issue_confidence", "MEDIUM"),
+                                issue_text=result_item.get(
+                                    "issue_text", "Unknown issue"
+                                ),
+                                confidence=result_item.get(
+                                    "issue_confidence", "MEDIUM"
+                                ),
                                 cwe_id=result_item.get("cwe", {}).get("id"),
                             )
                         )
@@ -416,7 +425,9 @@ class CodeSecurityScanner:
 
 
 def scan_generated_code(
-    generated_files: Dict[str, str], use_bandit: bool = True, fail_on_critical: bool = False
+    generated_files: Dict[str, str],
+    use_bandit: bool = True,
+    fail_on_critical: bool = False,
 ) -> SecurityReport:
     """
     Convenience function to scan generated code
@@ -445,4 +456,6 @@ def scan_generated_code(
     """
     scanner = CodeSecurityScanner(use_bandit=use_bandit, use_secret_detection=True)
 
-    return scanner.scan(generated_files=generated_files, fail_on_critical=fail_on_critical)
+    return scanner.scan(
+        generated_files=generated_files, fail_on_critical=fail_on_critical
+    )

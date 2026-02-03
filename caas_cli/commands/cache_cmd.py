@@ -90,10 +90,14 @@ def stats(verbose, type):
         cache_manager = get_cache_manager()
 
         # Get statistics
-        stats_data = cache_manager.get_statistics(cache_type=type if type != "all" else None)
+        stats_data = cache_manager.get_statistics(
+            cache_type=type if type != "all" else None
+        )
 
         console.print()
-        console.print(Panel.fit("[bold cyan]Cache Statistics[/bold cyan]", border_style="cyan"))
+        console.print(
+            Panel.fit("[bold cyan]Cache Statistics[/bold cyan]", border_style="cyan")
+        )
         console.print()
 
         if type == "all":
@@ -215,7 +219,11 @@ def clear(type, force):
 
 @cache.command(name="config")
 @click.option(
-    "--set", "-s", type=(str, str), multiple=True, help="Set cache configuration (key value)"
+    "--set",
+    "-s",
+    type=(str, str),
+    multiple=True,
+    help="Set cache configuration (key value)",
 )
 @click.option("--get", "-g", type=str, help="Get specific configuration value")
 @handle_keyboard_interrupt
@@ -282,7 +290,9 @@ def config(set, get):
 
         # Display all configuration
         console.print()
-        console.print(Panel.fit("[bold cyan]Cache Configuration[/bold cyan]", border_style="cyan"))
+        console.print(
+            Panel.fit("[bold cyan]Cache Configuration[/bold cyan]", border_style="cyan")
+        )
         console.print()
 
         table = Table(border_style="blue")

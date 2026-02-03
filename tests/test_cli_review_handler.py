@@ -32,31 +32,22 @@ def test_requirements_review_display():
 
     # Mock data
     data = {
-        'project_name': 'Test Project',
-        'description': 'A test project',
-        'features': [
+        "project_name": "Test Project",
+        "description": "A test project",
+        "features": [
+            {"name": "Feature 1", "description": "First feature", "priority": "high"},
             {
-                'name': 'Feature 1',
-                'description': 'First feature',
-                'priority': 'high'
+                "name": "Feature 2",
+                "description": "Second feature",
+                "priority": "medium",
             },
-            {
-                'name': 'Feature 2',
-                'description': 'Second feature',
-                'priority': 'medium'
-            }
         ],
-        'data_models': [
-            {
-                'name': 'User',
-                'attributes_count': 5
-            }
-        ],
-        'boundaries': {
-            'always_allowed': ['Read files'],
-            'ask_first': ['API calls'],
-            'never_allowed': ['sudo commands']
-        }
+        "data_models": [{"name": "User", "attributes_count": 5}],
+        "boundaries": {
+            "always_allowed": ["Read files"],
+            "ask_first": ["API calls"],
+            "never_allowed": ["sudo commands"],
+        },
     }
 
     # Test display method (should not raise)
@@ -75,21 +66,17 @@ def test_design_review_display():
     handler = CLIReviewHandler()
 
     data = {
-        'agents': [
+        "agents": [
             {
-                'id': 'agent1',
-                'role': 'Researcher',
-                'goal': 'Research topics',
-                'tools': ['web_search', 'calculator']
+                "id": "agent1",
+                "role": "Researcher",
+                "goal": "Research topics",
+                "tools": ["web_search", "calculator"],
             }
         ],
-        'tasks': [
-            {
-                'id': 'task1',
-                'description': 'Research a topic',
-                'agent': 'agent1'
-            }
-        ]
+        "tasks": [
+            {"id": "task1", "description": "Research a topic", "agent": "agent1"}
+        ],
     }
 
     # Test display method
@@ -107,20 +94,16 @@ def test_code_review_display():
     handler = CLIReviewHandler()
 
     data = {
-        'total_files': 2,
-        'total_lines': 150,
-        'files': {
-            'main.py': {
-                'lines': 100,
-                'size_kb': 3.5,
-                'preview': 'def main():\n    print("Hello")\n'
+        "total_files": 2,
+        "total_lines": 150,
+        "files": {
+            "main.py": {
+                "lines": 100,
+                "size_kb": 3.5,
+                "preview": 'def main():\n    print("Hello")\n',
             },
-            'requirements.txt': {
-                'lines': 50,
-                'size_kb': 1.2,
-                'preview': None
-            }
-        }
+            "requirements.txt": {"lines": 50, "size_kb": 1.2, "preview": None},
+        },
     }
 
     # Test display method
@@ -138,9 +121,9 @@ def test_display_boundaries():
     handler = CLIReviewHandler()
 
     boundaries = {
-        'always_allowed': ['Read files', 'Write to project folder'],
-        'ask_first': ['API calls', 'Database operations'],
-        'never_allowed': ['sudo commands', 'Delete system files']
+        "always_allowed": ["Read files", "Write to project folder"],
+        "ask_first": ["API calls", "Database operations"],
+        "never_allowed": ["sudo commands", "Delete system files"],
     }
 
     # Test display method
@@ -157,18 +140,18 @@ def test_get_user_decision_approve():
     """Test getting user decision - approve"""
     handler = CLIReviewHandler()
 
-    with patch('builtins.input', return_value='approve'):
-        decision = handler._get_user_decision(['approve', 'edit', 'reject'])
-        assert decision == 'approve'
+    with patch("builtins.input", return_value="approve"):
+        decision = handler._get_user_decision(["approve", "edit", "reject"])
+        assert decision == "approve"
 
 
 def test_get_user_decision_reject():
     """Test getting user decision - reject"""
     handler = CLIReviewHandler()
 
-    with patch('builtins.input', return_value='reject'):
-        decision = handler._get_user_decision(['approve', 'reject'])
-        assert decision == 'reject'
+    with patch("builtins.input", return_value="reject"):
+        decision = handler._get_user_decision(["approve", "reject"])
+        assert decision == "reject"
 
 
 def test_get_user_decision_invalid_then_valid():
@@ -176,18 +159,18 @@ def test_get_user_decision_invalid_then_valid():
     handler = CLIReviewHandler()
 
     # Mock input: first invalid, then valid
-    with patch('builtins.input', side_effect=['invalid', 'wrong', 'approve']):
-        decision = handler._get_user_decision(['approve', 'reject'])
-        assert decision == 'approve'
+    with patch("builtins.input", side_effect=["invalid", "wrong", "approve"]):
+        decision = handler._get_user_decision(["approve", "reject"])
+        assert decision == "approve"
 
 
 def test_get_user_decision_keyboard_interrupt():
     """Test getting user decision - keyboard interrupt"""
     handler = CLIReviewHandler()
 
-    with patch('builtins.input', side_effect=KeyboardInterrupt()):
-        decision = handler._get_user_decision(['approve', 'reject'])
-        assert decision == 'reject'  # Should return reject on interrupt
+    with patch("builtins.input", side_effect=KeyboardInterrupt()):
+        decision = handler._get_user_decision(["approve", "reject"])
+        assert decision == "reject"  # Should return reject on interrupt
 
 
 def test_handle_review_requirements():
@@ -196,17 +179,13 @@ def test_handle_review_requirements():
 
     request = ReviewRequest(
         review_type=ReviewType.REQUIREMENTS,
-        data={
-            'project_name': 'Test',
-            'description': 'Test project',
-            'features': []
-        },
-        options=['approve', 'edit', 'reject']
+        data={"project_name": "Test", "description": "Test project", "features": []},
+        options=["approve", "edit", "reject"],
     )
 
-    with patch('builtins.input', return_value='approve'):
+    with patch("builtins.input", return_value="approve"):
         decision = handler.handle_review(request)
-        assert decision == 'approve'
+        assert decision == "approve"
 
 
 def test_handle_review_design():
@@ -215,16 +194,13 @@ def test_handle_review_design():
 
     request = ReviewRequest(
         review_type=ReviewType.DESIGN,
-        data={
-            'agents': [],
-            'tasks': []
-        },
-        options=['approve', 'redesign', 'reject']
+        data={"agents": [], "tasks": []},
+        options=["approve", "redesign", "reject"],
     )
 
-    with patch('builtins.input', return_value='approve'):
+    with patch("builtins.input", return_value="approve"):
         decision = handler.handle_review(request)
-        assert decision == 'approve'
+        assert decision == "approve"
 
 
 def test_handle_review_code():
@@ -233,17 +209,13 @@ def test_handle_review_code():
 
     request = ReviewRequest(
         review_type=ReviewType.CODE,
-        data={
-            'total_files': 1,
-            'total_lines': 10,
-            'files': {}
-        },
-        options=['approve', 'reject']
+        data={"total_files": 1, "total_lines": 10, "files": {}},
+        options=["approve", "reject"],
     )
 
-    with patch('builtins.input', return_value='approve'):
+    with patch("builtins.input", return_value="approve"):
         decision = handler.handle_review(request)
-        assert decision == 'approve'
+        assert decision == "approve"
 
 
 def test_auto_approve_handler_creation():
@@ -258,12 +230,12 @@ def test_auto_approve_handler_always_approves():
 
     request = ReviewRequest(
         review_type=ReviewType.REQUIREMENTS,
-        data={'project_name': 'Test'},
-        options=['approve', 'reject']
+        data={"project_name": "Test"},
+        options=["approve", "reject"],
     )
 
     decision = handler.handle_review(request)
-    assert decision == 'approve'
+    assert decision == "approve"
 
 
 def test_auto_approve_handler_all_review_types():
@@ -272,13 +244,11 @@ def test_auto_approve_handler_all_review_types():
 
     for review_type in [ReviewType.REQUIREMENTS, ReviewType.DESIGN, ReviewType.CODE]:
         request = ReviewRequest(
-            review_type=review_type,
-            data={},
-            options=['approve', 'reject']
+            review_type=review_type, data={}, options=["approve", "reject"]
         )
 
         decision = handler.handle_review(request)
-        assert decision == 'approve'
+        assert decision == "approve"
 
 
 if __name__ == "__main__":
@@ -291,6 +261,6 @@ if __name__ == "__main__":
     test_auto_approve_handler_creation()
     test_auto_approve_handler_always_approves()
 
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("✅ All CLI Review Handler tests passed!")
-    print("="*70)
+    print("=" * 70)

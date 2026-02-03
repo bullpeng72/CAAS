@@ -32,7 +32,7 @@ class MockFactory:
     def create_golden_data(
         project_name: str = "Test Project",
         features: Optional[List[FeatureSpec]] = None,
-        minimal: bool = False
+        minimal: bool = False,
     ) -> ConcretizedRequirement:
         """
         Create mock Golden Data with proper structure.
@@ -56,8 +56,8 @@ class MockFactory:
                     acceptance_criteria=[
                         "User can register with valid email",
                         "Password must be at least 8 characters",
-                        "Duplicate emails are rejected"
-                    ]
+                        "Duplicate emails are rejected",
+                    ],
                 ),
                 FeatureSpec(
                     id="feat_002",
@@ -67,9 +67,9 @@ class MockFactory:
                     acceptance_criteria=[
                         "User can login with valid credentials",
                         "Invalid credentials show error",
-                        "Session is created on successful login"
-                    ]
-                )
+                        "Session is created on successful login",
+                    ],
+                ),
             ]
 
         # System scope
@@ -78,7 +78,7 @@ class MockFactory:
             purpose="Test project for automated testing",
             target_users=["developers", "testers"],
             system_type="rest_api",
-            domain="testing"
+            domain="testing",
         )
 
         if minimal:
@@ -86,28 +86,25 @@ class MockFactory:
                 system_scope=system_scope,
                 features=features,
                 constraints=[],
-                assumptions=[]
+                assumptions=[],
             )
 
         # Full Golden Data (with only available fields)
         return ConcretizedRequirement(
             system_scope=system_scope,
             features=features,
-            constraints=[
-                "Must use Python 3.11+",
-                "Must follow PEP 8 style guide"
-            ],
+            constraints=["Must use Python 3.11+", "Must follow PEP 8 style guide"],
             assumptions=[
                 "Users have valid email addresses",
-                "System is deployed on cloud infrastructure"
-            ]
+                "System is deployed on cloud infrastructure",
+            ],
         )
 
     @staticmethod
     def create_llm_plugin(
         model_name: str = "mock-gpt-4",
         delay_ms: int = 100,
-        responses: Optional[Dict[AgentPhase, str]] = None
+        responses: Optional[Dict[AgentPhase, str]] = None,
     ) -> MagicMock:
         """
         Create mock LLM plugin with configurable responses.
@@ -128,36 +125,37 @@ class MockFactory:
             AgentPhase.DISCOVERY: {
                 "domain": "TODO_MANAGEMENT",
                 "requirements": ["Create tasks", "List tasks", "Delete tasks"],
-                "quality_score": 8.5
+                "quality_score": 8.5,
             },
             AgentPhase.ARCHITECTURE: {
                 "architecture": {
                     "agents": ["TaskManager", "DataStore"],
-                    "components": ["API", "Database"]
+                    "components": ["API", "Database"],
                 },
-                "quality_score": 8.0
+                "quality_score": 8.0,
             },
             AgentPhase.DESIGN: {
-                "agents": [
-                    {"name": "TaskAgent", "role": "task_management"}
-                ],
-                "tasks": [
-                    {"name": "CreateTask", "agent": "TaskAgent"}
-                ],
-                "quality_score": 7.5
+                "agents": [{"name": "TaskAgent", "role": "task_management"}],
+                "tasks": [{"name": "CreateTask", "agent": "TaskAgent"}],
+                "quality_score": 7.5,
             },
             AgentPhase.DELIVERY: {
                 "code_generated": True,
                 "files": ["main.py", "agents.py"],
-                "quality_score": 8.5
-            }
+                "quality_score": 8.5,
+            },
         }
 
         if responses:
             default_responses.update(responses)
 
-        async def mock_ainvoke(messages, temperature=None, max_tokens=None,
-                               response_format=None, phase=None):
+        async def mock_ainvoke(
+            messages,
+            temperature=None,
+            max_tokens=None,
+            response_format=None,
+            phase=None,
+        ):
             """Simulate LLM call"""
             await asyncio.sleep(delay_ms / 1000)
 
@@ -168,9 +166,9 @@ class MockFactory:
                 "usage": {
                     "prompt_tokens": 100,
                     "completion_tokens": 50,
-                    "total_tokens": 150
+                    "total_tokens": 150,
                 },
-                "model": model_name
+                "model": model_name,
             }
 
         llm = MagicMock()
@@ -185,7 +183,7 @@ class MockFactory:
     def create_validation_result(
         needs_fixing: bool = False,
         missing_items: Optional[List[str]] = None,
-        issues: Optional[List[str]] = None
+        issues: Optional[List[str]] = None,
     ) -> MagicMock:
         """
         Create mock validation result.
@@ -198,6 +196,7 @@ class MockFactory:
         Returns:
             Mock validation result
         """
+
         class MockMissingItem:
             def __init__(self, name: str):
                 self.item_type = "feature"
@@ -224,7 +223,7 @@ class MockFactory:
     def create_agent_work_result(
         success: bool = True,
         output: Optional[Dict[str, Any]] = None,
-        issues: Optional[List[str]] = None
+        issues: Optional[List[str]] = None,
     ) -> MagicMock:
         """
         Create mock agent work result.
@@ -248,7 +247,7 @@ class MockFactory:
     @staticmethod
     def create_collaboration_context(
         golden_data: Optional[ConcretizedRequirement] = None,
-        requirement: str = "Build a test application"
+        requirement: str = "Build a test application",
     ) -> MagicMock:
         """
         Create mock collaboration context.

@@ -87,7 +87,9 @@ class TaskDescriptionFixer:
         return tasks
 
     @classmethod
-    def generate_expected_output_map(cls, tasks: List[Dict[str, Any]]) -> Dict[str, str]:
+    def generate_expected_output_map(
+        cls, tasks: List[Dict[str, Any]]
+    ) -> Dict[str, str]:
         """
         Generate expected_output map for tasks that were fixed.
 
@@ -112,7 +114,9 @@ class TaskDescriptionFixer:
 
                     if "입력된" in current_output or "입력됨" in current_output:
                         # Adjust expected output
-                        new_output = current_output.replace("입력된 키워드가 ", "키워드가 ")
+                        new_output = current_output.replace(
+                            "입력된 키워드가 ", "키워드가 "
+                        )
                         new_output = new_output.replace("입력됨", "준비됨")
                         adjustments[task_id] = new_output
 

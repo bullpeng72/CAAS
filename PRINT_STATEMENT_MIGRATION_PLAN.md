@@ -12,7 +12,7 @@
 1. `caas_framework/patterns/golden_pattern_rag.py` - 25 print() statements
    - Warnings and error messages
    - Should use logger.warning() and logger.error()
-   
+
 2. `caas_framework/quality/pipeline.py` - 15 print() statements
    - Quality reports
    - Should use logger.info()

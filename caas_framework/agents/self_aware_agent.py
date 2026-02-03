@@ -19,7 +19,9 @@ class CapabilityAssessment(BaseModel):
     """Assessment of an agent's capability to perform a task."""
 
     confidence: float = Field(ge=0.0, le=1.0, description="Confidence level (0.0-1.0)")
-    reasoning: str = Field(description="Explanation of why agent can or cannot perform task")
+    reasoning: str = Field(
+        description="Explanation of why agent can or cannot perform task"
+    )
     missing_capabilities: List[str] = Field(
         default_factory=list, description="Required capabilities that are missing"
     )
@@ -49,7 +51,9 @@ class AgentCapabilities:
 class SelfAssessmentStrategy(Protocol):
     """Protocol for self-assessment strategies."""
 
-    def assess(self, task: str, capabilities: AgentCapabilities) -> CapabilityAssessment:
+    def assess(
+        self, task: str, capabilities: AgentCapabilities
+    ) -> CapabilityAssessment:
         """Assess capability to perform task."""
         ...
 
@@ -69,7 +73,9 @@ class RuleBasedAssessment:
             "shell": ["shell"],
         }
 
-    def assess(self, task: str, capabilities: AgentCapabilities) -> CapabilityAssessment:
+    def assess(
+        self, task: str, capabilities: AgentCapabilities
+    ) -> CapabilityAssessment:
         """Rule-based assessment."""
         task_lower = task.lower()
         confidence = 1.0
@@ -84,7 +90,9 @@ class RuleBasedAssessment:
                 has_tools = any(tool in capabilities.tools for tool in required_tools)
                 if not has_tools:
                     confidence -= 0.5  # More aggressive penalty
-                    missing.extend([t for t in required_tools if t not in capabilities.tools])
+                    missing.extend(
+                        [t for t in required_tools if t not in capabilities.tools]
+                    )
                     reasoning_parts.append(
                         f"Task requires {keyword} capability but missing tools: {required_tools}"
                     )
@@ -118,7 +126,9 @@ class RuleBasedAssessment:
         # Suggest alternative if needed
         alternative = None
         if confidence < 0.7 and missing:
-            alternative = f"Delegate to agent with capabilities: {', '.join(set(missing))}"
+            alternative = (
+                f"Delegate to agent with capabilities: {', '.join(set(missing))}"
+            )
 
         # Estimate difficulty
         difficulty = "Easy"
@@ -150,7 +160,9 @@ class LLMBasedAssessment:
         """
         self.llm = llm_provider
 
-    def assess(self, task: str, capabilities: AgentCapabilities) -> CapabilityAssessment:
+    def assess(
+        self, task: str, capabilities: AgentCapabilities
+    ) -> CapabilityAssessment:
         """LLM-based assessment."""
         prompt = f"""You are {capabilities.role}.
 
@@ -277,7 +289,9 @@ class SelfAwareAgent:
                 logger.info(f"   Reason: {assessment.reasoning}")
 
                 if assessment.missing_capabilities:
-                    logger.info(f"   Missing: {', '.join(assessment.missing_capabilities)}")
+                    logger.info(
+                        f"   Missing: {', '.join(assessment.missing_capabilities)}"
+                    )
 
                 if assessment.alternative_approach:
                     logger.info(f"   💡 Alternative: {assessment.alternative_approach}")
@@ -341,7 +355,9 @@ class SelfAwareAgent:
                 logger.info(f"   Reason: {assessment.reasoning}")
 
                 if assessment.missing_capabilities:
-                    logger.info(f"   Missing: {', '.join(assessment.missing_capabilities)}")
+                    logger.info(
+                        f"   Missing: {', '.join(assessment.missing_capabilities)}"
+                    )
 
                 if assessment.alternative_approach:
                     logger.info(f"   💡 Alternative: {assessment.alternative_approach}")
@@ -384,14 +400,17 @@ class SelfAwareAgent:
         avg_confidence = sum(confidences) / len(confidences)
 
         within_capability = sum(
-            1 for _, a in self.assessment_history if a.confidence >= self.confidence_threshold
+            1
+            for _, a in self.assessment_history
+            if a.confidence >= self.confidence_threshold
         )
 
         return {
             "total_assessments": len(self.assessment_history),
             "avg_confidence": avg_confidence,
             "tasks_within_capability": within_capability,
-            "tasks_requiring_delegation": len(self.assessment_history) - within_capability,
+            "tasks_requiring_delegation": len(self.assessment_history)
+            - within_capability,
             "delegation_rate": (len(self.assessment_history) - within_capability)
             / len(self.assessment_history),
         }

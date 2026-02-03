@@ -132,7 +132,8 @@ class PatternMatcher(LoggerMixin):
                 if keywords:
                     for keyword in keywords[:3]:  # 최대 3개 키워드
                         result = self.client.run_query(
-                            FIND_SIMILAR_PATTERNS.query, {"keyword": keyword, "limit": 5}
+                            FIND_SIMILAR_PATTERNS.query,
+                            {"keyword": keyword, "limit": 5},
                         )
                         for record in result:
                             pattern_data = dict(record["p"])
@@ -263,7 +264,9 @@ class PatternMatcher(LoggerMixin):
             return False
 
         try:
-            self.client.run_query(INCREMENT_PATTERN_USAGE.query, {"pattern_id": pattern_id})
+            self.client.run_query(
+                INCREMENT_PATTERN_USAGE.query, {"pattern_id": pattern_id}
+            )
             return True
         except Exception as e:
             self.logger.error(f"패턴 사용 기록 실패: {e}")
@@ -343,7 +346,8 @@ class PatternMatcher(LoggerMixin):
 
         try:
             result = self.client.run_query(
-                GET_PATTERN_WITH_TEMPLATES.query, {"pattern_id": pattern_id, "version": version}
+                GET_PATTERN_WITH_TEMPLATES.query,
+                {"pattern_id": pattern_id, "version": version},
             )
 
             for record in result:
@@ -392,9 +396,12 @@ class PatternMatcher(LoggerMixin):
 
         try:
             self.client.run_query(
-                RECORD_PATTERN_SUCCESS.query, {"pattern_id": pattern_id, "success": success}
+                RECORD_PATTERN_SUCCESS.query,
+                {"pattern_id": pattern_id, "success": success},
             )
-            self.logger.info(f"패턴 성공 기록: {pattern_id} - {'성공' if success else '실패'}")
+            self.logger.info(
+                f"패턴 성공 기록: {pattern_id} - {'성공' if success else '실패'}"
+            )
             return True
         except Exception as e:
             self.logger.error(f"패턴 성공 기록 실패: {e}")
@@ -420,7 +427,9 @@ class PatternMatcher(LoggerMixin):
             self.logger.warning("Neo4j 연결 불가, 내장 패턴 사용")
             return [
                 (p, 0.5, self._get_builtin_templates(p.id))
-                for p in self._search_builtin_patterns("general", None, [keyword])[:limit]
+                for p in self._search_builtin_patterns("general", None, [keyword])[
+                    :limit
+                ]
             ]
 
         try:
@@ -490,7 +499,9 @@ class PatternMatcher(LoggerMixin):
             )
 
             if result:
-                self.logger.info(f"패턴 버전 업데이트 성공: {pattern_id} -> {new_pattern_id}")
+                self.logger.info(
+                    f"패턴 버전 업데이트 성공: {pattern_id} -> {new_pattern_id}"
+                )
                 return new_pattern_id
 
             return None
@@ -664,7 +675,9 @@ class PatternMatcher(LoggerMixin):
 
             # 키워드 매칭
             if keywords:
-                pattern_text = f"{pattern.name} {pattern.description} {pattern.use_case}".lower()
+                pattern_text = (
+                    f"{pattern.name} {pattern.description} {pattern.use_case}".lower()
+                )
                 for keyword in keywords:
                     if keyword.lower() in pattern_text:
                         score += 1

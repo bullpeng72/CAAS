@@ -77,7 +77,9 @@ class ScaleAdaptiveEngine:
         complexity = analysis.complexity_score
         feature_count = len(analysis.features)
 
-        self.logger.info(f"규모 분석: complexity={complexity}, features={feature_count}")
+        self.logger.info(
+            f"규모 분석: complexity={complexity}, features={feature_count}"
+        )
 
         # Quick Fix: 복잡도 ≤ 3, 기능 1-2개
         if (
@@ -202,7 +204,9 @@ class ScaleAdaptiveEngine:
 
         return duration_map.get(scale, duration_map[ProjectScale.STANDARD])
 
-    def recommend_optimizations(self, scale: ProjectScale, analysis: AnalysisResult) -> List[str]:
+    def recommend_optimizations(
+        self, scale: ProjectScale, analysis: AnalysisResult
+    ) -> List[str]:
         """
         규모별 최적화 권장사항 제공
 
@@ -216,11 +220,15 @@ class ScaleAdaptiveEngine:
         recommendations = []
 
         if scale == ProjectScale.QUICK_FIX:
-            recommendations.append("간단한 변경이므로 빠른 반복을 위해 테스트를 간소화합니다.")
+            recommendations.append(
+                "간단한 변경이므로 빠른 반복을 위해 테스트를 간소화합니다."
+            )
             recommendations.append("문서화를 생략하고 코드에 집중합니다.")
 
         elif scale == ProjectScale.ENTERPRISE:
-            recommendations.append("대규모 프로젝트이므로 Document Sharding을 활성화합니다.")
+            recommendations.append(
+                "대규모 프로젝트이므로 Document Sharding을 활성화합니다."
+            )
             recommendations.append("보안 감사 및 컴플라이언스 검증을 수행합니다.")
             recommendations.append("병렬 실행으로 처리 시간을 단축합니다.")
 
@@ -235,7 +243,9 @@ class ScaleAdaptiveEngine:
 
         # 복잡도 기반 권장사항
         if analysis.complexity_score >= 8:
-            recommendations.append("복잡도가 높으므로 Reflection Engine으로 품질을 보장합니다.")
+            recommendations.append(
+                "복잡도가 높으므로 Reflection Engine으로 품질을 보장합니다."
+            )
 
         # 제약사항 기반 권장사항
         if analysis.constraints:

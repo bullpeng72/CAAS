@@ -282,7 +282,9 @@ class UsageAnalytics:
                     domain_data[event.domain]["success"] += 1
                     domain_data[event.domain]["total"] += 1
                     if event.duration_ms:
-                        domain_data[event.domain]["durations"].append(event.duration_ms / 1000 / 60)
+                        domain_data[event.domain]["durations"].append(
+                            event.duration_ms / 1000 / 60
+                        )
                     if event.cost:
                         domain_data[event.domain]["costs"].append(event.cost)
                 elif event.event_type == EventType.ERROR:
@@ -303,7 +305,9 @@ class UsageAnalytics:
                     failure_count=data["failure"],
                     success_rate=data["success"] / data["total"] * 100,
                     avg_duration_minutes=(
-                        sum(data["durations"]) / len(data["durations"]) if data["durations"] else 0
+                        sum(data["durations"]) / len(data["durations"])
+                        if data["durations"]
+                        else 0
                     ),
                     total_cost=sum(data["costs"]),
                 )
@@ -346,7 +350,9 @@ class UsageAnalytics:
                     template_data[event.template]["success"] += 1
                     template_data[event.template]["total"] += 1
                     if event.tokens_used:
-                        template_data[event.template]["tokens"].append(event.tokens_used)
+                        template_data[event.template]["tokens"].append(
+                            event.tokens_used
+                        )
                 elif event.event_type == EventType.ERROR:
                     template_data[event.template]["failure"] += 1
                     template_data[event.template]["total"] += 1
@@ -364,7 +370,9 @@ class UsageAnalytics:
                     success_count=data["success"],
                     failure_count=data["failure"],
                     success_rate=data["success"] / data["total"] * 100,
-                    avg_tokens=sum(data["tokens"]) / len(data["tokens"]) if data["tokens"] else 0,
+                    avg_tokens=sum(data["tokens"]) / len(data["tokens"])
+                    if data["tokens"]
+                    else 0,
                 )
             )
 
@@ -477,7 +485,9 @@ class UsageAnalytics:
         total_sessions = len(sessions)
         successful_sessions = sum(1 for s in sessions if s.success)
         failed_sessions = total_sessions - successful_sessions
-        success_rate = (successful_sessions / total_sessions * 100) if total_sessions > 0 else 0
+        success_rate = (
+            (successful_sessions / total_sessions * 100) if total_sessions > 0 else 0
+        )
 
         # Resources
         total_tokens = sum(s.total_tokens for s in sessions)
@@ -625,12 +635,18 @@ class UsageAnalytics:
         if success_rate >= 90:
             insights.append(f"✅ Excellent success rate: {success_rate:.1f}%")
         elif success_rate >= 70:
-            insights.append(f"⚠️ Good success rate: {success_rate:.1f}%, but room for improvement")
+            insights.append(
+                f"⚠️ Good success rate: {success_rate:.1f}%, but room for improvement"
+            )
         else:
-            insights.append(f"❌ Low success rate: {success_rate:.1f}%, requires attention")
+            insights.append(
+                f"❌ Low success rate: {success_rate:.1f}%, requires attention"
+            )
 
         # Quality gate insights
-        avg_quality_gates = sum(s.quality_gates_passed for s in sessions) / len(sessions)
+        avg_quality_gates = sum(s.quality_gates_passed for s in sessions) / len(
+            sessions
+        )
         if avg_quality_gates >= 3:
             insights.append(
                 f"🏆 High quality: Average {avg_quality_gates:.1f} quality gates passed"

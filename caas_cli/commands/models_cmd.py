@@ -95,14 +95,20 @@ def list_models(verbose, provider):
 
         # Filter by provider
         if provider != "all":
-            available_models = [m for m in available_models if m["provider"] == provider]
+            available_models = [
+                m for m in available_models if m["provider"] == provider
+            ]
 
         if not available_models:
             echo_info(f"No models found for provider: {provider}")
             return
 
         console.print()
-        console.print(Panel.fit("[bold cyan]Available LLM Models[/bold cyan]", border_style="cyan"))
+        console.print(
+            Panel.fit(
+                "[bold cyan]Available LLM Models[/bold cyan]", border_style="cyan"
+            )
+        )
         console.print()
 
         # Create table
@@ -130,7 +136,9 @@ def list_models(verbose, provider):
 
             if verbose:
                 phases = ", ".join(model.get("suitable_phases", []))
-                row_data.extend([phases if phases else "All", model.get("status", "available")])
+                row_data.extend(
+                    [phases if phases else "All", model.get("status", "available")]
+                )
 
             table.add_row(*row_data)
 
@@ -213,7 +221,9 @@ def metrics(model, sort_by):
 
         console.print()
         console.print(
-            Panel.fit("[bold cyan]Model Performance Metrics[/bold cyan]", border_style="cyan")
+            Panel.fit(
+                "[bold cyan]Model Performance Metrics[/bold cyan]", border_style="cyan"
+            )
         )
         console.print()
 
@@ -232,7 +242,8 @@ def metrics(model, sort_by):
             key=lambda x: (
                 x[1].get(sort_by, 0)
                 if sort_by != "success_rate"
-                else x[1].get("successful_requests", 0) / max(x[1].get("total_requests", 1), 1)
+                else x[1].get("successful_requests", 0)
+                / max(x[1].get("total_requests", 1), 1)
             ),
             reverse=True,
         )
@@ -284,7 +295,9 @@ def metrics(model, sort_by):
 
 @models.command(name="switch")
 @click.argument("model_name")
-@click.option("--provider", "-p", type=str, help="Model provider (optional, auto-detected)")
+@click.option(
+    "--provider", "-p", type=str, help="Model provider (optional, auto-detected)"
+)
 @handle_keyboard_interrupt
 def switch(model_name, provider):
     """
@@ -333,7 +346,9 @@ def switch(model_name, provider):
 @models.command(name="strategy")
 @click.argument(
     "strategy_name",
-    type=click.Choice(["phase_based", "cost_optimized", "performance_first", "adaptive"]),
+    type=click.Choice(
+        ["phase_based", "cost_optimized", "performance_first", "adaptive"]
+    ),
 )
 @click.option("--enable-multi-model", is_flag=True, help="Enable multi-model routing")
 @click.option("--disable-multi-model", is_flag=True, help="Disable multi-model routing")
@@ -380,7 +395,9 @@ def strategy(strategy_name, enable_multi_model, disable_multi_model):
         # Save settings
         settings.save()
 
-        echo_success(f"✅ Model selection strategy updated: {old_strategy} → {strategy_name}")
+        echo_success(
+            f"✅ Model selection strategy updated: {old_strategy} → {strategy_name}"
+        )
 
         if settings.llm.enable_multi_model:
             echo_info("Multi-model routing: ✅ Enabled")
@@ -462,7 +479,9 @@ def fallback(enable, disable, list_chain):
             fallback_chain = router.get_fallback_chain()
 
             console.print()
-            console.print(Panel.fit("[bold cyan]Fallback Chain[/bold cyan]", border_style="cyan"))
+            console.print(
+                Panel.fit("[bold cyan]Fallback Chain[/bold cyan]", border_style="cyan")
+            )
             console.print()
 
             table = Table(border_style="blue")
@@ -484,7 +503,9 @@ def fallback(enable, disable, list_chain):
 
         else:
             # Show current status
-            status = "✅ Enabled" if settings.llm.enable_model_fallback else "❌ Disabled"
+            status = (
+                "✅ Enabled" if settings.llm.enable_model_fallback else "❌ Disabled"
+            )
             echo_info(f"Model fallback: {status}")
 
     except ImportError as e:

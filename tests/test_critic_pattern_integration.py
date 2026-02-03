@@ -33,7 +33,7 @@ class TestCriticPatternIntegration:
         collaboration = ExpertAgentCollaboration(
             llm_plugin=mock_llm,
             golden_data=mock_golden,
-            enable_validation=True
+            enable_validation=True,
             # enable_critic_pattern not specified (defaults to False)
         )
 
@@ -55,7 +55,7 @@ class TestCriticPatternIntegration:
             llm_plugin=mock_llm,
             golden_data=mock_golden,
             enable_validation=True,
-            enable_critic_pattern=True  # Enable critic pattern
+            enable_critic_pattern=True,  # Enable critic pattern
         )
 
         # Assert
@@ -77,7 +77,7 @@ class TestCriticPatternIntegration:
             llm_plugin=mock_llm,
             golden_data=mock_golden,
             enable_validation=False,  # Validation disabled
-            enable_critic_pattern=True  # Try to enable critic pattern
+            enable_critic_pattern=True,  # Try to enable critic pattern
         )
 
         # Assert - critic pattern should not initialize without validation
@@ -99,7 +99,7 @@ class TestCriticPatternIntegration:
             golden_data=mock_golden,
             enable_validation=True,
             enable_critic_pattern=True,
-            max_feedback_loops=5  # Custom feedback loops
+            max_feedback_loops=5,  # Custom feedback loops
         )
 
         # Assert
@@ -151,7 +151,7 @@ class TestCriticPatternTestSuites:
         result = subprocess.run(
             ["python", "-m", "pytest", "tests/test_critic_pattern.py", "-v"],
             capture_output=True,
-            text=True
+            text=True,
         )
 
         # Tests should pass (exit code 0)
@@ -166,7 +166,7 @@ class TestCriticPatternTestSuites:
         result = subprocess.run(
             ["python", "-m", "pytest", "tests/test_producer_critic.py", "-v"],
             capture_output=True,
-            text=True
+            text=True,
         )
 
         # Tests should pass (exit code 0)

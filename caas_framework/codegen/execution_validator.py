@@ -81,7 +81,9 @@ class ExecutionValidator:
         result = ExecutionValidationResult(is_valid=True, is_executable=True)
 
         # Filter Python files only
-        python_files = {path: content for path, content in files.items() if path.endswith(".py")}
+        python_files = {
+            path: content for path, content in files.items() if path.endswith(".py")
+        }
 
         if not python_files:
             return result
@@ -106,7 +108,9 @@ class ExecutionValidator:
         if self.enable_type_check:
             type_issues = self._check_types(python_files)
             result.issues.extend(type_issues)
-            result.type_check_passed = not any(issue.severity == "error" for issue in type_issues)
+            result.type_check_passed = not any(
+                issue.severity == "error" for issue in type_issues
+            )
 
         # Stage 4: Staged execution validation (NEW)
         # This validates in stages: import → instantiation → basic execution
@@ -122,11 +126,17 @@ class ExecutionValidator:
         if self.enable_dry_run:
             dry_run_issues = self._dry_run(python_files)
             result.issues.extend(dry_run_issues)
-            result.dry_run_passed = not any(issue.severity == "error" for issue in dry_run_issues)
+            result.dry_run_passed = not any(
+                issue.severity == "error" for issue in dry_run_issues
+            )
 
         # Calculate counts
-        result.error_count = sum(1 for issue in result.issues if issue.severity == "error")
-        result.warning_count = sum(1 for issue in result.issues if issue.severity == "warning")
+        result.error_count = sum(
+            1 for issue in result.issues if issue.severity == "error"
+        )
+        result.warning_count = sum(
+            1 for issue in result.issues if issue.severity == "warning"
+        )
 
         # Determine validity
         result.is_valid = result.error_count == 0
@@ -261,7 +271,13 @@ class ExecutionValidator:
             # Run mypy
             try:
                 result = subprocess.run(
-                    [sys.executable, "-m", "mypy", "--ignore-missing-imports", str(tmppath)],
+                    [
+                        sys.executable,
+                        "-m",
+                        "mypy",
+                        "--ignore-missing-imports",
+                        str(tmppath),
+                    ],
                     capture_output=True,
                     text=True,
                     timeout=30,
@@ -450,7 +466,9 @@ class ExecutionValidator:
 
         return module_name in stdlib_modules or module_name in known_third_party
 
-    def _staged_execution_validation(self, files: Dict[str, str]) -> List[ValidationIssue]:
+    def _staged_execution_validation(
+        self, files: Dict[str, str]
+    ) -> List[ValidationIssue]:
         """
         Staged execution validation: import → instantiation → basic execution
 

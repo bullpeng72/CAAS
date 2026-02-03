@@ -86,7 +86,9 @@ class ReflectionEngine:
                 self.logger.warning(f"LLM 평가 실패: {e}")
 
         # 전체 점수 계산
-        overall_score = sum(f.score for f in feedbacks) / len(feedbacks) if feedbacks else 0.0
+        overall_score = (
+            sum(f.score for f in feedbacks) / len(feedbacks) if feedbacks else 0.0
+        )
 
         result = ReflectionResult(
             overall_score=overall_score,
@@ -104,7 +106,9 @@ class ReflectionEngine:
         )
         return result
 
-    def reflect_on_code(self, code_files: Dict[str, str], spec_yaml: str) -> ReflectionResult:
+    def reflect_on_code(
+        self, code_files: Dict[str, str], spec_yaml: str
+    ) -> ReflectionResult:
         """
         생성된 코드에 대한 반성
 
@@ -142,7 +146,9 @@ class ReflectionEngine:
             feedbacks=feedbacks,
             requires_iteration=overall_score < 0.75,  # 코드는 더 높은 기준
             iteration_plan=(
-                self._create_code_iteration_plan(feedbacks) if overall_score < 0.75 else None
+                self._create_code_iteration_plan(feedbacks)
+                if overall_score < 0.75
+                else None
             ),
         )
 
@@ -190,7 +196,9 @@ class ReflectionEngine:
             severity="critical" if score < 0.5 else "warning",
         )
 
-    def _evaluate_spec_completeness(self, spec_yaml: str, requirement: str) -> ReflectionFeedback:
+    def _evaluate_spec_completeness(
+        self, spec_yaml: str, requirement: str
+    ) -> ReflectionFeedback:
         """스펙 완전성 검증"""
         import yaml
 
@@ -244,7 +252,9 @@ class ReflectionEngine:
             severity="warning" if score >= 0.5 else "critical",
         )
 
-    def _evaluate_spec_with_llm(self, spec_yaml: str, requirement: str) -> ReflectionFeedback:
+    def _evaluate_spec_with_llm(
+        self, spec_yaml: str, requirement: str
+    ) -> ReflectionFeedback:
         """LLM 기반 스펙 품질 평가"""
         # LLM 평가는 비용이 높으므로 간단한 휴리스틱으로 대체
         # 실제 구현 시 LLMClient를 사용하여 평가 가능
@@ -343,7 +353,9 @@ class ReflectionEngine:
             severity="critical" if score < 0.5 else "warning",
         )
 
-    def _evaluate_best_practices(self, code_files: Dict[str, str]) -> ReflectionFeedback:
+    def _evaluate_best_practices(
+        self, code_files: Dict[str, str]
+    ) -> ReflectionFeedback:
         """베스트 프랙티스 준수 평가"""
         suggestions = []
         score = 1.0
@@ -378,7 +390,11 @@ class ReflectionEngine:
         """테스트 커버리지 평가"""
         test_files = {k: v for k, v in code_files.items() if "test" in k.lower()}
         code_files_count = len(
-            [k for k in code_files.keys() if k.endswith(".py") and "test" not in k.lower()]
+            [
+                k
+                for k in code_files.keys()
+                if k.endswith(".py") and "test" not in k.lower()
+            ]
         )
 
         issues = []

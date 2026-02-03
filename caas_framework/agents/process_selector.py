@@ -47,7 +47,9 @@ class ProcessSelector:
     to select the optimal CrewAI Process type.
     """
 
-    def __init__(self, prefer_hierarchical_threshold: float = 0.5, max_sequential_depth: int = 5):
+    def __init__(
+        self, prefer_hierarchical_threshold: float = 0.5, max_sequential_depth: int = 5
+    ):
         """
         Initialize ProcessSelector.
 
@@ -59,7 +61,10 @@ class ProcessSelector:
         self.max_sequential_depth = max_sequential_depth
 
     def select_process(
-        self, tasks: List[TaskSpecModel], agents: List[AgentSpecModel], verbose: bool = True
+        self,
+        tasks: List[TaskSpecModel],
+        agents: List[AgentSpecModel],
+        verbose: bool = True,
     ) -> ProcessType:
         """
         Select the optimal Process type.
@@ -159,7 +164,9 @@ class ProcessSelector:
                         dependencies[task_id].append(other_task.id)
 
         # Find independent tasks
-        independent_tasks = [task_id for task_id, deps in dependencies.items() if not deps]
+        independent_tasks = [
+            task_id for task_id, deps in dependencies.items() if not deps
+        ]
 
         # Calculate max dependency depth
         max_depth = self._calculate_max_depth(dependencies)
@@ -229,7 +236,9 @@ class ProcessSelector:
 
         return False
 
-    def _calculate_complexity(self, dependencies: Dict[str, List[str]], total_tasks: int) -> float:
+    def _calculate_complexity(
+        self, dependencies: Dict[str, List[str]], total_tasks: int
+    ) -> float:
         """
         Calculate dependency complexity score (0.0-1.0).
 
@@ -283,7 +292,9 @@ class ProcessSelector:
             "total_tasks": len(tasks),
             "total_agents": len(agents),
             "independent_tasks": len(dep_analysis.independent_tasks),
-            "independent_ratio": len(dep_analysis.independent_tasks) / len(tasks) if tasks else 0,
+            "independent_ratio": len(dep_analysis.independent_tasks) / len(tasks)
+            if tasks
+            else 0,
             "max_dependency_depth": dep_analysis.max_dependency_depth,
             "complexity_score": dep_analysis.complexity_score,
             "has_circular_dependencies": dep_analysis.has_circular_deps,

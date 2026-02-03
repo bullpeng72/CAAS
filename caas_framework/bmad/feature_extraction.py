@@ -56,7 +56,9 @@ class HierarchicalFeatureExtractor:
         # Step 1: 주요 기능 영역 식별
         self.logger.info("Step 1/4: Identifying functional areas...")
         functional_areas = await self._identify_functional_areas(requirement, domain)
-        self.logger.info(f"Found {len(functional_areas)} functional areas: {functional_areas}")
+        self.logger.info(
+            f"Found {len(functional_areas)} functional areas: {functional_areas}"
+        )
 
         all_features = []
 
@@ -178,7 +180,11 @@ For each feature, provide:
 
 Be thorough - extract every feature related to {area}, even if small."""
             )
-            .add_input(requirement=requirement, functional_area=area, domain=domain or "General")
+            .add_input(
+                requirement=requirement,
+                functional_area=area,
+                domain=domain or "General",
+            )
             .add_output_format(
                 {
                     "features": [
@@ -218,7 +224,9 @@ Be thorough - extract every feature related to {area}, even if small."""
         )
 
         result = ResponseParser.parse_structured_response(
-            response, expected_fields=["features"], fallback_factory=lambda: {"features": []}
+            response,
+            expected_fields=["features"],
+            fallback_factory=lambda: {"features": []},
         )
 
         features = []
@@ -227,7 +235,9 @@ Be thorough - extract every feature related to {area}, even if small."""
                 # Normalize ID
                 from caas_framework.utils import TextNormalizer
 
-                feature_id = TextNormalizer.normalize_id(feature_data.get("id", f"{area}_feature"))
+                feature_id = TextNormalizer.normalize_id(
+                    feature_data.get("id", f"{area}_feature")
+                )
 
                 # Create FeatureSpec
                 feature = FeatureSpec(
@@ -331,7 +341,9 @@ Be critical and thorough. If everything is covered, return empty list."""
             try:
                 from caas_framework.utils import TextNormalizer
 
-                feature_id = TextNormalizer.normalize_id(feature_data.get("id", "missing_feature"))
+                feature_id = TextNormalizer.normalize_id(
+                    feature_data.get("id", "missing_feature")
+                )
 
                 feature = FeatureSpec(
                     id=feature_id,
@@ -340,11 +352,15 @@ Be critical and thorough. If everything is covered, return empty list."""
                     priority=feature_data.get(
                         "priority", "high"
                     ),  # Missing features are high priority
-                    acceptance_criteria=[f"Reason missed: {feature_data.get('reason', 'Unknown')}"],
+                    acceptance_criteria=[
+                        f"Reason missed: {feature_data.get('reason', 'Unknown')}"
+                    ],
                 )
 
                 feature.__dict__["functional_area"] = "Additional Features"
-                feature.__dict__["missed_reason"] = feature_data.get("reason", "Unknown")
+                feature.__dict__["missed_reason"] = feature_data.get(
+                    "reason", "Unknown"
+                )
 
                 missing.append(feature)
 
@@ -373,7 +389,9 @@ Be critical and thorough. If everything is covered, return empty list."""
         priority_order = {"critical": 0, "high": 1, "medium": 2, "low": 3}
 
         # Sort by priority
-        sorted_features = sorted(features, key=lambda f: priority_order.get(f.priority.lower(), 2))
+        sorted_features = sorted(
+            features, key=lambda f: priority_order.get(f.priority.lower(), 2)
+        )
 
         # Log priority distribution
         priority_dist = {}

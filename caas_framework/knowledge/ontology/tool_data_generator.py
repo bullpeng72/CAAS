@@ -28,7 +28,11 @@ def generate_initial_ontology() -> ToolOntology:
             display_name="File Read",
             category=ToolCategory.FILE,
             description="Read contents from files on disk",
-            use_cases=["Read configuration files", "Load data files", "Process text files"],
+            use_cases=[
+                "Read configuration files",
+                "Load data files",
+                "Process text files",
+            ],
             implementations=[
                 ToolImplementation(
                     crewai_class="FileReadTool",
@@ -232,7 +236,11 @@ def generate_initial_ontology() -> ToolOntology:
             category=ToolCategory.CODE,
             type=ToolType.CUSTOM,
             description="Evaluate mathematical expressions safely",
-            use_cases=["Mathematical calculations", "Formula evaluation", "Number processing"],
+            use_cases=[
+                "Mathematical calculations",
+                "Formula evaluation",
+                "Number processing",
+            ],
             implementations=[],  # Custom tool, no pre-built implementation
             default_implementation=None,
             compatible_roles=["Data Analyst", "Researcher", "Accountant"],
@@ -261,7 +269,10 @@ def generate_initial_ontology() -> ToolOntology:
                 display_name=f"{doc_type.upper()} Search",
                 category=ToolCategory.DOCUMENT,
                 description=f"Search and query {doc_type.upper()} files",
-                use_cases=[f"Search {doc_type} documents", f"Extract data from {doc_type}"],
+                use_cases=[
+                    f"Search {doc_type} documents",
+                    f"Extract data from {doc_type}",
+                ],
                 implementations=[
                     ToolImplementation(
                         crewai_class=crewai_class,
@@ -308,7 +319,11 @@ def generate_initial_ontology() -> ToolOntology:
             display_name="MongoDB Search",
             category=ToolCategory.DATABASE,
             description="Vector search in MongoDB",
-            use_cases=["Vector similarity search", "MongoDB queries", "Document retrieval"],
+            use_cases=[
+                "Vector similarity search",
+                "MongoDB queries",
+                "Document retrieval",
+            ],
             implementations=[
                 ToolImplementation(
                     crewai_class="MongoDBVectorSearchTool",
@@ -381,7 +396,11 @@ def generate_initial_ontology() -> ToolOntology:
             display_name="RAG (Retrieval Augmented Generation)",
             category=ToolCategory.OTHER,
             description="Retrieval Augmented Generation for knowledge-based responses",
-            use_cases=["Knowledge base queries", "Document QA", "Context-aware responses"],
+            use_cases=[
+                "Knowledge base queries",
+                "Document QA",
+                "Context-aware responses",
+            ],
             implementations=[
                 ToolImplementation(
                     crewai_class="RagTool",

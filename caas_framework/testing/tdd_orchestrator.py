@@ -148,7 +148,9 @@ class TDDOrchestrator:
             # Step 3: Generate implementation (GREEN)
             logger.info(f"🟢 GREEN: Generating implementation for {entity_name}")
             implementation_code = await self._generate_implementation(
-                scenarios=scenarios, entity_name=entity_name, test_code=test_code_result.test_code
+                scenarios=scenarios,
+                entity_name=entity_name,
+                test_code=test_code_result.test_code,
             )
 
             if not implementation_code:
@@ -183,8 +185,12 @@ class TDDOrchestrator:
 
             # Calculate results
             duration = (datetime.now() - start_time).total_seconds()
-            total_passed = sum(c.test_results.passed if c.test_results else 0 for c in cycles)
-            total_failed = sum(c.test_results.failed if c.test_results else 0 for c in cycles)
+            total_passed = sum(
+                c.test_results.passed if c.test_results else 0 for c in cycles
+            )
+            total_failed = sum(
+                c.test_results.failed if c.test_results else 0 for c in cycles
+            )
             test_coverage = self._calculate_coverage(scenarios, cycles)
 
             result = TDDWorkflowResult(
@@ -214,7 +220,9 @@ class TDDOrchestrator:
             errors.append(str(e))
             return self._create_error_result(cycles, errors, start_time)
 
-    async def _generate_scenarios(self, features: List[FeatureSpec]) -> List[TestScenario]:
+    async def _generate_scenarios(
+        self, features: List[FeatureSpec]
+    ) -> List[TestScenario]:
         """Generate test scenarios from features"""
         try:
             scenarios = self.scenario_generator.generate_scenarios(
@@ -301,7 +309,9 @@ Generate the implementation code:
             logger.error(f"Error running tests: {e}")
             return None
 
-    async def _refactor_cycles(self, cycle: TDDCycle, entity_name: str) -> List[TDDCycle]:
+    async def _refactor_cycles(
+        self, cycle: TDDCycle, entity_name: str
+    ) -> List[TDDCycle]:
         """
         Refactor implementation while keeping tests green.
 
@@ -411,7 +421,9 @@ Scenario: {scenario.description}
         # Fallback: return full response
         return response.strip()
 
-    def _calculate_coverage(self, scenarios: List[TestScenario], cycles: List[TDDCycle]) -> float:
+    def _calculate_coverage(
+        self, scenarios: List[TestScenario], cycles: List[TDDCycle]
+    ) -> float:
         """Calculate test coverage based on scenarios and results"""
         if not scenarios:
             return 0.0

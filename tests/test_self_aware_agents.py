@@ -38,16 +38,15 @@ class MockLLM(LLMPlugin):
         temperature=None,
         max_tokens=None,
         response_format=None,
-        **kwargs
+        **kwargs,
     ):
         """Mock ainvoke implementation"""
         from caas_framework.plugins.llm.base import LLMResponse
+
         self.generate_called = True
         self.last_prompt = str(messages)
         return LLMResponse(
-            content=self.mock_response,
-            model="mock",
-            usage={"total_tokens": 100}
+            content=self.mock_response, model="mock", usage={"total_tokens": 100}
         )
 
     async def stream(self, messages, temperature=None, max_tokens=None, **kwargs):
@@ -100,20 +99,14 @@ class TestCapabilityAssessment:
 
     def test_capability_level_expert(self):
         """Test expert level (0.9-1.0)"""
-        assessment = CapabilityAssessment(
-            confidence=0.95,
-            reasoning="High expertise"
-        )
+        assessment = CapabilityAssessment(confidence=0.95, reasoning="High expertise")
         assert assessment.capability_level == CapabilityLevel.EXPERT
         assert assessment.can_attempt is True
         assert assessment.needs_help is False
 
     def test_capability_level_proficient(self):
         """Test proficient level (0.7-0.9)"""
-        assessment = CapabilityAssessment(
-            confidence=0.8,
-            reasoning="Good capability"
-        )
+        assessment = CapabilityAssessment(confidence=0.8, reasoning="Good capability")
         assert assessment.capability_level == CapabilityLevel.PROFICIENT
         assert assessment.can_attempt is True
         assert assessment.needs_help is False
@@ -121,8 +114,7 @@ class TestCapabilityAssessment:
     def test_capability_level_capable(self):
         """Test capable level (0.5-0.7)"""
         assessment = CapabilityAssessment(
-            confidence=0.6,
-            reasoning="Moderate capability"
+            confidence=0.6, reasoning="Moderate capability"
         )
         assert assessment.capability_level == CapabilityLevel.CAPABLE
         assert assessment.can_attempt is False
@@ -131,8 +123,7 @@ class TestCapabilityAssessment:
     def test_capability_level_limited(self):
         """Test limited level (0.3-0.5)"""
         assessment = CapabilityAssessment(
-            confidence=0.4,
-            reasoning="Limited capability"
+            confidence=0.4, reasoning="Limited capability"
         )
         assert assessment.capability_level == CapabilityLevel.LIMITED
         assert assessment.can_attempt is False
@@ -140,10 +131,7 @@ class TestCapabilityAssessment:
 
     def test_capability_level_unable(self):
         """Test unable level (0.0-0.3)"""
-        assessment = CapabilityAssessment(
-            confidence=0.2,
-            reasoning="Cannot do this"
-        )
+        assessment = CapabilityAssessment(confidence=0.2, reasoning="Cannot do this")
         assert assessment.capability_level == CapabilityLevel.UNABLE
         assert assessment.can_attempt is False
         assert assessment.needs_help is True
@@ -153,7 +141,7 @@ class TestCapabilityAssessment:
         assessment = CapabilityAssessment(
             confidence=0.5,
             reasoning="Missing tools",
-            missing_capabilities=["database access", "API integration"]
+            missing_capabilities=["database access", "API integration"],
         )
         assert len(assessment.missing_capabilities) == 2
         assert "database access" in assessment.missing_capabilities
@@ -163,7 +151,7 @@ class TestCapabilityAssessment:
         assessment = CapabilityAssessment(
             confidence=0.3,
             reasoning="Need specialist",
-            suggested_agents=["DatabaseExpert", "APISpecialist"]
+            suggested_agents=["DatabaseExpert", "APISpecialist"],
         )
         assert len(assessment.suggested_agents) == 2
         assert "DatabaseExpert" in assessment.suggested_agents
@@ -175,7 +163,7 @@ class TestCapabilityAssessment:
             reasoning="Good match",
             missing_capabilities=["tool1"],
             alternative_approach="Use approach B",
-            difficulty=5
+            difficulty=5,
         )
         data = assessment.to_dict()
 
@@ -197,7 +185,7 @@ class TestAgentCapability:
         capability = AgentCapability(
             agent_name="DatabaseExpert",
             expertise=["database", "SQL", "PostgreSQL"],
-            tools=["psql", "pg_dump"]
+            tools=["psql", "pg_dump"],
         )
 
         score = capability.matches_task("Design a PostgreSQL database schema")
@@ -208,7 +196,7 @@ class TestAgentCapability:
         capability = AgentCapability(
             agent_name="WebDev",
             expertise=["web development"],
-            tools=["React", "Node.js", "Express"]
+            tools=["React", "Node.js", "Express"],
         )
 
         score = capability.matches_task("Build a React frontend")
@@ -217,9 +205,7 @@ class TestAgentCapability:
     def test_matches_task_no_match(self):
         """Test task matching with no matches"""
         capability = AgentCapability(
-            agent_name="BackendDev",
-            expertise=["backend"],
-            tools=["Django"]
+            agent_name="BackendDev", expertise=["backend"], tools=["Django"]
         )
 
         score = capability.matches_task("Design a mobile app UI")
@@ -234,7 +220,7 @@ class TestAgentCapability:
             task_types=["unit testing", "integration testing"],
             min_confidence=0.7,
             backstory="Expert QA engineer",
-            goal="Ensure quality"
+            goal="Ensure quality",
         )
 
         data = capability.to_dict()
@@ -253,9 +239,7 @@ class TestCapabilityRegistry:
         registry = CapabilityRegistry()
 
         capability = AgentCapability(
-            agent_name="Agent1",
-            expertise=["skill1"],
-            tools=["tool1"]
+            agent_name="Agent1", expertise=["skill1"], tools=["tool1"]
         )
 
         registry.register(capability)
@@ -275,16 +259,18 @@ class TestCapabilityRegistry:
         registry = CapabilityRegistry()
 
         # Register multiple agents
-        registry.register(AgentCapability(
-            agent_name="DatabaseExpert",
-            expertise=["database", "SQL"],
-            tools=["psql"]
-        ))
-        registry.register(AgentCapability(
-            agent_name="WebDev",
-            expertise=["web", "frontend"],
-            tools=["React"]
-        ))
+        registry.register(
+            AgentCapability(
+                agent_name="DatabaseExpert",
+                expertise=["database", "SQL"],
+                tools=["psql"],
+            )
+        )
+        registry.register(
+            AgentCapability(
+                agent_name="WebDev", expertise=["web", "frontend"], tools=["React"]
+            )
+        )
 
         # Task matching database expertise
         best = registry.find_best_agent("Design a SQL database")
@@ -294,11 +280,9 @@ class TestCapabilityRegistry:
         """Test finding best agent when no good match"""
         registry = CapabilityRegistry()
 
-        registry.register(AgentCapability(
-            agent_name="Agent1",
-            expertise=["skill1"],
-            tools=[]
-        ))
+        registry.register(
+            AgentCapability(agent_name="Agent1", expertise=["skill1"], tools=[])
+        )
 
         # Task with no matching keywords
         best = registry.find_best_agent("Completely unrelated task xyz123")
@@ -309,16 +293,12 @@ class TestCapabilityRegistry:
         """Test listing all agents"""
         registry = CapabilityRegistry()
 
-        registry.register(AgentCapability(
-            agent_name="Agent1",
-            expertise=["skill1"],
-            tools=[]
-        ))
-        registry.register(AgentCapability(
-            agent_name="Agent2",
-            expertise=["skill2"],
-            tools=[]
-        ))
+        registry.register(
+            AgentCapability(agent_name="Agent1", expertise=["skill1"], tools=[])
+        )
+        registry.register(
+            AgentCapability(agent_name="Agent2", expertise=["skill2"], tools=[])
+        )
 
         agents = registry.list_agents()
         assert len(agents) == 2
@@ -329,16 +309,8 @@ class TestCapabilityRegistry:
         """Test getting all capabilities"""
         registry = CapabilityRegistry()
 
-        cap1 = AgentCapability(
-            agent_name="Agent1",
-            expertise=["skill1"],
-            tools=[]
-        )
-        cap2 = AgentCapability(
-            agent_name="Agent2",
-            expertise=["skill2"],
-            tools=[]
-        )
+        cap1 = AgentCapability(agent_name="Agent1", expertise=["skill1"], tools=[])
+        cap2 = AgentCapability(agent_name="Agent2", expertise=["skill2"], tools=[])
 
         registry.register(cap1)
         registry.register(cap2)
@@ -356,7 +328,8 @@ class TestSelfAwareMixin:
     @pytest.mark.asyncio
     async def test_can_perform_with_high_confidence(self):
         """Test capability assessment with high confidence"""
-        llm = MockLLM(mock_response="""
+        llm = MockLLM(
+            mock_response="""
 CONFIDENCE: 0.9
 REASONING: I have all the necessary tools and expertise
 MISSING_CAPABILITIES: None
@@ -364,14 +337,15 @@ ALTERNATIVE_APPROACH: None
 SUGGESTED_AGENTS: None
 MISSING_TOOLS: None
 DIFFICULTY: 3
-        """)
+        """
+        )
 
         agent = TestSelfAwareAgent(
             agent_name="TestAgent",
             llm=llm,
             role="Developer",
             goal="Build software",
-            tools=["Python", "Git"]
+            tools=["Python", "Git"],
         )
 
         assessment = await agent.can_perform("Write a Python function")
@@ -384,7 +358,8 @@ DIFFICULTY: 3
     @pytest.mark.asyncio
     async def test_can_perform_with_low_confidence(self):
         """Test capability assessment with low confidence"""
-        llm = MockLLM(mock_response="""
+        llm = MockLLM(
+            mock_response="""
 CONFIDENCE: 0.3
 REASONING: I don't have the required database expertise
 MISSING_CAPABILITIES: database design; SQL optimization
@@ -392,13 +367,11 @@ ALTERNATIVE_APPROACH: Consult a database expert
 SUGGESTED_AGENTS: DatabaseExpert
 MISSING_TOOLS: PostgreSQL; pgAdmin
 DIFFICULTY: 8
-        """)
+        """
+        )
 
         agent = TestSelfAwareAgent(
-            agent_name="TestAgent",
-            llm=llm,
-            role="Frontend Developer",
-            tools=["React"]
+            agent_name="TestAgent", llm=llm, role="Frontend Developer", tools=["React"]
         )
 
         assessment = await agent.can_perform("Optimize database queries")
@@ -414,7 +387,8 @@ DIFFICULTY: 8
     @pytest.mark.asyncio
     async def test_can_perform_caching(self):
         """Test capability assessment caching"""
-        llm = MockLLM(mock_response="""
+        llm = MockLLM(
+            mock_response="""
 CONFIDENCE: 0.8
 REASONING: Cached result
 MISSING_CAPABILITIES: None
@@ -422,13 +396,10 @@ ALTERNATIVE_APPROACH: None
 SUGGESTED_AGENTS: None
 MISSING_TOOLS: None
 DIFFICULTY: 5
-        """)
-
-        agent = TestSelfAwareAgent(
-            agent_name="TestAgent",
-            llm=llm,
-            role="Developer"
+        """
         )
+
+        agent = TestSelfAwareAgent(agent_name="TestAgent", llm=llm, role="Developer")
 
         # First call
         assessment1 = await agent.can_perform("Task A")
@@ -448,7 +419,7 @@ DIFFICULTY: 5
         agent = TestSelfAwareAgent(
             agent_name="TestAgent",
             llm=None,  # No LLM
-            role="Developer"
+            role="Developer",
         )
 
         assessment = await agent.can_perform("Some task")
@@ -460,7 +431,8 @@ DIFFICULTY: 5
     @pytest.mark.asyncio
     async def test_execute_or_delegate_high_confidence(self):
         """Test execution with high confidence"""
-        llm = MockLLM(mock_response="""
+        llm = MockLLM(
+            mock_response="""
 CONFIDENCE: 0.9
 REASONING: I can do this
 MISSING_CAPABILITIES: None
@@ -468,13 +440,10 @@ ALTERNATIVE_APPROACH: None
 SUGGESTED_AGENTS: None
 MISSING_TOOLS: None
 DIFFICULTY: 3
-        """)
-
-        agent = TestSelfAwareAgent(
-            agent_name="TestAgent",
-            llm=llm,
-            role="Developer"
+        """
         )
+
+        agent = TestSelfAwareAgent(agent_name="TestAgent", llm=llm, role="Developer")
 
         result = await agent.execute_or_delegate("Write code")
 
@@ -484,7 +453,8 @@ DIFFICULTY: 3
     @pytest.mark.asyncio
     async def test_execute_or_delegate_low_confidence(self):
         """Test delegation with low confidence"""
-        llm = MockLLM(mock_response="""
+        llm = MockLLM(
+            mock_response="""
 CONFIDENCE: 0.3
 REASONING: Need help
 MISSING_CAPABILITIES: expertise
@@ -492,13 +462,10 @@ ALTERNATIVE_APPROACH: None
 SUGGESTED_AGENTS: Expert
 MISSING_TOOLS: None
 DIFFICULTY: 9
-        """)
-
-        agent = TestSelfAwareAgent(
-            agent_name="TestAgent",
-            llm=llm,
-            role="Developer"
+        """
         )
+
+        agent = TestSelfAwareAgent(agent_name="TestAgent", llm=llm, role="Developer")
 
         result = await agent.execute_or_delegate("Complex task")
 
@@ -510,7 +477,8 @@ DIFFICULTY: 9
     @pytest.mark.asyncio
     async def test_execute_or_delegate_force_execute(self):
         """Test forced execution even with low confidence"""
-        llm = MockLLM(mock_response="""
+        llm = MockLLM(
+            mock_response="""
 CONFIDENCE: 0.3
 REASONING: Low confidence
 MISSING_CAPABILITIES: None
@@ -518,13 +486,10 @@ ALTERNATIVE_APPROACH: None
 SUGGESTED_AGENTS: None
 MISSING_TOOLS: None
 DIFFICULTY: 8
-        """)
-
-        agent = TestSelfAwareAgent(
-            agent_name="TestAgent",
-            llm=llm,
-            role="Developer"
+        """
         )
+
+        agent = TestSelfAwareAgent(agent_name="TestAgent", llm=llm, role="Developer")
 
         result = await agent.execute_or_delegate("Task", force_execute=True)
 
@@ -535,24 +500,18 @@ DIFFICULTY: 8
     async def test_request_help(self):
         """Test help request"""
         llm = MockLLM()
-        agent = TestSelfAwareAgent(
-            agent_name="TestAgent",
-            llm=llm,
-            role="Developer"
-        )
+        agent = TestSelfAwareAgent(agent_name="TestAgent", llm=llm, role="Developer")
 
         assessment = CapabilityAssessment(
             confidence=0.3,
             reasoning="Need database expert",
             missing_capabilities=["database design"],
             missing_tools=["PostgreSQL"],
-            suggested_agents=["DatabaseExpert"]
+            suggested_agents=["DatabaseExpert"],
         )
 
         help_request = await agent.request_help(
-            task="Design database",
-            assessment=assessment,
-            context={"urgency": "high"}
+            task="Design database", assessment=assessment, context={"urgency": "high"}
         )
 
         assert help_request["status"] == "help_requested"
@@ -566,16 +525,11 @@ DIFFICULTY: 8
     def test_clear_capability_cache(self):
         """Test clearing capability cache"""
         llm = MockLLM()
-        agent = TestSelfAwareAgent(
-            agent_name="TestAgent",
-            llm=llm,
-            role="Developer"
-        )
+        agent = TestSelfAwareAgent(agent_name="TestAgent", llm=llm, role="Developer")
 
         # Manually populate cache
         agent._capability_cache["test_key"] = CapabilityAssessment(
-            confidence=0.8,
-            reasoning="Cached"
+            confidence=0.8, reasoning="Cached"
         )
 
         assert len(agent._capability_cache) == 1
@@ -598,7 +552,7 @@ class TestSelfAwareAgentClass:
             role="Developer",
             goal="Build software",
             backstory="Senior developer",
-            tools=["Python", "Git"]
+            tools=["Python", "Git"],
         )
 
         assert agent.agent_name == "MyAgent"
@@ -616,10 +570,7 @@ class TestSelfAwareAgentClass:
 
         llm = MockLLM()
         agent = TestSelfAwareAgent(
-            agent_name="RegisteredAgent",
-            llm=llm,
-            role="Tester",
-            tools=["pytest"]
+            agent_name="RegisteredAgent", llm=llm, role="Tester", tools=["pytest"]
         )
 
         # Check if registered
@@ -637,7 +588,8 @@ class TestSelfAwareIntegration:
     @pytest.mark.asyncio
     async def test_full_workflow_success(self):
         """Test complete workflow with successful execution"""
-        llm = MockLLM(mock_response="""
+        llm = MockLLM(
+            mock_response="""
 CONFIDENCE: 0.85
 REASONING: I have the required skills and tools
 MISSING_CAPABILITIES: None
@@ -645,7 +597,8 @@ ALTERNATIVE_APPROACH: None
 SUGGESTED_AGENTS: None
 MISSING_TOOLS: None
 DIFFICULTY: 4
-        """)
+        """
+        )
 
         agent = TestSelfAwareAgent(
             agent_name="DevAgent",
@@ -653,13 +606,12 @@ DIFFICULTY: 4
             role="Software Developer",
             goal="Write quality code",
             backstory="10 years of experience",
-            tools=["Python", "pytest", "Git"]
+            tools=["Python", "pytest", "Git"],
         )
 
         # Execute task
         result = await agent.execute_or_delegate(
-            task="Write a Python function to parse JSON",
-            context={"format": "strict"}
+            task="Write a Python function to parse JSON", context={"format": "strict"}
         )
 
         assert result["status"] == "success"
@@ -673,7 +625,8 @@ DIFFICULTY: 4
         registry = get_capability_registry()
         registry._capabilities.clear()
 
-        llm = MockLLM(mock_response="""
+        llm = MockLLM(
+            mock_response="""
 CONFIDENCE: 0.2
 REASONING: This requires machine learning expertise which I lack
 MISSING_CAPABILITIES: machine learning; neural networks
@@ -681,22 +634,25 @@ ALTERNATIVE_APPROACH: Use a pre-trained model
 SUGGESTED_AGENTS: MLExpert
 MISSING_TOOLS: TensorFlow; PyTorch
 DIFFICULTY: 9
-        """)
+        """
+        )
 
         # Create requesting agent
         agent = TestSelfAwareAgent(
             agent_name="WebDev",
             llm=llm,
             role="Web Developer",
-            tools=["React", "Node.js"]
+            tools=["React", "Node.js"],
         )
 
         # Register expert agent
-        registry.register(AgentCapability(
-            agent_name="MLExpert",
-            expertise=["machine learning", "AI", "neural networks"],
-            tools=["TensorFlow", "PyTorch"]
-        ))
+        registry.register(
+            AgentCapability(
+                agent_name="MLExpert",
+                expertise=["machine learning", "AI", "neural networks"],
+                tools=["TensorFlow", "PyTorch"],
+            )
+        )
 
         # Execute task (should delegate)
         result = await agent.execute_or_delegate(

@@ -86,7 +86,9 @@ class InteractiveGuide:
             domains = list(Domain)
             for i, domain in enumerate(domains, 1):
                 examples = get_examples_by_domain(domain)
-                table.add_row(str(i), domain.value.replace("_", " ").title(), str(len(examples)))
+                table.add_row(
+                    str(i), domain.value.replace("_", " ").title(), str(len(examples))
+                )
 
             self.console.print(table)
 
@@ -96,7 +98,9 @@ class InteractiveGuide:
             domains = list(Domain)
             for i, domain in enumerate(domains, 1):
                 examples = get_examples_by_domain(domain)
-                print(f"{i}. {domain.value.replace('_', ' ').title()} ({len(examples)} examples)")
+                print(
+                    f"{i}. {domain.value.replace('_', ' ').title()} ({len(examples)} examples)"
+                )
             print("-" * 50)
 
         # Get user selection
@@ -135,18 +139,24 @@ class InteractiveGuide:
             table.add_column("Features", justify="right")
 
             for i, ex in enumerate(examples, 1):
-                table.add_row(str(i), ex.title, ex.complexity.value, str(len(ex.key_features)))
+                table.add_row(
+                    str(i), ex.title, ex.complexity.value, str(len(ex.key_features))
+                )
 
             self.console.print(table)
         else:
             print(f"\n{domain.value.replace('_', ' ').title()} Examples:")
             print("-" * 70)
             for i, ex in enumerate(examples, 1):
-                print(f"{i}. {ex.title} [{ex.complexity.value}] - {len(ex.key_features)} features")
+                print(
+                    f"{i}. {ex.title} [{ex.complexity.value}] - {len(ex.key_features)} features"
+                )
             print("-" * 70)
 
         # Get user selection
-        choice = input("\nSelect example (number) to view details or press Enter to skip: ").strip()
+        choice = input(
+            "\nSelect example (number) to view details or press Enter to skip: "
+        ).strip()
 
         if not choice:
             return None
@@ -184,7 +194,9 @@ class InteractiveGuide:
 
             for i, (complexity, desc) in enumerate(complexities, 1):
                 examples = get_examples_by_complexity(complexity)
-                table.add_row(str(i), complexity.value.title(), str(len(examples)), desc)
+                table.add_row(
+                    str(i), complexity.value.title(), str(len(examples)), desc
+                )
 
             self.console.print(table)
         else:
@@ -200,7 +212,11 @@ class InteractiveGuide:
         if not choice:
             return None
 
-        complexity_map = {"1": Complexity.SIMPLE, "2": Complexity.MODERATE, "3": Complexity.COMPLEX}
+        complexity_map = {
+            "1": Complexity.SIMPLE,
+            "2": Complexity.MODERATE,
+            "3": Complexity.COMPLEX,
+        }
 
         if choice in complexity_map:
             selected_complexity = complexity_map[choice]
@@ -208,7 +224,9 @@ class InteractiveGuide:
 
         return None
 
-    def _show_complexity_examples(self, complexity: Complexity) -> Optional[RequirementExample]:
+    def _show_complexity_examples(
+        self, complexity: Complexity
+    ) -> Optional[RequirementExample]:
         """Show examples for a specific complexity level"""
         examples = get_examples_by_complexity(complexity)
 
@@ -225,7 +243,9 @@ class InteractiveGuide:
             table.add_column("Domain", style="yellow")
 
             for i, ex in enumerate(examples, 1):
-                table.add_row(str(i), ex.title, ex.domain.value.replace("_", " ").title())
+                table.add_row(
+                    str(i), ex.title, ex.domain.value.replace("_", " ").title()
+                )
 
             self.console.print(table)
         else:
@@ -235,7 +255,9 @@ class InteractiveGuide:
                 print(f"{i}. {ex.title} ({ex.domain.value})")
             print("-" * 70)
 
-        choice = input("\nSelect example (number) to view details or press Enter to skip: ").strip()
+        choice = input(
+            "\nSelect example (number) to view details or press Enter to skip: "
+        ).strip()
 
         if not choice:
             return None
@@ -249,7 +271,9 @@ class InteractiveGuide:
 
         return None
 
-    def search_by_keyword(self, keyword: Optional[str] = None) -> Optional[RequirementExample]:
+    def search_by_keyword(
+        self, keyword: Optional[str] = None
+    ) -> Optional[RequirementExample]:
         """
         Search examples by keyword
 
@@ -284,7 +308,10 @@ class InteractiveGuide:
 
             for i, ex in enumerate(results, 1):
                 table.add_row(
-                    str(i), ex.title, ex.domain.value.replace("_", " ").title(), ex.complexity.value
+                    str(i),
+                    ex.title,
+                    ex.domain.value.replace("_", " ").title(),
+                    ex.complexity.value,
                 )
 
             self.console.print(table)
@@ -295,7 +322,9 @@ class InteractiveGuide:
                 print(f"{i}. {ex.title} [{ex.domain.value}] ({ex.complexity.value})")
             print("-" * 70)
 
-        choice = input("\nSelect example (number) to view details or press Enter to skip: ").strip()
+        choice = input(
+            "\nSelect example (number) to view details or press Enter to skip: "
+        ).strip()
 
         if not choice:
             return None
@@ -327,7 +356,9 @@ class InteractiveGuide:
 
             # Requirement
             req_panel = Panel(
-                example.requirement_text, title="Example Requirement", border_style="green"
+                example.requirement_text,
+                title="Example Requirement",
+                border_style="green",
             )
             self.console.print(req_panel)
 
@@ -358,7 +389,9 @@ class InteractiveGuide:
             print(f"\nTags: {', '.join(example.tags)}")
             print("=" * 70)
 
-    def get_suggestions(self, user_input: str, limit: int = 3) -> List[RequirementExample]:
+    def get_suggestions(
+        self, user_input: str, limit: int = 3
+    ) -> List[RequirementExample]:
         """
         Get example suggestions based on user input
 
@@ -375,7 +408,9 @@ class InteractiveGuide:
             self.console.print("\n[bold cyan]💡 Suggested Examples:[/bold cyan]\n")
 
             for i, ex in enumerate(suggestions, 1):
-                self.console.print(f"[bold]{i}. {ex.title}[/bold] ({ex.complexity.value})")
+                self.console.print(
+                    f"[bold]{i}. {ex.title}[/bold] ({ex.complexity.value})"
+                )
                 self.console.print(f"   {ex.description[:100]}...")
                 self.console.print()
 
@@ -434,7 +469,9 @@ class InteractiveGuide:
 
             elif choice == "5" or choice.lower() == "exit":
                 if self.use_rich:
-                    self.console.print("\n[bold green]Thanks for using CAAS! 👋[/bold green]\n")
+                    self.console.print(
+                        "\n[bold green]Thanks for using CAAS! 👋[/bold green]\n"
+                    )
                 else:
                     print("\nThanks for using CAAS! 👋\n")
                 break

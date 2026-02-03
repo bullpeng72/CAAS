@@ -117,7 +117,9 @@ class TaskFactory(BaseFactory[TaskSpecModel, TaskDefinition]):
         """
         # Use template-based generation
         if use_error_handling:
-            return self._generate_from_template(definitions, project_info, agent_definitions)
+            return self._generate_from_template(
+                definitions, project_info, agent_definitions
+            )
         else:
             # Fallback to old string-based generation
             return self._generate_simple(definitions)

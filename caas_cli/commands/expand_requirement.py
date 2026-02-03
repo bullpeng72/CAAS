@@ -206,7 +206,9 @@ def expand(requirement, golden_data, gaps, output):
         # Added features
         added_features = result.auto_expanded_features
         if added_features:
-            click.echo(click.style(f"✨ Added Features ({len(added_features)}):", bold=True))
+            click.echo(
+                click.style(f"✨ Added Features ({len(added_features)}):", bold=True)
+            )
             for i, feature in enumerate(added_features, 1):
                 click.echo(f"  {i}. {feature.name}")
                 click.echo(f"     {feature.description}")
@@ -217,7 +219,9 @@ def expand(requirement, golden_data, gaps, output):
         # Added data models
         added_models = result.auto_expanded_data_models
         if added_models:
-            click.echo(click.style(f"💾 Added Data Models ({len(added_models)}):", bold=True))
+            click.echo(
+                click.style(f"💾 Added Data Models ({len(added_models)}):", bold=True)
+            )
             for i, dm in enumerate(added_models, 1):
                 click.echo(f"  {i}. {dm.entity_name}")
                 attrs = [f.name for f in dm.fields[:3]]
@@ -227,7 +231,9 @@ def expand(requirement, golden_data, gaps, output):
         # Added UI components
         added_ui = result.auto_expanded_ui_components
         if added_ui:
-            click.echo(click.style(f"🎨 Added UI Components ({len(added_ui)}):", bold=True))
+            click.echo(
+                click.style(f"🎨 Added UI Components ({len(added_ui)}):", bold=True)
+            )
             for i, ui in enumerate(added_ui, 1):
                 click.echo(f"  {i}. {ui.page_name} ({ui.component_type})")
             click.echo()
@@ -235,7 +241,9 @@ def expand(requirement, golden_data, gaps, output):
         # Best practices
         best_practices = result.best_practices
         if best_practices:
-            click.echo(click.style(f"💡 Best Practices ({len(best_practices)}):", bold=True))
+            click.echo(
+                click.style(f"💡 Best Practices ({len(best_practices)}):", bold=True)
+            )
             for i, bp in enumerate(best_practices[:5], 1):  # Show first 5
                 click.echo(f"  {i}. [{bp.category}] {bp.recommendation}")
             if len(best_practices) > 5:

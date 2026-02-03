@@ -30,7 +30,9 @@ class TestSanitizeToolName:
 
     def test_already_ends_with_tool(self):
         """Test name that already ends with 'Tool'"""
-        assert sanitize_tool_name("FileReadTool") == "FilereadtoolTool"  # Note: This might need fixing
+        assert (
+            sanitize_tool_name("FileReadTool") == "FilereadtoolTool"
+        )  # Note: This might need fixing
 
     def test_empty_parts(self):
         """Test name with empty parts"""
@@ -119,7 +121,9 @@ class TestGenerateFallbackToolsCode:
 
         # Should still have imports but no docstring
         assert "from crewai.tools import BaseTool" in code
-        assert '"""' not in code.split("from crewai.tools")[0]  # No docstring before imports
+        assert (
+            '"""' not in code.split("from crewai.tools")[0]
+        )  # No docstring before imports
 
     def test_empty_tools(self):
         """Test generation with empty tools"""
@@ -174,14 +178,14 @@ class TestExtractToolNamesFromAgents:
                 role="Reader",
                 goal="Read files",
                 backstory="...",
-                tools=["file_read", "file_write"]
+                tools=["file_read", "file_write"],
             ),
             AgentSpecModel(
                 id="agent2",
                 role="Searcher",
                 goal="Search web",
                 backstory="...",
-                tools=["web_search"]
+                tools=["web_search"],
             ),
         ]
 
@@ -200,7 +204,7 @@ class TestExtractToolNamesFromAgents:
                 role="Searcher",
                 goal="Search",
                 backstory="...",
-                tools=["web_search"]
+                tools=["web_search"],
             ),
         ]
 
@@ -241,13 +245,14 @@ class TestConsistencyAcrossPaths:
 
         # Simulate LLM path (dict input, dict return, no helpers)
         from caas_framework.codegen.tool_utils import sanitize_tool_name
+
         sanitized = {sanitize_tool_name(t): t for t in tools}
 
         code_llm_style = generate_fallback_tools_code(
             tools=sanitized,
             fallback_warning=True,
             include_helper_functions=False,
-            return_type="dict"
+            return_type="dict",
         )
 
         # Simulate Expert Agent path (set input, str return, with helpers)
@@ -255,7 +260,7 @@ class TestConsistencyAcrossPaths:
             tools=tools,
             fallback_warning=False,
             include_helper_functions=True,
-            return_type="str"
+            return_type="str",
         )
 
         # Both should be valid Python

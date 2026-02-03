@@ -42,17 +42,28 @@ class ToolImplementation(BaseModel):
     Example: "web_search" can be implemented by SerperDevTool, BraveSearchTool, etc.
     """
 
-    crewai_class: str = Field(..., description="CrewAI tool class name (e.g., 'SerperDevTool')")
-    name: str = Field(..., description="Human-readable name (e.g., 'Google Search via Serper')")
-    description: str = Field(default="", description="Detailed description of this implementation")
+    crewai_class: str = Field(
+        ..., description="CrewAI tool class name (e.g., 'SerperDevTool')"
+    )
+    name: str = Field(
+        ..., description="Human-readable name (e.g., 'Google Search via Serper')"
+    )
+    description: str = Field(
+        default="", description="Detailed description of this implementation"
+    )
     requires_api_key: bool = Field(
         default=False, description="Whether this implementation requires an API key"
     )
     api_key_env: Optional[str] = Field(
-        default=None, description="Environment variable name for API key (e.g., 'SERPER_API_KEY')"
+        default=None,
+        description="Environment variable name for API key (e.g., 'SERPER_API_KEY')",
     )
-    pros: List[str] = Field(default_factory=list, description="Advantages of this implementation")
-    cons: List[str] = Field(default_factory=list, description="Disadvantages or limitations")
+    pros: List[str] = Field(
+        default_factory=list, description="Advantages of this implementation"
+    )
+    cons: List[str] = Field(
+        default_factory=list, description="Disadvantages or limitations"
+    )
 
 
 class ConceptualTool(BaseModel):
@@ -71,11 +82,14 @@ class ConceptualTool(BaseModel):
     type: ToolType = Field(default=ToolType.BUILT_IN, description="Tool type")
 
     description: str = Field(..., description="Description of what this tool does")
-    use_cases: List[str] = Field(default_factory=list, description="Common use cases for this tool")
+    use_cases: List[str] = Field(
+        default_factory=list, description="Common use cases for this tool"
+    )
 
     # Multiple implementations
     implementations: List[ToolImplementation] = Field(
-        default_factory=list, description="Available implementations of this conceptual tool"
+        default_factory=list,
+        description="Available implementations of this conceptual tool",
     )
     default_implementation: Optional[str] = Field(
         default=None,

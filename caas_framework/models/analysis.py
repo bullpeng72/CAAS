@@ -250,8 +250,12 @@ class RequirementAnalysis(BaseModel):
 
         # 2. Clarity Score: 설명이 충분히 상세한지
         clarity = 0.0
-        avg_agent_desc_length = sum(len(a.goal) for a in self.agents) / max(len(self.agents), 1)
-        avg_task_desc_length = sum(len(t.description) for t in self.tasks) / max(len(self.tasks), 1)
+        avg_agent_desc_length = sum(len(a.goal) for a in self.agents) / max(
+            len(self.agents), 1
+        )
+        avg_task_desc_length = sum(len(t.description) for t in self.tasks) / max(
+            len(self.tasks), 1
+        )
 
         clarity += min(1.0, len(self.summary) / 100) * 0.3
         clarity += min(1.0, avg_agent_desc_length / 50) * 0.35
@@ -303,7 +307,9 @@ class RequirementAnalysis(BaseModel):
 
         if consistency < 0.8:
             quality_issues.append("Agent와 Task 할당이 일관되지 않습니다.")
-            improvement_suggestions.append("모든 Task가 정의된 Agent에 할당되었는지 확인하세요.")
+            improvement_suggestions.append(
+                "모든 Task가 정의된 Agent에 할당되었는지 확인하세요."
+            )
 
         if feasibility < 0.7:
             quality_issues.append("프로젝트 범위가 비현실적입니다.")

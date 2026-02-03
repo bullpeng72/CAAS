@@ -54,7 +54,10 @@ class GitIntegration:
     """
 
     def __init__(
-        self, repo_path: str = ".", auto_commit: bool = False, commit_prefix: str = "[CAAS]"
+        self,
+        repo_path: str = ".",
+        auto_commit: bool = False,
+        commit_prefix: str = "[CAAS]",
     ):
         """
         Initialize Git integration.
@@ -197,7 +200,11 @@ class GitIntegration:
                 text=True,
                 timeout=self._get_timeout("git", 5),
             )
-            branch = branch_result.stdout.strip() if branch_result.returncode == 0 else "unknown"
+            branch = (
+                branch_result.stdout.strip()
+                if branch_result.returncode == 0
+                else "unknown"
+            )
 
             # Get status
             status_result = subprocess.run(
@@ -363,7 +370,9 @@ class GitIntegration:
             # Failed to commit file
             return None
 
-    def commit_all(self, message: str, include_untracked: bool = False) -> Optional[str]:
+    def commit_all(
+        self, message: str, include_untracked: bool = False
+    ) -> Optional[str]:
         """
         Commit all changes.
 
@@ -379,7 +388,9 @@ class GitIntegration:
 
         try:
             # Add all files
-            add_cmd = ["git", "add", "-A"] if include_untracked else ["git", "add", "-u"]
+            add_cmd = (
+                ["git", "add", "-A"] if include_untracked else ["git", "add", "-u"]
+            )
             subprocess.run(
                 add_cmd,
                 cwd=self.repo_path,
@@ -428,7 +439,9 @@ class GitIntegration:
 
     # ========== Branch Operations ==========
 
-    def create_branch(self, branch_name: str, from_commit: Optional[str] = None) -> bool:
+    def create_branch(
+        self, branch_name: str, from_commit: Optional[str] = None
+    ) -> bool:
         """
         Create a new branch.
 
@@ -662,7 +675,9 @@ class GitIntegration:
             if result.returncode != 0:
                 return []
 
-            return [tag.strip() for tag in result.stdout.strip().split("\n") if tag.strip()]
+            return [
+                tag.strip() for tag in result.stdout.strip().split("\n") if tag.strip()
+            ]
 
         except (subprocess.TimeoutExpired, OSError):
             # Failed to list tags
@@ -716,7 +731,10 @@ class GitIntegration:
                 cmd.append("--tags")
 
             result = subprocess.run(
-                cmd, cwd=self.repo_path, capture_output=True, timeout=self._get_timeout("push", 30)
+                cmd,
+                cwd=self.repo_path,
+                capture_output=True,
+                timeout=self._get_timeout("push", 30),
             )
 
             return result.returncode == 0
@@ -746,7 +764,10 @@ class GitIntegration:
                 cmd.append(branch)
 
             result = subprocess.run(
-                cmd, cwd=self.repo_path, capture_output=True, timeout=self._get_timeout("push", 30)
+                cmd,
+                cwd=self.repo_path,
+                capture_output=True,
+                timeout=self._get_timeout("push", 30),
             )
 
             return result.returncode == 0

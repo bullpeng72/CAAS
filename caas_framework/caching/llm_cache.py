@@ -104,7 +104,9 @@ class LLMCacheWrapper(LLMPlugin):
         messages_dict = [
             {
                 "role": msg.role if hasattr(msg, "role") else msg.get("role"),
-                "content": msg.content if hasattr(msg, "content") else msg.get("content"),
+                "content": msg.content
+                if hasattr(msg, "content")
+                else msg.get("content"),
             }
             for msg in messages
         ]
@@ -167,7 +169,8 @@ class LLMCacheWrapper(LLMPlugin):
 
             if cached_response is not None:
                 self.logger.debug(
-                    f"💾 Cache HIT for {self.model} " f"(phase: {phase.value if phase else 'none'})"
+                    f"💾 Cache HIT for {self.model} "
+                    f"(phase: {phase.value if phase else 'none'})"
                 )
                 return cached_response
 
@@ -194,7 +197,9 @@ class LLMCacheWrapper(LLMPlugin):
                 metadata={
                     "model": self.model,
                     "phase": phase.value if phase else None,
-                    "tokens_used": response.usage.get("total_tokens", 0) if response.usage else 0,
+                    "tokens_used": response.usage.get("total_tokens", 0)
+                    if response.usage
+                    else 0,
                 },
             )
 

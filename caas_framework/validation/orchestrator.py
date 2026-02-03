@@ -145,9 +145,13 @@ class ValidationOrchestrator:
         # 2. Requirement-Task Alignment Validation
         if validate_requirement_alignment and self.golden_data:
             # Convert golden data to dict if needed
-            golden_dict = ObjectAccessor.to_dict(self.golden_data) if self.golden_data else {}
-            alignment_issues = self.ontology_validator.validate_requirement_task_alignment(
-                golden_dict, tasks_dict
+            golden_dict = (
+                ObjectAccessor.to_dict(self.golden_data) if self.golden_data else {}
+            )
+            alignment_issues = (
+                self.ontology_validator.validate_requirement_task_alignment(
+                    golden_dict, tasks_dict
+                )
             )
 
             # Add alignment issues to ontology result
@@ -172,14 +176,23 @@ class ValidationOrchestrator:
                 from caas_framework.models.validation import ValidationResult
 
                 result.ontology_result = ValidationResult(
-                    is_valid=len([i for i in alignment_issues if i.severity == "error"]) == 0,
+                    is_valid=len([i for i in alignment_issues if i.severity == "error"])
+                    == 0,
                     issues=alignment_issues,
                     summary={
                         "total": len(alignment_issues),
-                        "errors": len([i for i in alignment_issues if i.severity == "error"]),
-                        "warnings": len([i for i in alignment_issues if i.severity == "warning"]),
-                        "info": len([i for i in alignment_issues if i.severity == "info"]),
-                        "auto_fixable": len([i for i in alignment_issues if i.auto_fix_available]),
+                        "errors": len(
+                            [i for i in alignment_issues if i.severity == "error"]
+                        ),
+                        "warnings": len(
+                            [i for i in alignment_issues if i.severity == "warning"]
+                        ),
+                        "info": len(
+                            [i for i in alignment_issues if i.severity == "info"]
+                        ),
+                        "auto_fixable": len(
+                            [i for i in alignment_issues if i.auto_fix_available]
+                        ),
                     },
                 )
 
@@ -190,11 +203,16 @@ class ValidationOrchestrator:
         # 4. Dependency Validation
         if validate_dependencies:
             dependency_validator = DependencyValidator(tasks_dict)
-            result.dependency_valid, result.dependency_issues = dependency_validator.validate()
+            (
+                result.dependency_valid,
+                result.dependency_issues,
+            ) = dependency_validator.validate()
 
         return result
 
-    def validate_code(self, generated_spec: Dict[str, Any]) -> ComprehensiveValidationResult:
+    def validate_code(
+        self, generated_spec: Dict[str, Any]
+    ) -> ComprehensiveValidationResult:
         """
         Validate generated code against Golden Data.
 
@@ -243,8 +261,12 @@ class ValidationOrchestrator:
             lines.append("## Golden Data Validation")
             lines.append(f"- **Phase**: {result.golden_result.phase_name}")
             lines.append(f"- **Coverage**: {result.golden_result.coverage_score:.1%}")
-            lines.append(f"- **Status**: {result.golden_result.compliance_status.value}")
-            lines.append(f"- **Missing Items**: {len(result.golden_result.missing_items)}")
+            lines.append(
+                f"- **Status**: {result.golden_result.compliance_status.value}"
+            )
+            lines.append(
+                f"- **Missing Items**: {len(result.golden_result.missing_items)}"
+            )
             lines.append(f"- **Extra Items**: {len(result.golden_result.extra_items)}")
             lines.append(f"- **Needs Fixing**: {result.golden_result.needs_fixing}\n")
 
@@ -256,7 +278,9 @@ class ValidationOrchestrator:
 
             if result.dependency_issues:
                 errors = [i for i in result.dependency_issues if i.severity == "error"]
-                warnings = [i for i in result.dependency_issues if i.severity == "warning"]
+                warnings = [
+                    i for i in result.dependency_issues if i.severity == "warning"
+                ]
                 lines.append(f"  - Errors: {len(errors)}")
                 lines.append(f"  - Warnings: {len(warnings)}\n")
 

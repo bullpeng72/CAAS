@@ -21,22 +21,32 @@ from caas_cli.utils import (
 @click.command()
 @click.option(
     "--validator",
-    type=click.Choice(["ontology", "golden", "dependency", "python311", "crewai", "all"]),
+    type=click.Choice(
+        ["ontology", "golden", "dependency", "python311", "crewai", "all"]
+    ),
     default="all",
     help="Validator to run (default: all)",
 )
 @click.option(
-    "--agents", type=click.Path(exists=True), required=True, help="Path to agents.json file"
+    "--agents",
+    type=click.Path(exists=True),
+    required=True,
+    help="Path to agents.json file",
 )
 @click.option(
-    "--tasks", type=click.Path(exists=True), required=True, help="Path to tasks.json file"
+    "--tasks",
+    type=click.Path(exists=True),
+    required=True,
+    help="Path to tasks.json file",
 )
 @click.option(
     "--golden-data",
     type=click.Path(exists=True),
     help="Path to golden_data.json (required for golden validator)",
 )
-@click.option("--output", "-o", type=click.Path(), help="Save validation report to JSON file")
+@click.option(
+    "--output", "-o", type=click.Path(), help="Save validation report to JSON file"
+)
 @click.option("--verbose", "-v", is_flag=True, help="Show detailed validation output")
 @handle_keyboard_interrupt
 def validate(validator, agents, tasks, golden_data, output, verbose):
@@ -105,7 +115,9 @@ def validate(validator, agents, tasks, golden_data, output, verbose):
         if validator == "ontology":
             result = _validate_ontology(agents_list, tasks_list, verbose)
         elif validator == "golden":
-            result = _validate_golden(agents_list, tasks_list, golden_data_dict, verbose)
+            result = _validate_golden(
+                agents_list, tasks_list, golden_data_dict, verbose
+            )
         elif validator == "dependency":
             result = _validate_dependency(agents_list, tasks_list, verbose)
         elif validator == "python311":

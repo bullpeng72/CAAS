@@ -25,7 +25,9 @@ class TaskValidator:
     """
 
     @staticmethod
-    def validate_human_input_usage(tasks: List[Dict[str, Any]]) -> List[TaskValidationIssue]:
+    def validate_human_input_usage(
+        tasks: List[Dict[str, Any]],
+    ) -> List[TaskValidationIssue]:
         """
         Validate human_input usage.
 
@@ -59,7 +61,9 @@ class TaskValidator:
             human_input = task.get("human_input", False)
 
             # Check if task description mentions "input" but uses human_input
-            has_input_keyword = any(keyword in description for keyword in input_keywords)
+            has_input_keyword = any(
+                keyword in description for keyword in input_keywords
+            )
 
             if has_input_keyword and human_input:
                 issues.append(
@@ -125,7 +129,9 @@ class TaskValidator:
             ]
             needs_search = any(keyword in description for keyword in search_keywords)
 
-            if needs_search and not any("search" in str(tool).lower() for tool in tools):
+            if needs_search and not any(
+                "search" in str(tool).lower() for tool in tools
+            ):
                 issues.append(
                     TaskValidationIssue(
                         task_id=task_id,
@@ -137,7 +143,16 @@ class TaskValidator:
                 )
 
             # Check for file tasks without file tools
-            file_keywords = ["파일", "file", "저장", "save", "쓰", "write", "기록", "record"]
+            file_keywords = [
+                "파일",
+                "file",
+                "저장",
+                "save",
+                "쓰",
+                "write",
+                "기록",
+                "record",
+            ]
             needs_file = any(keyword in description for keyword in file_keywords)
 
             if needs_file and not any("file" in str(tool).lower() for tool in tools):
@@ -154,7 +169,9 @@ class TaskValidator:
         return issues
 
     @staticmethod
-    def suggest_task_decomposition(task: Dict[str, Any]) -> Optional[List[Dict[str, Any]]]:
+    def suggest_task_decomposition(
+        task: Dict[str, Any],
+    ) -> Optional[List[Dict[str, Any]]]:
         """
         Suggest task decomposition if task is too complex.
 
@@ -167,9 +184,20 @@ class TaskValidator:
         description = task.get("description", "")
 
         # Check for multiple verbs (multiple actions)
-        action_keywords = ["그리고", "and", "한 후", "after", "다음", "then", "또한", "also"]
+        action_keywords = [
+            "그리고",
+            "and",
+            "한 후",
+            "after",
+            "다음",
+            "then",
+            "또한",
+            "also",
+        ]
 
-        has_multiple_actions = any(keyword in description for keyword in action_keywords)
+        has_multiple_actions = any(
+            keyword in description for keyword in action_keywords
+        )
 
         if has_multiple_actions:
             # Suggest decomposition

@@ -31,7 +31,7 @@ class TestConcept:
             properties=["id", "email", "username"],
             relationships={"has_many": ["Post"]},
             typical_operations=["create", "read", "update", "delete"],
-            description="User entity"
+            description="User entity",
         )
 
         assert concept.name == "User"
@@ -42,8 +42,7 @@ class TestConcept:
     def test_concept_has_relationship(self):
         """Test checking relationship."""
         concept = Concept(
-            name="Post",
-            relationships={"belongs_to": ["User"], "has_many": ["Comment"]}
+            name="Post", relationships={"belongs_to": ["User"], "has_many": ["Comment"]}
         )
 
         assert concept.has_relationship("belongs_to", "User")
@@ -53,7 +52,7 @@ class TestConcept:
         """Test getting related concepts."""
         concept = Concept(
             name="Post",
-            relationships={"belongs_to": ["User"], "has_many": ["Comment", "Like"]}
+            relationships={"belongs_to": ["User"], "has_many": ["Comment", "Like"]},
         )
 
         # All relationships
@@ -75,7 +74,7 @@ class TestDesignPattern:
             applies_to=["Post", "Comment"],
             required_components=["database", "api"],
             description="CRUD operations",
-            benefits=["Standard interface"]
+            benefits=["Standard interface"],
         )
 
         assert pattern.name == "CRUD"
@@ -84,10 +83,7 @@ class TestDesignPattern:
 
     def test_pattern_is_applicable_to(self):
         """Test checking pattern applicability."""
-        pattern = DesignPattern(
-            name="CRUD",
-            applies_to=["Post", "Comment"]
-        )
+        pattern = DesignPattern(name="CRUD", applies_to=["Post", "Comment"])
 
         assert pattern.is_applicable_to(["Post"])
         assert pattern.is_applicable_to(["Comment"])
@@ -106,7 +102,7 @@ class TestDomainOntology:
         ontology = DomainOntology(
             domain_name="test",
             concepts={"User": user, "Post": post},
-            description="Test ontology"
+            description="Test ontology",
         )
 
         assert ontology.domain_name == "test"
@@ -116,10 +112,7 @@ class TestDomainOntology:
         """Test getting concept from ontology."""
         user = Concept(name="User")
 
-        ontology = DomainOntology(
-            domain_name="test",
-            concepts={"User": user}
-        )
+        ontology = DomainOntology(domain_name="test", concepts={"User": user})
 
         assert ontology.get_concept("User") == user
         assert ontology.get_concept("Nonexistent") is None
@@ -127,8 +120,7 @@ class TestDomainOntology:
     def test_has_concept(self):
         """Test checking if concept exists."""
         ontology = DomainOntology(
-            domain_name="test",
-            concepts={"User": Concept(name="User")}
+            domain_name="test", concepts={"User": Concept(name="User")}
         )
 
         assert ontology.has_concept("User")
@@ -138,10 +130,7 @@ class TestDomainOntology:
         """Test getting all concept names."""
         ontology = DomainOntology(
             domain_name="test",
-            concepts={
-                "User": Concept(name="User"),
-                "Post": Concept(name="Post")
-            }
+            concepts={"User": Concept(name="User"), "Post": Concept(name="Post")},
         )
 
         names = ontology.get_all_concept_names()
@@ -152,10 +141,7 @@ class TestDomainOntology:
         pattern1 = DesignPattern(name="P1", applies_to=["Post"])
         pattern2 = DesignPattern(name="P2", applies_to=["User"])
 
-        ontology = DomainOntology(
-            domain_name="test",
-            patterns=[pattern1, pattern2]
-        )
+        ontology = DomainOntology(domain_name="test", patterns=[pattern1, pattern2])
 
         patterns = ontology.get_patterns_for_concepts(["Post"])
         assert len(patterns) == 1
@@ -168,22 +154,17 @@ class TestOntologyReasoner:
     @pytest.fixture
     def simple_ontology(self):
         """Create simple ontology for testing."""
-        user = Concept(
-            name="User",
-            relationships={"creates": ["Post"]}
-        )
+        user = Concept(name="User", relationships={"creates": ["Post"]})
         post = Concept(
-            name="Post",
-            relationships={"belongs_to": ["User"], "has_many": ["Comment"]}
+            name="Post", relationships={"belongs_to": ["User"], "has_many": ["Comment"]}
         )
         comment = Concept(
-            name="Comment",
-            relationships={"belongs_to": ["User", "Post"]}
+            name="Comment", relationships={"belongs_to": ["User", "Post"]}
         )
 
         return DomainOntology(
             domain_name="test",
-            concepts={"User": user, "Post": post, "Comment": comment}
+            concepts={"User": user, "Post": post, "Comment": comment},
         )
 
     def test_reasoner_creation(self, simple_ontology):
@@ -224,7 +205,12 @@ class TestOntologyReasoner:
     def test_suggest_operations(self, simple_ontology):
         """Test suggesting operations."""
         # Add operations to User
-        simple_ontology.concepts["User"].typical_operations = ["create", "read", "update", "delete"]
+        simple_ontology.concepts["User"].typical_operations = [
+            "create",
+            "read",
+            "update",
+            "delete",
+        ]
 
         reasoner = OntologyReasoner(simple_ontology)
         operations = reasoner.suggest_operations("User")
@@ -272,9 +258,9 @@ class TestOntologyReasoner:
 
         analysis = reasoner.analyze_completeness(["Post"])
 
-        assert "User" in analysis['missing_concepts']
-        assert analysis['coverage'] < 1.0
-        assert not analysis['is_complete']
+        assert "User" in analysis["missing_concepts"]
+        assert analysis["coverage"] < 1.0
+        assert not analysis["is_complete"]
 
     def test_suggest_enhancements(self, simple_ontology):
         """Test suggesting enhancements."""
@@ -283,8 +269,8 @@ class TestOntologyReasoner:
         reasoner = OntologyReasoner(simple_ontology)
         suggestions = reasoner.suggest_enhancements(["Post"])
 
-        assert "User" in suggestions['missing_concepts']
-        assert "Post" in suggestions['recommended_operations']
+        assert "User" in suggestions["missing_concepts"]
+        assert "Post" in suggestions["recommended_operations"]
 
 
 class TestOntologyRegistry:
@@ -500,12 +486,12 @@ class TestIntegration:
 
         # Analyze completeness
         analysis = reasoner.analyze_completeness(mentioned)
-        assert len(analysis['missing_concepts']) > 0
-        assert 'Customer' in analysis['all_required_concepts']
+        assert len(analysis["missing_concepts"]) > 0
+        assert "Customer" in analysis["all_required_concepts"]
 
         # Get suggestions
         suggestions = reasoner.suggest_enhancements(mentioned)
-        assert len(suggestions['missing_concepts']) > 0
+        assert len(suggestions["missing_concepts"]) > 0
 
     def test_cross_domain_comparison(self):
         """Test that different domains have different concepts."""

@@ -60,8 +60,10 @@ def test_plan_mode_api_with_auto_approve():
 
 def test_user_aborted_error_definition():
     """Test UserAbortedError can be defined and raised"""
+
     class UserAbortedError(Exception):
         """User aborted the process"""
+
         pass
 
     # Should be able to create and raise
@@ -86,23 +88,21 @@ def test_bmad_engine_signature():
 
         if plan_mode:
             from caas_framework.execution.plan_mode_api import PlanModeAPI
+
             plan_mode_api = PlanModeAPI(review_handler=review_handler)
 
-        return {
-            'plan_mode_enabled': plan_mode_enabled,
-            'plan_mode_api': plan_mode_api
-        }
+        return {"plan_mode_enabled": plan_mode_enabled, "plan_mode_api": plan_mode_api}
 
     # Test without plan mode
     result = mock_bmad_init(plan_mode=False)
-    assert result['plan_mode_enabled'] is False
-    assert result['plan_mode_api'] is None
+    assert result["plan_mode_enabled"] is False
+    assert result["plan_mode_api"] is None
 
     # Test with plan mode and handler
     handler = AutoApproveHandler()
     result = mock_bmad_init(plan_mode=True, review_handler=handler)
-    assert result['plan_mode_enabled'] is True
-    assert result['plan_mode_api'] is not None
+    assert result["plan_mode_enabled"] is True
+    assert result["plan_mode_api"] is not None
 
 
 def test_gate_integration_pattern():
@@ -179,6 +179,6 @@ if __name__ == "__main__":
     test_gate_integration_pattern()
     test_rejection_flow()
 
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("✅ All simple Plan Mode Integration tests passed!")
-    print("="*70)
+    print("=" * 70)

@@ -26,13 +26,15 @@ class MockLLMProvider:
         """Mock structured generation."""
         # Return a report with one contradiction
         return ContradictionReport(
-            contradictions=[{
-                "concept_a": "test_a",
-                "concept_b": "test_b",
-                "reason": "Test contradiction from LLM",
-                "severity": "warning"
-            }],
-            has_contradictions=True
+            contradictions=[
+                {
+                    "concept_a": "test_a",
+                    "concept_b": "test_b",
+                    "reason": "Test contradiction from LLM",
+                    "severity": "warning",
+                }
+            ],
+            has_contradictions=True,
         )
 
 
@@ -45,7 +47,7 @@ def sample_requirement():
             purpose="Create a blogging platform",
             target_users=["Bloggers", "Readers"],
             system_type="web_application",
-            scope_description="A simple blog system"
+            scope_description="A simple blog system",
         ),
         features=[
             FeatureSpec(
@@ -53,12 +55,12 @@ def sample_requirement():
                 name="Create Posts",
                 description="Users can create blog posts",
                 priority="high",
-                acceptance_criteria=["User can write post", "Post is saved"]
+                acceptance_criteria=["User can write post", "Post is saved"],
             )
         ],
         constraints=[],
         success_criteria=[],
-        domain="blog"
+        domain="blog",
     )
 
 
@@ -71,7 +73,7 @@ def contradictory_requirement():
             purpose="Real-time chat application using REST only",
             target_users=["Users"],
             system_type="web_application",
-            scope_description="A chat app with real-time features and RESTful API only"
+            scope_description="A chat app with real-time features and RESTful API only",
         ),
         features=[
             FeatureSpec(
@@ -79,19 +81,19 @@ def contradictory_requirement():
                 name="Real-time Messaging",
                 description="Users can send real-time messages using WebSocket",
                 priority="high",
-                acceptance_criteria=["Messages appear instantly"]
+                acceptance_criteria=["Messages appear instantly"],
             ),
             FeatureSpec(
                 id="feature_2",
                 name="RESTful API",
                 description="System uses REST only for all communications",
                 priority="high",
-                acceptance_criteria=["No WebSocket allowed"]
-            )
+                acceptance_criteria=["No WebSocket allowed"],
+            ),
         ],
         constraints=["REST API only"],
         success_criteria=[],
-        domain="chat"
+        domain="chat",
     )
 
 
@@ -104,7 +106,7 @@ class TestContradiction:
             concept_a="realtime",
             concept_b="rest_only",
             reason="Test reason",
-            severity="error"
+            severity="error",
         )
 
         assert c.concept_a == "realtime"
@@ -114,11 +116,7 @@ class TestContradiction:
 
     def test_contradiction_default_severity(self):
         """Test default severity"""
-        c = Contradiction(
-            concept_a="test_a",
-            concept_b="test_b",
-            reason="Test"
-        )
+        c = Contradiction(concept_a="test_a", concept_b="test_b", reason="Test")
 
         assert c.severity == "warning"
 
@@ -142,8 +140,8 @@ class TestSemanticConsistencyChecker:
         """Test that contradiction rules are defined"""
         checker = SemanticConsistencyChecker()
         assert len(checker.CONTRADICTION_RULES) > 0
-        assert all('concept_a' in rule for rule in checker.CONTRADICTION_RULES)
-        assert all('concept_b' in rule for rule in checker.CONTRADICTION_RULES)
+        assert all("concept_a" in rule for rule in checker.CONTRADICTION_RULES)
+        assert all("concept_b" in rule for rule in checker.CONTRADICTION_RULES)
 
     def test_extract_requirements(self, sample_requirement):
         """Test extracting requirements as text"""
@@ -183,31 +181,27 @@ class TestSemanticConsistencyChecker:
                 purpose="Serverless application with stateful sessions",
                 target_users=["Users"],
                 system_type="serverless",
-                scope_description="A serverless app"
+                scope_description="A serverless app",
             ),
             features=[
                 FeatureSpec(
-
                     id="feat_1",
-
                     name="Lambda Functions",
                     description="Use AWS Lambda serverless functions",
                     priority="high",
-                    acceptance_criteria=[]
+                    acceptance_criteria=[],
                 ),
                 FeatureSpec(
-
                     id="feat_2",
-
                     name="Session Management",
                     description="Maintain stateful user sessions",
                     priority="high",
-                    acceptance_criteria=[]
-                )
+                    acceptance_criteria=[],
+                ),
             ],
             constraints=[],
             success_criteria=[],
-            domain="web"
+            domain="web",
         )
 
         checker = SemanticConsistencyChecker()
@@ -229,31 +223,27 @@ class TestSemanticConsistencyChecker:
                 purpose="Application with MongoDB and complex joins",
                 target_users=["Users"],
                 system_type="web_application",
-                scope_description="App using NoSQL"
+                scope_description="App using NoSQL",
             ),
             features=[
                 FeatureSpec(
-
                     id="feat_3",
-
                     name="MongoDB Database",
                     description="Use MongoDB NoSQL database",
                     priority="high",
-                    acceptance_criteria=[]
+                    acceptance_criteria=[],
                 ),
                 FeatureSpec(
-
                     id="feat_4",
-
                     name="Complex Queries",
                     description="Perform complex multi-table joins",
                     priority="high",
-                    acceptance_criteria=[]
-                )
+                    acceptance_criteria=[],
+                ),
             ],
             constraints=[],
             success_criteria=[],
-            domain="database"
+            domain="database",
         )
 
         checker = SemanticConsistencyChecker()
@@ -267,7 +257,7 @@ class TestSemanticConsistencyChecker:
 
         requirements = [
             "Feature: Real-time chat using WebSocket",
-            "Constraint: REST API only, no WebSocket"
+            "Constraint: REST API only, no WebSocket",
         ]
 
         rule = checker.CONTRADICTION_RULES[0]  # realtime + rest_only
@@ -285,14 +275,14 @@ class TestSemanticConsistencyChecker:
                 concept_a="realtime",
                 concept_b="rest_only",
                 reason="Test",
-                severity="error"
+                severity="error",
             ),
             Contradiction(
                 concept_a="nosql",
                 concept_b="complex_joins",
                 reason="Test",
-                severity="warning"
-            )
+                severity="warning",
+            ),
         ]
 
         report = checker.generate_report(contradictions)
@@ -330,7 +320,7 @@ class TestSemanticConsistencyChecker:
                 concept_b="rest_only",
                 reason="Real-time requires WebSocket",
                 severity="error",
-                location="Feature A vs Constraint B"
+                location="Feature A vs Constraint B",
             )
         ]
 
@@ -349,8 +339,7 @@ class TestValidateSemanticConsistency:
     def test_validate_no_contradictions(self, sample_requirement):
         """Test validation with no contradictions"""
         is_valid, contradictions = validate_semantic_consistency(
-            sample_requirement,
-            verbose=False
+            sample_requirement, verbose=False
         )
 
         assert is_valid is True
@@ -359,8 +348,7 @@ class TestValidateSemanticConsistency:
     def test_validate_with_contradictions(self, contradictory_requirement):
         """Test validation with contradictions"""
         is_valid, contradictions = validate_semantic_consistency(
-            contradictory_requirement,
-            verbose=False
+            contradictory_requirement, verbose=False
         )
 
         # Should be invalid due to errors
@@ -376,36 +364,31 @@ class TestValidateSemanticConsistency:
                 purpose="Test app with NoSQL and joins",
                 target_users=["Users"],
                 system_type="web_application",
-                scope_description="Test"
+                scope_description="Test",
             ),
             features=[
                 FeatureSpec(
-
                     id="feat_5",
-
                     name="NoSQL",
                     description="Use MongoDB NoSQL",
                     priority="high",
-                    acceptance_criteria=[]
+                    acceptance_criteria=[],
                 ),
                 FeatureSpec(
-
                     id="feat_6",
-
                     name="Joins",
                     description="Complex multi-table joins",
                     priority="low",
-                    acceptance_criteria=[]
-                )
+                    acceptance_criteria=[],
+                ),
             ],
             constraints=[],
             success_criteria=[],
-            domain="test"
+            domain="test",
         )
 
         is_valid, contradictions = validate_semantic_consistency(
-            requirement,
-            verbose=False
+            requirement, verbose=False
         )
 
         # Should be valid (only warnings, no errors)
@@ -422,21 +405,21 @@ class TestRuleBasedChecking:
         checker = SemanticConsistencyChecker()
 
         for rule in checker.CONTRADICTION_RULES:
-            assert 'concept_a' in rule
-            assert 'concept_b' in rule
-            assert 'reason' in rule
-            assert 'severity' in rule
-            assert 'keywords_a' in rule
-            assert 'keywords_b' in rule
+            assert "concept_a" in rule
+            assert "concept_b" in rule
+            assert "reason" in rule
+            assert "severity" in rule
+            assert "keywords_a" in rule
+            assert "keywords_b" in rule
 
     def test_rule_severities_are_valid(self):
         """Test that rule severities are valid values"""
         checker = SemanticConsistencyChecker()
 
-        valid_severities = ['warning', 'error', 'critical']
+        valid_severities = ["warning", "error", "critical"]
 
         for rule in checker.CONTRADICTION_RULES:
-            assert rule['severity'] in valid_severities
+            assert rule["severity"] in valid_severities
 
     def test_multiple_contradictions_detected(self):
         """Test detecting multiple contradictions in one requirement"""
@@ -446,40 +429,34 @@ class TestRuleBasedChecking:
                 purpose="Serverless real-time app using REST only and NoSQL with joins",
                 target_users=["Users"],
                 system_type="serverless",
-                scope_description="Complex app"
+                scope_description="Complex app",
             ),
             features=[
                 FeatureSpec(
-
                     id="feat_7",
-
                     name="Real-time",
                     description="Real-time WebSocket features",
                     priority="high",
-                    acceptance_criteria=[]
+                    acceptance_criteria=[],
                 ),
                 FeatureSpec(
-
                     id="feat_8",
-
                     name="Lambda",
                     description="AWS Lambda serverless with stateful sessions",
                     priority="high",
-                    acceptance_criteria=[]
+                    acceptance_criteria=[],
                 ),
                 FeatureSpec(
-
                     id="feat_9",
-
                     name="Database",
                     description="MongoDB with complex SQL joins",
                     priority="high",
-                    acceptance_criteria=[]
-                )
+                    acceptance_criteria=[],
+                ),
             ],
             constraints=["REST API only", "No WebSocket"],
             success_criteria=[],
-            domain="complex"
+            domain="complex",
         )
 
         checker = SemanticConsistencyChecker()
@@ -501,22 +478,20 @@ class TestIntegration:
                 purpose="Real-time chat using REST only",
                 target_users=["Users"],
                 system_type="web_application",
-                scope_description="Chat app"
+                scope_description="Chat app",
             ),
             features=[
                 FeatureSpec(
-
                     id="feat_10",
-
                     name="Real-time Chat",
                     description="Real-time messaging with WebSocket",
                     priority="high",
-                    acceptance_criteria=["Instant delivery"]
+                    acceptance_criteria=["Instant delivery"],
                 )
             ],
             constraints=["RESTful API only", "No WebSocket allowed"],
             success_criteria=[],
-            domain="chat"
+            domain="chat",
         )
 
         # Check consistency

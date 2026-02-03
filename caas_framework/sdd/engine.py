@@ -41,7 +41,9 @@ class CrewConfigSpec(BaseModel):
     @classmethod
     def validate_process(cls, v: str) -> str:
         if v not in ["sequential", "hierarchical"]:
-            raise ValueError(f"process는 sequential 또는 hierarchical이어야 합니다: {v}")
+            raise ValueError(
+                f"process는 sequential 또는 hierarchical이어야 합니다: {v}"
+            )
         return v
 
 
@@ -170,7 +172,9 @@ class SpecValidator:
                         )
                     else:
                         # 등록되지 않은 도구 - 유사 도구 제안
-                        similar = get_close_matches(tool, enabled_tools, n=3, cutoff=0.6)
+                        similar = get_close_matches(
+                            tool, enabled_tools, n=3, cutoff=0.6
+                        )
 
                         if similar:
                             suggestions.append(
@@ -192,7 +196,9 @@ class SpecValidator:
 
             # Backstory 권장사항
             if len(agent.backstory) < 50:
-                suggestions.append(f"에이전트 '{agent.id}'의 backstory를 더 상세히 작성하세요.")
+                suggestions.append(
+                    f"에이전트 '{agent.id}'의 backstory를 더 상세히 작성하세요."
+                )
 
         # Hierarchical 모드 검증
         if spec.crew.process == "hierarchical":

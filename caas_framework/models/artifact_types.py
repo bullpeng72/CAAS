@@ -58,7 +58,9 @@ class ArtifactMetadata(BaseModel):
     """산출물 메타데이터"""
 
     artifact_type: ArtifactType = Field(..., description="산출물 타입")
-    format: ArtifactFormat = Field(default=ArtifactFormat.MARKDOWN, description="산출물 포맷")
+    format: ArtifactFormat = Field(
+        default=ArtifactFormat.MARKDOWN, description="산출물 포맷"
+    )
     title: str = Field(..., description="산출물 제목")
     version: str = Field(default="1.0.0", description="버전")
     created_at: datetime = Field(default_factory=datetime.now, description="생성 시각")
@@ -74,7 +76,9 @@ class Artifact(BaseModel):
     metadata: ArtifactMetadata = Field(..., description="메타데이터")
     content: str = Field(..., description="산출물 내용")
     file_path: Optional[str] = Field(default=None, description="저장된 파일 경로")
-    related_artifacts: List[str] = Field(default_factory=list, description="관련 산출물 ID")
+    related_artifacts: List[str] = Field(
+        default_factory=list, description="관련 산출물 ID"
+    )
 
     class Config:
         json_encoders = {datetime: lambda v: v.isoformat()}
@@ -86,19 +90,35 @@ class ArtifactGenerationConfig(BaseModel):
     enabled: bool = Field(default=False, description="산출물 생성 활성화")
 
     # 생성할 산출물 타입 선택
-    generate_project_proposal: bool = Field(default=True, description="프로젝트 기획서 생성")
-    generate_requirements_spec: bool = Field(default=True, description="요구사항 명세서 생성")
-    generate_architecture_design: bool = Field(default=True, description="아키텍처 설계서 생성")
+    generate_project_proposal: bool = Field(
+        default=True, description="프로젝트 기획서 생성"
+    )
+    generate_requirements_spec: bool = Field(
+        default=True, description="요구사항 명세서 생성"
+    )
+    generate_architecture_design: bool = Field(
+        default=True, description="아키텍처 설계서 생성"
+    )
     generate_data_design: bool = Field(default=True, description="데이터 설계서 생성")
     generate_api_design: bool = Field(default=False, description="API 설계서 생성")
-    generate_agent_design: bool = Field(default=True, description="에이전트 설계서 생성")
+    generate_agent_design: bool = Field(
+        default=True, description="에이전트 설계서 생성"
+    )
     generate_test_plan: bool = Field(default=False, description="테스트 계획서 생성")
-    generate_test_report: bool = Field(default=False, description="테스트 결과 리포트 생성")
-    generate_code_review: bool = Field(default=False, description="코드 리뷰 리포트 생성")
-    generate_deployment_guide: bool = Field(default=False, description="배포 가이드 생성")
+    generate_test_report: bool = Field(
+        default=False, description="테스트 결과 리포트 생성"
+    )
+    generate_code_review: bool = Field(
+        default=False, description="코드 리뷰 리포트 생성"
+    )
+    generate_deployment_guide: bool = Field(
+        default=False, description="배포 가이드 생성"
+    )
 
     # 포맷 설정
-    output_format: ArtifactFormat = Field(default=ArtifactFormat.MARKDOWN, description="출력 포맷")
+    output_format: ArtifactFormat = Field(
+        default=ArtifactFormat.MARKDOWN, description="출력 포맷"
+    )
     output_directory: str = Field(default="./artifacts", description="출력 디렉토리")
 
     # 추가 옵션

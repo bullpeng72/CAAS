@@ -208,12 +208,18 @@ class CacheManager:
             }
         )
 
-        await self.backend.set(key=key_str, value=value, ttl_seconds=ttl, metadata=cache_metadata)
+        await self.backend.set(
+            key=key_str, value=value, ttl_seconds=ttl, metadata=cache_metadata
+        )
 
         self.logger.debug(f"💾 Cached: {cache_key.namespace} (TTL: {ttl}s)")
 
     async def get_or_compute(
-        self, cache_key: CacheKey, compute_fn: Callable, ttl: Optional[int] = None, **compute_kwargs
+        self,
+        cache_key: CacheKey,
+        compute_fn: Callable,
+        ttl: Optional[int] = None,
+        **compute_kwargs,
     ) -> Any:
         """
         Get from cache or compute and cache.
@@ -294,7 +300,10 @@ class CacheManager:
         """
         backend_metrics = self.backend.get_metrics()
 
-        return {"manager_metrics": self.metrics.to_dict(), "backend_metrics": backend_metrics}
+        return {
+            "manager_metrics": self.metrics.to_dict(),
+            "backend_metrics": backend_metrics,
+        }
 
     def get_hit_rate(self, namespace: Optional[str] = None) -> float:
         """

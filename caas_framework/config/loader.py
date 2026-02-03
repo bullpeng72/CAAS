@@ -162,23 +162,31 @@ class ConfigLoader:
         """
         # Build LLM config
         llm_config = LLMConfig(
-            provider=self._get_with_priority("LLM_PROVIDER", ["llm", "provider"], "openai"),
+            provider=self._get_with_priority(
+                "LLM_PROVIDER", ["llm", "provider"], "openai"
+            ),
             model=self._get_with_priority("LLM_MODEL", ["llm", "model"], "gpt-4o-mini"),
             temperature=self._get_with_priority(
                 "LLM_TEMPERATURE", ["llm", "temperature"], 0.3, float
             ),
-            max_tokens=self._get_with_priority("LLM_MAX_TOKENS", ["llm", "max_tokens"], 4096, int),
+            max_tokens=self._get_with_priority(
+                "LLM_MAX_TOKENS", ["llm", "max_tokens"], 4096, int
+            ),
             api_key=os.getenv("OPENAI_API_KEY") or os.getenv("ANTHROPIC_API_KEY"),
             api_base=os.getenv("LLM_API_BASE"),
         )
 
         # Build Graph config
         graph_config = GraphConfig(
-            backend=self._get_with_priority("GRAPH_BACKEND", ["graph", "backend"], "embedded"),
+            backend=self._get_with_priority(
+                "GRAPH_BACKEND", ["graph", "backend"], "embedded"
+            ),
             uri=os.getenv("NEO4J_URI"),
             username=os.getenv("NEO4J_USERNAME"),
             password=os.getenv("NEO4J_PASSWORD"),
-            database=self._get_with_priority("NEO4J_DATABASE", ["graph", "database"], "neo4j"),
+            database=self._get_with_priority(
+                "NEO4J_DATABASE", ["graph", "database"], "neo4j"
+            ),
         )
 
         # Build VectorDB config (optional)
@@ -188,34 +196,45 @@ class ConfigLoader:
             vectordb_config = VectorDBConfig(
                 backend=os.getenv("VECTORDB_BACKEND") or vectordb_data.get("backend"),
                 api_key=os.getenv("PINECONE_API_KEY") or os.getenv("QDRANT_API_KEY"),
-                environment=os.getenv("PINECONE_ENVIRONMENT") or vectordb_data.get("environment"),
+                environment=os.getenv("PINECONE_ENVIRONMENT")
+                or vectordb_data.get("environment"),
                 index_name=os.getenv("VECTORDB_INDEX_NAME", "caas-vectors"),
             )
 
         # Build Validation config
         validation_data = self._config_data.get("validation", {})
         validation_config = (
-            ValidationConfig(**validation_data) if validation_data else ValidationConfig()
+            ValidationConfig(**validation_data)
+            if validation_data
+            else ValidationConfig()
         )
 
         # Build CodeGeneration config
         codegen_data = self._config_data.get("codegen", {})
         codegen_config = (
-            CodeGenerationConfig(**codegen_data) if codegen_data else CodeGenerationConfig()
+            CodeGenerationConfig(**codegen_data)
+            if codegen_data
+            else CodeGenerationConfig()
         )
 
         # Build Workflow config
         workflow_data = self._config_data.get("workflow", {})
-        workflow_config = WorkflowConfig(**workflow_data) if workflow_data else WorkflowConfig()
+        workflow_config = (
+            WorkflowConfig(**workflow_data) if workflow_data else WorkflowConfig()
+        )
 
         # Build Logging config
         logging_data = self._config_data.get("logging", {})
-        logging_config = LoggingConfig(**logging_data) if logging_data else LoggingConfig()
+        logging_config = (
+            LoggingConfig(**logging_data) if logging_data else LoggingConfig()
+        )
 
         # Build Artifact config
         from caas_framework.config.settings import ArtifactConfig
 
-        artifact_enabled = os.getenv("ARTIFACT_GENERATION_ENABLED", "false").lower() == "true"
+        artifact_enabled = (
+            os.getenv("ARTIFACT_GENERATION_ENABLED", "false").lower() == "true"
+        )
         artifact_config = ArtifactConfig(
             enabled=artifact_enabled,
             output_format=os.getenv("ARTIFACT_OUTPUT_FORMAT", "markdown"),

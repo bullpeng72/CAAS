@@ -52,7 +52,8 @@ class AnalysisResult(BaseModel):
     raw_requirement: str
     domain_context: DomainContext
     domain_classification: Optional[Any] = Field(
-        default=None, description="도메인 타입 분류 결과 (DomainType, ExecutionPattern 포함)"
+        default=None,
+        description="도메인 타입 분류 결과 (DomainType, ExecutionPattern 포함)",
     )
     features: List[ExtractedFeature]
     constraints: List[str] = Field(default_factory=list)
@@ -222,7 +223,9 @@ class CodeAnalyzer:
     def _extract_functions(self, tree: ast.AST, analysis: FileAnalysis) -> None:
         """Extract top-level functions"""
         for node in ast.walk(tree):
-            if isinstance(node, ast.FunctionDef) or isinstance(node, ast.AsyncFunctionDef):
+            if isinstance(node, ast.FunctionDef) or isinstance(
+                node, ast.AsyncFunctionDef
+            ):
                 # Skip methods (they're handled in classes)
                 if self._is_method(node, tree):
                     continue
@@ -262,12 +265,16 @@ class CodeAnalyzer:
         for decorator in node.decorator_list:
             if isinstance(decorator, ast.Name):
                 func_info.decorators.append(decorator.id)
-            elif isinstance(decorator, ast.Call) and isinstance(decorator.func, ast.Name):
+            elif isinstance(decorator, ast.Call) and isinstance(
+                decorator.func, ast.Name
+            ):
                 func_info.decorators.append(decorator.func.id)
 
         # Extract return type annotation
         if node.returns:
-            func_info.return_type = ast.unparse(node.returns) if hasattr(ast, "unparse") else None
+            func_info.return_type = (
+                ast.unparse(node.returns) if hasattr(ast, "unparse") else None
+            )
 
         # Extract function calls
         for child in ast.walk(node):
@@ -359,7 +366,9 @@ class CodeAnalyzer:
         """
         total_functions = sum(len(a.functions) for a in analyses.values())
         total_classes = sum(len(a.classes) for a in analyses.values())
-        total_methods = sum(len(c.methods) for a in analyses.values() for c in a.classes)
+        total_methods = sum(
+            len(c.methods) for a in analyses.values() for c in a.classes
+        )
         total_lines = sum(a.line_count for a in analyses.values())
 
         crewai_files = sum(1 for a in analyses.values() if a.is_crewai_code)
@@ -470,7 +479,9 @@ class CodeAnalyzer:
         for keyword in node.keywords:
             if keyword.arg == "description" and isinstance(keyword.value, ast.Constant):
                 task_def.description = keyword.value.value
-            elif keyword.arg == "expected_output" and isinstance(keyword.value, ast.Constant):
+            elif keyword.arg == "expected_output" and isinstance(
+                keyword.value, ast.Constant
+            ):
                 task_def.expected_output = keyword.value.value
             elif keyword.arg == "agent":
                 # Try to extract agent name

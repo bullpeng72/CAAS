@@ -120,7 +120,9 @@ class DependencyValidator:
 
         # Start tasks (no dependencies)
         start_tasks = [
-            task_id for task_id, task in self.tasks.items() if not _safe_get(task, "context")
+            task_id
+            for task_id, task in self.tasks.items()
+            if not _safe_get(task, "context")
         ]
 
         # Find all reachable tasks from start tasks (BFS)
@@ -135,7 +137,10 @@ class DependencyValidator:
 
             # Find tasks that depend on current task
             for task_id, task in self.tasks.items():
-                if current in _safe_get(task, "context", []) and task_id not in reachable:
+                if (
+                    current in _safe_get(task, "context", [])
+                    and task_id not in reachable
+                ):
                     queue.append(task_id)
 
         # Unreachable tasks = orphan tasks
@@ -168,7 +173,9 @@ class DependencyValidator:
             max_dep_depth = 0
             for dep_id in dependencies:
                 if dep_id in self.tasks:
-                    max_dep_depth = max(max_dep_depth, get_depth(dep_id, visited.copy()))
+                    max_dep_depth = max(
+                        max_dep_depth, get_depth(dep_id, visited.copy())
+                    )
 
             return max_dep_depth + 1
 
@@ -206,7 +213,10 @@ class DependencyValidator:
             Execution order list or None (if circular dependencies exist)
         """
         # Check for circular dependencies
-        if any(issue.severity == "error" and "Circular" in issue.message for issue in self.issues):
+        if any(
+            issue.severity == "error" and "Circular" in issue.message
+            for issue in self.issues
+        ):
             return None
 
         # Calculate in-degree

@@ -123,7 +123,11 @@ class PluginRegistry:
 
     def get_plugins_by_type(self, plugin_type: PluginType) -> List[Plugin]:
         """Get all plugins of a specific type"""
-        return [plugin for plugin in self._plugins.values() if plugin.plugin_type == plugin_type]
+        return [
+            plugin
+            for plugin in self._plugins.values()
+            if plugin.plugin_type == plugin_type
+        ]
 
     async def close_all(self) -> None:
         """Close all plugins"""
@@ -137,9 +141,7 @@ class PluginRegistry:
         return list(self._plugin_classes.keys())
 
     def __repr__(self) -> str:
-        return (
-            f"<PluginRegistry(plugins={len(self._plugins)}, classes={len(self._plugin_classes)})>"
-        )
+        return f"<PluginRegistry(plugins={len(self._plugins)}, classes={len(self._plugin_classes)})>"
 
 
 # Global registry

@@ -23,16 +23,16 @@ def test_boundaries_spec_creation():
         always_allowed=[
             "Read files in project directory",
             "Write to project directory",
-            "Install packages from requirements.txt"
+            "Install packages from requirements.txt",
         ],
         ask_first=[
             "Make API calls to external services",
-            "Delete files or directories"
+            "Delete files or directories",
         ],
         never_allowed=[
             "Execute shell commands with sudo",
-            "Modify system files outside project"
-        ]
+            "Modify system files outside project",
+        ],
     )
 
     assert len(boundaries.always_allowed) == 3
@@ -78,17 +78,16 @@ def test_concretized_requirement_with_boundaries():
     """Test that ConcretizedRequirement can include boundaries."""
     concretized = ConcretizedRequirement(
         system_scope=SystemScope(
-            project_name="Test Project",
-            purpose="Test boundaries integration"
+            project_name="Test Project", purpose="Test boundaries integration"
         ),
         boundaries=BoundariesSpec(
             always_allowed=["Read files"],
             ask_first=["API calls"],
-            never_allowed=["sudo commands"]
+            never_allowed=["sudo commands"],
         ),
         commands=CommandsSpec(),
         code_style=CodeStyleSpec(),
-        git_workflow=GitWorkflowSpec()
+        git_workflow=GitWorkflowSpec(),
     )
 
     assert concretized.boundaries is not None
@@ -117,7 +116,7 @@ def test_boundary_validation_logic():
             self.boundaries = BoundariesSpec(
                 always_allowed=["Read files"],
                 ask_first=["Make API calls"],
-                never_allowed=["Execute sudo commands", "Disable security"]
+                never_allowed=["Execute sudo commands", "Disable security"],
             )
 
     # Create code generator
@@ -153,7 +152,9 @@ def dangerous_operation():
 """
     }
 
-    violations = generator._validate_boundaries(dangerous_code, MockGoldenData().boundaries)
+    violations = generator._validate_boundaries(
+        dangerous_code, MockGoldenData().boundaries
+    )
     assert len(violations) > 0, "Dangerous code should be detected"
     assert any("sudo" in v.lower() for v in violations), "Should detect sudo usage"
 

@@ -26,10 +26,16 @@ from caas_cli.utils import (
     help="Component to generate",
 )
 @click.option(
-    "--agents", type=click.Path(exists=True), required=True, help="Path to agents.json file"
+    "--agents",
+    type=click.Path(exists=True),
+    required=True,
+    help="Path to agents.json file",
 )
 @click.option(
-    "--tasks", type=click.Path(exists=True), required=True, help="Path to tasks.json file"
+    "--tasks",
+    type=click.Path(exists=True),
+    required=True,
+    help="Path to tasks.json file",
 )
 @click.option(
     "--golden-data",
@@ -160,13 +166,21 @@ async def codegen(
         files = {}
 
         if component == "tests":
-            files = await _generate_tests(agents_list, tasks_list, golden_data_dict, verbose)
+            files = await _generate_tests(
+                agents_list, tasks_list, golden_data_dict, verbose
+            )
         elif component == "deployment":
-            files = await _generate_deployment(agents_list, tasks_list, deployment_target, verbose)
+            files = await _generate_deployment(
+                agents_list, tasks_list, deployment_target, verbose
+            )
         elif component == "frontend":
-            files = await _generate_frontend(agents_list, tasks_list, frontend_framework, verbose)
+            files = await _generate_frontend(
+                agents_list, tasks_list, frontend_framework, verbose
+            )
         elif component == "docs":
-            files = await _generate_docs(agents_list, tasks_list, golden_data_dict, verbose)
+            files = await _generate_docs(
+                agents_list, tasks_list, golden_data_dict, verbose
+            )
         elif component == "cicd":
             files = await _generate_cicd(cicd_platform, verbose)
         elif component == "all":
@@ -269,7 +283,9 @@ async def _generate_frontend(agents_list, tasks_list, frontend_framework, verbos
     echo_progress(f"Generating {frontend_framework} frontend...")
 
     generator = FrontendGenerator()
-    files = generator.generate(agents=agents_list, tasks=tasks_list, framework=frontend_framework)
+    files = generator.generate(
+        agents=agents_list, tasks=tasks_list, framework=frontend_framework
+    )
 
     if verbose:
         click.echo()
@@ -340,12 +356,16 @@ async def _generate_all(
 
     # Deployment
     echo_info("2/5 Generating deployment configs...")
-    deployment = await _generate_deployment(agents_list, tasks_list, deployment_target, verbose)
+    deployment = await _generate_deployment(
+        agents_list, tasks_list, deployment_target, verbose
+    )
     all_files.update(deployment)
 
     # Frontend
     echo_info("3/5 Generating frontend...")
-    frontend = await _generate_frontend(agents_list, tasks_list, frontend_framework, verbose)
+    frontend = await _generate_frontend(
+        agents_list, tasks_list, frontend_framework, verbose
+    )
     all_files.update(frontend)
 
     # CI/CD

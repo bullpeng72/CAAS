@@ -36,7 +36,9 @@ class GapFillingResult:
     """Result of gap filling process"""
 
     generated_codes: List[GeneratedCode] = field(default_factory=list)
-    updated_files: Dict[str, str] = field(default_factory=list)  # file_path → new content
+    updated_files: Dict[str, str] = field(
+        default_factory=list
+    )  # file_path → new content
     features_filled: List[str] = field(default_factory=list)  # feature IDs
     errors: List[str] = field(default_factory=list)
     success: bool = True
@@ -108,7 +110,9 @@ class GapFiller:
             try:
                 self.logger.info(f"Generating code for: {feature.name} ({feature.id})")
 
-                generated = await self._generate_feature_code(feature, existing_code, code_analyses)
+                generated = await self._generate_feature_code(
+                    feature, existing_code, code_analyses
+                )
 
                 result.generated_codes.append(generated)
                 result.features_filled.append(feature.id)
@@ -119,7 +123,9 @@ class GapFiller:
 
         # Merge generated code into files
         if result.generated_codes:
-            self.logger.info(f"Merging {len(result.generated_codes)} code snippets into files")
+            self.logger.info(
+                f"Merging {len(result.generated_codes)} code snippets into files"
+            )
             result.updated_files = self._merge_code_into_files(
                 existing_code, result.generated_codes
             )
@@ -149,7 +155,9 @@ class GapFiller:
         # Sort by priority
         priority_order = {"critical": 0, "high": 1, "medium": 2, "low": 3}
 
-        sorted_features = sorted(features, key=lambda f: priority_order.get(f.priority.lower(), 3))
+        sorted_features = sorted(
+            features, key=lambda f: priority_order.get(f.priority.lower(), 3)
+        )
 
         return sorted_features[:max_features]
 
@@ -171,17 +179,24 @@ class GapFiller:
             GeneratedCode with implementation
         """
         # Step 1: Find best file to add code
-        target_file, confidence = await self.semantic_mapper.find_best_implementation_location(
+        (
+            target_file,
+            confidence,
+        ) = await self.semantic_mapper.find_best_implementation_location(
             feature, code_analyses
         )
 
-        self.logger.debug(f"Selected {target_file} for {feature.id} (confidence: {confidence:.2f})")
+        self.logger.debug(
+            f"Selected {target_file} for {feature.id} (confidence: {confidence:.2f})"
+        )
 
         # Step 2: Build context from existing code
         context = self._build_code_context(target_file, existing_code, code_analyses)
 
         # Step 3: Generate code using LLM
-        code_snippet, explanation = await self._generate_code_snippet(feature, target_file, context)
+        code_snippet, explanation = await self._generate_code_snippet(
+            feature, target_file, context
+        )
 
         # Step 4: Determine insertion point
         insertion_point = "append"  # Simple strategy: append to end
@@ -337,14 +352,18 @@ Do NOT include the entire file - just the new code snippet."""
 
         return updated_files
 
-    def _append_code_to_file(self, current_content: str, codes: List[GeneratedCode]) -> str:
+    def _append_code_to_file(
+        self, current_content: str, codes: List[GeneratedCode]
+    ) -> str:
         """Append generated code to existing file"""
         lines = [current_content]
 
         lines.append("\n\n# === Auto-generated code for missing features ===\n")
 
         for gen_code in codes:
-            lines.append(f"\n# Feature: {gen_code.feature_name} ({gen_code.feature_id})")
+            lines.append(
+                f"\n# Feature: {gen_code.feature_name} ({gen_code.feature_id})"
+            )
             lines.append(f"# {gen_code.explanation}")
             lines.append(gen_code.code_snippet)
             lines.append("")
@@ -364,7 +383,9 @@ Do NOT include the entire file - just the new code snippet."""
         ]
 
         for gen_code in codes:
-            lines.append(f"\n# Feature: {gen_code.feature_name} ({gen_code.feature_id})")
+            lines.append(
+                f"\n# Feature: {gen_code.feature_name} ({gen_code.feature_id})"
+            )
             lines.append(f"# {gen_code.explanation}")
             lines.append(gen_code.code_snippet)
             lines.append("")

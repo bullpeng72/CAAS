@@ -55,7 +55,9 @@ class PerformanceDashboard:
         # Header
         self.console.print()
         self.console.print("=" * 70, style="cyan")
-        self.console.print(f"  Performance Summary: {metrics.workflow_id}", style="bold cyan")
+        self.console.print(
+            f"  Performance Summary: {metrics.workflow_id}", style="bold cyan"
+        )
         self.console.print("=" * 70, style="cyan")
         self.console.print()
 
@@ -147,7 +149,10 @@ class PerformanceDashboard:
         self.console.print()
 
     def display_comparison(
-        self, current: WorkflowMetrics, baseline: WorkflowMetrics, comparison: Dict[str, Any]
+        self,
+        current: WorkflowMetrics,
+        baseline: WorkflowMetrics,
+        comparison: Dict[str, Any],
     ):
         """
         Display comparison between current and baseline metrics
@@ -210,7 +215,9 @@ class PerformanceDashboard:
         if not metrics.bottleneck_phase:
             return
 
-        bottleneck = next((p for p in metrics.phases if p.phase == metrics.bottleneck_phase), None)
+        bottleneck = next(
+            (p for p in metrics.phases if p.phase == metrics.bottleneck_phase), None
+        )
         if not bottleneck:
             return
 
@@ -291,7 +298,9 @@ class PerformanceDashboard:
 
         # Header
         md_lines.append(f"# Performance Report: {metrics.workflow_id}")
-        md_lines.append(f"\n**Generated:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        md_lines.append(
+            f"\n**Generated:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+        )
         md_lines.append(f"\n**Requirement:** {metrics.requirement}")
         md_lines.append("\n---\n")
 
@@ -307,8 +316,12 @@ class PerformanceDashboard:
 
         # Phase breakdown table
         md_lines.append("## Phase Breakdown\n")
-        md_lines.append("| Phase | Duration | % of Total | LLM Calls | Tokens | Cost | Status |")
-        md_lines.append("|-------|----------|------------|-----------|--------|------|--------|")
+        md_lines.append(
+            "| Phase | Duration | % of Total | LLM Calls | Tokens | Cost | Status |"
+        )
+        md_lines.append(
+            "|-------|----------|------------|-----------|--------|------|--------|"
+        )
 
         for phase in metrics.phases:
             pct = (

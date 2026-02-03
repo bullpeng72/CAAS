@@ -74,12 +74,15 @@ class ErrorHandler:
 
         # 에러 저장
         self.exception = exc_val
-        self.traceback_str = "".join(traceback.format_exception(exc_type, exc_val, exc_tb))
+        self.traceback_str = "".join(
+            traceback.format_exception(exc_type, exc_val, exc_tb)
+        )
 
         # 로깅
         if self.log_error:
             logger.error(
-                f"❌ [{self.operation_name}] 오류: {exc_val}", exc_info=(exc_type, exc_val, exc_tb)
+                f"❌ [{self.operation_name}] 오류: {exc_val}",
+                exc_info=(exc_type, exc_val, exc_tb),
             )
 
         # UI 표시
@@ -124,7 +127,9 @@ class ErrorHandler:
         st.markdown(f"**오류 내용:** {error_info['message']}")
 
         if error_info["line"]:
-            st.markdown(f"**위치:** 라인 {error_info['line']}, 컬럼 {error_info['column']}")
+            st.markdown(
+                f"**위치:** 라인 {error_info['line']}, 컬럼 {error_info['column']}"
+            )
 
         # 해결 제안
         st.markdown("**💡 해결 방법:**")
@@ -186,7 +191,10 @@ class ErrorHandler:
         st.markdown(f"**오류 내용:** {str(error)}")
 
         # 트레이스백 표시 (접을 수 있음)
-        if self.traceback_str and self.severity in [ErrorSeverity.ERROR, ErrorSeverity.CRITICAL]:
+        if self.traceback_str and self.severity in [
+            ErrorSeverity.ERROR,
+            ErrorSeverity.CRITICAL,
+        ]:
             with st.expander("🐛 상세 오류 정보 (개발자용)"):
                 st.code(self.traceback_str, language="python")
 
@@ -239,7 +247,12 @@ def handle_operation(
         ```
     """
     handler = ErrorHandler(
-        operation_name, show_ui_error, log_error, raise_on_error, fallback_value, severity
+        operation_name,
+        show_ui_error,
+        log_error,
+        raise_on_error,
+        fallback_value,
+        severity,
     )
 
     with handler:
@@ -381,7 +394,11 @@ class BatchErrorHandler:
             error: 발생한 예외
         """
         self.errors.append(
-            {"item": item, "error_type": type(error).__name__, "error_message": str(error)}
+            {
+                "item": item,
+                "error_type": type(error).__name__,
+                "error_message": str(error),
+            }
         )
 
         logger.error(f"❌ [{self.operation_name}] {item} 실패: {error}")

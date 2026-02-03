@@ -197,7 +197,9 @@ class ResponseParser:
 
     @staticmethod
     def parse_list_response(
-        response: Any, item_key: Optional[str] = None, fallback: Optional[List[Any]] = None
+        response: Any,
+        item_key: Optional[str] = None,
+        fallback: Optional[List[Any]] = None,
     ) -> List[Any]:
         """
         Parse response expected to be a list.

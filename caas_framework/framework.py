@@ -365,7 +365,10 @@ class CrewAIFramework:
         return await self._generate_golden_data(requirement, domain)
 
     async def analyze_requirement(
-        self, requirement: str, use_golden_data: bool = False, domain: Optional[str] = None
+        self,
+        requirement: str,
+        use_golden_data: bool = False,
+        domain: Optional[str] = None,
     ) -> RequirementAnalysisResult:
         """
         Analyze requirement and generate initial agent/task design
@@ -398,7 +401,9 @@ class CrewAIFramework:
         features = []
         final_domain = domain
         if result.golden_data:
-            golden_features = result.golden_data.features if result.golden_data.features else []
+            golden_features = (
+                result.golden_data.features if result.golden_data.features else []
+            )
             features = [f.name for f in golden_features]
             final_domain = result.golden_data.domain
             summary = result.golden_data.description
@@ -415,7 +420,9 @@ class CrewAIFramework:
             features=features,
             agents=result.agent_specs,
             tasks=result.task_specs,
-            workflow_type=result.golden_data.workflow_type if result.golden_data else "sequential",
+            workflow_type=result.golden_data.workflow_type
+            if result.golden_data
+            else "sequential",
             suggested_tools=[],
             complexity="medium",
             golden_data_available=result.golden_data is not None,
@@ -492,11 +499,14 @@ class CrewAIFramework:
                     golden_req = golden_data
 
             self._validator = ValidationOrchestrator(
-                golden_data=golden_req, enabled_tools=list(self.registry.list_available_plugins())
+                golden_data=golden_req,
+                enabled_tools=list(self.registry.list_available_plugins()),
             )
 
         # Convert to AgentSpecModel/TaskSpecModel if needed
-        agent_models = [AgentSpecModel(**a) if isinstance(a, dict) else a for a in agents]
+        agent_models = [
+            AgentSpecModel(**a) if isinstance(a, dict) else a for a in agents
+        ]
         task_models = [TaskSpecModel(**t) if isinstance(t, dict) else t for t in tasks]
 
         # Run validation
@@ -542,7 +552,9 @@ class CrewAIFramework:
             else:
                 golden_req = golden_data
 
-            self._auto_fixer = AutoFixer(golden_data=golden_req, llm_plugin=self._llm_plugin)
+            self._auto_fixer = AutoFixer(
+                golden_data=golden_req, llm_plugin=self._llm_plugin
+            )
 
         if not self._auto_fixer:
             return FixResult(
@@ -553,10 +565,17 @@ class CrewAIFramework:
             )
 
         # Apply fixes if Golden Data validation found issues
-        if validation_result.golden_result and validation_result.golden_result.needs_fixing:
+        if (
+            validation_result.golden_result
+            and validation_result.golden_result.needs_fixing
+        ):
             # Convert to models
-            agent_models = [AgentSpecModel(**a) if isinstance(a, dict) else a for a in agents]
-            task_models = [TaskSpecModel(**t) if isinstance(t, dict) else t for t in tasks]
+            agent_models = [
+                AgentSpecModel(**a) if isinstance(a, dict) else a for a in agents
+            ]
+            task_models = [
+                TaskSpecModel(**t) if isinstance(t, dict) else t for t in tasks
+            ]
 
             # Apply fixes
             fix_result = self._auto_fixer.fix_design(

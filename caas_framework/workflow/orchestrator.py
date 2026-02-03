@@ -210,7 +210,9 @@ class WorkflowOrchestrator:
 
             raise
 
-    async def complete_workflow(self, session_id: str, success: bool = True) -> WorkflowResult:
+    async def complete_workflow(
+        self, session_id: str, success: bool = True
+    ) -> WorkflowResult:
         """
         Complete a workflow execution.
 
@@ -335,7 +337,10 @@ class WorkflowOrchestrator:
             session = self.session_manager.create_session(
                 workflow_id=checkpoint.workflow_id,
                 name=f"Resumed from {checkpoint.checkpoint_id}",
-                metadata={"resumed_from": checkpoint_id, "original_session": checkpoint.session_id},
+                metadata={
+                    "resumed_from": checkpoint_id,
+                    "original_session": checkpoint.session_id,
+                },
             )
 
             # Copy state to new session
@@ -356,7 +361,9 @@ class WorkflowOrchestrator:
 
         return session
 
-    def rollback_to_checkpoint(self, session_id: str, checkpoint_id: str) -> Dict[str, Any]:
+    def rollback_to_checkpoint(
+        self, session_id: str, checkpoint_id: str
+    ) -> Dict[str, Any]:
         """
         Rollback session to a previous checkpoint.
 

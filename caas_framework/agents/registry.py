@@ -67,7 +67,10 @@ class AgentRegistry:
             logger.info("AgentRegistry initialized")
 
     def register(
-        self, agent_class: Type[BaseExpertAgent], phase: AgentPhase, override: bool = False
+        self,
+        agent_class: Type[BaseExpertAgent],
+        phase: AgentPhase,
+        override: bool = False,
     ) -> None:
         """
         Register an agent class.
@@ -82,7 +85,9 @@ class AgentRegistry:
         """
         # Validate agent class
         if not issubclass(agent_class, BaseExpertAgent):
-            raise TypeError(f"Agent class {agent_class.__name__} must inherit from BaseExpertAgent")
+            raise TypeError(
+                f"Agent class {agent_class.__name__} must inherit from BaseExpertAgent"
+            )
 
         # Check for existing registration
         if phase in self._agents_by_phase and not override:
@@ -198,7 +203,9 @@ class AgentRegistry:
         return {
             "total_agents": len(self._all_agents),
             "phases_covered": len(self._agents_by_phase),
-            "registered_phases": [phase.value for phase in self._agents_by_phase.keys()],
+            "registered_phases": [
+                phase.value for phase in self._agents_by_phase.keys()
+            ],
             "registered_agents": [cls.__name__ for cls in self._all_agents],
         }
 
@@ -273,7 +280,9 @@ def discover_agents() -> AgentRegistry:
     return get_agent_registry()
 
 
-def create_agent(phase: AgentPhase, llm_plugin, golden_data=None, **kwargs) -> BaseExpertAgent:
+def create_agent(
+    phase: AgentPhase, llm_plugin, golden_data=None, **kwargs
+) -> BaseExpertAgent:
     """
     Factory function to create agent instance by phase.
 

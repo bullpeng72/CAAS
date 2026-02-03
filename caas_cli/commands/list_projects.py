@@ -14,10 +14,18 @@ from caas_sdk.exceptions import CAASError
 
 @click.command("list")
 @click.option(
-    "--limit", "-n", type=int, default=10, help="Number of projects to show (default: 10)"
+    "--limit",
+    "-n",
+    type=int,
+    default=10,
+    help="Number of projects to show (default: 10)",
 )
-@click.option("--status", type=str, help="Filter by status: generating, completed, failed")
-@click.option("--api-key", type=str, envvar="CAAS_API_KEY", help="API key for authentication")
+@click.option(
+    "--status", type=str, help="Filter by status: generating, completed, failed"
+)
+@click.option(
+    "--api-key", type=str, envvar="CAAS_API_KEY", help="API key for authentication"
+)
 @click.option("--api-url", type=str, help="API URL (overrides config)")
 def list_cmd(limit, status, api_key, api_url):
     """
@@ -158,7 +166,13 @@ def list_cmd(limit, status, api_key, api_url):
             }.get(status_val, "❓")
 
             rows.append(
-                [project_id, requirement, f"{status_emoji} {status_val}", progress, created]
+                [
+                    project_id,
+                    requirement,
+                    f"{status_emoji} {status_val}",
+                    progress,
+                    created,
+                ]
             )
 
         # Print table

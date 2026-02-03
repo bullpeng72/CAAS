@@ -119,14 +119,18 @@ def sanitize_path_component(component: str, max_length: int = 255) -> str:
 
     # 길이 확인
     if len(component) > max_length:
-        raise ValueError(f"경로 컴포넌트가 너무 깁니다 (최대 {max_length}자): {len(component)}")
+        raise ValueError(
+            f"경로 컴포넌트가 너무 깁니다 (최대 {max_length}자): {len(component)}"
+        )
 
     # 영숫자, 밑줄, 하이픈 허용 (snake_case, kebab-case, 파일 확장자, dotfiles 포함)
     # Pattern:
     #   - Dotfiles: .env.example, .gitignore, etc. (start with dot, then alphanumeric+underscore+dot)
     #   - Regular files: README.md, my_file-v2.txt, etc. (start with alphanumeric, then alphanumeric+underscore+hyphen+dot)
     # Allow dotfiles but NOT . or .. (those are checked above)
-    if not re.match(r"^(\.[a-zA-Z][a-zA-Z0-9_\-\.]*|[a-zA-Z][a-zA-Z0-9_\-\.]*)$", component):
+    if not re.match(
+        r"^(\.[a-zA-Z][a-zA-Z0-9_\-\.]*|[a-zA-Z][a-zA-Z0-9_\-\.]*)$", component
+    ):
         raise ValueError(
             f"경로 컴포넌트는 유효한 파일명이어야 합니다 (dotfiles, snake_case, kebab-case, 파일 확장자 허용): {component}"
         )
@@ -182,7 +186,9 @@ def sanitize_relative_path(
     # max_depth는 실제로 허용되는 컴포넌트 수를 의미
     # 예: max_depth=3이면 "level1/level2/level3/file.txt" (4 parts) 허용
     if len(parts) > max_depth + 1:
-        raise ValueError(f"경로가 너무 깊습니다 (최대 {max_depth} 레벨): {len(parts) - 1}")
+        raise ValueError(
+            f"경로가 너무 깊습니다 (최대 {max_depth} 레벨): {len(parts) - 1}"
+        )
 
     # 각 컴포넌트 검증
     for part in parts:
@@ -208,7 +214,9 @@ def sanitize_relative_path(
         try:
             resolved.relative_to(base_resolved)
         except ValueError:
-            raise PathTraversalError(f"경로가 기본 디렉토리를 벗어남: {path} -> {resolved}")
+            raise PathTraversalError(
+                f"경로가 기본 디렉토리를 벗어남: {path} -> {resolved}"
+            )
 
         return resolved
 
@@ -245,7 +253,9 @@ def validate_project_name(name: str) -> str:
         raise ValueError(f"프로젝트 이름이 너무 깁니다 (최대 64자): {len(name)}")
 
     if not re.match(r"^[a-z][a-z0-9_]*$", name):
-        raise ValueError(f"프로젝트 이름은 snake_case여야 합니다 (소문자, 문자로 시작): {name}")
+        raise ValueError(
+            f"프로젝트 이름은 snake_case여야 합니다 (소문자, 문자로 시작): {name}"
+        )
 
     return name
 
@@ -282,7 +292,9 @@ def sanitize_neo4j_label(label: str) -> str:
 
     # 레이블에 대한 안전한 문자만 허용
     if not re.match(r"^[A-Za-z][A-Za-z0-9_]*$", label):
-        raise ValueError(f"레이블은 문자로 시작하고 영숫자/밑줄만 포함해야 합니다: {label}")
+        raise ValueError(
+            f"레이블은 문자로 시작하고 영숫자/밑줄만 포함해야 합니다: {label}"
+        )
 
     # Neo4j 예약어 거부
     reserved_words = {
@@ -397,7 +409,9 @@ def sanitize_neo4j_relationship_type(rel_type: str) -> str:
 
     # 규칙: 관계 타입은 UPPERCASE_WITH_UNDERSCORES
     if not re.match(r"^[A-Z][A-Z0-9_]*$", rel_type):
-        raise ValueError(f"관계 타입은 UPPERCASE_WITH_UNDERSCORES여야 합니다: {rel_type}")
+        raise ValueError(
+            f"관계 타입은 UPPERCASE_WITH_UNDERSCORES여야 합니다: {rel_type}"
+        )
 
     return rel_type
 
@@ -460,12 +474,16 @@ def validate_yaml_size(
     # 바이트 크기 확인
     content_size = len(yaml_content.encode("utf-8"))
     if content_size > max_size:
-        raise YAMLSecurityError(f"YAML이 너무 큽니다 ({content_size} 바이트, 최대 {max_size})")
+        raise YAMLSecurityError(
+            f"YAML이 너무 큽니다 ({content_size} 바이트, 최대 {max_size})"
+        )
 
     # 라인 수 확인
     line_count = yaml_content.count("\n") + 1
     if line_count > max_lines:
-        raise YAMLSecurityError(f"YAML에 라인이 너무 많습니다 ({line_count}, 최대 {max_lines})")
+        raise YAMLSecurityError(
+            f"YAML에 라인이 너무 많습니다 ({line_count}, 최대 {max_lines})"
+        )
 
 
 def safe_yaml_load(
@@ -512,13 +530,17 @@ def safe_yaml_load(
     # 깊이 검증
     actual_depth = _get_nested_depth(data)
     if actual_depth > max_depth:
-        raise YAMLSecurityError(f"YAML이 너무 깊게 중첩됨 ({actual_depth}, 최대 {max_depth})")
+        raise YAMLSecurityError(
+            f"YAML이 너무 깊게 중첩됨 ({actual_depth}, 최대 {max_depth})"
+        )
 
     # 복잡도 검증
     node_count = _count_nodes(data)
     max_nodes = 10_000
     if node_count > max_nodes:
-        raise YAMLSecurityError(f"YAML이 너무 복잡함 ({node_count} 노드, 최대 {max_nodes})")
+        raise YAMLSecurityError(
+            f"YAML이 너무 복잡함 ({node_count} 노드, 최대 {max_nodes})"
+        )
 
     return data
 
@@ -642,15 +664,16 @@ def detect_prompt_injection(user_input: str) -> Optional[str]:
 
     # 시스템 프롬프트 오버라이드 시도
     if re.search(
-        r"(you are|act as|pretend to be).{0,50}(system|admin|root|assistant)", user_input_lower
+        r"(you are|act as|pretend to be).{0,50}(system|admin|root|assistant)",
+        user_input_lower,
     ):
         return "System override attempt"
 
     # 과도한 특수문자 (난독화 시도)
     if len(user_input) > 0:
-        special_char_ratio = sum(not c.isalnum() and not c.isspace() for c in user_input) / len(
-            user_input
-        )
+        special_char_ratio = sum(
+            not c.isalnum() and not c.isspace() for c in user_input
+        ) / len(user_input)
         if special_char_ratio > 0.4:
             return "Excessive special characters"
 

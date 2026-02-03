@@ -7,6 +7,8 @@ This module centralizes tool generation logic to avoid code duplication.
 
 from typing import Dict, Set, Union
 
+from caas_framework.utils.logger import get_logger
+
 logger = get_logger()
 
 
@@ -113,7 +115,9 @@ def generate_fallback_tools_code(
     """
     # Normalize input: convert set to dict if needed
     if isinstance(tools, set):
-        logger.info(f"Generating tools.py with {len(tools)} tools: {', '.join(sorted(tools))}")
+        logger.info(
+            f"Generating tools.py with {len(tools)} tools: {', '.join(sorted(tools))}"
+        )
         # Sanitize tool names
         sanitized_tools = {sanitize_tool_name(t): t for t in tools}
     else:

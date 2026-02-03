@@ -53,7 +53,9 @@ class OntologyValidator:
         """
         self.ontology = OntologyManager()
         self.enabled_tools = (
-            set(enabled_tools) if enabled_tools else set(self.ontology.tool_capabilities.keys())
+            set(enabled_tools)
+            if enabled_tools
+            else set(self.ontology.tool_capabilities.keys())
         )
 
     def validate_agents_and_tasks(
@@ -86,8 +88,12 @@ class OntologyValidator:
         # Generate summary
         summary = {
             "total": len(issues),
-            "errors": len([i for i in issues if i.severity == ValidationSeverity.ERROR]),
-            "warnings": len([i for i in issues if i.severity == ValidationSeverity.WARNING]),
+            "errors": len(
+                [i for i in issues if i.severity == ValidationSeverity.ERROR]
+            ),
+            "warnings": len(
+                [i for i in issues if i.severity == ValidationSeverity.WARNING]
+            ),
             "info": len([i for i in issues if i.severity == ValidationSeverity.INFO]),
             "auto_fixable": len([i for i in issues if i.auto_fix_available]),
         }
@@ -96,7 +102,9 @@ class OntologyValidator:
 
         return ValidationResult(is_valid=is_valid, issues=issues, summary=summary)
 
-    def _validate_agent_roles(self, agents: List[Dict[str, Any]]) -> List[ValidationIssue]:
+    def _validate_agent_roles(
+        self, agents: List[Dict[str, Any]]
+    ) -> List[ValidationIssue]:
         """Validate agent roles"""
         issues = []
 
@@ -243,10 +251,14 @@ class OntologyValidator:
             )
 
             # Filter to only enabled tools
-            recommended_tools = [tool for tool in recommended_tools if tool in self.enabled_tools]
+            recommended_tools = [
+                tool for tool in recommended_tools if tool in self.enabled_tools
+            ]
 
             # Check for missing tools (excluding already reported explicit tools)
-            missing_tools = set(recommended_tools) - current_tools - missing_explicit_tools
+            missing_tools = (
+                set(recommended_tools) - current_tools - missing_explicit_tools
+            )
 
             if missing_tools:
                 issues.append(
@@ -275,14 +287,17 @@ class OntologyValidator:
 
         for task in tasks:
             task_id = _safe_get(task, "id", _safe_get(task, "name", "unknown"))
-            assigned_agent_name = _safe_get(task, "assigned_agent") or _safe_get(task, "agent", "")
+            assigned_agent_name = _safe_get(task, "assigned_agent") or _safe_get(
+                task, "agent", ""
+            )
 
             # Find assigned agent
             assigned_agent = None
             for agent in agents:
                 if (
                     _safe_get(agent, "id", "").lower() in assigned_agent_name.lower()
-                    or _safe_get(agent, "role", "").lower() in assigned_agent_name.lower()
+                    or _safe_get(agent, "role", "").lower()
+                    in assigned_agent_name.lower()
                 ):
                     assigned_agent = agent
                     break
@@ -323,7 +338,9 @@ class OntologyValidator:
                                 "action": "assign_agent",
                                 "task_id": task_id,
                                 "agent_id": _safe_get(
-                                    suitable_agent, "id", _safe_get(suitable_agent, "role")
+                                    suitable_agent,
+                                    "id",
+                                    _safe_get(suitable_agent, "role"),
                                 ),
                             },
                         )
@@ -371,10 +388,14 @@ class OntologyValidator:
 
                     # Create clear error message with agent names
                     assigned_agent_name = _safe_get(
-                        assigned_agent, "id", _safe_get(assigned_agent, "role", "Unknown")
+                        assigned_agent,
+                        "id",
+                        _safe_get(assigned_agent, "role", "Unknown"),
                     )
                     best_agent_name = (
-                        _safe_get(best_agent, "id", _safe_get(best_agent, "role", "Unknown"))
+                        _safe_get(
+                            best_agent, "id", _safe_get(best_agent, "role", "Unknown")
+                        )
                         if best_agent
                         else suitable_roles[0].value
                     )
@@ -399,7 +420,9 @@ class OntologyValidator:
                                     "task_id": task_id,
                                     "current_agent_id": _safe_get(assigned_agent, "id"),
                                     "new_agent_id": (
-                                        _safe_get(best_agent, "id") if best_agent else None
+                                        _safe_get(best_agent, "id")
+                                        if best_agent
+                                        else None
                                     ),
                                     "new_agent_name": best_agent_name,
                                 }
@@ -411,7 +434,9 @@ class OntologyValidator:
 
         return issues
 
-    def _validate_task_dependencies(self, tasks: List[Dict[str, Any]]) -> List[ValidationIssue]:
+    def _validate_task_dependencies(
+        self, tasks: List[Dict[str, Any]]
+    ) -> List[ValidationIssue]:
         """Validate task dependencies"""
         issues = []
 
@@ -579,7 +604,10 @@ class OntologyValidator:
         return issues
 
     def apply_auto_fix(
-        self, agents: List[Dict[str, Any]], tasks: List[Dict[str, Any]], issue: ValidationIssue
+        self,
+        agents: List[Dict[str, Any]],
+        tasks: List[Dict[str, Any]],
+        issue: ValidationIssue,
     ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
         """
         Apply automatic fix for an issue.
@@ -623,7 +651,9 @@ class OntologyValidator:
             for agent in agents:
                 if _safe_get(agent, "id") == agent_id:
                     current_tools = _safe_get(agent, "tools", [])
-                    agent["tools"] = [t for t in current_tools if t not in tools_to_remove]
+                    agent["tools"] = [
+                        t for t in current_tools if t not in tools_to_remove
+                    ]
                     break
 
         elif action == "remove_circular_dependency":
@@ -631,7 +661,10 @@ class OntologyValidator:
             dep_to_remove = issue.auto_fix_data.get("dependency_to_remove")
 
             for task in tasks:
-                if _safe_get(task, "id") == task_id or _safe_get(task, "name") == task_id:
+                if (
+                    _safe_get(task, "id") == task_id
+                    or _safe_get(task, "name") == task_id
+                ):
                     deps = _safe_get(task, "dependencies", [])
                     if dep_to_remove in deps:
                         deps.remove(dep_to_remove)
@@ -643,7 +676,10 @@ class OntologyValidator:
             agent_id = issue.auto_fix_data.get("agent_id")
 
             for task in tasks:
-                if _safe_get(task, "id") == task_id or _safe_get(task, "name") == task_id:
+                if (
+                    _safe_get(task, "id") == task_id
+                    or _safe_get(task, "name") == task_id
+                ):
                     task["assigned_agent"] = agent_id
                     task["agent"] = agent_id
                     break
@@ -654,7 +690,10 @@ class OntologyValidator:
 
             if new_agent_id:
                 for task in tasks:
-                    if _safe_get(task, "id") == task_id or _safe_get(task, "name") == task_id:
+                    if (
+                        _safe_get(task, "id") == task_id
+                        or _safe_get(task, "name") == task_id
+                    ):
                         task["assigned_agent"] = new_agent_id
                         task["agent"] = new_agent_id
                         break

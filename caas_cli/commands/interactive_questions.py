@@ -37,7 +37,9 @@ from caas_cli.utils import (
     type=click.Path(),
     help="Output answers JSON file path (default: answers.json)",
 )
-@click.option("--api-url", type=str, help="API URL (overrides config) - for remote API mode")
+@click.option(
+    "--api-url", type=str, help="API URL (overrides config) - for remote API mode"
+)
 @click.option(
     "--interactive/--no-interactive",
     default=True,
@@ -180,7 +182,9 @@ def questions(gaps, domain, output, api_url, interactive):
                 echo_success("✅ No questions needed - all information is sufficient!")
                 return
 
-            click.echo(click.style(f"📋 Generated {len(questions_list)} questions:", bold=True))
+            click.echo(
+                click.style(f"📋 Generated {len(questions_list)} questions:", bold=True)
+            )
             click.echo()
 
             answers = {}
@@ -217,10 +221,14 @@ def questions(gaps, domain, output, api_url, interactive):
                         for idx, opt in enumerate(options, 1):
                             click.echo(f"     {idx}. {opt}")
 
-                        choices_str = click.prompt("   선택 (예: 1,3,4)", type=str, default="1")
+                        choices_str = click.prompt(
+                            "   선택 (예: 1,3,4)", type=str, default="1"
+                        )
 
                         try:
-                            choice_indices = [int(c.strip()) for c in choices_str.split(",")]
+                            choice_indices = [
+                                int(c.strip()) for c in choices_str.split(",")
+                            ]
                             selected = [
                                 options[idx - 1]
                                 for idx in choice_indices
@@ -244,7 +252,9 @@ def questions(gaps, domain, output, api_url, interactive):
                         max_val = q.get("max_value", 1000000)
                         default_val = float(q.get("default_value", min_val))
 
-                        answer = click.prompt("   숫자 입력", type=float, default=default_val)
+                        answer = click.prompt(
+                            "   숫자 입력", type=float, default=default_val
+                        )
                         answers[q_id] = answer
 
                     click.echo()

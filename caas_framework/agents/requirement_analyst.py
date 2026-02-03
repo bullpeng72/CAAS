@@ -27,7 +27,11 @@ class RequirementAnalystAgent(BaseExpertAgent):
     with Golden Data features and acceptance criteria.
     """
 
-    def __init__(self, llm_plugin: LLMPlugin, golden_data: Optional[ConcretizedRequirement] = None):
+    def __init__(
+        self,
+        llm_plugin: LLMPlugin,
+        golden_data: Optional[ConcretizedRequirement] = None,
+    ):
         super().__init__(llm_plugin, golden_data, AgentPhase.DISCOVERY)
 
     @property
@@ -93,7 +97,9 @@ class RequirementAnalystAgent(BaseExpertAgent):
         """Build LLM prompt for requirement analysis."""
 
         builder = (
-            PromptBuilder("analyze the following requirement and provide comprehensive analysis")
+            PromptBuilder(
+                "analyze the following requirement and provide comprehensive analysis"
+            )
             .add_task("You are an expert Requirements Analyst.")
             .add_input(requirement=requirement)
         )
@@ -101,7 +107,8 @@ class RequirementAnalystAgent(BaseExpertAgent):
         # Add golden data if available
         if self.golden_data:
             builder.add_golden_data(
-                self.golden_data, fields=["domain", "project_name", "features", "data_models"]
+                self.golden_data,
+                fields=["domain", "project_name", "features", "data_models"],
             )
 
         # Add context if provided

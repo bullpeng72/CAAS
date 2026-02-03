@@ -32,7 +32,7 @@ def test_agent_dict_validation():
         "goal": "Research topics",
         "backstory": "Expert researcher",
         "tools": ["web_search"],
-        "verbose": True
+        "verbose": True,
     }
 
     assert is_agent_dict(valid_agent) is True
@@ -40,7 +40,7 @@ def test_agent_dict_validation():
     # Invalid agent (missing required field)
     invalid_agent = {
         "id": "agent1",
-        "role": "Agent"
+        "role": "Agent",
         # Missing 'goal' and 'backstory'
     }
 
@@ -55,7 +55,7 @@ def test_task_dict_validation():
         "id": "task1",
         "description": "Research a topic",
         "expected_output": "Research report",
-        "agent": "researcher"
+        "agent": "researcher",
     }
 
     assert is_task_dict(valid_task) is True
@@ -63,7 +63,7 @@ def test_task_dict_validation():
     # Invalid task (missing required field)
     invalid_task = {
         "id": "task1",
-        "description": "Do something"
+        "description": "Do something",
         # Missing 'expected_output' and 'agent'
     }
 
@@ -81,7 +81,7 @@ def test_design_output_validation():
                 "role": "Agent",
                 "goal": "Goal",
                 "backstory": "Story",
-                "tools": []
+                "tools": [],
             }
         ],
         "tasks": [
@@ -89,17 +89,15 @@ def test_design_output_validation():
                 "id": "task1",
                 "description": "Task",
                 "expected_output": "Output",
-                "agent": "agent1"
+                "agent": "agent1",
             }
-        ]
+        ],
     }
 
     assert validate_design_output(valid_design) is True
 
     # Invalid design (missing agents)
-    invalid_design = {
-        "tasks": []
-    }
+    invalid_design = {"tasks": []}
 
     assert validate_design_output(invalid_design) is False
 
@@ -107,12 +105,7 @@ def test_design_output_validation():
 def test_type_guards():
     """Test type guard functions."""
 
-    valid_agent = {
-        "id": "agent1",
-        "role": "Role",
-        "goal": "Goal",
-        "backstory": "Story"
-    }
+    valid_agent = {"id": "agent1", "role": "Role", "goal": "Goal", "backstory": "Story"}
 
     # Should not raise
     result = assert_agent_dict(valid_agent)
@@ -140,19 +133,19 @@ def test_type_annotations_present():
 
     # Check if __init__ has return type annotation
     init_annotations = SafeFeedbackLoop.__init__.__annotations__
-    assert 'return' in init_annotations
-    assert init_annotations['return'] is None
+    assert "return" in init_annotations
+    assert init_annotations["return"] is None
 
     # Check plan_mode module
     from caas_framework.execution.plan_mode import PlanMode
 
     init_annotations = PlanMode.__init__.__annotations__
-    assert 'return' in init_annotations
-    assert init_annotations['return'] is None
+    assert "return" in init_annotations
+    assert init_annotations["return"] is None
 
     # Check auto_approve is annotated
-    assert 'auto_approve' in init_annotations
-    assert init_annotations['auto_approve'] == bool
+    assert "auto_approve" in init_annotations
+    assert init_annotations["auto_approve"] == bool
 
 
 def test_mypy_config_exists():
@@ -160,7 +153,7 @@ def test_mypy_config_exists():
     import os
 
     project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    mypy_config = os.path.join(project_root, 'mypy.ini')
+    mypy_config = os.path.join(project_root, "mypy.ini")
 
     assert os.path.exists(mypy_config), "mypy.ini should exist"
 
@@ -168,9 +161,9 @@ def test_mypy_config_exists():
     with open(mypy_config) as f:
         content = f.read()
 
-    assert '[mypy]' in content
-    assert 'python_version' in content
-    assert 'warn_return_any' in content
+    assert "[mypy]" in content
+    assert "python_version" in content
+    assert "warn_return_any" in content
 
 
 if __name__ == "__main__":

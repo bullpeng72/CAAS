@@ -90,7 +90,8 @@ class RuleFixer(BaseFixer):
         return [
             {
                 "name": "high_priority_agent",
-                "condition": lambda issue: hasattr(issue, "severity") and issue.severity == "high",
+                "condition": lambda issue: hasattr(issue, "severity")
+                and issue.severity == "high",
                 "action": "create_specialized_agent",
             },
             {

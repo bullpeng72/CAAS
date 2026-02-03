@@ -11,7 +11,6 @@ from caas_cli.utils import (
     echo_info,
     echo_success,
     handle_keyboard_interrupt,
-    print_table,
 )
 
 
@@ -112,7 +111,9 @@ def list_plugins(type, verbose):
 
 @plugins.command()
 @click.argument("plugin_name")
-@click.option("--verbose", "-v", is_flag=True, help="Show detailed health check results")
+@click.option(
+    "--verbose", "-v", is_flag=True, help="Show detailed health check results"
+)
 @handle_keyboard_interrupt
 async def status(plugin_name, verbose):
     """
@@ -134,7 +135,7 @@ async def status(plugin_name, verbose):
     try:
         from caas_framework.plugins import get_plugin_registry
 
-        echo_progress(f"Checking status of plugin: {plugin_name}")
+        echo_info(f"Checking status of plugin: {plugin_name}")
 
         registry = get_plugin_registry()
         plugin = registry.get_plugin(plugin_name)

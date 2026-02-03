@@ -18,7 +18,7 @@ def test_progress_reporter_creation():
     """Test ProgressReporter can be created"""
     reporter = ProgressReporter(
         verbosity=VerbosityLevel.NORMAL,
-        use_rich=False  # Disable Rich for testing
+        use_rich=False,  # Disable Rich for testing
     )
 
     assert reporter is not None
@@ -37,9 +37,7 @@ def test_workflow_lifecycle():
     """Test complete workflow lifecycle"""
     output = io.StringIO()
     reporter = ProgressReporter(
-        verbosity=VerbosityLevel.NORMAL,
-        use_rich=False,
-        file=output
+        verbosity=VerbosityLevel.NORMAL, use_rich=False, file=output
     )
 
     # Start workflow
@@ -107,9 +105,7 @@ def test_error_and_warning_tracking():
     """Test error and warning tracking"""
     output = io.StringIO()
     reporter = ProgressReporter(
-        verbosity=VerbosityLevel.NORMAL,
-        use_rich=False,
-        file=output
+        verbosity=VerbosityLevel.NORMAL, use_rich=False, file=output
     )
 
     phase_name = "Test Phase"
@@ -135,9 +131,7 @@ def test_agent_reporting():
     """Test agent-level reporting"""
     output = io.StringIO()
     reporter = ProgressReporter(
-        verbosity=VerbosityLevel.NORMAL,
-        use_rich=False,
-        file=output
+        verbosity=VerbosityLevel.NORMAL, use_rich=False, file=output
     )
 
     reporter.start_phase("Test Phase", "TestAgent")
@@ -158,9 +152,7 @@ def test_validation_reporting():
     """Test validation reporting"""
     output = io.StringIO()
     reporter = ProgressReporter(
-        verbosity=VerbosityLevel.VERBOSE,
-        use_rich=False,
-        file=output
+        verbosity=VerbosityLevel.VERBOSE, use_rich=False, file=output
     )
 
     reporter.start_phase("Validation Phase")
@@ -169,10 +161,14 @@ def test_validation_reporting():
     reporter.validation_start("SyntaxValidator", item_count=10)
 
     # Validation result - passed
-    reporter.validation_result("SyntaxValidator", passed=True, issues_count=0, score=1.0)
+    reporter.validation_result(
+        "SyntaxValidator", passed=True, issues_count=0, score=1.0
+    )
 
     # Validation result - failed
-    reporter.validation_result("ImportValidator", passed=False, issues_count=5, score=0.7)
+    reporter.validation_result(
+        "ImportValidator", passed=False, issues_count=5, score=0.7
+    )
 
     output_text = output.getvalue()
     assert "SyntaxValidator" in output_text
@@ -183,17 +179,21 @@ def test_feedback_iteration_reporting():
     """Test feedback loop iteration reporting"""
     output = io.StringIO()
     reporter = ProgressReporter(
-        verbosity=VerbosityLevel.VERBOSE,
-        use_rich=False,
-        file=output
+        verbosity=VerbosityLevel.VERBOSE, use_rich=False, file=output
     )
 
     reporter.start_phase("Feedback Phase")
 
     # Report iterations
-    reporter.feedback_iteration("CodeGenerator", iteration=1, max_iterations=3, issues_count=5)
-    reporter.feedback_iteration("CodeGenerator", iteration=2, max_iterations=3, issues_count=2)
-    reporter.feedback_iteration("CodeGenerator", iteration=3, max_iterations=3, issues_count=0)
+    reporter.feedback_iteration(
+        "CodeGenerator", iteration=1, max_iterations=3, issues_count=5
+    )
+    reporter.feedback_iteration(
+        "CodeGenerator", iteration=2, max_iterations=3, issues_count=2
+    )
+    reporter.feedback_iteration(
+        "CodeGenerator", iteration=3, max_iterations=3, issues_count=0
+    )
 
     output_text = output.getvalue()
     assert "iteration" in output_text.lower()
@@ -204,9 +204,7 @@ def test_quiet_verbosity():
     """Test that quiet verbosity suppresses output"""
     output = io.StringIO()
     reporter = ProgressReporter(
-        verbosity=VerbosityLevel.QUIET,
-        use_rich=False,
-        file=output
+        verbosity=VerbosityLevel.QUIET, use_rich=False, file=output
     )
 
     reporter.start_workflow("Test Workflow")
@@ -224,9 +222,7 @@ def test_debug_verbosity():
     """Test that debug verbosity includes debug messages"""
     output = io.StringIO()
     reporter = ProgressReporter(
-        verbosity=VerbosityLevel.DEBUG,
-        use_rich=False,
-        file=output
+        verbosity=VerbosityLevel.DEBUG, use_rich=False, file=output
     )
 
     reporter.debug("Debug message 1")
@@ -259,9 +255,7 @@ def test_skip_phase():
     """Test skipping a phase"""
     output = io.StringIO()
     reporter = ProgressReporter(
-        verbosity=VerbosityLevel.NORMAL,
-        use_rich=False,
-        file=output
+        verbosity=VerbosityLevel.NORMAL, use_rich=False, file=output
     )
 
     reporter.skip_phase("Architecture", reason="Quick fix mode")
@@ -274,10 +268,7 @@ def test_bmad_engine_integration_pattern():
     """Test the integration pattern used in BMAD Engine"""
     # Simulate BMAD Engine usage
 
-    reporter = ProgressReporter(
-        verbosity=VerbosityLevel.NORMAL,
-        use_rich=False
-    )
+    reporter = ProgressReporter(verbosity=VerbosityLevel.NORMAL, use_rich=False)
 
     # 1. Start workflow
     reporter.start_workflow("BMAD Pipeline: Test Project", total_phases=6)
@@ -289,7 +280,7 @@ def test_bmad_engine_integration_pattern():
         "Phase 2: Architecture",
         "Phase 3: Design",
         "Phase 4: Development",
-        "Phase 5: Delivery"
+        "Phase 5: Delivery",
     ]
 
     for i, phase_name in enumerate(phases, 1):
@@ -382,6 +373,6 @@ if __name__ == "__main__":
     test_phase_progress_duration()
     test_phase_status_icons()
 
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("✅ All Progress Reporter Integration tests passed!")
-    print("="*70)
+    print("=" * 70)

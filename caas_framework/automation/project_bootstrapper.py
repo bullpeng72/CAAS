@@ -122,7 +122,9 @@ class ProjectBootstrapper:
             tests_passed=test_result.passed if test_result else None,
         )
 
-    def _write_files(self, project_dir: Path, files: Dict[str, str], verbose: bool) -> int:
+    def _write_files(
+        self, project_dir: Path, files: Dict[str, str], verbose: bool
+    ) -> int:
         """Write all generated files to project directory"""
         files_written = 0
 
@@ -148,7 +150,9 @@ class ProjectBootstrapper:
         """Initialize git repository with .gitignore and initial commit"""
         try:
             # Initialize git
-            subprocess.run(["git", "init"], cwd=project_dir, check=True, capture_output=True)
+            subprocess.run(
+                ["git", "init"], cwd=project_dir, check=True, capture_output=True
+            )
 
             # Create .gitignore
             gitignore_content = """# Python
@@ -187,7 +191,9 @@ Thumbs.db
             gitignore_path.write_text(gitignore_content)
 
             # Add all files
-            subprocess.run(["git", "add", "."], cwd=project_dir, check=True, capture_output=True)
+            subprocess.run(
+                ["git", "add", "."], cwd=project_dir, check=True, capture_output=True
+            )
 
             # Initial commit
             subprocess.run(
@@ -396,7 +402,9 @@ OPENAI_API_KEY=your_api_key_here
     def _print_completion(self, project_dir: Path, project_name: str):
         """Print completion message with next steps"""
         activate_cmd = (
-            "venv\\Scripts\\activate" if sys.platform == "win32" else "source venv/bin/activate"
+            "venv\\Scripts\\activate"
+            if sys.platform == "win32"
+            else "source venv/bin/activate"
         )
 
         print(f"\n{'=' * 70}")

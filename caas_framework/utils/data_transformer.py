@@ -226,7 +226,9 @@ class DataTransformer:
         return result
 
     @staticmethod
-    def transform_values(data: Dict[str, Any], transformers: Dict[str, callable]) -> Dict[str, Any]:
+    def transform_values(
+        data: Dict[str, Any], transformers: Dict[str, callable]
+    ) -> Dict[str, Any]:
         """
         딕셔너리 값 변환
 

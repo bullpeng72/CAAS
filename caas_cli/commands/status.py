@@ -17,12 +17,21 @@ from caas_sdk.exceptions import CAASError
 @click.command()
 @click.argument("project_id")
 @click.option(
-    "--watch", "-w", is_flag=True, help="Watch status updates in real-time (auto-refresh)"
+    "--watch",
+    "-w",
+    is_flag=True,
+    help="Watch status updates in real-time (auto-refresh)",
 )
 @click.option(
-    "--interval", "-i", type=int, default=2, help="Watch interval in seconds (default: 2)"
+    "--interval",
+    "-i",
+    type=int,
+    default=2,
+    help="Watch interval in seconds (default: 2)",
 )
-@click.option("--api-key", type=str, envvar="CAAS_API_KEY", help="API key for authentication")
+@click.option(
+    "--api-key", type=str, envvar="CAAS_API_KEY", help="API key for authentication"
+)
 @click.option("--api-url", type=str, help="API URL (overrides config)")
 def status(project_id, watch, interval, api_key, api_url):
     """

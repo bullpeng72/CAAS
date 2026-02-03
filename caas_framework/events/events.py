@@ -98,7 +98,10 @@ class EventSubscription:
 
 
 def create_phase_event(
-    event_type: PhaseEvent, phase_name: str, data: Optional[Dict[str, Any]] = None, **kwargs
+    event_type: PhaseEvent,
+    phase_name: str,
+    data: Optional[Dict[str, Any]] = None,
+    **kwargs,
 ) -> Event:
     """
     Convenience function to create a phase event.
@@ -133,11 +136,15 @@ def create_validation_event(
     Returns:
         Event instance
     """
-    event_type = PhaseEvent.VALIDATION_PASSED if passed else PhaseEvent.VALIDATION_FAILED
+    event_type = (
+        PhaseEvent.VALIDATION_PASSED if passed else PhaseEvent.VALIDATION_FAILED
+    )
 
     data = {"phase": phase_name, "passed": passed, "issues": issues or []}
 
-    return Event(type=event_type, data=data, source=f"{phase_name}_validator", metadata=kwargs)
+    return Event(
+        type=event_type, data=data, source=f"{phase_name}_validator", metadata=kwargs
+    )
 
 
 def create_feedback_event(
@@ -157,4 +164,9 @@ def create_feedback_event(
     """
     data = {"phase": phase_name, "message": message, "feedback_type": feedback_type}
 
-    return Event(type=PhaseEvent.FEEDBACK_REQUESTED, data=data, source=phase_name, metadata=kwargs)
+    return Event(
+        type=PhaseEvent.FEEDBACK_REQUESTED,
+        data=data,
+        source=phase_name,
+        metadata=kwargs,
+    )

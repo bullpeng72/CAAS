@@ -101,7 +101,9 @@ class AlertSystem:
             del self.rules[name]
             self.logger.info(f"🔇 Alert rule removed: {name}")
 
-    def check_metric(self, metric_name: str, value: Any, metadata: Optional[Dict[str, Any]] = None):
+    def check_metric(
+        self, metric_name: str, value: Any, metadata: Optional[Dict[str, Any]] = None
+    ):
         """
         Check metric against all rules.
 
@@ -153,7 +155,8 @@ class AlertSystem:
         }[rule.severity]
 
         self.logger.warning(
-            f"{emoji} ALERT [{rule.severity.value.upper()}] {rule.name}: " f"{alert.message}"
+            f"{emoji} ALERT [{rule.severity.value.upper()}] {rule.name}: "
+            f"{alert.message}"
         )
 
         # Call callback

@@ -119,11 +119,15 @@ class RefinementExecutor:
         )
 
         # Step 4: Invoke LLM for refinement
-        logger.info(f"🔄 Refining {self.output_type} (iteration {iteration}, {len(issues)} issues)")
+        logger.info(
+            f"🔄 Refining {self.output_type} (iteration {iteration}, {len(issues)} issues)"
+        )
 
         try:
             refined = await self.llm_invoke_func(
-                prompt=prompt, expected_fields=list(output.keys()), fallback_factory=lambda: output
+                prompt=prompt,
+                expected_fields=list(output.keys()),
+                fallback_factory=lambda: output,
             )
         except Exception as e:
             logger.error(f"Refinement LLM invocation failed: {e}")
@@ -178,7 +182,9 @@ class RefinementExecutor:
                     if hasattr(f, "name") and hasattr(f, "description")
                     else str(f)
                 )
-                for f in self.golden_data.features[:10]  # Limit to prevent prompt overflow
+                for f in self.golden_data.features[
+                    :10
+                ]  # Limit to prevent prompt overflow
             ]
 
         # Extract data models
@@ -249,7 +255,9 @@ class RefinementExecutor:
         return merged
 
     @staticmethod
-    def create_for_agent(agent, agent_role: str, output_type: str) -> "RefinementExecutor":
+    def create_for_agent(
+        agent, agent_role: str, output_type: str
+    ) -> "RefinementExecutor":
         """
         Factory method to create RefinementExecutor for an agent.
 
@@ -270,7 +278,9 @@ class RefinementExecutor:
         """
         # Get LLM invocation function
         llm_invoke_func = (
-            agent._invoke_llm_structured if hasattr(agent, "_invoke_llm_structured") else None
+            agent._invoke_llm_structured
+            if hasattr(agent, "_invoke_llm_structured")
+            else None
         )
 
         if not llm_invoke_func:

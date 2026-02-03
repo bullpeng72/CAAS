@@ -453,7 +453,9 @@ Generated code is licensed under the same license as the CAAS project.
         cicd_files = {}
 
         # GitHub Actions
-        cicd_files[".github/workflows/ci.yml"] = self._generate_github_actions(project_name)
+        cicd_files[".github/workflows/ci.yml"] = self._generate_github_actions(
+            project_name
+        )
 
         # GitLab CI
         cicd_files[".gitlab-ci.yml"] = self._generate_gitlab_ci(project_name)

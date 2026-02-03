@@ -172,7 +172,9 @@ class CRUDEntityExtractor(LoggerMixin):
 
         return entities
 
-    def _extract_fields(self, entity_name: str, tasks: List[TaskMapping]) -> List[FieldDefinition]:
+    def _extract_fields(
+        self, entity_name: str, tasks: List[TaskMapping]
+    ) -> List[FieldDefinition]:
         """
         Task description에서 필드 추출
 
@@ -275,7 +277,9 @@ class CRUDEntityExtractor(LoggerMixin):
 
         return field
 
-    def _add_default_fields(self, fields: List[FieldDefinition]) -> List[FieldDefinition]:
+    def _add_default_fields(
+        self, fields: List[FieldDefinition]
+    ) -> List[FieldDefinition]:
         """
         기본 필드 추가 (id, created_at, updated_at)
 

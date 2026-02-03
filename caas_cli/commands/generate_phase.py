@@ -23,12 +23,20 @@ from caas_cli.utils import (
 
 @click.command(name="generate-phase")
 @click.option(
-    "--phase", type=click.IntRange(0, 5), required=True, help="BMAD phase to execute (0-5)"
+    "--phase",
+    type=click.IntRange(0, 5),
+    required=True,
+    help="BMAD phase to execute (0-5)",
 )
 @click.option(
-    "--input", "-i", type=click.Path(exists=True), help="Input directory from previous phase"
+    "--input",
+    "-i",
+    type=click.Path(exists=True),
+    help="Input directory from previous phase",
 )
-@click.option("--requirement", "-r", type=str, help="Initial requirement (Phase 0 only)")
+@click.option(
+    "--requirement", "-r", type=str, help="Initial requirement (Phase 0 only)"
+)
 @click.option("--domain", "-d", type=str, help="Domain hint (Phase 0 only)")
 @click.option(
     "--deployment-target",
@@ -174,11 +182,15 @@ async def generate_phase(
         output_path.mkdir(parents=True, exist_ok=True)
 
         if phase == 0:
-            result = await _execute_phase_0(framework, requirement, domain, output_path, verbose)
+            result = await _execute_phase_0(
+                framework, requirement, domain, output_path, verbose
+            )
         elif phase == 1:
             result = await _execute_phase_1(framework, input, output_path, verbose)
         elif phase == 2:
-            result = await _execute_phase_2(framework, input, workflow_type, output_path, verbose)
+            result = await _execute_phase_2(
+                framework, input, workflow_type, output_path, verbose
+            )
         elif phase == 3:
             result = await _execute_phase_3(framework, input, output_path, verbose)
         elif phase == 4:
@@ -333,7 +345,9 @@ async def _execute_phase_2(framework, input_dir, workflow_type, output_path, ver
     )
 
     # Phase 2 only returns architecture
-    architecture = await engine._phase_2_architecture(requirement, golden_data, analysis)
+    architecture = await engine._phase_2_architecture(
+        requirement, golden_data, analysis
+    )
 
     if verbose:
         click.echo()
@@ -446,7 +460,9 @@ async def _execute_phase_4(framework, input_dir, output_path, verbose):
     return {"spec": spec_yaml}
 
 
-async def _execute_phase_5(framework, input_dir, deployment_target, output_path, verbose):
+async def _execute_phase_5(
+    framework, input_dir, deployment_target, output_path, verbose
+):
     """Phase 5: Delivery"""
     echo_progress("Generating production code...")
 
@@ -463,7 +479,8 @@ async def _execute_phase_5(framework, input_dir, deployment_target, output_path,
         # Try parent directories
         for i in range(5, 0, -1):
             try_path = (
-                Path(str(input_path).replace(f"phase{i}", f"phase{i-1}")) / "golden_data.json"
+                Path(str(input_path).replace(f"phase{i}", f"phase{i-1}"))
+                / "golden_data.json"
             )
             if try_path.exists():
                 golden_data_path = try_path
@@ -489,7 +506,9 @@ async def _execute_phase_5(framework, input_dir, deployment_target, output_path,
         use_expert_agents=True,
     )
 
-    generated_code = await engine._phase_5_delivery(spec_yaml, golden_data, deployment_target)
+    generated_code = await engine._phase_5_delivery(
+        spec_yaml, golden_data, deployment_target
+    )
 
     if verbose:
         click.echo()

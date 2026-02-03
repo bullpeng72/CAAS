@@ -126,7 +126,9 @@ class DocumentSharder:
 
         # 절감 비율 계산 (원본 vs 샤드+오버헤드)
         reduction = (
-            max(0.0, 1.0 - (total_with_overhead / total_tokens)) if total_tokens > 0 else 0.0
+            max(0.0, 1.0 - (total_with_overhead / total_tokens))
+            if total_tokens > 0
+            else 0.0
         )
 
         result = ShardingResult(
@@ -177,7 +179,9 @@ class DocumentSharder:
                     shards.append(shard)
 
                     # 컨텍스트 업데이트 (이전 섹션 요약)
-                    context_summary = self._create_summary(current_header, current_section[:3])
+                    context_summary = self._create_summary(
+                        current_header, current_section[:3]
+                    )
                     current_section = []
 
                 current_header = header_match.group(2)
@@ -244,7 +248,9 @@ class DocumentSharder:
                     )
                 )
 
-                context_summary = self._create_summary("Previous features", current_feature[:2])
+                context_summary = self._create_summary(
+                    "Previous features", current_feature[:2]
+                )
                 current_feature = []
 
             current_feature.append(line)
@@ -298,7 +304,9 @@ class DocumentSharder:
                 )
 
                 # 컨텍스트 업데이트
-                context_summary = self._create_summary(f"Chunk {len(shards)}", current_chunk[:3])
+                context_summary = self._create_summary(
+                    f"Chunk {len(shards)}", current_chunk[:3]
+                )
                 current_chunk = []
                 current_tokens = 0
 
@@ -348,7 +356,9 @@ class DocumentSharder:
                     )
                 )
 
-                context_summary = self._create_summary("Previous content", [current_chunk[0][:100]])
+                context_summary = self._create_summary(
+                    "Previous content", [current_chunk[0][:100]]
+                )
                 current_chunk = []
                 current_tokens = 0
 

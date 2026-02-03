@@ -61,9 +61,13 @@ def profile():
 
 @profile.command(name="run")
 @click.argument("requirement")
-@click.option("--output", "-o", type=click.Path(), help="Output directory for generated code")
+@click.option(
+    "--output", "-o", type=click.Path(), help="Output directory for generated code"
+)
 @click.option("--report", "-r", type=click.Path(), help="Save profiling report to file")
-@click.option("--enable-memory-profiling", is_flag=True, help="Enable memory profiling (slower)")
+@click.option(
+    "--enable-memory-profiling", is_flag=True, help="Enable memory profiling (slower)"
+)
 @handle_keyboard_interrupt
 def run(requirement, output, report, enable_memory_profiling):
     """
@@ -150,7 +154,9 @@ def run(requirement, output, report, enable_memory_profiling):
 
 def _display_profile_summary(report: dict):
     """Display profiling report summary"""
-    console.print(Panel.fit("[bold cyan]Profiling Summary[/bold cyan]", border_style="cyan"))
+    console.print(
+        Panel.fit("[bold cyan]Profiling Summary[/bold cyan]", border_style="cyan")
+    )
     console.print()
 
     # Overall metrics
@@ -240,7 +246,9 @@ def report(latest, session, detailed, export):
             return
 
         console.print()
-        console.print(Panel.fit("[bold cyan]Performance Report[/bold cyan]", border_style="cyan"))
+        console.print(
+            Panel.fit("[bold cyan]Performance Report[/bold cyan]", border_style="cyan")
+        )
         console.print()
 
         # Display report
@@ -250,7 +258,9 @@ def report(latest, session, detailed, export):
             # Function-level profiling
             if report_data.get("functions"):
                 console.print(
-                    Panel.fit("[bold cyan]Function Profiling[/bold cyan]", border_style="blue")
+                    Panel.fit(
+                        "[bold cyan]Function Profiling[/bold cyan]", border_style="blue"
+                    )
                 )
                 console.print()
 
@@ -264,9 +274,7 @@ def report(latest, session, detailed, export):
                     report_data["functions"].items(),
                     key=lambda x: x[1].get("total_time", 0),
                     reverse=True,
-                )[
-                    :20
-                ]:  # Top 20
+                )[:20]:  # Top 20
                     calls = func_data.get("calls", 0)
                     total_time = func_data.get("total_time", 0)
                     avg_time = total_time / calls if calls > 0 else 0
@@ -296,10 +304,18 @@ def report(latest, session, detailed, export):
 
 @profile.command(name="bottlenecks")
 @click.option(
-    "--threshold", "-t", type=float, default=1.0, help="Time threshold in seconds (default: 1.0)"
+    "--threshold",
+    "-t",
+    type=float,
+    default=1.0,
+    help="Time threshold in seconds (default: 1.0)",
 )
 @click.option(
-    "--limit", "-l", type=int, default=10, help="Number of bottlenecks to show (default: 10)"
+    "--limit",
+    "-l",
+    type=int,
+    default=10,
+    help="Number of bottlenecks to show (default: 10)",
 )
 @handle_keyboard_interrupt
 def bottlenecks(threshold, limit):
@@ -330,7 +346,9 @@ def bottlenecks(threshold, limit):
         from caas_framework.performance import get_profiler
 
         profiler = get_profiler()
-        bottlenecks_data = profiler.identify_bottlenecks(threshold=threshold, limit=limit)
+        bottlenecks_data = profiler.identify_bottlenecks(
+            threshold=threshold, limit=limit
+        )
 
         if not bottlenecks_data:
             echo_success("✅ No significant bottlenecks found")
@@ -350,11 +368,16 @@ def bottlenecks(threshold, limit):
 
         for bottleneck in bottlenecks_data:
             severity = bottleneck.get("severity", "low")
-            severity_icon = {"critical": "🔴", "high": "🟠", "medium": "🟡", "low": "🟢"}.get(
-                severity, "⚪"
-            )
+            severity_icon = {
+                "critical": "🔴",
+                "high": "🟠",
+                "medium": "🟡",
+                "low": "🟢",
+            }.get(severity, "⚪")
 
-            branch = tree.add(f"{severity_icon} {bottleneck['name']} - {bottleneck['time']:.2f}s")
+            branch = tree.add(
+                f"{severity_icon} {bottleneck['name']} - {bottleneck['time']:.2f}s"
+            )
 
             if bottleneck.get("suggestion"):
                 branch.add(f"💡 {bottleneck['suggestion']}")
@@ -453,7 +476,10 @@ def compare(session1, session2, metric):
             diff_pct = (diff / time1 * 100) if time1 > 0 else 0
 
             table.add_row(
-                "Total Time", f"{time1:.2f}s", f"{time2:.2f}s", f"{diff:+.2f}s ({diff_pct:+.1f}%)"
+                "Total Time",
+                f"{time1:.2f}s",
+                f"{time2:.2f}s",
+                f"{diff:+.2f}s ({diff_pct:+.1f}%)",
             )
 
         elif metric == "memory":
@@ -475,7 +501,9 @@ def compare(session1, session2, metric):
             diff = calls2 - calls1
             diff_pct = (diff / calls1 * 100) if calls1 > 0 else 0
 
-            table.add_row("LLM Calls", str(calls1), str(calls2), f"{diff:+d} ({diff_pct:+.1f}%)")
+            table.add_row(
+                "LLM Calls", str(calls1), str(calls2), f"{diff:+d} ({diff_pct:+.1f}%)"
+            )
 
         elif metric == "cache_hits":
             hits1 = report1.get("cache_hits", 0)
@@ -486,14 +514,19 @@ def compare(session1, session2, metric):
             rate2 = (hits2 / total2 * 100) if total2 > 0 else 0
 
             table.add_row(
-                "Cache Hit Rate", f"{rate1:.1f}%", f"{rate2:.1f}%", f"{rate2-rate1:+.1f}%"
+                "Cache Hit Rate",
+                f"{rate1:.1f}%",
+                f"{rate2:.1f}%",
+                f"{rate2-rate1:+.1f}%",
             )
 
         console.print(table)
         console.print()
 
         # Verdict
-        improvement = diff < 0 if metric in ["time", "memory", "llm_calls"] else diff > 0
+        improvement = (
+            diff < 0 if metric in ["time", "memory", "llm_calls"] else diff > 0
+        )
         if improvement:
             echo_success(f"✅ Session 2 shows improvement in {metric}")
         else:

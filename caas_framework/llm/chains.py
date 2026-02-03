@@ -34,7 +34,8 @@ except ImportError as e:
     import logging
 
     logging.getLogger("llm.chains").warning(
-        f"LangChain Core를 사용할 수 없습니다: {e}. " "설치하려면: pip install langchain-core"
+        f"LangChain Core를 사용할 수 없습니다: {e}. "
+        "설치하려면: pip install langchain-core"
     )
 
 import logging
@@ -151,7 +152,9 @@ class RequirementAnalysisChain(BaseChainFactory):
         task_capability_mappings = ""
         for task_type, capabilities in TASK_TOOL_MAPPINGS.items():
             cap_names = ", ".join([c.value for c in capabilities])
-            task_capability_mappings += f"  • {task_type.value}: requires [{cap_names}]\n"
+            task_capability_mappings += (
+                f"  • {task_type.value}: requires [{cap_names}]\n"
+            )
 
         # 템플릿에 정보 주입
         ontology_context = ONTOLOGY_CONTEXT_TEMPLATE.format(
@@ -217,7 +220,9 @@ class RequirementAnalysisChain(BaseChainFactory):
 
         return unique_keywords[:20]  # 최대 20개
 
-    def _match_pattern(self, requirement: str, keywords: List[str]) -> Optional[Dict[str, Any]]:
+    def _match_pattern(
+        self, requirement: str, keywords: List[str]
+    ) -> Optional[Dict[str, Any]]:
         """
         요구사항과 키워드를 기반으로 최적의 패턴을 찾습니다.
 
@@ -247,7 +252,11 @@ class RequirementAnalysisChain(BaseChainFactory):
 
                 # 패턴 ID로 실제 패턴 객체 찾기
                 pattern = next(
-                    (p for p in pattern_matcher.builtin_patterns if p.id == best_match.pattern_id),
+                    (
+                        p
+                        for p in pattern_matcher.builtin_patterns
+                        if p.id == best_match.pattern_id
+                    ),
                     None,
                 )
 
@@ -326,7 +335,15 @@ class RequirementAnalysisChain(BaseChainFactory):
                 "content",
                 "social",
             ],
-            "research": ["연구", "분석", "조사", "research", "analysis", "investigation", "study"],
+            "research": [
+                "연구",
+                "분석",
+                "조사",
+                "research",
+                "analysis",
+                "investigation",
+                "study",
+            ],
             "customer_service": [
                 "고객",
                 "지원",
@@ -381,10 +398,14 @@ class RequirementAnalysisChain(BaseChainFactory):
         task_types = "\n".join([f"  - {task}" for task in pattern.task_types])
 
         # 추천 도구 포매팅
-        recommended_tools = "\n".join([f"  - {tool}" for tool in pattern.recommended_tools])
+        recommended_tools = "\n".join(
+            [f"  - {tool}" for tool in pattern.recommended_tools]
+        )
 
         # 적응 제안 포매팅
-        adaptations = "\n".join([f"  - {adapt}" for adapt in match.suggested_adaptations])
+        adaptations = "\n".join(
+            [f"  - {adapt}" for adapt in match.suggested_adaptations]
+        )
 
         # 템플릿 채우기
         pattern_context = PATTERN_CONTEXT_TEMPLATE.format(
@@ -396,12 +417,16 @@ class RequirementAnalysisChain(BaseChainFactory):
             task_types=task_types,
             recommended_tools=recommended_tools,
             workflow_type=pattern.workflow_type,
-            adaptations=adaptations if adaptations else "  - No specific adaptations needed",
+            adaptations=adaptations
+            if adaptations
+            else "  - No specific adaptations needed",
         )
 
         return pattern_context
 
-    def _format_golden_data_for_analysis(self, golden_data: "ConcretizedRequirement") -> str:
+    def _format_golden_data_for_analysis(
+        self, golden_data: "ConcretizedRequirement"
+    ) -> str:
         """
         Golden Data를 요구사항 분석에 활용할 수 있는 형태로 포맷팅합니다.
 
@@ -414,7 +439,9 @@ class RequirementAnalysisChain(BaseChainFactory):
         context = "\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
         context += "🎯 **GOLDEN DATA CONTEXT** (Concretized Requirement)\n"
         context += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-        context += "The following is a detailed, concrete specification of the requirement.\n"
+        context += (
+            "The following is a detailed, concrete specification of the requirement.\n"
+        )
         context += "Use this as the primary reference for your analysis.\n\n"
 
         # System Scope
@@ -423,7 +450,9 @@ class RequirementAnalysisChain(BaseChainFactory):
         context += f"- Purpose: {golden_data.system_scope.purpose}\n"
         context += f"- Domain: {golden_data.domain}\n"
         context += f"- System Type: {golden_data.system_scope.system_type}\n"
-        context += f"- Target Users: {', '.join(golden_data.system_scope.target_users)}\n\n"
+        context += (
+            f"- Target Users: {', '.join(golden_data.system_scope.target_users)}\n\n"
+        )
 
         # Features
         context += f"**Features ({len(golden_data.features)}):**\n"
@@ -433,14 +462,18 @@ class RequirementAnalysisChain(BaseChainFactory):
             if feature.acceptance_criteria:
                 context += f"   - Acceptance Criteria: {len(feature.acceptance_criteria)} criteria defined\n"
             if feature.related_features:
-                context += f"   - Related features: {', '.join(feature.related_features)}\n"
+                context += (
+                    f"   - Related features: {', '.join(feature.related_features)}\n"
+                )
         context += "\n"
 
         # Data Models
         if golden_data.data_models:
             context += f"**Data Models ({len(golden_data.data_models)}):**\n"
             for model in golden_data.data_models:
-                context += f"- {model.entity_name}: {len(model.attributes)} attributes\n"
+                context += (
+                    f"- {model.entity_name}: {len(model.attributes)} attributes\n"
+                )
             context += "\n"
 
         # UI Components
@@ -476,7 +509,9 @@ class RequirementAnalysisChain(BaseChainFactory):
 
         return context
 
-    def _validate_with_ontology(self, result: RequirementAnalysis) -> RequirementAnalysis:
+    def _validate_with_ontology(
+        self, result: RequirementAnalysis
+    ) -> RequirementAnalysis:
         """
         LLM 분석 결과를 온톨로지로 검증하고 보완합니다.
 
@@ -496,7 +531,9 @@ class RequirementAnalysisChain(BaseChainFactory):
         validated_agents = []
         for agent in result.agents:
             # 역할 정규화
-            inferred_role = ontology.infer_role_from_description(f"{agent.role} {agent.goal}")
+            inferred_role = ontology.infer_role_from_description(
+                f"{agent.role} {agent.goal}"
+            )
 
             # 원래 역할이 표준 역할과 다르면 경고
             if agent.role.lower() != inferred_role.value:
@@ -504,10 +541,13 @@ class RequirementAnalysisChain(BaseChainFactory):
 
             # 에이전트 관련 태스크 찾기
             agent_tasks = [
-                t for t in result.tasks if t.assigned_agent.lower() in agent.role.lower()
+                t
+                for t in result.tasks
+                if t.assigned_agent.lower() in agent.role.lower()
             ]
             task_types = [
-                ontology.infer_task_type_from_description(t.description) for t in agent_tasks
+                ontology.infer_task_type_from_description(t.description)
+                for t in agent_tasks
             ]
 
             # 추천 도구 계산
@@ -522,7 +562,9 @@ class RequirementAnalysisChain(BaseChainFactory):
             # 누락된 필수 도구 추가
             missing_tools = set(recommended_tools) - current_tools
             if missing_tools:
-                logger.info(f"✅ '{agent.role}'에 도구 추가: {', '.join(list(missing_tools)[:3])}")
+                logger.info(
+                    f"✅ '{agent.role}'에 도구 추가: {', '.join(list(missing_tools)[:3])}"
+                )
 
             # 에이전트 업데이트
             validated_agent = agent.model_copy(
@@ -537,7 +579,12 @@ class RequirementAnalysisChain(BaseChainFactory):
 
             # 할당된 에이전트 역할 확인
             assigned_agent = next(
-                (a for a in validated_agents if a.role.lower() in task.assigned_agent.lower()), None
+                (
+                    a
+                    for a in validated_agents
+                    if a.role.lower() in task.assigned_agent.lower()
+                ),
+                None,
             )
 
             if assigned_agent:
@@ -560,7 +607,8 @@ class RequirementAnalysisChain(BaseChainFactory):
 
         # 3. 도구 검증 (suggested_tools)
         all_task_types = [
-            ontology.infer_task_type_from_description(t.description) for t in validated_tasks
+            ontology.infer_task_type_from_description(t.description)
+            for t in validated_tasks
         ]
         required_tools = set()
 
@@ -651,9 +699,7 @@ class RequirementAnalysisChain(BaseChainFactory):
             # ═══════════════════════════════════════════════════════════
             tools_section = ""
             if tools_info:
-                tools_section = (
-                    f"\n\n**Available Tools (categorized with use cases):**\n{tools_info}\n"
-                )
+                tools_section = f"\n\n**Available Tools (categorized with use cases):**\n{tools_info}\n"
                 logger.info("카테고리별 도구 정보 포함")
             elif available_tools:
                 tools_section = "\n\n**Available Tools:**\n"
@@ -663,7 +709,9 @@ class RequirementAnalysisChain(BaseChainFactory):
 
             # 추천 도구 추가
             if recommended_tools:
-                tools_section += "\n**🎯 Recommended Tools (based on requirement keywords):**\n"
+                tools_section += (
+                    "\n**🎯 Recommended Tools (based on requirement keywords):**\n"
+                )
                 tools_section += f"{', '.join(recommended_tools)}\n"
                 tools_section += "These tools are highly relevant to the requirement. Prioritize them when selecting tools.\n"
                 logger.info(f"추천 도구: {len(recommended_tools)}개")
@@ -706,7 +754,9 @@ class RequirementAnalysisChain(BaseChainFactory):
             # 사용자가 workflow_type을 지정한 경우 덮어쓰기
             if workflow_type is not None:
                 result["workflow_type"] = workflow_type
-                logger.info(f"워크플로우 유형을 사용자 선택값으로 설정: {workflow_type}")
+                logger.info(
+                    f"워크플로우 유형을 사용자 선택값으로 설정: {workflow_type}"
+                )
 
             # RequirementAnalysis 객체 생성
             analysis_result = RequirementAnalysis(**result)
@@ -723,13 +773,19 @@ class RequirementAnalysisChain(BaseChainFactory):
                     requirement=requirement, use_korean=use_korean
                 )
 
-                analysis_result.domain_classification = domain_classification.model_dump()
+                analysis_result.domain_classification = (
+                    domain_classification.model_dump()
+                )
                 logger.info(
                     f"🎯 Domain Type: {domain_classification.domain_type} "
                     f"(confidence: {domain_classification.confidence:.2f})"
                 )
-                logger.info(f"   Core entities: {', '.join(domain_classification.core_entities)}")
-                logger.info(f"   Execution pattern: {domain_classification.execution_pattern}")
+                logger.info(
+                    f"   Core entities: {', '.join(domain_classification.core_entities)}"
+                )
+                logger.info(
+                    f"   Execution pattern: {domain_classification.execution_pattern}"
+                )
             except Exception as e:
                 logger.warning(f"⚠️ Domain classification failed: {e}")
                 # 실패 시 분석 중단하지 않고 계속 진행
@@ -740,7 +796,9 @@ class RequirementAnalysisChain(BaseChainFactory):
             if enable_validation:
                 analysis_result = self._validate_with_ontology(analysis_result)
 
-            logger.info("🎉 Phase 2 분석 완료 (패턴 + 온톨로지 + Domain Classification + 검증)")
+            logger.info(
+                "🎉 Phase 2 분석 완료 (패턴 + 온톨로지 + Domain Classification + 검증)"
+            )
             return analysis_result
 
         except Exception as e:
@@ -791,7 +849,9 @@ class AgentDesignChain(BaseChainFactory):
             AgentSpec: 에이전트 스펙
         """
         logger.info(f"에이전트 설계: {role}")
-        tools_str = "\n".join([f"- {t['id']}: {t['description']}" for t in available_tools])
+        tools_str = "\n".join(
+            [f"- {t['id']}: {t['description']}" for t in available_tools]
+        )
 
         # 기본 inputs
         inputs = {
@@ -813,8 +873,12 @@ class AgentDesignChain(BaseChainFactory):
             metrics_summary = (
                 f"Completeness: {quality_metrics.get('completeness_score', 0.7):.2f}, "
             )
-            metrics_summary += f"Clarity: {quality_metrics.get('clarity_score', 0.7):.2f}, "
-            metrics_summary += f"Complexity: {quality_metrics.get('complexity_score', 5)}"
+            metrics_summary += (
+                f"Clarity: {quality_metrics.get('clarity_score', 0.7):.2f}, "
+            )
+            metrics_summary += (
+                f"Complexity: {quality_metrics.get('complexity_score', 5)}"
+            )
             inputs["quality_context"] = metrics_summary
             logger.info("  ✓ 품질 메트릭 컨텍스트 포함")
 
@@ -1093,12 +1157,16 @@ class AgentGenerationPipeline:
 
         # 1. 요구사항 분석
         analysis = self.analysis_chain.analyze(requirement)
-        logger.info(f"분석 완료: {len(analysis.agents)}개 에이전트, {len(analysis.tasks)}개 태스크")
+        logger.info(
+            f"분석 완료: {len(analysis.agents)}개 에이전트, {len(analysis.tasks)}개 태스크"
+        )
 
         # 2. 에이전트 상세 설계
         designed_agents = []
         for agent_req in analysis.agents:
-            related_tasks = [t.name for t in analysis.tasks if t.assigned_agent == agent_req.role]
+            related_tasks = [
+                t.name for t in analysis.tasks if t.assigned_agent == agent_req.role
+            ]
             agent_spec = self.agent_design_chain.design(
                 domain=analysis.domain,
                 role=agent_req.role,
@@ -1179,7 +1247,10 @@ class DomainClassificationChain(BaseChainFactory):
         return DomainClassification
 
     def classify(
-        self, requirement: str, use_korean: bool = False, llm_config: Optional["LLMConfig"] = None
+        self,
+        requirement: str,
+        use_korean: bool = False,
+        llm_config: Optional["LLMConfig"] = None,
     ) -> DomainClassification:
         """
         요구사항의 도메인 타입을 분류합니다.
@@ -1195,7 +1266,9 @@ class DomainClassificationChain(BaseChainFactory):
         logger.info(f"도메인 분류 시작: {requirement[:100]}...")
 
         # 한글 프롬프트 선택
-        user_prompt = DOMAIN_CLASSIFICATION_USER_KO if use_korean else DOMAIN_CLASSIFICATION_USER
+        user_prompt = (
+            DOMAIN_CLASSIFICATION_USER_KO if use_korean else DOMAIN_CLASSIFICATION_USER
+        )
 
         # 프롬프트 변수
         prompt_vars = {"requirement": requirement}
@@ -1205,7 +1278,9 @@ class DomainClassificationChain(BaseChainFactory):
             try:
                 result_dict = self.invoke(prompt_vars)
                 result = DomainClassification(**result_dict)
-                logger.info(f"분류 완료: {result.domain_type} (confidence: {result.confidence})")
+                logger.info(
+                    f"분류 완료: {result.domain_type} (confidence: {result.confidence})"
+                )
                 return result
             except Exception as e:
                 logger.error(f"LangChain 체인 실행 실패: {e}")
@@ -1223,10 +1298,14 @@ class DomainClassificationChain(BaseChainFactory):
             ]
 
             try:
-                response = client.chat(messages, response_format={"type": "json_object"})
+                response = client.chat(
+                    messages, response_format={"type": "json_object"}
+                )
                 result_dict = json.loads(response)
                 result = DomainClassification(**result_dict)
-                logger.info(f"분류 완료: {result.domain_type} (confidence: {result.confidence})")
+                logger.info(
+                    f"분류 완료: {result.domain_type} (confidence: {result.confidence})"
+                )
                 return result
             except Exception as e:
                 logger.error(f"LLM 호출 실패: {e}")
@@ -1291,7 +1370,9 @@ class SystemArchitectChain(BaseChainFactory):
 
         # 입력 준비
         inputs = {
-            "requirement_analysis": self._format_requirement_analysis(requirement_analysis),
+            "requirement_analysis": self._format_requirement_analysis(
+                requirement_analysis
+            ),
             "domain": requirement_analysis.domain,
             "workflow_type": requirement_analysis.workflow_type.value,
             "num_agents": len(requirement_analysis.agents),
@@ -1356,16 +1437,16 @@ class SystemArchitectChain(BaseChainFactory):
         for task in analysis.tasks:
             text += f"- {task.name}: {task.description}\n"
             text += f"  Assigned to: {task.assigned_agent}\n"
-            text += (
-                f"  Dependencies: {', '.join(task.dependencies) if task.dependencies else 'None'}\n"
-            )
+            text += f"  Dependencies: {', '.join(task.dependencies) if task.dependencies else 'None'}\n"
             text += f"  Output Type: {task.output_type}\n"
 
         text += f"\n## Workflow Type\n{analysis.workflow_type.value}\n"
 
         text += "\n## Suggested Tools\n"
         text += (
-            ", ".join(analysis.suggested_tools) if analysis.suggested_tools else "None specified"
+            ", ".join(analysis.suggested_tools)
+            if analysis.suggested_tools
+            else "None specified"
         )
 
         text += "\n\n## Constraints\n"
@@ -1485,13 +1566,17 @@ class RequirementConcretizationChain(BaseChainFactory):
         text += f"**Project Name**: {concretized.system_scope.project_name}\n"
         text += f"**Purpose**: {concretized.system_scope.purpose}\n"
         text += f"**System Type**: {concretized.system_scope.system_type}\n"
-        text += f"**Target Users**: {', '.join(concretized.system_scope.target_users)}\n"
+        text += (
+            f"**Target Users**: {', '.join(concretized.system_scope.target_users)}\n"
+        )
         text += f"**Description**: {concretized.system_scope.scope_description}\n\n"
 
         # Features
         text += f"## Features ({len(concretized.features)})\n"
         for feature in concretized.features:
-            text += f"\n### {feature.id}: {feature.name} (Priority: {feature.priority})\n"
+            text += (
+                f"\n### {feature.id}: {feature.name} (Priority: {feature.priority})\n"
+            )
             text += f"{feature.description}\n\n"
 
             if feature.acceptance_criteria:
@@ -1519,7 +1604,9 @@ class RequirementConcretizationChain(BaseChainFactory):
                 if model.attributes:
                     text += "**Attributes**:\n"
                     for attr in model.attributes:
-                        text += f"- {attr.name}: {attr.type} (required: {attr.required})\n"
+                        text += (
+                            f"- {attr.name}: {attr.type} (required: {attr.required})\n"
+                        )
 
                 if model.relationships:
                     text += "\n**Relationships**:\n"

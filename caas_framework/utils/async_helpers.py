@@ -92,7 +92,9 @@ class TimeoutManager:
             @wraps(func)
             async def wrapper(*args, **kwargs):
                 success, result, error = await TimeoutManager.execute_with_timeout(
-                    func(*args, **kwargs), timeout=timeout, operation_name=operation_name
+                    func(*args, **kwargs),
+                    timeout=timeout,
+                    operation_name=operation_name,
                 )
                 if not success:
                     raise TimeoutError(error)
@@ -175,7 +177,9 @@ class RetryStrategy:
 
                     if success:
                         if attempt > 0:
-                            log.info(f"✅ {operation_name} succeeded on attempt {attempt + 1}")
+                            log.info(
+                                f"✅ {operation_name} succeeded on attempt {attempt + 1}"
+                            )
                         return (True, result, errors)
                     else:
                         errors.append(error)
@@ -183,7 +187,9 @@ class RetryStrategy:
                     # No timeout
                     result = await func()
                     if attempt > 0:
-                        log.info(f"✅ {operation_name} succeeded on attempt {attempt + 1}")
+                        log.info(
+                            f"✅ {operation_name} succeeded on attempt {attempt + 1}"
+                        )
                     return (True, result, errors)
 
             except Exception as e:
@@ -255,7 +261,9 @@ class OperationTimer:
         print(f"Duration: {timer.duration}s")
     """
 
-    def __init__(self, operation_name: str, logger_instance: Optional[logging.Logger] = None):
+    def __init__(
+        self, operation_name: str, logger_instance: Optional[logging.Logger] = None
+    ):
         self.operation_name = operation_name
         self.logger = logger_instance or logger
         self.start_time = None
@@ -271,8 +279,12 @@ class OperationTimer:
         self.duration = self.end_time - self.start_time
 
         if exc_type is None:
-            self.logger.info(f"✅ {self.operation_name} completed in {self.duration:.2f}s")
+            self.logger.info(
+                f"✅ {self.operation_name} completed in {self.duration:.2f}s"
+            )
         else:
-            self.logger.error(f"❌ {self.operation_name} failed after {self.duration:.2f}s")
+            self.logger.error(
+                f"❌ {self.operation_name} failed after {self.duration:.2f}s"
+            )
 
         return False  # Don't suppress exceptions

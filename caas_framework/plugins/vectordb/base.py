@@ -88,7 +88,9 @@ class VectorDBPlugin(Plugin):
         """
 
     @abstractmethod
-    async def delete(self, ids: List[str], namespace: Optional[str] = None) -> Dict[str, Any]:
+    async def delete(
+        self, ids: List[str], namespace: Optional[str] = None
+    ) -> Dict[str, Any]:
         """
         Delete vectors by ID
 
@@ -101,7 +103,9 @@ class VectorDBPlugin(Plugin):
         """
 
     @abstractmethod
-    async def get(self, ids: List[str], namespace: Optional[str] = None) -> List[VectorDocument]:
+    async def get(
+        self, ids: List[str], namespace: Optional[str] = None
+    ) -> List[VectorDocument]:
         """
         Retrieve vectors by ID
 

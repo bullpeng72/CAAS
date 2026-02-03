@@ -541,7 +541,9 @@ def get_examples_by_complexity(complexity: Complexity) -> List[RequirementExampl
 def get_examples_by_tag(tag: str) -> List[RequirementExample]:
     """Get all examples with a specific tag"""
     tag_lower = tag.lower()
-    return [ex for ex in REQUIREMENT_EXAMPLES if tag_lower in [t.lower() for t in ex.tags]]
+    return [
+        ex for ex in REQUIREMENT_EXAMPLES if tag_lower in [t.lower() for t in ex.tags]
+    ]
 
 
 def search_examples(query: str) -> List[RequirementExample]:
@@ -573,7 +575,9 @@ def get_example_summary() -> Dict[str, int]:
     """Get summary statistics of examples"""
     return {
         "total": len(REQUIREMENT_EXAMPLES),
-        "by_domain": {domain.value: len(get_examples_by_domain(domain)) for domain in Domain},
+        "by_domain": {
+            domain.value: len(get_examples_by_domain(domain)) for domain in Domain
+        },
         "by_complexity": {
             complexity.value: len(get_examples_by_complexity(complexity))
             for complexity in Complexity

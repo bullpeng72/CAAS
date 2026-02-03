@@ -70,11 +70,16 @@ class PortManager:
             if not content or content.strip() == "":
                 return {}
             data = json.loads(content)
-            return {int(port): PortAllocation(**allocation) for port, allocation in data.items()}
+            return {
+                int(port): PortAllocation(**allocation)
+                for port, allocation in data.items()
+            }
 
     def _save_registry(self, registry: Dict[int, PortAllocation]):
         """Save the port registry to disk."""
-        data = {str(port): allocation.model_dump() for port, allocation in registry.items()}
+        data = {
+            str(port): allocation.model_dump() for port, allocation in registry.items()
+        }
         with open(self.registry_path, "w") as f:
             json.dump(data, f, indent=2)
 
@@ -96,7 +101,10 @@ class PortManager:
             return port not in registry
 
     def allocate_port(
-        self, service_name: str, project_name: str = "default", preferred_port: Optional[int] = None
+        self,
+        service_name: str,
+        project_name: str = "default",
+        preferred_port: Optional[int] = None,
     ) -> int:
         """Allocate a port for a service.
 

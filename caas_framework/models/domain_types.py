@@ -119,7 +119,9 @@ class DomainClassification(BaseModel):
         default=ExecutionPattern.CRUD_APPLICATION, description="실행 패턴"
     )
 
-    keywords: List[str] = Field(default_factory=list, description="요구사항에서 추출한 주요 키워드")
+    keywords: List[str] = Field(
+        default_factory=list, description="요구사항에서 추출한 주요 키워드"
+    )
 
     alternate_types: List[DomainType] = Field(
         default_factory=list, description="대안 도메인 타입 (신뢰도 낮은 경우)"

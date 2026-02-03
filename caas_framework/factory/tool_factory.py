@@ -115,7 +115,12 @@ class ToolFactory:
                     "xml",
                 ],
                 ToolCapability.FILE_WRITE: ["write", "save", "create"],
-                ToolCapability.CODE_EXECUTE: ["code", "python", "execute", "interpreter"],
+                ToolCapability.CODE_EXECUTE: [
+                    "code",
+                    "python",
+                    "execute",
+                    "interpreter",
+                ],
                 ToolCapability.CALCULATION: ["calculator", "calculation", "math"],
                 ToolCapability.DATABASE: ["database", "sql", "query"],
                 ToolCapability.API_CALL: ["api", "rest", "http"],
@@ -152,7 +157,9 @@ class ToolFactory:
 
                 # Infer capabilities from category and tags
                 capabilities = []
-                all_keywords = " ".join([tool.category.value] + tool.tags + [tool.name]).lower()
+                all_keywords = " ".join(
+                    [tool.category.value] + tool.tags + [tool.name]
+                ).lower()
 
                 for cap, keywords in capability_keywords.items():
                     if any(kw in all_keywords for kw in keywords):
@@ -179,7 +186,9 @@ class ToolFactory:
                     class_name=class_name,
                 )
 
-            self.logger.info(f"Tool Ontology에서 {len(tools_map)}개 도구 정의 생성 완료")
+            self.logger.info(
+                f"Tool Ontology에서 {len(tools_map)}개 도구 정의 생성 완료"
+            )
 
         except Exception as e:
             self.logger.error(f"Tool Ontology 로드 실패: {e}")
@@ -310,7 +319,9 @@ class ToolFactory:
                 # 파라미터 처리
                 params = ""
                 if definition.parameters:
-                    param_items = [f"{k}={repr(v)}" for k, v in definition.parameters.items()]
+                    param_items = [
+                        f"{k}={repr(v)}" for k, v in definition.parameters.items()
+                    ]
                     params = ", ".join(param_items)
 
                 lines.append(f"{var_name} = {definition.class_name}({params})")
@@ -355,7 +366,9 @@ class ToolFactory:
             List[ToolDefinition]: 도구 정의 목록
         """
         tool_ids = self.CAPABILITY_TOOL_MAP.get(capability, [])
-        return [self.BUILTIN_TOOLS[tid] for tid in tool_ids if tid in self.BUILTIN_TOOLS]
+        return [
+            self.BUILTIN_TOOLS[tid] for tid in tool_ids if tid in self.BUILTIN_TOOLS
+        ]
 
     def validate_tools(self, tool_ids: List[str]) -> Dict[str, Any]:
         """

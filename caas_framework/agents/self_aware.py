@@ -75,7 +75,9 @@ class SelfAwareMixin:
         try:
             llm = getattr(self, "llm", None)
             if not llm:
-                logger.warning(f"[{self.agent_name}] No LLM available for capability assessment")
+                logger.warning(
+                    f"[{self.agent_name}] No LLM available for capability assessment"
+                )
                 # Fallback: assume capable
                 return CapabilityAssessment(
                     confidence=0.7,
@@ -195,7 +197,9 @@ Assessment:
         if missing_cap_str.lower() == "none":
             missing_capabilities = []
         else:
-            missing_capabilities = [c.strip() for c in missing_cap_str.split(";") if c.strip()]
+            missing_capabilities = [
+                c.strip() for c in missing_cap_str.split(";") if c.strip()
+            ]
 
         # Extract alternative approach
         alt_approach = data.get("ALTERNATIVE_APPROACH", None)
@@ -207,14 +211,18 @@ Assessment:
         if suggested_str.lower() == "none":
             suggested_agents = []
         else:
-            suggested_agents = [a.strip() for a in suggested_str.split(";") if a.strip()]
+            suggested_agents = [
+                a.strip() for a in suggested_str.split(";") if a.strip()
+            ]
 
         # Extract missing tools
         missing_tools_str = data.get("MISSING_TOOLS", "None")
         if missing_tools_str.lower() == "none":
             missing_tools = []
         else:
-            missing_tools = [t.strip() for t in missing_tools_str.split(";") if t.strip()]
+            missing_tools = [
+                t.strip() for t in missing_tools_str.split(";") if t.strip()
+            ]
 
         # Extract difficulty
         difficulty_str = data.get("DIFFICULTY", None)
@@ -237,7 +245,10 @@ Assessment:
         )
 
     async def execute_or_delegate(
-        self, task: str, context: Optional[Dict[str, Any]] = None, force_execute: bool = False
+        self,
+        task: str,
+        context: Optional[Dict[str, Any]] = None,
+        force_execute: bool = False,
     ) -> Any:
         """
         Execute task if confident, otherwise delegate or request help.
@@ -288,7 +299,10 @@ Assessment:
         raise NotImplementedError("Subclass must implement _execute_task")
 
     async def request_help(
-        self, task: str, assessment: CapabilityAssessment, context: Optional[Dict[str, Any]] = None
+        self,
+        task: str,
+        assessment: CapabilityAssessment,
+        context: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """
         Request help from other agents.

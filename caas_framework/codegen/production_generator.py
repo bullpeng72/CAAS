@@ -125,7 +125,8 @@ class ProductionCodeGenerator:
         # Enhanced injectors
         self.error_injector = (
             ErrorHandlingInjector(
-                enable_retry=self.config.enable_retry_logic, max_retries=self.config.max_retries
+                enable_retry=self.config.enable_retry_logic,
+                max_retries=self.config.max_retries,
             )
             if self.config.enable_error_handling
             else None
@@ -138,7 +139,9 @@ class ProductionCodeGenerator:
         )
 
         # Additional generators
-        self.doc_generator = DocumentationGenerator() if self.config.enable_docs else None
+        self.doc_generator = (
+            DocumentationGenerator() if self.config.enable_docs else None
+        )
         self.cicd_generator = CICDGenerator() if self.config.enable_cicd else None
         self.validator = (
             ExecutionValidator(
@@ -212,7 +215,9 @@ class ProductionCodeGenerator:
                     include_api_docs=True,
                     include_architecture_diagram=True,
                 )
-                doc_files = self.doc_generator.generate_all(golden_data, agents, tasks, doc_config)
+                doc_files = self.doc_generator.generate_all(
+                    golden_data, agents, tasks, doc_config
+                )
                 result.files.update(doc_files)
                 result.docs_generated = True
 
@@ -244,7 +249,9 @@ class ProductionCodeGenerator:
 
                     # Log validation issues
                     for issue in validation_result.issues[:5]:  # First 5 issues
-                        result.warnings.append(f"[{issue.severity}] {issue.file}: {issue.message}")
+                        result.warnings.append(
+                            f"[{issue.severity}] {issue.file}: {issue.message}"
+                        )
 
             result.success = True
 
@@ -275,9 +282,9 @@ class ProductionCodeGenerator:
 
         # Add error handling utilities
         if self.config.enable_circuit_breaker:
-            files["src/utils/error_handling.py"] = (
-                self.error_injector.generate_error_handling_utils()
-            )
+            files[
+                "src/utils/error_handling.py"
+            ] = self.error_injector.generate_error_handling_utils()
 
     def _inject_structured_logging(self, files: Dict[str, str]) -> None:
         """Inject structured logging (JSON format)"""
@@ -295,7 +302,9 @@ class ProductionCodeGenerator:
                     pass
 
         # Add logging utilities
-        files["src/utils/logging.py"] = self.logging_injector.generate_structured_logging_utils()
+        files[
+            "src/utils/logging.py"
+        ] = self.logging_injector.generate_structured_logging_utils()
 
     def _generate_comprehensive_tests(
         self, agents: List[AgentSpecModel], tasks: List[TaskSpecModel]
@@ -303,12 +312,12 @@ class ProductionCodeGenerator:
         """Generate comprehensive test suite with 80%+ coverage goal"""
         test_gen = TestGenerator()
 
-        files = test_gen.generate_all_tests(agents=agents, tasks=tasks, api_endpoints=[])
+        files = test_gen.generate_all_tests(
+            agents=agents, tasks=tasks, api_endpoints=[]
+        )
 
         # Add pytest.ini for coverage configuration
-        files[
-            "pytest.ini"
-        ] = f"""[pytest]
+        files["pytest.ini"] = f"""[pytest]
 testpaths = tests
 python_files = test_*.py
 python_functions = test_*
@@ -323,9 +332,7 @@ addopts =
 """
 
         # Add .coveragerc
-        files[
-            ".coveragerc"
-        ] = """[run]
+        files[".coveragerc"] = """[run]
 source = src
 omit =
     tests/*
@@ -348,9 +355,7 @@ directory = htmlcov
         """Add utility and configuration files"""
 
         # requirements-dev.txt
-        files[
-            "requirements-dev.txt"
-        ] = """# Development dependencies
+        files["requirements-dev.txt"] = """# Development dependencies
 pytest>=7.0.0
 pytest-cov>=4.0.0
 pytest-asyncio>=0.21.0
@@ -361,9 +366,7 @@ isort>=5.12.0
 """
 
         # Makefile for common tasks
-        files[
-            "Makefile"
-        ] = """
+        files["Makefile"] = """
 .PHONY: install test lint format clean
 
 install:
@@ -388,9 +391,7 @@ clean:
 """
 
         # .env.example
-        files[
-            ".env.example"
-        ] = """# Environment variables
+        files[".env.example"] = """# Environment variables
 OPENAI_API_KEY=your_api_key_here
 LOG_LEVEL=INFO
 ENVIRONMENT=development

@@ -208,7 +208,9 @@ class CAAS_API:
         Returns:
             GenerationResult with generated code files
         """
-        logger.info(f"Generating code from design: {len(agents)} agents, {len(tasks)} tasks")
+        logger.info(
+            f"Generating code from design: {len(agents)} agents, {len(tasks)} tasks"
+        )
 
         try:
             # Import here to avoid circular dependency
@@ -309,7 +311,9 @@ class CAAS_API:
         Returns:
             Configured LLM plugin
         """
-        logger.info(f"Initializing LLM: {self.config.llm_provider}/{self.config.llm_model}")
+        logger.info(
+            f"Initializing LLM: {self.config.llm_provider}/{self.config.llm_model}"
+        )
 
         # Import LLM plugin based on provider
         if self.config.llm_provider == "openai":
@@ -410,7 +414,9 @@ class CAAS_API:
             "phases_completed": [p.value for p in collab_result.phases_completed],
             "feedback_loops_executed": collab_result.feedback_loops_executed,
             "agents_used": (
-                list(collab_result.agent_summaries.keys()) if collab_result.agent_summaries else []
+                list(collab_result.agent_summaries.keys())
+                if collab_result.agent_summaries
+                else []
             ),
         }
 

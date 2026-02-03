@@ -73,7 +73,9 @@ class ModelConfig:
     plugin: LLMPlugin
     cost_per_1k_tokens: float = 0.0  # Cost per 1000 tokens
     max_tokens: int = 4096  # Maximum tokens
-    suitable_phases: List[AgentPhase] = field(default_factory=list)  # Best phases for this model
+    suitable_phases: List[AgentPhase] = field(
+        default_factory=list
+    )  # Best phases for this model
     priority: int = 1  # Higher = higher priority (used in fallback)
 
 
@@ -121,7 +123,9 @@ class ModelPerformanceTracker:
         """Get all metrics"""
         return self.metrics.copy()
 
-    def is_model_healthy(self, model_name: str, max_consecutive_failures: int = 3) -> bool:
+    def is_model_healthy(
+        self, model_name: str, max_consecutive_failures: int = 3
+    ) -> bool:
         """Check if model is healthy (not failing repeatedly)"""
         metrics = self.get_metrics(model_name)
         if not metrics:
@@ -138,7 +142,9 @@ class ModelPerformanceTracker:
 
         # Filter to models we have metrics for
         models_with_metrics = [
-            m for m in available_models if m in self.metrics and self.metrics[m].total_requests > 0
+            m
+            for m in available_models
+            if m in self.metrics and self.metrics[m].total_requests > 0
         ]
 
         if not models_with_metrics:
@@ -149,9 +155,14 @@ class ModelPerformanceTracker:
         if metric == "success_rate":
             return max(models_with_metrics, key=lambda m: self.metrics[m].success_rate)
         elif metric == "latency":
-            return min(models_with_metrics, key=lambda m: self.metrics[m].average_latency_ms)
+            return min(
+                models_with_metrics, key=lambda m: self.metrics[m].average_latency_ms
+            )
         elif metric == "cost":
-            return min(models_with_metrics, key=lambda m: self.metrics[m].average_cost_per_request)
+            return min(
+                models_with_metrics,
+                key=lambda m: self.metrics[m].average_cost_per_request,
+            )
         else:
             return models_with_metrics[0]
 
@@ -256,7 +267,9 @@ class MultiModelRouter(LLMPlugin):
                 self.logger.warning(f"Health check failed for {model_config.name}: {e}")
 
         is_healthy = healthy_count > 0
-        self.logger.debug(f"📊 Health check: {healthy_count}/{len(self.models)} models healthy")
+        self.logger.debug(
+            f"📊 Health check: {healthy_count}/{len(self.models)} models healthy"
+        )
 
         return is_healthy
 
@@ -407,7 +420,9 @@ class MultiModelRouter(LLMPlugin):
 
                 # Record success
                 latency_ms = (time.time() - start_time) * 1000
-                tokens_used = response.usage.get("total_tokens", 0) if response.usage else 0
+                tokens_used = (
+                    response.usage.get("total_tokens", 0) if response.usage else 0
+                )
                 self.performance_tracker.record_request(
                     model_name=model_name,
                     success=True,
@@ -481,7 +496,11 @@ class MultiModelRouter(LLMPlugin):
         Returns:
             Dictionary with performance metrics
         """
-        report = {"strategy": self.strategy.value, "total_models": len(self.models), "models": {}}
+        report = {
+            "strategy": self.strategy.value,
+            "total_models": len(self.models),
+            "models": {},
+        }
 
         for model_name, metrics in self.performance_tracker.get_all_metrics().items():
             report["models"][model_name] = {

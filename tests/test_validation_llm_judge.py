@@ -39,7 +39,7 @@ class TestLLMJudgeValidation:
                     "role": "User Management",
                     "goal": "Handle user registration and authentication",
                     "backstory": "Expert in user management",
-                    "tools": ["database", "auth"]
+                    "tools": ["database", "auth"],
                 }
             ],
             "tasks": [
@@ -47,95 +47,94 @@ class TestLLMJudgeValidation:
                     "id": "register_user",
                     "description": "Register new user",
                     "expected_output": "User registration confirmation",
-                    "agent": "user_agent"
+                    "agent": "user_agent",
                 }
-            ]
+            ],
         }
 
     @pytest.fixture
     def sample_llm_response_approved(self):
         """Sample LLM response for approved output"""
-        return json.dumps({
-            "dimension_scores": [
-                {
-                    "dimension": "clarity",
-                    "score": 9.0,
-                    "reasoning": "Agent roles are clearly defined and well-scoped",
-                    "suggestions": []
-                },
-                {
-                    "dimension": "completeness",
-                    "score": 8.5,
-                    "reasoning": "All necessary agents and tasks are present",
-                    "suggestions": ["Consider adding error handling tasks"]
-                },
-                {
-                    "dimension": "coherence",
-                    "score": 9.0,
-                    "reasoning": "Task dependencies are logical and well-structured",
-                    "suggestions": []
-                },
-                {
-                    "dimension": "appropriateness",
-                    "score": 8.5,
-                    "reasoning": "Tools are well-matched to agent roles",
-                    "suggestions": []
-                },
-                {
-                    "dimension": "correctness",
-                    "score": 9.0,
-                    "reasoning": "No logical errors detected",
-                    "suggestions": []
-                }
-            ],
-            "overall_score": 8.8,
-            "feedback": "Excellent design with clear agent roles and logical task structure. Minor improvements could include additional error handling tasks.",
-            "critical_issues": [],
-            "warnings": []
-        })
+        return json.dumps(
+            {
+                "dimension_scores": [
+                    {
+                        "dimension": "clarity",
+                        "score": 9.0,
+                        "reasoning": "Agent roles are clearly defined and well-scoped",
+                        "suggestions": [],
+                    },
+                    {
+                        "dimension": "completeness",
+                        "score": 8.5,
+                        "reasoning": "All necessary agents and tasks are present",
+                        "suggestions": ["Consider adding error handling tasks"],
+                    },
+                    {
+                        "dimension": "coherence",
+                        "score": 9.0,
+                        "reasoning": "Task dependencies are logical and well-structured",
+                        "suggestions": [],
+                    },
+                    {
+                        "dimension": "appropriateness",
+                        "score": 8.5,
+                        "reasoning": "Tools are well-matched to agent roles",
+                        "suggestions": [],
+                    },
+                    {
+                        "dimension": "correctness",
+                        "score": 9.0,
+                        "reasoning": "No logical errors detected",
+                        "suggestions": [],
+                    },
+                ],
+                "overall_score": 8.8,
+                "feedback": "Excellent design with clear agent roles and logical task structure. Minor improvements could include additional error handling tasks.",
+                "critical_issues": [],
+                "warnings": [],
+            }
+        )
 
     @pytest.fixture
     def sample_llm_response_rejected(self):
         """Sample LLM response for rejected output"""
-        return json.dumps({
-            "dimension_scores": [
-                {
-                    "dimension": "clarity",
-                    "score": 5.0,
-                    "reasoning": "Agent roles overlap significantly",
-                    "suggestions": ["Separate concerns", "Define clear boundaries"]
-                },
-                {
-                    "dimension": "completeness",
-                    "score": 6.0,
-                    "reasoning": "Missing critical error handling",
-                    "suggestions": ["Add error handling tasks"]
-                },
-                {
-                    "dimension": "coherence",
-                    "score": 4.0,
-                    "reasoning": "Task dependencies create cycles",
-                    "suggestions": ["Remove circular dependencies"]
-                }
-            ],
-            "overall_score": 5.0,
-            "feedback": "Design needs significant improvements. Major issues with role clarity and task dependencies.",
-            "critical_issues": [
-                "Circular task dependencies detected",
-                "Agent role overlap will cause conflicts"
-            ],
-            "warnings": [
-                "Consider restructuring agent responsibilities"
-            ]
-        })
+        return json.dumps(
+            {
+                "dimension_scores": [
+                    {
+                        "dimension": "clarity",
+                        "score": 5.0,
+                        "reasoning": "Agent roles overlap significantly",
+                        "suggestions": ["Separate concerns", "Define clear boundaries"],
+                    },
+                    {
+                        "dimension": "completeness",
+                        "score": 6.0,
+                        "reasoning": "Missing critical error handling",
+                        "suggestions": ["Add error handling tasks"],
+                    },
+                    {
+                        "dimension": "coherence",
+                        "score": 4.0,
+                        "reasoning": "Task dependencies create cycles",
+                        "suggestions": ["Remove circular dependencies"],
+                    },
+                ],
+                "overall_score": 5.0,
+                "feedback": "Design needs significant improvements. Major issues with role clarity and task dependencies.",
+                "critical_issues": [
+                    "Circular task dependencies detected",
+                    "Agent role overlap will cause conflicts",
+                ],
+                "warnings": ["Consider restructuring agent responsibilities"],
+            }
+        )
 
     @pytest.mark.asyncio
     async def test_llm_judge_creation(self, mock_llm):
         """Test that LLM Judge can be created"""
-        judge = LLMJudge(
-            llm_plugin=mock_llm,
-            approval_threshold=7.0
-        )
+        judge = LLMJudge(llm_plugin=mock_llm, approval_threshold=7.0)
 
         assert judge.llm == mock_llm
         assert judge.approval_threshold == 7.0
@@ -143,18 +142,14 @@ class TestLLMJudgeValidation:
 
     @pytest.mark.asyncio
     async def test_llm_judge_approved_evaluation(
-        self,
-        mock_llm,
-        sample_design_output,
-        sample_llm_response_approved
+        self, mock_llm, sample_design_output, sample_llm_response_approved
     ):
         """Test LLM Judge approves high-quality output"""
         mock_llm.generate.return_value = sample_llm_response_approved
 
         judge = LLMJudge(mock_llm, approval_threshold=7.0)
         result = await judge.evaluate_quality(
-            output=sample_design_output,
-            phase=AgentPhase.DESIGN
+            output=sample_design_output, phase=AgentPhase.DESIGN
         )
 
         # Verify evaluation
@@ -173,18 +168,14 @@ class TestLLMJudgeValidation:
 
     @pytest.mark.asyncio
     async def test_llm_judge_rejected_evaluation(
-        self,
-        mock_llm,
-        sample_design_output,
-        sample_llm_response_rejected
+        self, mock_llm, sample_design_output, sample_llm_response_rejected
     ):
         """Test LLM Judge rejects low-quality output"""
         mock_llm.generate.return_value = sample_llm_response_rejected
 
         judge = LLMJudge(mock_llm, approval_threshold=7.0)
         result = await judge.evaluate_quality(
-            output=sample_design_output,
-            phase=AgentPhase.DESIGN
+            output=sample_design_output, phase=AgentPhase.DESIGN
         )
 
         # Verify rejection
@@ -202,18 +193,14 @@ class TestLLMJudgeValidation:
 
     @pytest.mark.asyncio
     async def test_llm_judge_dimension_scores(
-        self,
-        mock_llm,
-        sample_design_output,
-        sample_llm_response_approved
+        self, mock_llm, sample_design_output, sample_llm_response_approved
     ):
         """Test LLM Judge dimension scoring"""
         mock_llm.generate.return_value = sample_llm_response_approved
 
         judge = LLMJudge(mock_llm)
         result = await judge.evaluate_quality(
-            output=sample_design_output,
-            phase=AgentPhase.DESIGN
+            output=sample_design_output, phase=AgentPhase.DESIGN
         )
 
         # Verify dimension scores
@@ -235,23 +222,21 @@ class TestLLMJudgeValidation:
     @pytest.mark.asyncio
     async def test_llm_judge_with_context(self, mock_llm, sample_design_output):
         """Test LLM Judge with context (requirement)"""
-        mock_llm.generate.return_value = json.dumps({
-            "dimension_scores": [],
-            "overall_score": 8.0,
-            "feedback": "Good",
-            "critical_issues": [],
-            "warnings": []
-        })
+        mock_llm.generate.return_value = json.dumps(
+            {
+                "dimension_scores": [],
+                "overall_score": 8.0,
+                "feedback": "Good",
+                "critical_issues": [],
+                "warnings": [],
+            }
+        )
 
         judge = LLMJudge(mock_llm)
-        context = {
-            "requirement": "Build a user management system"
-        }
+        context = {"requirement": "Build a user management system"}
 
         result = await judge.evaluate_quality(
-            output=sample_design_output,
-            phase=AgentPhase.DESIGN,
-            context=context
+            output=sample_design_output, phase=AgentPhase.DESIGN, context=context
         )
 
         # Verify context was included in prompt
@@ -283,10 +268,7 @@ class TestLLMJudgeValidation:
 
     @pytest.mark.asyncio
     async def test_evaluate_with_llm_judge_convenience(
-        self,
-        mock_llm,
-        sample_design_output,
-        sample_llm_response_approved
+        self, mock_llm, sample_design_output, sample_llm_response_approved
     ):
         """Test convenience function"""
         mock_llm.generate.return_value = sample_llm_response_approved
@@ -295,7 +277,7 @@ class TestLLMJudgeValidation:
             output=sample_design_output,
             phase=AgentPhase.DESIGN,
             llm_plugin=mock_llm,
-            approval_threshold=8.0
+            approval_threshold=8.0,
         )
 
         assert isinstance(result, EvaluationResult)

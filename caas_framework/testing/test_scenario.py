@@ -46,7 +46,9 @@ class TestScenarioGenerator:
         self.llm = llm_client
 
     def generate_scenarios(
-        self, features: List[FeatureSpec], golden_data: Optional[ConcretizedRequirement] = None
+        self,
+        features: List[FeatureSpec],
+        golden_data: Optional[ConcretizedRequirement] = None,
     ) -> List[TestScenario]:
         """
         기능 목록에서 테스트 시나리오 생성
@@ -95,7 +97,9 @@ class TestScenarioGenerator:
             priority=feature.priority,
         )
 
-    def _generate_bdd_with_llm(self, feature: FeatureSpec, criterion: str) -> BDDScenario:
+    def _generate_bdd_with_llm(
+        self, feature: FeatureSpec, criterion: str
+    ) -> BDDScenario:
         """LLM을 사용하여 BDD 시나리오 생성"""
 
         prompt = f"""
@@ -129,7 +133,9 @@ class TestScenarioGenerator:
             # Fallback
             return self._generate_bdd_heuristic(feature, criterion)
 
-    def _generate_bdd_heuristic(self, feature: FeatureSpec, criterion: str) -> BDDScenario:
+    def _generate_bdd_heuristic(
+        self, feature: FeatureSpec, criterion: str
+    ) -> BDDScenario:
         """휴리스틱 기반 BDD 시나리오 생성"""
 
         # 간단한 규칙 기반 생성
@@ -202,9 +208,14 @@ class TestScenarioGenerator:
         criterion_lower = criterion.lower()
 
         # 키워드 기반 분류
-        if any(keyword in criterion_lower for keyword in ["통합", "integration", "api", "연동"]):
+        if any(
+            keyword in criterion_lower
+            for keyword in ["통합", "integration", "api", "연동"]
+        ):
             return "integration"
-        elif any(keyword in criterion_lower for keyword in ["e2e", "전체", "사용자 시나리오"]):
+        elif any(
+            keyword in criterion_lower for keyword in ["e2e", "전체", "사용자 시나리오"]
+        ):
             return "e2e"
         else:
             return "functional"

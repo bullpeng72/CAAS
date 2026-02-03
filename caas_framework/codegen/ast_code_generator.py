@@ -54,7 +54,9 @@ class ASTCodeGenerator:
         """
         self.use_black = use_black
 
-    def generate_agent_code(self, agent: Dict[str, Any], tools: Optional[List[str]] = None) -> str:
+    def generate_agent_code(
+        self, agent: Dict[str, Any], tools: Optional[List[str]] = None
+    ) -> str:
         """
         Agent 객체 생성 코드를 AST로 생성
 
@@ -68,20 +70,30 @@ class ASTCodeGenerator:
         # Agent() 호출 생성
         keywords_list = [
             keyword(arg="role", value=Constant(value=agent.get("role", "Agent"))),
-            keyword(arg="goal", value=Constant(value=agent.get("goal", "Execute tasks"))),
-            keyword(arg="backstory", value=Constant(value=agent.get("backstory", "Expert agent"))),
+            keyword(
+                arg="goal", value=Constant(value=agent.get("goal", "Execute tasks"))
+            ),
+            keyword(
+                arg="backstory",
+                value=Constant(value=agent.get("backstory", "Expert agent")),
+            ),
             keyword(arg="verbose", value=Constant(value=True)),
             keyword(
-                arg="allow_delegation", value=Constant(value=agent.get("allow_delegation", False))
+                arg="allow_delegation",
+                value=Constant(value=agent.get("allow_delegation", False)),
             ),
         ]
 
         # Tools 추가 (있는 경우)
         if tools:
-            tools_list = AstList(elts=[Constant(value=tool) for tool in tools], ctx=Load())
+            tools_list = AstList(
+                elts=[Constant(value=tool) for tool in tools], ctx=Load()
+            )
             keywords_list.append(keyword(arg="tools", value=tools_list))
 
-        agent_call = Call(func=Name(id="Agent", ctx=Load()), args=[], keywords=keywords_list)
+        agent_call = Call(
+            func=Name(id="Agent", ctx=Load()), args=[], keywords=keywords_list
+        )
 
         # Assignment: agent_id = Agent(...)
         agent_id = agent.get("id", "agent")
@@ -94,7 +106,9 @@ class ASTCodeGenerator:
         code = ast.unparse(assignment)
         return code
 
-    def generate_task_code(self, task: Dict[str, Any], agent_var: str = "agents") -> str:
+    def generate_task_code(
+        self, task: Dict[str, Any], agent_var: str = "agents"
+    ) -> str:
         """
         Task 객체 생성 코드를 AST로 생성
 
@@ -108,7 +122,9 @@ class ASTCodeGenerator:
         # Agent 참조 생성 (agents['agent_id'])
         agent_id = task.get("agent", "agent")
         agent_ref = Subscript(
-            value=Name(id=agent_var, ctx=Load()), slice=Constant(value=agent_id), ctx=Load()
+            value=Name(id=agent_var, ctx=Load()),
+            slice=Constant(value=agent_id),
+            ctx=Load(),
         )
 
         # Task() 호출 생성
@@ -117,14 +133,18 @@ class ASTCodeGenerator:
             args=[],
             keywords=[
                 keyword(
-                    arg="description", value=Constant(value=task.get("description", "Execute task"))
+                    arg="description",
+                    value=Constant(value=task.get("description", "Execute task")),
                 ),
                 keyword(
                     arg="expected_output",
                     value=Constant(value=task.get("expected_output", "Task completed")),
                 ),
                 keyword(arg="agent", value=agent_ref),
-                keyword(arg="human_input", value=Constant(value=task.get("human_input", False))),
+                keyword(
+                    arg="human_input",
+                    value=Constant(value=task.get("human_input", False)),
+                ),
             ],
         )
 
@@ -162,7 +182,9 @@ class ASTCodeGenerator:
                     if isinstance(agents_var, str) and "." not in agents_var
                     else Call(
                         func=Attribute(
-                            value=Name(id=agents_var, ctx=Load()), attr="values", ctx=Load()
+                            value=Name(id=agents_var, ctx=Load()),
+                            attr="values",
+                            ctx=Load(),
                         ),
                         args=[],
                         keywords=[],
@@ -173,7 +195,9 @@ class ASTCodeGenerator:
         )
 
         # Process.sequential or Process.hierarchical
-        process_attr = Attribute(value=Name(id="Process", ctx=Load()), attr=process, ctx=Load())
+        process_attr = Attribute(
+            value=Name(id="Process", ctx=Load()), attr=process, ctx=Load()
+        )
 
         # Crew() 호출
         crew_call = Call(
@@ -192,7 +216,9 @@ class ASTCodeGenerator:
 
         return ast.unparse(assignment)
 
-    def generate_imports(self, modules: List[Union[str, Dict[str, List[str]]]]) -> List[str]:
+    def generate_imports(
+        self, modules: List[Union[str, Dict[str, List[str]]]]
+    ) -> List[str]:
         """
         Import statements를 AST로 생성
 
@@ -225,7 +251,9 @@ class ASTCodeGenerator:
         return import_statements
 
     def generate_create_agents_function(
-        self, agents: List[Dict[str, Any]], tools_map: Optional[Dict[str, List[str]]] = None
+        self,
+        agents: List[Dict[str, Any]],
+        tools_map: Optional[Dict[str, List[str]]] = None,
     ) -> str:
         """
         create_agents() 함수를 AST로 생성
@@ -256,9 +284,12 @@ class ASTCodeGenerator:
             # Agent 생성 코드
             keywords_list = [
                 keyword(arg="role", value=Constant(value=agent.get("role", "Agent"))),
-                keyword(arg="goal", value=Constant(value=agent.get("goal", "Execute tasks"))),
                 keyword(
-                    arg="backstory", value=Constant(value=agent.get("backstory", "Expert agent"))
+                    arg="goal", value=Constant(value=agent.get("goal", "Execute tasks"))
+                ),
+                keyword(
+                    arg="backstory",
+                    value=Constant(value=agent.get("backstory", "Expert agent")),
                 ),
                 keyword(arg="verbose", value=Constant(value=True)),
                 keyword(
@@ -274,7 +305,9 @@ class ASTCodeGenerator:
                 )
                 keywords_list.append(keyword(arg="tools", value=tools_list))
 
-            agent_call = Call(func=Name(id="Agent", ctx=Load()), args=[], keywords=keywords_list)
+            agent_call = Call(
+                func=Name(id="Agent", ctx=Load()), args=[], keywords=keywords_list
+            )
 
             # agents['agent_id'] = Agent(...)
             agent_assign = Assign(
@@ -296,7 +329,9 @@ class ASTCodeGenerator:
         # 함수 정의
         func_def = FunctionDef(
             name="create_agents",
-            args=arguments(posonlyargs=[], args=[], kwonlyargs=[], kw_defaults=[], defaults=[]),
+            args=arguments(
+                posonlyargs=[], args=[], kwonlyargs=[], kw_defaults=[], defaults=[]
+            ),
             body=body,
             decorator_list=[],
             returns=None,
@@ -332,7 +367,9 @@ class ASTCodeGenerator:
 
             # Agent 참조
             agent_ref = Subscript(
-                value=Name(id="agents", ctx=Load()), slice=Constant(value=agent_id), ctx=Load()
+                value=Name(id="agents", ctx=Load()),
+                slice=Constant(value=agent_id),
+                ctx=Load(),
             )
 
             # Task 생성
@@ -346,11 +383,14 @@ class ASTCodeGenerator:
                     ),
                     keyword(
                         arg="expected_output",
-                        value=Constant(value=task.get("expected_output", "Task completed")),
+                        value=Constant(
+                            value=task.get("expected_output", "Task completed")
+                        ),
                     ),
                     keyword(arg="agent", value=agent_ref),
                     keyword(
-                        arg="human_input", value=Constant(value=task.get("human_input", False))
+                        arg="human_input",
+                        value=Constant(value=task.get("human_input", False)),
                     ),
                 ],
             )
@@ -358,7 +398,9 @@ class ASTCodeGenerator:
             # tasks.append(Task(...))
             append_call = Expr(
                 value=Call(
-                    func=Attribute(value=Name(id="tasks", ctx=Load()), attr="append", ctx=Load()),
+                    func=Attribute(
+                        value=Name(id="tasks", ctx=Load()), attr="append", ctx=Load()
+                    ),
                     args=[task_call],
                     keywords=[],
                 )
@@ -423,7 +465,9 @@ class ASTCodeGenerator:
         body.append(tasks_call)
 
         # crew = Crew(...)
-        process_attr = Attribute(value=Name(id="Process", ctx=Load()), attr=process, ctx=Load())
+        process_attr = Attribute(
+            value=Name(id="Process", ctx=Load()), attr=process, ctx=Load()
+        )
 
         crew_call = Assign(
             targets=[Name(id="crew", ctx=Store())],
@@ -462,12 +506,16 @@ class ASTCodeGenerator:
         kickoff_keywords = []
 
         if has_user_inputs:
-            kickoff_keywords.append(keyword(arg="inputs", value=Name(id="user_inputs", ctx=Load())))
+            kickoff_keywords.append(
+                keyword(arg="inputs", value=Name(id="user_inputs", ctx=Load()))
+            )
 
         result_call = Assign(
             targets=[Name(id="result", ctx=Store())],
             value=Call(
-                func=Attribute(value=Name(id="crew", ctx=Load()), attr="kickoff", ctx=Load()),
+                func=Attribute(
+                    value=Name(id="crew", ctx=Load()), attr="kickoff", ctx=Load()
+                ),
                 args=kickoff_args,
                 keywords=kickoff_keywords,
             ),
@@ -481,7 +529,9 @@ class ASTCodeGenerator:
         # 함수 정의
         func_def = FunctionDef(
             name="main",
-            args=arguments(posonlyargs=[], args=[], kwonlyargs=[], kw_defaults=[], defaults=[]),
+            args=arguments(
+                posonlyargs=[], args=[], kwonlyargs=[], kw_defaults=[], defaults=[]
+            ),
             body=body,
             decorator_list=[],
             returns=None,
@@ -556,7 +606,9 @@ class ASTCodeGenerator:
                 ops=[Eq()],
                 comparators=[Constant(value="__main__")],
             ),
-            body=[Expr(value=Call(func=Name(id="main", ctx=Load()), args=[], keywords=[]))],
+            body=[
+                Expr(value=Call(func=Name(id="main", ctx=Load()), args=[], keywords=[]))
+            ],
             orelse=[],
         )
         module_body.append(main_guard)

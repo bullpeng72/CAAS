@@ -27,7 +27,10 @@ def load_builtin_patterns() -> List[AgentPattern]:
     """
     # Find patterns.yaml
     patterns_file = (
-        Path(__file__).parent.parent.parent.parent / "caas_framework" / "data" / "patterns.yaml"
+        Path(__file__).parent.parent.parent.parent
+        / "caas_framework"
+        / "data"
+        / "patterns.yaml"
     )
 
     if not patterns_file.exists():

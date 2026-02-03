@@ -246,7 +246,9 @@ class OntologyReasoner:
             "is_complete": len(missing) == 0,
         }
 
-    def suggest_enhancements(self, mentioned_concepts: List[str]) -> Dict[str, List[str]]:
+    def suggest_enhancements(
+        self, mentioned_concepts: List[str]
+    ) -> Dict[str, List[str]]:
         """
         Suggest enhancements for concept set.
 
@@ -264,7 +266,9 @@ class OntologyReasoner:
         }
 
         # Find missing concepts
-        suggestions["missing_concepts"] = self.infer_missing_concepts(mentioned_concepts)
+        suggestions["missing_concepts"] = self.infer_missing_concepts(
+            mentioned_concepts
+        )
 
         # Suggest operations for each concept
         for concept_name in mentioned_concepts:

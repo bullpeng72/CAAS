@@ -91,7 +91,10 @@ class LLMPlugin(Plugin):
 
         return asyncio.run(
             self.ainvoke(
-                messages=messages, temperature=temperature, max_tokens=max_tokens, **kwargs
+                messages=messages,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                **kwargs,
             )
         )
 

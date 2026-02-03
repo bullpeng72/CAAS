@@ -178,7 +178,8 @@ def analyze_gaps(requirement, golden_data, output):
 
                 click.echo(
                     click.style(
-                        f"{i}. [{gap.severity.upper()}] {gap.description}", fg=severity_color
+                        f"{i}. [{gap.severity.upper()}] {gap.description}",
+                        fg=severity_color,
                     )
                 )
 

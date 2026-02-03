@@ -32,14 +32,24 @@ def test():
     help="Path to test file or directory",
 )
 @click.option(
-    "--coverage/--no-coverage", default=True, help="Enable code coverage (default: enabled)"
-)
-@click.option("--verbose/--quiet", "-v/-q", default=True, help="Verbose output (default: verbose)")
-@click.option(
-    "--marker", "-m", type=str, help="Run tests with specific marker (e.g., 'unit', 'integration')"
+    "--coverage/--no-coverage",
+    default=True,
+    help="Enable code coverage (default: enabled)",
 )
 @click.option(
-    "--parallel", "-n", type=int, help="Run tests in parallel (specify number of workers)"
+    "--verbose/--quiet", "-v/-q", default=True, help="Verbose output (default: verbose)"
+)
+@click.option(
+    "--marker",
+    "-m",
+    type=str,
+    help="Run tests with specific marker (e.g., 'unit', 'integration')",
+)
+@click.option(
+    "--parallel",
+    "-n",
+    type=int,
+    help="Run tests in parallel (specify number of workers)",
 )
 @click.option("--report", "-r", type=click.Path(), help="Save test report to file")
 @handle_keyboard_interrupt
@@ -119,7 +129,10 @@ def run(test_file, coverage, verbose, marker, parallel, report):
         if test_path.is_file():
             test_code = test_path.read_text()
             result = executor.execute_pytest(
-                test_file_path=test_file, test_code=test_code, coverage=coverage, verbose=verbose
+                test_file_path=test_file,
+                test_code=test_code,
+                coverage=coverage,
+                verbose=verbose,
             )
         else:
             # Run directory tests
@@ -171,7 +184,10 @@ def run(test_file, coverage, verbose, marker, parallel, report):
     help="Path to test file or directory",
 )
 @click.option(
-    "--min-coverage", type=float, default=80.0, help="Minimum coverage percentage (default: 80.0)"
+    "--min-coverage",
+    type=float,
+    default=80.0,
+    help="Minimum coverage percentage (default: 80.0)",
 )
 @handle_keyboard_interrupt
 def coverage(test_file, min_coverage):
@@ -203,7 +219,10 @@ def coverage(test_file, min_coverage):
         if test_path.is_file():
             test_code = test_path.read_text()
             result = executor.execute_pytest(
-                test_file_path=test_file, test_code=test_code, coverage=True, verbose=False
+                test_file_path=test_file,
+                test_code=test_code,
+                coverage=True,
+                verbose=False,
             )
         else:
             result = executor.execute_pytest_directory(
@@ -224,7 +243,9 @@ def coverage(test_file, min_coverage):
                 echo_success(f"Coverage meets minimum requirement ({min_coverage}%)")
                 return 0
             else:
-                echo_error(f"Coverage below minimum ({coverage_pct:.1f}% < {min_coverage}%)")
+                echo_error(
+                    f"Coverage below minimum ({coverage_pct:.1f}% < {min_coverage}%)"
+                )
                 return 1
         else:
             echo_warning("Coverage data not available")

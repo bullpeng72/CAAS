@@ -87,7 +87,10 @@ class ProgressReporter:
     """
 
     def __init__(
-        self, verbosity: VerbosityLevel = VerbosityLevel.NORMAL, use_rich: bool = True, file=None
+        self,
+        verbosity: VerbosityLevel = VerbosityLevel.NORMAL,
+        use_rich: bool = True,
+        file=None,
     ):
         """
         Initialize progress reporter
@@ -156,7 +159,9 @@ class ProgressReporter:
         """
         self.complete_workflow(success=success, summary=summary)
 
-    def complete_workflow(self, success: bool = True, summary: Optional[Dict[str, Any]] = None):
+    def complete_workflow(
+        self, success: bool = True, summary: Optional[Dict[str, Any]] = None
+    ):
         """
         Complete workflow execution
 
@@ -167,10 +172,14 @@ class ProgressReporter:
         if self.verbosity == VerbosityLevel.QUIET:
             return
 
-        duration = time.time() - self.workflow_start_time if self.workflow_start_time else 0
+        duration = (
+            time.time() - self.workflow_start_time if self.workflow_start_time else 0
+        )
 
         # Count phase statuses
-        completed = sum(1 for p in self.phases.values() if p.status == PhaseStatus.COMPLETED)
+        completed = sum(
+            1 for p in self.phases.values() if p.status == PhaseStatus.COMPLETED
+        )
         failed = sum(1 for p in self.phases.values() if p.status == PhaseStatus.FAILED)
         total_errors = sum(len(p.errors) for p in self.phases.values())
         total_warnings = sum(len(p.warnings) for p in self.phases.values())
@@ -258,7 +267,10 @@ class ProgressReporter:
     # ===========================================
 
     def start_phase(
-        self, phase_name: str, agent_name: Optional[str] = None, description: Optional[str] = None
+        self,
+        phase_name: str,
+        agent_name: Optional[str] = None,
+        description: Optional[str] = None,
     ):
         """
         Start a phase
@@ -335,15 +347,15 @@ class ProgressReporter:
             status_color = "green" if success else "red"
             icon = "✅" if success else "❌"
 
-            message = (
-                f"[{status_color}]{icon} Phase completed in {actual_duration:.2f}s[/{status_color}]"
-            )
+            message = f"[{status_color}]{icon} Phase completed in {actual_duration:.2f}s[/{status_color}]"
 
             if validation_score is not None:
                 score_color = (
                     "green"
                     if validation_score >= 0.9
-                    else "yellow" if validation_score >= 0.7 else "red"
+                    else "yellow"
+                    if validation_score >= 0.7
+                    else "red"
                 )
                 message += f" | Validation: [{score_color}]{validation_score:.1%}[/{score_color}]"
 
@@ -418,7 +430,8 @@ class ProgressReporter:
             )
         else:
             print(
-                f"  [{agent_name}] ✅ Completed in {duration:.2f}s{iteration_str}", file=self.file
+                f"  [{agent_name}] ✅ Completed in {duration:.2f}s{iteration_str}",
+                file=self.file,
             )
 
     def agent_output(self, agent_name: str, output: Dict[str, Any]):
@@ -469,10 +482,16 @@ class ProgressReporter:
                 f"  [yellow][{validator_name}] Validating {item_count} items...[/yellow]"
             )
         else:
-            print(f"  [{validator_name}] Validating {item_count} items...", file=self.file)
+            print(
+                f"  [{validator_name}] Validating {item_count} items...", file=self.file
+            )
 
     def validation_result(
-        self, validator_name: str, passed: bool, issues_count: int, score: Optional[float] = None
+        self,
+        validator_name: str,
+        passed: bool,
+        issues_count: int,
+        score: Optional[float] = None,
     ):
         """
         Report validation result
@@ -499,7 +518,9 @@ class ProgressReporter:
             message += f" (score: {score:.1%})"
 
         if self.use_rich:
-            self.console.print(f"  [{color}][{validator_name}] {icon} {message}[/{color}]")
+            self.console.print(
+                f"  [{color}][{validator_name}] {icon} {message}[/{color}]"
+            )
         else:
             print(f"  [{validator_name}] {icon} {message}", file=self.file)
 
@@ -654,12 +675,16 @@ class ProgressReporter:
         if self.verbosity.value >= VerbosityLevel.VERBOSE.value:
             if passed:
                 if self.use_rich:
-                    self.console.print(f"  [green]✓ Validation passed for {phase_name}[/green]")
+                    self.console.print(
+                        f"  [green]✓ Validation passed for {phase_name}[/green]"
+                    )
                 else:
                     print(f"  ✓ Validation passed for {phase_name}", file=self.file)
             else:
                 if self.use_rich:
-                    self.console.print(f"  [red]✗ Validation failed for {phase_name}[/red]")
+                    self.console.print(
+                        f"  [red]✗ Validation failed for {phase_name}[/red]"
+                    )
                 else:
                     print(f"  ✗ Validation failed for {phase_name}", file=self.file)
 
@@ -689,7 +714,8 @@ class ProgressReporter:
                 )
             else:
                 print(
-                    f"  🔄 Feedback iteration {iteration}/{total_iterations} " f"for {phase_name}",
+                    f"  🔄 Feedback iteration {iteration}/{total_iterations} "
+                    f"for {phase_name}",
                     file=self.file,
                 )
 
@@ -702,7 +728,9 @@ class ProgressReporter:
         if not self.phases:
             return 0.0
 
-        completed = sum(1 for p in self.phases.values() if p.status == PhaseStatus.COMPLETED)
+        completed = sum(
+            1 for p in self.phases.values() if p.status == PhaseStatus.COMPLETED
+        )
         return (completed / self.total_phases) * 100.0
 
     def get_current_phase_name(self) -> Optional[str]:

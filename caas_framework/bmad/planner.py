@@ -126,7 +126,9 @@ class SprintPlanner:
             assumptions=self._generate_assumptions(mapping),
         )
 
-        self.logger.info(f"계획 완료: {len(sprints)} sprints, {total_iterations} iterations")
+        self.logger.info(
+            f"계획 완료: {len(sprints)} sprints, {total_iterations} iterations"
+        )
         return plan
 
     def _topological_sort(self, tasks: List[TaskMapping]) -> List[TaskMapping]:
@@ -195,10 +197,17 @@ class SprintPlanner:
             current_tasks.append(planned_task)
 
             # 스프린트 최대 태스크 수에 도달하거나 마지막 태스크
-            if len(current_tasks) >= self.max_tasks_per_sprint or i == len(sorted_tasks) - 1:
+            if (
+                len(current_tasks) >= self.max_tasks_per_sprint
+                or i == len(sorted_tasks) - 1
+            ):
                 # 관련 에이전트 수집
                 agent_ids = list(
-                    set(t.assigned_agent_id for t in current_tasks if t.assigned_agent_id)
+                    set(
+                        t.assigned_agent_id
+                        for t in current_tasks
+                        if t.assigned_agent_id
+                    )
                 )
 
                 sprint = Sprint(
@@ -239,12 +248,18 @@ class SprintPlanner:
         # 에이전트 수 대비 태스크 수 체크
         total_tasks = sum(len(s.tasks) for s in sprints)
         if total_tasks > len(mapping.agents) * 5:
-            risks.append("태스크 수가 에이전트 수 대비 많습니다. 병목 현상이 발생할 수 있습니다.")
+            risks.append(
+                "태스크 수가 에이전트 수 대비 많습니다. 병목 현상이 발생할 수 있습니다."
+            )
 
         # 긴 의존성 체인 체크
-        max_deps = max((len(t.dependencies) for s in sprints for t in s.tasks), default=0)
+        max_deps = max(
+            (len(t.dependencies) for s in sprints for t in s.tasks), default=0
+        )
         if max_deps > 3:
-            risks.append("의존성 체인이 깁니다. 순차 실행으로 인한 지연이 발생할 수 있습니다.")
+            risks.append(
+                "의존성 체인이 깁니다. 순차 실행으로 인한 지연이 발생할 수 있습니다."
+            )
 
         # 단일 에이전트 과부하 체크
         agent_tasks = {}
@@ -313,7 +328,9 @@ class SprintPlanner:
             }
         )
 
-    def _identify_parallel_groups(self, tasks: List[PlannedTask]) -> List[List[PlannedTask]]:
+    def _identify_parallel_groups(
+        self, tasks: List[PlannedTask]
+    ) -> List[List[PlannedTask]]:
         """병렬 실행 가능한 태스크 그룹 식별"""
         completed = set()
         groups = []
@@ -321,7 +338,9 @@ class SprintPlanner:
 
         while remaining:
             # 현재 실행 가능한 태스크 (의존성이 모두 완료된 태스크)
-            executable = [t for t in remaining if all(dep in completed for dep in t.dependencies)]
+            executable = [
+                t for t in remaining if all(dep in completed for dep in t.dependencies)
+            ]
 
             if not executable:
                 # 순환 의존성이나 오류 - 나머지 태스크를 하나씩 처리

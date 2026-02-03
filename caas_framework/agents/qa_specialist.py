@@ -27,7 +27,11 @@ class QASpecialistAgent(BaseExpertAgent):
     Performs comprehensive validation and compliance checking.
     """
 
-    def __init__(self, llm_plugin: LLMPlugin, golden_data: Optional[ConcretizedRequirement] = None):
+    def __init__(
+        self,
+        llm_plugin: LLMPlugin,
+        golden_data: Optional[ConcretizedRequirement] = None,
+    ):
         super().__init__(llm_plugin, golden_data, AgentPhase.QUALITY_ASSURANCE)
 
     @property
@@ -91,7 +95,10 @@ class QASpecialistAgent(BaseExpertAgent):
         return qa_report
 
     def _build_qa_prompt(
-        self, requirement: str, previous_outputs: Optional[Dict[AgentPhase, Any]], context: str
+        self,
+        requirement: str,
+        previous_outputs: Optional[Dict[AgentPhase, Any]],
+        context: str,
     ) -> str:
         """Build LLM prompt for QA analysis."""
 
@@ -104,10 +111,12 @@ class QASpecialistAgent(BaseExpertAgent):
         # Add golden data if available
         if self.golden_data:
             builder.add_golden_data(
-                self.golden_data, fields=["domain", "features", "data_models", "ui_components"]
+                self.golden_data,
+                fields=["domain", "features", "data_models", "ui_components"],
             )
             builder.add_context(
-                "Quality Baseline", "All outputs must align with these Golden Data specifications."
+                "Quality Baseline",
+                "All outputs must align with these Golden Data specifications.",
             )
 
         # Add previous phase outputs
@@ -125,7 +134,11 @@ class QASpecialistAgent(BaseExpertAgent):
                     "overall_quality": "excellent|good|fair|poor",
                     "phase_assessments": {
                         "discovery": {"score": "0-10", "issues": [], "strengths": []},
-                        "architecture": {"score": "0-10", "issues": [], "strengths": []},
+                        "architecture": {
+                            "score": "0-10",
+                            "issues": [],
+                            "strengths": [],
+                        },
                         "design": {"score": "0-10", "issues": [], "strengths": []},
                         "delivery": {"score": "0-10", "issues": [], "strengths": []},
                     },
@@ -152,7 +165,10 @@ class QASpecialistAgent(BaseExpertAgent):
                     "efficiency": "0-10",
                     "bottlenecks": [],
                 },
-                "recommendations": ["Specific recommendation 1", "Specific recommendation 2"],
+                "recommendations": [
+                    "Specific recommendation 1",
+                    "Specific recommendation 2",
+                ],
                 "readiness_score": "0-100",
                 "production_ready": "true|false",
             },
@@ -191,14 +207,20 @@ class QASpecialistAgent(BaseExpertAgent):
                 "security_score": 0,
                 "recommendations": [],
             },
-            "performance_assessment": {"scalability": 0, "efficiency": 0, "bottlenecks": []},
+            "performance_assessment": {
+                "scalability": 0,
+                "efficiency": 0,
+                "bottlenecks": [],
+            },
             "recommendations": ["QA analysis could not be completed"],
             "readiness_score": 0,
             "production_ready": False,
         }
 
     def _check_golden_data_compliance(
-        self, qa_report: Dict[str, Any], previous_outputs: Optional[Dict[AgentPhase, Any]]
+        self,
+        qa_report: Dict[str, Any],
+        previous_outputs: Optional[Dict[AgentPhase, Any]],
     ) -> Dict[str, Any]:
         """Check compliance with Golden Data."""
         if not self.golden_data or not previous_outputs:

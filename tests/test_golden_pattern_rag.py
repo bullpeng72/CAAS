@@ -42,7 +42,7 @@ def sample_concretized_blog():
             purpose="Create a blogging platform",
             target_users=["Bloggers", "Readers"],
             system_type="web_application",
-            scope_description="A simple blog system"
+            scope_description="A simple blog system",
         ),
         features=[
             FeatureSpec(
@@ -50,19 +50,19 @@ def sample_concretized_blog():
                 name="Create Posts",
                 description="Users can create blog posts",
                 priority="high",
-                acceptance_criteria=["User can write post", "Post is saved"]
+                acceptance_criteria=["User can write post", "Post is saved"],
             ),
             FeatureSpec(
                 id="feat_2",
                 name="View Posts",
                 description="Users can view published posts",
                 priority="high",
-                acceptance_criteria=["Posts are displayed", "Posts are readable"]
-            )
+                acceptance_criteria=["Posts are displayed", "Posts are readable"],
+            ),
         ],
         constraints=[],
         success_criteria=[],
-        domain="blog"
+        domain="blog",
     )
 
 
@@ -75,7 +75,7 @@ def sample_concretized_news():
             purpose="Create a news platform",
             target_users=["Journalists", "Readers"],
             system_type="web_application",
-            scope_description="A news publishing system"
+            scope_description="A news publishing system",
         ),
         features=[
             FeatureSpec(
@@ -83,12 +83,12 @@ def sample_concretized_news():
                 name="Publish Articles",
                 description="Journalists can publish news articles",
                 priority="high",
-                acceptance_criteria=["Article can be written", "Article is published"]
+                acceptance_criteria=["Article can be written", "Article is published"],
             )
         ],
         constraints=[],
         success_criteria=[],
-        domain="news"
+        domain="news",
     )
 
 
@@ -96,14 +96,14 @@ def sample_concretized_news():
 def sample_design():
     """Sample design output."""
     return {
-        'agents': [
-            {'id': 'writer', 'role': 'Content Writer'},
-            {'id': 'editor', 'role': 'Content Editor'}
+        "agents": [
+            {"id": "writer", "role": "Content Writer"},
+            {"id": "editor", "role": "Content Editor"},
         ],
-        'tasks': [
-            {'id': 'task1', 'description': 'Write content'},
-            {'id': 'task2', 'description': 'Edit content'}
-        ]
+        "tasks": [
+            {"id": "task1", "description": "Write content"},
+            {"id": "task2", "description": "Edit content"},
+        ],
     }
 
 
@@ -132,12 +132,12 @@ class TestPatternMatch:
         """Test creating a pattern match."""
         match = PatternMatch(
             request="Create a blog",
-            features=[{'name': 'Posts'}],
+            features=[{"name": "Posts"}],
             num_agents=2,
             num_tasks=3,
             satisfaction=5.0,
             timestamp="2024-01-01T00:00:00",
-            similarity=0.85
+            similarity=0.85,
         )
 
         assert match.request == "Create a blog"
@@ -151,8 +151,7 @@ class TestGoldenPatternLibrary:
     def test_library_initialization(self, temp_dir):
         """Test creating library."""
         library = GoldenPatternLibrary(
-            collection_name="test_patterns",
-            persist_directory=temp_dir
+            collection_name="test_patterns", persist_directory=temp_dir
         )
         assert library is not None
         assert library.collection_name == "test_patterns"
@@ -160,15 +159,14 @@ class TestGoldenPatternLibrary:
     def test_library_with_fallback(self, temp_dir):
         """Test library uses fallback when dependencies unavailable."""
         # Force fallback mode
-        with patch('caas_framework.patterns.golden_pattern_rag.CHROMADB_AVAILABLE', False):
+        with patch(
+            "caas_framework.patterns.golden_pattern_rag.CHROMADB_AVAILABLE", False
+        ):
             library = GoldenPatternLibrary(persist_directory=temp_dir)
             assert library.use_fallback is True
 
     def test_store_successful_generation(
-        self,
-        temp_dir,
-        sample_concretized_blog,
-        sample_design
+        self, temp_dir, sample_concretized_blog, sample_design
     ):
         """Test storing a successful pattern."""
         library = GoldenPatternLibrary(persist_directory=temp_dir)
@@ -177,24 +175,20 @@ class TestGoldenPatternLibrary:
             user_request="Create a blog system",
             concretized=sample_concretized_blog,
             design=sample_design,
-            user_feedback=Feedback(satisfaction=5)
+            user_feedback=Feedback(satisfaction=5),
         )
 
         # Should succeed (either ChromaDB or fallback)
         assert result is True
 
-    def test_store_low_satisfaction_rejected(
-        self,
-        temp_dir,
-        sample_concretized_blog
-    ):
+    def test_store_low_satisfaction_rejected(self, temp_dir, sample_concretized_blog):
         """Test that low satisfaction patterns are not stored."""
         library = GoldenPatternLibrary(persist_directory=temp_dir)
 
         result = library.store_successful_generation(
             user_request="Create a blog",
             concretized=sample_concretized_blog,
-            user_feedback=Feedback(satisfaction=2)  # Low satisfaction
+            user_feedback=Feedback(satisfaction=2),  # Low satisfaction
         )
 
         assert result is False
@@ -208,10 +202,7 @@ class TestGoldenPatternLibrary:
         assert patterns == []
 
     def test_store_and_retrieve_pattern(
-        self,
-        temp_dir,
-        sample_concretized_blog,
-        sample_design
+        self, temp_dir, sample_concretized_blog, sample_design
     ):
         """Test storing and then retrieving a pattern."""
         library = GoldenPatternLibrary(persist_directory=temp_dir)
@@ -221,13 +212,12 @@ class TestGoldenPatternLibrary:
             user_request="Create a blog system with posts",
             concretized=sample_concretized_blog,
             design=sample_design,
-            user_feedback=Feedback(satisfaction=5)
+            user_feedback=Feedback(satisfaction=5),
         )
 
         # Retrieve similar
         patterns = library.retrieve_similar_patterns(
-            "Create a blogging platform",
-            top_k=3
+            "Create a blogging platform", top_k=3
         )
 
         # Should find the stored pattern
@@ -236,10 +226,7 @@ class TestGoldenPatternLibrary:
         assert patterns[0].num_tasks == 2
 
     def test_retrieve_multiple_patterns(
-        self,
-        temp_dir,
-        sample_concretized_blog,
-        sample_concretized_news
+        self, temp_dir, sample_concretized_blog, sample_concretized_news
     ):
         """Test retrieving multiple similar patterns."""
         library = GoldenPatternLibrary(persist_directory=temp_dir)
@@ -248,46 +235,38 @@ class TestGoldenPatternLibrary:
         library.store_successful_generation(
             user_request="Create a blog system",
             concretized=sample_concretized_blog,
-            user_feedback=Feedback(satisfaction=5)
+            user_feedback=Feedback(satisfaction=5),
         )
 
         library.store_successful_generation(
             user_request="Create a news platform",
             concretized=sample_concretized_news,
-            user_feedback=Feedback(satisfaction=5)
+            user_feedback=Feedback(satisfaction=5),
         )
 
         # Retrieve
         patterns = library.retrieve_similar_patterns(
-            "Create a content management system",
-            top_k=3
+            "Create a content management system", top_k=3
         )
 
         # Should find both patterns
         assert len(patterns) >= 1  # At least one match
 
-    def test_enhance_with_patterns_no_matches(
-        self,
-        temp_dir,
-        sample_concretized_news
-    ):
+    def test_enhance_with_patterns_no_matches(self, temp_dir, sample_concretized_news):
         """Test enhancement when no similar patterns exist."""
         library = GoldenPatternLibrary(persist_directory=temp_dir)
 
         enhanced = library.enhance_with_patterns(
             user_request="Create a news system",
             concretized=sample_concretized_news,
-            verbose=False
+            verbose=False,
         )
 
         # Should return unchanged
         assert len(enhanced.features) == 1
 
     def test_enhance_with_patterns_auto_add(
-        self,
-        temp_dir,
-        sample_concretized_blog,
-        sample_concretized_news
+        self, temp_dir, sample_concretized_blog, sample_concretized_news
     ):
         """Test enhancement with auto-add enabled."""
         library = GoldenPatternLibrary(persist_directory=temp_dir)
@@ -300,14 +279,14 @@ class TestGoldenPatternLibrary:
                 name="Comments",
                 description="Users can comment on posts",
                 priority="medium",
-                acceptance_criteria=["Comments are displayed"]
+                acceptance_criteria=["Comments are displayed"],
             )
         )
 
         library.store_successful_generation(
             user_request="Create a blog with comments",
             concretized=blog_with_comments,
-            user_feedback=Feedback(satisfaction=5)
+            user_feedback=Feedback(satisfaction=5),
         )
 
         # Enhance news system (similar to blog)
@@ -317,7 +296,7 @@ class TestGoldenPatternLibrary:
             user_request="Create a news platform",
             concretized=sample_concretized_news,
             auto_add=True,
-            verbose=False
+            verbose=False,
         )
 
         # Should have added suggested features
@@ -325,11 +304,7 @@ class TestGoldenPatternLibrary:
         assert len(enhanced.features) >= original_count
 
     def test_enhance_with_patterns_verbose(
-        self,
-        temp_dir,
-        sample_concretized_blog,
-        sample_concretized_news,
-        capsys
+        self, temp_dir, sample_concretized_blog, sample_concretized_news, capsys
     ):
         """Test enhancement with verbose output."""
         library = GoldenPatternLibrary(persist_directory=temp_dir)
@@ -338,7 +313,7 @@ class TestGoldenPatternLibrary:
         library.store_successful_generation(
             user_request="Create a blog",
             concretized=sample_concretized_blog,
-            user_feedback=Feedback(satisfaction=5)
+            user_feedback=Feedback(satisfaction=5),
         )
 
         # Enhance with verbose
@@ -346,7 +321,7 @@ class TestGoldenPatternLibrary:
             user_request="Create another blog",
             concretized=sample_concretized_news,
             auto_add=True,
-            verbose=True
+            verbose=True,
         )
 
         captured = capsys.readouterr()
@@ -359,14 +334,11 @@ class TestGoldenPatternLibrary:
 
         stats = library.get_statistics()
 
-        assert stats['total_patterns'] == 0
-        assert stats['avg_satisfaction'] == 0
+        assert stats["total_patterns"] == 0
+        assert stats["avg_satisfaction"] == 0
 
     def test_get_statistics_with_patterns(
-        self,
-        temp_dir,
-        sample_concretized_blog,
-        sample_concretized_news
+        self, temp_dir, sample_concretized_blog, sample_concretized_news
     ):
         """Test statistics with stored patterns."""
         library = GoldenPatternLibrary(persist_directory=temp_dir)
@@ -375,40 +347,38 @@ class TestGoldenPatternLibrary:
         library.store_successful_generation(
             user_request="Create a blog",
             concretized=sample_concretized_blog,
-            user_feedback=Feedback(satisfaction=5)
+            user_feedback=Feedback(satisfaction=5),
         )
 
         library.store_successful_generation(
             user_request="Create a news site",
             concretized=sample_concretized_news,
-            user_feedback=Feedback(satisfaction=4)
+            user_feedback=Feedback(satisfaction=4),
         )
 
         stats = library.get_statistics()
 
-        assert stats['total_patterns'] == 2
-        assert stats['avg_satisfaction'] >= 4.0
-        assert 'blog' in stats['domains'] or 'news' in stats['domains']
+        assert stats["total_patterns"] == 2
+        assert stats["avg_satisfaction"] >= 4.0
+        assert "blog" in stats["domains"] or "news" in stats["domains"]
 
 
 class TestFallbackStorage:
     """Test fallback storage mechanism."""
 
-    def test_fallback_store_and_retrieve(
-        self,
-        temp_dir,
-        sample_concretized_blog
-    ):
+    def test_fallback_store_and_retrieve(self, temp_dir, sample_concretized_blog):
         """Test fallback storage works correctly."""
         # Force fallback mode
-        with patch('caas_framework.patterns.golden_pattern_rag.CHROMADB_AVAILABLE', False):
+        with patch(
+            "caas_framework.patterns.golden_pattern_rag.CHROMADB_AVAILABLE", False
+        ):
             library = GoldenPatternLibrary(persist_directory=temp_dir)
 
             # Store
             result = library.store_successful_generation(
                 user_request="Create a blog system",
                 concretized=sample_concretized_blog,
-                user_feedback=Feedback(satisfaction=5)
+                user_feedback=Feedback(satisfaction=5),
             )
 
             assert result is True
@@ -422,22 +392,26 @@ class TestFallbackStorage:
 
     def test_fallback_similarity_calculation(self, temp_dir):
         """Test fallback similarity uses Jaccard similarity."""
-        with patch('caas_framework.patterns.golden_pattern_rag.CHROMADB_AVAILABLE', False):
+        with patch(
+            "caas_framework.patterns.golden_pattern_rag.CHROMADB_AVAILABLE", False
+        ):
             library = GoldenPatternLibrary(persist_directory=temp_dir)
 
             # Manually add to fallback storage
-            library.fallback_storage.append({
-                'id': 'test_1',
-                'document': 'Create a blog system',
-                'metadata': {
-                    'features': json.dumps([]),
-                    'num_agents': 2,
-                    'num_tasks': 2,
-                    'satisfaction': 5,
-                    'timestamp': '2024-01-01T00:00:00',
-                    'domain': 'blog'
+            library.fallback_storage.append(
+                {
+                    "id": "test_1",
+                    "document": "Create a blog system",
+                    "metadata": {
+                        "features": json.dumps([]),
+                        "num_agents": 2,
+                        "num_tasks": 2,
+                        "satisfaction": 5,
+                        "timestamp": "2024-01-01T00:00:00",
+                        "domain": "blog",
+                    },
                 }
-            })
+            )
 
             # Retrieve with similar query
             patterns = library.retrieve_similar_patterns("Create a blog platform")
@@ -450,11 +424,7 @@ class TestFallbackStorage:
 class TestConvenienceFunctions:
     """Test convenience functions."""
 
-    def test_store_successful_pattern(
-        self,
-        temp_dir,
-        sample_concretized_blog
-    ):
+    def test_store_successful_pattern(self, temp_dir, sample_concretized_blog):
         """Test convenience function for storing pattern."""
         library = GoldenPatternLibrary(persist_directory=temp_dir)
 
@@ -462,16 +432,12 @@ class TestConvenienceFunctions:
             library=library,
             user_request="Create a blog",
             concretized=sample_concretized_blog,
-            satisfaction=5
+            satisfaction=5,
         )
 
         assert result is True
 
-    def test_retrieve_patterns(
-        self,
-        temp_dir,
-        sample_concretized_blog
-    ):
+    def test_retrieve_patterns(self, temp_dir, sample_concretized_blog):
         """Test convenience function for retrieving patterns."""
         library = GoldenPatternLibrary(persist_directory=temp_dir)
 
@@ -480,14 +446,12 @@ class TestConvenienceFunctions:
             library=library,
             user_request="Create a blog",
             concretized=sample_concretized_blog,
-            satisfaction=5
+            satisfaction=5,
         )
 
         # Retrieve
         patterns = retrieve_patterns(
-            library=library,
-            user_request="Create a blogging system",
-            top_k=3
+            library=library, user_request="Create a blogging system", top_k=3
         )
 
         assert len(patterns) > 0
@@ -504,11 +468,7 @@ class TestEdgeCases:
 
         assert patterns == []
 
-    def test_very_long_request(
-        self,
-        temp_dir,
-        sample_concretized_blog
-    ):
+    def test_very_long_request(self, temp_dir, sample_concretized_blog):
         """Test with very long user request."""
         library = GoldenPatternLibrary(persist_directory=temp_dir)
 
@@ -517,17 +477,13 @@ class TestEdgeCases:
         result = library.store_successful_generation(
             user_request=long_request,
             concretized=sample_concretized_blog,
-            user_feedback=Feedback(satisfaction=5)
+            user_feedback=Feedback(satisfaction=5),
         )
 
         # Should handle gracefully
         assert result in [True, False]
 
-    def test_special_characters_in_request(
-        self,
-        temp_dir,
-        sample_concretized_blog
-    ):
+    def test_special_characters_in_request(self, temp_dir, sample_concretized_blog):
         """Test with special characters in request."""
         library = GoldenPatternLibrary(persist_directory=temp_dir)
 
@@ -536,7 +492,7 @@ class TestEdgeCases:
         result = library.store_successful_generation(
             user_request=special_request,
             concretized=sample_concretized_blog,
-            user_feedback=Feedback(satisfaction=5)
+            user_feedback=Feedback(satisfaction=5),
         )
 
         assert result is True
@@ -551,18 +507,18 @@ class TestEdgeCases:
                 purpose="Test",
                 target_users=["Users"],
                 system_type="web_application",
-                scope_description="Empty"
+                scope_description="Empty",
             ),
             features=[],  # No features
             constraints=[],
             success_criteria=[],
-            domain="test"
+            domain="test",
         )
 
         result = library.store_successful_generation(
             user_request="Create empty system",
             concretized=empty_req,
-            user_feedback=Feedback(satisfaction=5)
+            user_feedback=Feedback(satisfaction=5),
         )
 
         # Should handle gracefully
@@ -573,11 +529,7 @@ class TestIntegration:
     """Integration tests."""
 
     def test_full_workflow(
-        self,
-        temp_dir,
-        sample_concretized_blog,
-        sample_concretized_news,
-        sample_design
+        self, temp_dir, sample_concretized_blog, sample_concretized_news, sample_design
     ):
         """Test complete workflow: store, retrieve, enhance."""
         library = GoldenPatternLibrary(persist_directory=temp_dir)
@@ -587,7 +539,7 @@ class TestIntegration:
             user_request="Create a blogging platform with posts and comments",
             concretized=sample_concretized_blog,
             design=sample_design,
-            user_feedback=Feedback(satisfaction=5, comments="Excellent!")
+            user_feedback=Feedback(satisfaction=5, comments="Excellent!"),
         )
 
         assert result is True
@@ -606,7 +558,7 @@ class TestIntegration:
             user_request=new_request,
             concretized=sample_concretized_news,
             auto_add=True,
-            verbose=False
+            verbose=False,
         )
 
         # Should return enhanced requirement
@@ -615,7 +567,7 @@ class TestIntegration:
 
         # 5. Check statistics
         stats = library.get_statistics()
-        assert stats['total_patterns'] >= 1
+        assert stats["total_patterns"] >= 1
 
     def test_multiple_domains(self, temp_dir):
         """Test with patterns from multiple domains."""
@@ -628,7 +580,7 @@ class TestIntegration:
                 purpose="Blog",
                 target_users=["Users"],
                 system_type="web_application",
-                scope_description="Blog"
+                scope_description="Blog",
             ),
             features=[
                 FeatureSpec(
@@ -636,12 +588,12 @@ class TestIntegration:
                     name="Posts",
                     description="Blog posts",
                     priority="high",
-                    acceptance_criteria=[]
+                    acceptance_criteria=[],
                 )
             ],
             constraints=[],
             success_criteria=[],
-            domain="blog"
+            domain="blog",
         )
 
         ecommerce_req = ConcretizedRequirement(
@@ -650,7 +602,7 @@ class TestIntegration:
                 purpose="Shop",
                 target_users=["Customers"],
                 system_type="web_application",
-                scope_description="Shop"
+                scope_description="Shop",
             ),
             features=[
                 FeatureSpec(
@@ -658,30 +610,30 @@ class TestIntegration:
                     name="Products",
                     description="Product catalog",
                     priority="high",
-                    acceptance_criteria=[]
+                    acceptance_criteria=[],
                 )
             ],
             constraints=[],
             success_criteria=[],
-            domain="ecommerce"
+            domain="ecommerce",
         )
 
         library.store_successful_generation(
             user_request="Create a blog",
             concretized=blog_req,
-            user_feedback=Feedback(satisfaction=5)
+            user_feedback=Feedback(satisfaction=5),
         )
 
         library.store_successful_generation(
             user_request="Create an online store",
             concretized=ecommerce_req,
-            user_feedback=Feedback(satisfaction=5)
+            user_feedback=Feedback(satisfaction=5),
         )
 
         # Check statistics
         stats = library.get_statistics()
-        assert stats['total_patterns'] == 2
-        assert len(stats['domains']) == 2
+        assert stats["total_patterns"] == 2
+        assert len(stats["domains"]) == 2
 
 
 if __name__ == "__main__":

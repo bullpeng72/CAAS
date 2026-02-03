@@ -137,9 +137,7 @@ from module import *
 def test_quality_pipeline_all_checks():
     """Test full quality pipeline with all checks."""
     pipeline = CodeQualityPipeline(
-        enable_syntax=True,
-        enable_imports=True,
-        enable_style=True
+        enable_syntax=True, enable_imports=True, enable_style=True
     )
 
     # Good quality code
@@ -153,7 +151,7 @@ def main():
     result = crew.kickoff()
     return result
 """,
-        "requirements.txt": "crewai>=0.65.0\n"
+        "requirements.txt": "crewai>=0.65.0\n",
     }
 
     report = pipeline.verify(files)
@@ -186,9 +184,7 @@ def test_quality_pipeline_report_format():
     """Test quality report formatting."""
     pipeline = CodeQualityPipeline()
 
-    files = {
-        "main.py": "print('Hello')\n"
-    }
+    files = {"main.py": "print('Hello')\n"}
 
     report = pipeline.verify(files)
 
@@ -206,9 +202,7 @@ def test_quality_pipeline_selective_checks():
 
     # Only syntax check
     pipeline = CodeQualityPipeline(
-        enable_syntax=True,
-        enable_imports=False,
-        enable_style=False
+        enable_syntax=True, enable_imports=False, enable_style=False
     )
 
     files = {"main.py": "print('test')\n"}

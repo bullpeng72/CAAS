@@ -82,7 +82,9 @@ class StreamingResponseHandler:
         self.logger = logger or logging.getLogger(__name__)
 
     async def stream_and_collect(
-        self, stream: AsyncIterator[str], progress_callback: Optional[Callable[[int], None]] = None
+        self,
+        stream: AsyncIterator[str],
+        progress_callback: Optional[Callable[[int], None]] = None,
     ) -> StreamBuffer:
         """
         Stream and collect all chunks.
@@ -157,7 +159,9 @@ class StreamingResponseHandler:
 
         return "".join(chunks)
 
-    async def stream_parallel(self, streams: List[AsyncIterator[str]]) -> List[StreamBuffer]:
+    async def stream_parallel(
+        self, streams: List[AsyncIterator[str]]
+    ) -> List[StreamBuffer]:
         """
         Handle multiple streams in parallel.
 

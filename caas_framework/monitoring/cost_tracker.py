@@ -110,12 +110,15 @@ class CostTracker:
         self.entries.append(entry)
 
         self.logger.debug(
-            f"💰 Cost recorded: {model} - ${cost:.4f} " f"({tokens_input}+{tokens_output} tokens)"
+            f"💰 Cost recorded: {model} - ${cost:.4f} "
+            f"({tokens_input}+{tokens_output} tokens)"
         )
 
         return cost
 
-    def _calculate_cost(self, model: str, tokens_input: int, tokens_output: int) -> float:
+    def _calculate_cost(
+        self, model: str, tokens_input: int, tokens_output: int
+    ) -> float:
         """Calculate cost for model usage"""
         # Get pricing for model
         pricing = self.MODEL_PRICING.get(model)
@@ -240,7 +243,9 @@ class CostTracker:
             Budget status
         """
         summary = self.get_summary()
-        percentage = (summary.total_cost_usd / budget_usd * 100) if budget_usd > 0 else 0
+        percentage = (
+            (summary.total_cost_usd / budget_usd * 100) if budget_usd > 0 else 0
+        )
 
         return {
             "budget_usd": budget_usd,
@@ -264,7 +269,9 @@ class CostTracker:
 
         return entries
 
-    def _format_time_period(self, since: Optional[datetime], until: Optional[datetime]) -> str:
+    def _format_time_period(
+        self, since: Optional[datetime], until: Optional[datetime]
+    ) -> str:
         """Format time period string"""
         if since and until:
             return f"{since.strftime('%Y-%m-%d')} to {until.strftime('%Y-%m-%d')}"

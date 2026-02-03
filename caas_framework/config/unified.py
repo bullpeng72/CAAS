@@ -64,7 +64,8 @@ class LLMConfig(BaseModel):
 
     # Provider settings
     provider: str = Field(
-        default="openai", description="LLM provider: openai, anthropic, ollama, azure_openai"
+        default="openai",
+        description="LLM provider: openai, anthropic, ollama, azure_openai",
     )
     model: str = Field(default="gpt-4o-mini", description="Model name")
 
@@ -97,7 +98,9 @@ class GraphConfig(BaseModel):
     """
 
     # Backend selection
-    backend: str = Field(default="embedded", description="Graph backend: neo4j, arangodb, embedded")
+    backend: str = Field(
+        default="embedded", description="Graph backend: neo4j, arangodb, embedded"
+    )
 
     # Neo4j settings
     neo4j_uri: str = Field(default="bolt://localhost:7687")
@@ -464,7 +467,9 @@ class UnifiedConfigLoader:
         app_dict = config_dict.get("app", {})
 
         # Override with environment variables (highest priority)
-        self._apply_env_overrides(llm_dict, graph_dict, mcp_dict, app_dict, artifacts_dict)
+        self._apply_env_overrides(
+            llm_dict, graph_dict, mcp_dict, app_dict, artifacts_dict
+        )
 
         # Build config
         return CaaSConfig(
@@ -473,13 +478,21 @@ class UnifiedConfigLoader:
             mcp=MCPConfig(**mcp_dict) if mcp_dict else MCPConfig(),
             vectordb=VectorDBConfig(**vectordb_dict) if vectordb_dict else None,
             validation=(
-                ValidationConfig(**validation_dict) if validation_dict else ValidationConfig()
+                ValidationConfig(**validation_dict)
+                if validation_dict
+                else ValidationConfig()
             ),
             codegen=(
-                CodeGenerationConfig(**codegen_dict) if codegen_dict else CodeGenerationConfig()
+                CodeGenerationConfig(**codegen_dict)
+                if codegen_dict
+                else CodeGenerationConfig()
             ),
-            workflow=WorkflowConfig(**workflow_dict) if workflow_dict else WorkflowConfig(),
-            artifacts=ArtifactConfig(**artifacts_dict) if artifacts_dict else ArtifactConfig(),
+            workflow=WorkflowConfig(**workflow_dict)
+            if workflow_dict
+            else WorkflowConfig(),
+            artifacts=ArtifactConfig(**artifacts_dict)
+            if artifacts_dict
+            else ArtifactConfig(),
             app=AppConfig(**app_dict) if app_dict else AppConfig(),
             project_root=PROJECT_ROOT,
             project_name=os.getenv("PROJECT_NAME"),
@@ -523,7 +536,9 @@ class UnifiedConfigLoader:
 
         # Artifacts
         if os.getenv("ARTIFACT_GENERATION_ENABLED"):
-            artifacts_dict["enabled"] = os.getenv("ARTIFACT_GENERATION_ENABLED").lower() == "true"
+            artifacts_dict["enabled"] = (
+                os.getenv("ARTIFACT_GENERATION_ENABLED").lower() == "true"
+            )
         if os.getenv("ARTIFACT_OUTPUT_DIR"):
             artifacts_dict["output_dir"] = os.getenv("ARTIFACT_OUTPUT_DIR")
 

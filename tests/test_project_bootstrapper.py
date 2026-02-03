@@ -67,7 +67,7 @@ python-dotenv>=1.0.0
 """,
         ".env.example": """OPENAI_API_KEY=your_api_key_here
 """,
-        "_description": "A research automation system"
+        "_description": "A research automation system",
     }
 
 
@@ -81,7 +81,7 @@ class TestBootstrapResult:
             files_created=5,
             git_initialized=True,
             dependencies_installed=True,
-            tests_passed=None
+            tests_passed=None,
         )
 
         assert result.project_dir == Path("/test/project")
@@ -96,10 +96,7 @@ class TestTestResult:
 
     def test_test_result_creation(self):
         """Test creating TestResult"""
-        result = TestResult(
-            passed=True,
-            output="All tests passed"
-        )
+        result = TestResult(passed=True, output="All tests passed")
 
         assert result.passed is True
         assert result.output == "All tests passed"
@@ -125,7 +122,7 @@ class TestProjectBootstrapper:
             auto_venv=False,
             auto_install=False,
             auto_test=False,
-            verbose=False
+            verbose=False,
         )
 
         # Check result
@@ -151,7 +148,7 @@ class TestProjectBootstrapper:
             auto_git=False,
             auto_venv=False,
             auto_install=False,
-            verbose=False
+            verbose=False,
         )
 
         project_dir = result.project_dir
@@ -178,7 +175,7 @@ class TestProjectBootstrapper:
             base_dir=temp_base_dir,
             auto_git=False,
             auto_venv=False,
-            verbose=False
+            verbose=False,
         )
 
         project_dir = result.project_dir
@@ -190,7 +187,7 @@ class TestProjectBootstrapper:
         """Test bootstrap with git initialization"""
         # Skip if git is not available
         try:
-            subprocess.run(['git', '--version'], check=True, capture_output=True)
+            subprocess.run(["git", "--version"], check=True, capture_output=True)
         except (subprocess.CalledProcessError, FileNotFoundError):
             pytest.skip("git not available")
 
@@ -203,7 +200,7 @@ class TestProjectBootstrapper:
             auto_git=True,
             auto_venv=False,
             auto_install=False,
-            verbose=False
+            verbose=False,
         )
 
         project_dir = result.project_dir
@@ -230,7 +227,7 @@ class TestProjectBootstrapper:
             auto_git=False,
             auto_venv=True,
             auto_install=False,
-            verbose=False
+            verbose=False,
         )
 
         project_dir = result.project_dir
@@ -249,7 +246,7 @@ class TestProjectBootstrapper:
             base_dir=temp_base_dir,
             auto_git=False,
             auto_venv=False,
-            verbose=False
+            verbose=False,
         )
 
         project_dir = result.project_dir
@@ -276,7 +273,7 @@ class TestProjectBootstrapper:
         files = {
             "test.py": "print('hello')",
             "subdir/test2.py": "print('world')",
-            "_metadata": "should be skipped"
+            "_metadata": "should be skipped",
         }
 
         files_written = bootstrapper._write_files(project_dir, files, verbose=False)
@@ -296,7 +293,7 @@ class TestProjectBootstrapper:
         files = {
             "main.py": "code",
             "agents.py": "code",
-            "_description": "Test project description"
+            "_description": "Test project description",
         }
 
         bootstrapper._generate_readme(project_dir, files, verbose=False)
@@ -328,7 +325,7 @@ class TestProjectBootstrapper:
             base_dir=temp_base_dir,
             auto_git=False,
             auto_venv=False,
-            verbose=False
+            verbose=False,
         )
 
         # Should succeed and create new files
@@ -346,7 +343,7 @@ class TestProjectBootstrapper:
             "src/agents.py": "code",
             "src/tasks.py": "code",
             "tests/test_main.py": "code",
-            "_description": "Test"
+            "_description": "Test",
         }
 
         bootstrapper = ProjectBootstrapper()
@@ -357,7 +354,7 @@ class TestProjectBootstrapper:
             base_dir=temp_base_dir,
             auto_git=False,
             auto_venv=False,
-            verbose=False
+            verbose=False,
         )
 
         project_dir = result.project_dir
@@ -368,7 +365,9 @@ class TestProjectBootstrapper:
         assert (project_dir / "src" / "tasks.py").exists()
         assert (project_dir / "tests" / "test_main.py").exists()
 
-    def test_bootstrap_verbose_output(self, temp_base_dir, sample_generated_files, capsys):
+    def test_bootstrap_verbose_output(
+        self, temp_base_dir, sample_generated_files, capsys
+    ):
         """Test that verbose mode produces output"""
         bootstrapper = ProjectBootstrapper()
 
@@ -378,7 +377,7 @@ class TestProjectBootstrapper:
             base_dir=temp_base_dir,
             auto_git=False,
             auto_venv=False,
-            verbose=True
+            verbose=True,
         )
 
         captured = capsys.readouterr()
@@ -388,7 +387,9 @@ class TestProjectBootstrapper:
         assert "test_project" in captured.out
         assert "PROJECT READY" in captured.out
 
-    def test_bootstrap_default_base_dir(self, sample_generated_files, tmp_path, monkeypatch):
+    def test_bootstrap_default_base_dir(
+        self, sample_generated_files, tmp_path, monkeypatch
+    ):
         """Test bootstrap with default base directory (cwd)"""
         # Change to temp directory
         monkeypatch.chdir(tmp_path)
@@ -400,13 +401,12 @@ class TestProjectBootstrapper:
             project_name="test_project",
             auto_git=False,
             auto_venv=False,
-            verbose=False
+            verbose=False,
         )
 
         # Should use current directory
         assert result.project_dir == tmp_path / "test_project"
         assert result.project_dir.exists()
-
 
     def test_bootstrap_with_cicd(self, tmp_path, sample_generated_files):
         """Test bootstrap with CI/CD generation"""
@@ -420,7 +420,7 @@ class TestProjectBootstrapper:
             auto_venv=False,
             auto_cicd=True,
             include_docker=False,
-            verbose=False
+            verbose=False,
         )
 
         project_dir = result.project_dir
@@ -440,7 +440,7 @@ class TestProjectBootstrapper:
             auto_venv=False,
             auto_cicd=True,
             include_docker=True,
-            verbose=False
+            verbose=False,
         )
 
         project_dir = result.project_dir

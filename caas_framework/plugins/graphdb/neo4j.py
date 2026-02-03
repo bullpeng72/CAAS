@@ -37,14 +37,18 @@ class Neo4jPlugin(GraphDBPlugin):
         try:
             from neo4j import AsyncGraphDatabase
 
-            self._driver = AsyncGraphDatabase.driver(self.uri, auth=(self.username, self.password))
+            self._driver = AsyncGraphDatabase.driver(
+                self.uri, auth=(self.username, self.password)
+            )
 
             # Verify connectivity
             await self._driver.verify_connectivity()
             self._initialized = True
 
         except ImportError:
-            raise ImportError("Neo4j package not installed. " "Install with: pip install neo4j")
+            raise ImportError(
+                "Neo4j package not installed. " "Install with: pip install neo4j"
+            )
 
     async def execute_query(
         self, query: str, parameters: Optional[Dict[str, Any]] = None
@@ -85,9 +89,13 @@ class Neo4jPlugin(GraphDBPlugin):
                 # Store raw record
                 records.append(dict(record))
 
-            return GraphQueryResult(nodes=nodes, relationships=relationships, records=records)
+            return GraphQueryResult(
+                nodes=nodes, relationships=relationships, records=records
+            )
 
-    async def create_node(self, labels: List[str], properties: Dict[str, Any]) -> GraphNode:
+    async def create_node(
+        self, labels: List[str], properties: Dict[str, Any]
+    ) -> GraphNode:
         """Create a new node"""
         if not self._initialized:
             await self.initialize()
@@ -126,7 +134,11 @@ class Neo4jPlugin(GraphDBPlugin):
 
         result = await self.execute_query(
             query,
-            {"start_id": start_node_id, "end_id": end_node_id, "properties": properties or {}},
+            {
+                "start_id": start_node_id,
+                "end_id": end_node_id,
+                "properties": properties or {},
+            },
         )
 
         if result.relationships:
@@ -180,7 +192,9 @@ class Neo4jPlugin(GraphDBPlugin):
         RETURN p
         """
 
-        result = await self.execute_query(query, {"start_id": start_node_id, "end_id": end_node_id})
+        result = await self.execute_query(
+            query, {"start_id": start_node_id, "end_id": end_node_id}
+        )
 
         paths = []
         for record in result.records:
@@ -241,7 +255,9 @@ class Neo4jPlugin(GraphDBPlugin):
 
         # Get relationship types
         types_result = await self.execute_query("CALL db.relationshipTypes()")
-        relationship_types = [record["relationshipType"] for record in types_result.records]
+        relationship_types = [
+            record["relationshipType"] for record in types_result.records
+        ]
 
         # Get property keys
         props_result = await self.execute_query("CALL db.propertyKeys()")

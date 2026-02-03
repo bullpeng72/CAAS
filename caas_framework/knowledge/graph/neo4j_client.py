@@ -292,7 +292,9 @@ class Neo4jClient(LoggerMixin):
 
         # SECURITY: direction 검증
         if direction not in ("in", "out", "both"):
-            raise ValueError(f"유효하지 않은 방향 (in/out/both 중 하나여야 함): {direction}")
+            raise ValueError(
+                f"유효하지 않은 방향 (in/out/both 중 하나여야 함): {direction}"
+            )
 
         # direction에 따라 패턴 구성
         if direction == "out":
@@ -362,11 +364,31 @@ def seed_initial_data(client: Neo4jClient):
     """
     # 기본 도메인
     domains = [
-        {"id": "finance", "name": "Finance", "description": "Financial services and analysis"},
-        {"id": "healthcare", "name": "Healthcare", "description": "Medical and health services"},
-        {"id": "education", "name": "Education", "description": "Learning and training"},
-        {"id": "technology", "name": "Technology", "description": "Software and IT services"},
-        {"id": "marketing", "name": "Marketing", "description": "Marketing and advertising"},
+        {
+            "id": "finance",
+            "name": "Finance",
+            "description": "Financial services and analysis",
+        },
+        {
+            "id": "healthcare",
+            "name": "Healthcare",
+            "description": "Medical and health services",
+        },
+        {
+            "id": "education",
+            "name": "Education",
+            "description": "Learning and training",
+        },
+        {
+            "id": "technology",
+            "name": "Technology",
+            "description": "Software and IT services",
+        },
+        {
+            "id": "marketing",
+            "name": "Marketing",
+            "description": "Marketing and advertising",
+        },
         {"id": "research", "name": "Research", "description": "Research and analysis"},
     ]
 

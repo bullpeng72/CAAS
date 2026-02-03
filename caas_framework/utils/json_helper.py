@@ -62,7 +62,9 @@ class JSONHelper:
         return JSONHelper.safe_parse(content, fallback)
 
     @staticmethod
-    def safe_parse(json_str: str, fallback: Optional[Any] = None) -> Optional[Dict[str, Any]]:
+    def safe_parse(
+        json_str: str, fallback: Optional[Any] = None
+    ) -> Optional[Dict[str, Any]]:
         """
         안전한 JSON 파싱
 
@@ -226,12 +228,16 @@ class JSONHelper:
 
 
 # 편의 함수들
-def extract_json(content: str, fallback: Optional[Any] = None) -> Optional[Dict[str, Any]]:
+def extract_json(
+    content: str, fallback: Optional[Any] = None
+) -> Optional[Dict[str, Any]]:
     """Markdown에서 JSON 추출 (단축 함수)"""
     return JSONHelper.extract_from_markdown(content, fallback)
 
 
-def parse_json(json_str: str, fallback: Optional[Any] = None) -> Optional[Dict[str, Any]]:
+def parse_json(
+    json_str: str, fallback: Optional[Any] = None
+) -> Optional[Dict[str, Any]]:
     """JSON 파싱 (단축 함수)"""
     return JSONHelper.safe_parse(json_str, fallback)
 

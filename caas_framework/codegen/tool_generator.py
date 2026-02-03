@@ -487,7 +487,9 @@ def get_recommended_tools_for_task(task_description: str, agent_role: str) -> Li
         recommended.append("web_search")
     if any(word in desc_lower or word in role_lower for word in ["brave"]):
         recommended.append("brave_search")
-    if any(word in desc_lower or word in role_lower for word in ["tavily", "ai search"]):
+    if any(
+        word in desc_lower or word in role_lower for word in ["tavily", "ai search"]
+    ):
         recommended.append("tavily_search")
 
     # 웹 스크래핑
@@ -506,7 +508,8 @@ def get_recommended_tools_for_task(task_description: str, agent_role: str) -> Li
     ):
         recommended.append("code_interpreter")
     if any(
-        word in desc_lower or word in role_lower for word in ["calculate", "math", "계산", "수학"]
+        word in desc_lower or word in role_lower
+        for word in ["calculate", "math", "계산", "수학"]
     ):
         recommended.append("calculator")
     if "github" in desc_lower or "github" in role_lower:

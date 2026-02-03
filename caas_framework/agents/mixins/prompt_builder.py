@@ -78,7 +78,9 @@ You are a **{role}**.
             prompt += "\n# Context\n\n"
             for key, value in context.items():
                 if isinstance(value, (dict, list)):
-                    prompt += f"**{key}**:\n```json\n{json.dumps(value, indent=2)}\n```\n\n"
+                    prompt += (
+                        f"**{key}**:\n```json\n{json.dumps(value, indent=2)}\n```\n\n"
+                    )
                 else:
                     prompt += f"- **{key}**: {value}\n"
             prompt += "\n"
@@ -121,7 +123,9 @@ You are a **{role}**.
         # Remove trailing comma
         prompt = prompt.rstrip(",\n") + "\n"
         prompt += "}\n```\n\n"
-        prompt += "**Important**: Ensure your response is valid JSON that can be parsed.\n"
+        prompt += (
+            "**Important**: Ensure your response is valid JSON that can be parsed.\n"
+        )
 
         return prompt
 
@@ -143,7 +147,9 @@ You are a **{role}**.
 
         if isinstance(value, (dict, list)):
             # JSON format for complex types
-            return f"## {formatted_key}\n\n```json\n{json.dumps(value, indent=2)}\n```\n\n"
+            return (
+                f"## {formatted_key}\n\n```json\n{json.dumps(value, indent=2)}\n```\n\n"
+            )
 
         if isinstance(value, str) and len(value) > 200:
             # Long text
@@ -152,7 +158,9 @@ You are a **{role}**.
         # Short text
         return f"## {formatted_key}\n\n{value}\n\n"
 
-    def add_golden_data_context(self, prompt: str, golden_data, max_features: int = 10) -> str:
+    def add_golden_data_context(
+        self, prompt: str, golden_data, max_features: int = 10
+    ) -> str:
         """
         Add Golden Data context to existing prompt.
 
@@ -180,16 +188,20 @@ You are a **{role}**.
             golden_context += f"**Subdomain**: {golden_data.subdomain}\n\n"
 
         if hasattr(golden_data, "features") and golden_data.features:
-            golden_context += f"**Key Features** ({len(golden_data.features)} total):\n\n"
+            golden_context += (
+                f"**Key Features** ({len(golden_data.features)} total):\n\n"
+            )
             for i, feature in enumerate(golden_data.features[:max_features], 1):
-                feature_name = feature.name if hasattr(feature, "name") else str(feature)
-                feature_desc = feature.description if hasattr(feature, "description") else ""
+                feature_name = (
+                    feature.name if hasattr(feature, "name") else str(feature)
+                )
+                feature_desc = (
+                    feature.description if hasattr(feature, "description") else ""
+                )
                 golden_context += f"{i}. **{feature_name}**: {feature_desc}\n"
 
             if len(golden_data.features) > max_features:
-                golden_context += (
-                    f"\n... and {len(golden_data.features) - max_features} more features.\n"
-                )
+                golden_context += f"\n... and {len(golden_data.features) - max_features} more features.\n"
 
             golden_context += "\n"
 
@@ -240,7 +252,9 @@ You are a **{role}**.
         prev_context = "\n# Previous Phase Outputs\n\n"
         prev_context += "Use these outputs from previous phases as context:\n\n"
 
-        for i, (phase, output) in enumerate(list(previous_outputs.items())[:max_outputs], 1):
+        for i, (phase, output) in enumerate(
+            list(previous_outputs.items())[:max_outputs], 1
+        ):
             phase_name = phase.value if hasattr(phase, "value") else str(phase)
             prev_context += f"## Phase: {phase_name}\n\n"
 
@@ -252,9 +266,7 @@ You are a **{role}**.
                 prev_context += f"{str(output)[:500]}...\n\n"
 
         if len(previous_outputs) > max_outputs:
-            prev_context += (
-                f"\n... and {len(previous_outputs) - max_outputs} more outputs available.\n\n"
-            )
+            prev_context += f"\n... and {len(previous_outputs) - max_outputs} more outputs available.\n\n"
 
         # Insert after Context section or before Output Format
         if "# Context\n" in prompt:
@@ -407,7 +419,10 @@ class AgentPromptBuilder(PromptBuildingMixin):
         return prompt
 
     def build_code_generation_prompt(
-        self, agent_design: Dict[str, Any], architecture: Dict[str, Any], requirement: str
+        self,
+        agent_design: Dict[str, Any],
+        architecture: Dict[str, Any],
+        requirement: str,
     ) -> str:
         """
         Build prompt for code generation phase.

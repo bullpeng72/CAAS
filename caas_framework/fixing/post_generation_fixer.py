@@ -62,7 +62,9 @@ class PostGenerationFixer:
                     if task.get("id") == issue.task_id:
                         # Set human_input to False
                         task["human_input"] = False
-                        fixes_applied.append(f"Set human_input=False for task {issue.task_id}")
+                        fixes_applied.append(
+                            f"Set human_input=False for task {issue.task_id}"
+                        )
 
         # 3. Fix missing tools
         agents_dict = ToolFixer.fix_agents_tools(agents_dict, tasks_dict)

@@ -31,17 +31,13 @@ def test_plan_mode_auto_approve():
     # Create mock concretized requirements
     concretized = ConcretizedRequirement(
         system_scope=SystemScope(
-            project_name="Test Project",
-            purpose="Test auto-approve"
+            project_name="Test Project", purpose="Test auto-approve"
         ),
         features=[
             FeatureSpec(
-                id="f1",
-                name="Feature 1",
-                description="Test feature",
-                priority="high"
+                id="f1", name="Feature 1", description="Test feature", priority="high"
             )
-        ]
+        ],
     )
 
     # Auto-approve should return APPROVE without user input
@@ -59,16 +55,12 @@ def test_review_design_auto_approve():
                 "id": "agent1",
                 "role": "Researcher",
                 "goal": "Research topics",
-                "tools": ["web_search"]
+                "tools": ["web_search"],
             }
         ],
         "tasks": [
-            {
-                "id": "task1",
-                "description": "Research a topic",
-                "agent": "agent1"
-            }
-        ]
+            {"id": "task1", "description": "Research a topic", "agent": "agent1"}
+        ],
     }
 
     decision = plan_mode.review_design(design)
@@ -87,7 +79,7 @@ def main():
     agent = Agent(role="Helper", goal="Help users")
     print("Running crew...")
 """,
-        "requirements.txt": "crewai>=0.65.0\n"
+        "requirements.txt": "crewai>=0.65.0\n",
     }
 
     decision = plan_mode.review_final_code(generated_code)
@@ -100,22 +92,21 @@ def test_display_features_with_boundaries():
 
     concretized = ConcretizedRequirement(
         system_scope=SystemScope(
-            project_name="Secure Project",
-            purpose="Test boundaries display"
+            project_name="Secure Project", purpose="Test boundaries display"
         ),
         features=[
             FeatureSpec(
                 id="f1",
                 name="User Management",
                 description="Manage users",
-                priority="critical"
+                priority="critical",
             )
         ],
         boundaries=BoundariesSpec(
             always_allowed=["Read files"],
             ask_first=["API calls"],
-            never_allowed=["sudo commands"]
-        )
+            never_allowed=["sudo commands"],
+        ),
     )
 
     # In auto-approve mode, this should work

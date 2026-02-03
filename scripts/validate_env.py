@@ -17,6 +17,7 @@ from typing import List, Optional
 
 class ValidationStatus(Enum):
     """Validation result status"""
+
     PASSED = "✅"
     FAILED = "❌"
     WARNING = "⚠️"
@@ -26,6 +27,7 @@ class ValidationStatus(Enum):
 @dataclass
 class ValidationResult:
     """Single validation check result"""
+
     name: str
     status: ValidationStatus
     message: str
@@ -119,8 +121,11 @@ class EnvironmentValidator:
         print()
 
         # Determine overall result
-        required_failures = [r for r in self.results
-                           if r.status == ValidationStatus.FAILED and r.required]
+        required_failures = [
+            r
+            for r in self.results
+            if r.status == ValidationStatus.FAILED and r.required
+        ]
 
         if required_failures:
             print("❌ Environment validation FAILED")
@@ -144,35 +149,43 @@ class EnvironmentValidator:
             version_str = f"{version.major}.{version.minor}.{version.micro}"
 
             if version.major == 3 and version.minor >= 11:
-                self.results.append(ValidationResult(
-                    name="Python Version",
-                    status=ValidationStatus.PASSED,
-                    message=f"Python {version_str} installed",
-                    required=True
-                ))
+                self.results.append(
+                    ValidationResult(
+                        name="Python Version",
+                        status=ValidationStatus.PASSED,
+                        message=f"Python {version_str} installed",
+                        required=True,
+                    )
+                )
             elif version.major == 3 and version.minor >= 9:
-                self.results.append(ValidationResult(
-                    name="Python Version",
-                    status=ValidationStatus.WARNING,
-                    message=f"Python {version_str} - recommended 3.11+",
-                    details="CAAS works best with Python 3.11+",
-                    required=False
-                ))
+                self.results.append(
+                    ValidationResult(
+                        name="Python Version",
+                        status=ValidationStatus.WARNING,
+                        message=f"Python {version_str} - recommended 3.11+",
+                        details="CAAS works best with Python 3.11+",
+                        required=False,
+                    )
+                )
             else:
-                self.results.append(ValidationResult(
+                self.results.append(
+                    ValidationResult(
+                        name="Python Version",
+                        status=ValidationStatus.FAILED,
+                        message=f"Python {version_str} - requires 3.11+",
+                        details="Upgrade: pyenv install 3.11 && pyenv global 3.11",
+                        required=True,
+                    )
+                )
+        except Exception as e:
+            self.results.append(
+                ValidationResult(
                     name="Python Version",
                     status=ValidationStatus.FAILED,
-                    message=f"Python {version_str} - requires 3.11+",
-                    details="Upgrade: pyenv install 3.11 && pyenv global 3.11",
-                    required=True
-                ))
-        except Exception as e:
-            self.results.append(ValidationResult(
-                name="Python Version",
-                status=ValidationStatus.FAILED,
-                message=f"Error checking Python version: {e}",
-                required=True
-            ))
+                    message=f"Error checking Python version: {e}",
+                    required=True,
+                )
+            )
 
     def check_required_packages(self) -> None:
         """Check required Python packages"""
@@ -183,7 +196,7 @@ class EnvironmentValidator:
             ("openai", "OpenAI API"),
             ("python-dotenv", "Environment variables"),
             ("pytest", "Testing framework"),
-            ("rich", "Terminal formatting")
+            ("rich", "Terminal formatting"),
         ]
 
         missing_packages = []
@@ -197,29 +210,33 @@ class EnvironmentValidator:
                 missing_packages.append((package, description))
 
         if not missing_packages:
-            self.results.append(ValidationResult(
-                name="Required Packages",
-                status=ValidationStatus.PASSED,
-                message=f"All {len(required_packages)} packages installed",
-                details=", ".join(installed_packages),
-                required=True
-            ))
+            self.results.append(
+                ValidationResult(
+                    name="Required Packages",
+                    status=ValidationStatus.PASSED,
+                    message=f"All {len(required_packages)} packages installed",
+                    details=", ".join(installed_packages),
+                    required=True,
+                )
+            )
         else:
             missing_list = ", ".join([p[0] for p in missing_packages])
-            self.results.append(ValidationResult(
-                name="Required Packages",
-                status=ValidationStatus.FAILED,
-                message=f"{len(missing_packages)} packages missing",
-                details=f"Install: pip install {missing_list}",
-                required=True
-            ))
+            self.results.append(
+                ValidationResult(
+                    name="Required Packages",
+                    status=ValidationStatus.FAILED,
+                    message=f"{len(missing_packages)} packages missing",
+                    details=f"Install: pip install {missing_list}",
+                    required=True,
+                )
+            )
 
     def check_api_keys(self) -> None:
         """Check for required API keys"""
         api_keys = [
             ("OPENAI_API_KEY", True, "OpenAI API"),
             ("ANTHROPIC_API_KEY", False, "Anthropic API"),
-            ("GOOGLE_API_KEY", False, "Google API")
+            ("GOOGLE_API_KEY", False, "Google API"),
         ]
 
         missing_required = []
@@ -230,98 +247,115 @@ class EnvironmentValidator:
 
             if key_value:
                 # Mask the key for security
-                masked_value = key_value[:8] + "..." + key_value[-4:] if len(key_value) > 12 else "***"
-                self.results.append(ValidationResult(
-                    name=f"API Key: {key_name}",
-                    status=ValidationStatus.PASSED,
-                    message=f"{description} key found",
-                    details=f"Value: {masked_value}",
-                    required=required
-                ))
+                masked_value = (
+                    key_value[:8] + "..." + key_value[-4:]
+                    if len(key_value) > 12
+                    else "***"
+                )
+                self.results.append(
+                    ValidationResult(
+                        name=f"API Key: {key_name}",
+                        status=ValidationStatus.PASSED,
+                        message=f"{description} key found",
+                        details=f"Value: {masked_value}",
+                        required=required,
+                    )
+                )
             else:
                 if required:
                     missing_required.append(key_name)
-                    self.results.append(ValidationResult(
-                        name=f"API Key: {key_name}",
-                        status=ValidationStatus.FAILED,
-                        message=f"{description} key missing",
-                        details=f"Set: export {key_name}=your_key_here",
-                        required=True
-                    ))
+                    self.results.append(
+                        ValidationResult(
+                            name=f"API Key: {key_name}",
+                            status=ValidationStatus.FAILED,
+                            message=f"{description} key missing",
+                            details=f"Set: export {key_name}=your_key_here",
+                            required=True,
+                        )
+                    )
                 else:
                     missing_optional.append(key_name)
-                    self.results.append(ValidationResult(
-                        name=f"API Key: {key_name}",
-                        status=ValidationStatus.SKIPPED,
-                        message=f"{description} key not set (optional)",
-                        required=False
-                    ))
+                    self.results.append(
+                        ValidationResult(
+                            name=f"API Key: {key_name}",
+                            status=ValidationStatus.SKIPPED,
+                            message=f"{description} key not set (optional)",
+                            required=False,
+                        )
+                    )
 
     def check_docker(self) -> None:
         """Check Docker installation"""
         try:
             result = subprocess.run(
-                ["docker", "--version"],
-                capture_output=True,
-                text=True,
-                timeout=5
+                ["docker", "--version"], capture_output=True, text=True, timeout=5
             )
 
             if result.returncode == 0:
                 version = result.stdout.strip()
-                self.results.append(ValidationResult(
-                    name="Docker",
-                    status=ValidationStatus.PASSED,
-                    message="Docker installed",
-                    details=version,
-                    required=False
-                ))
+                self.results.append(
+                    ValidationResult(
+                        name="Docker",
+                        status=ValidationStatus.PASSED,
+                        message="Docker installed",
+                        details=version,
+                        required=False,
+                    )
+                )
 
                 # Check if Docker daemon is running
                 daemon_check = subprocess.run(
-                    ["docker", "ps"],
-                    capture_output=True,
-                    timeout=5
+                    ["docker", "ps"], capture_output=True, timeout=5
                 )
 
                 if daemon_check.returncode != 0:
-                    self.results.append(ValidationResult(
-                        name="Docker Daemon",
-                        status=ValidationStatus.WARNING,
-                        message="Docker installed but daemon not running",
-                        details="Start: sudo systemctl start docker",
-                        required=False
-                    ))
+                    self.results.append(
+                        ValidationResult(
+                            name="Docker Daemon",
+                            status=ValidationStatus.WARNING,
+                            message="Docker installed but daemon not running",
+                            details="Start: sudo systemctl start docker",
+                            required=False,
+                        )
+                    )
             else:
-                self.results.append(ValidationResult(
+                self.results.append(
+                    ValidationResult(
+                        name="Docker",
+                        status=ValidationStatus.WARNING,
+                        message="Docker not found",
+                        details="Install: https://docs.docker.com/get-docker/",
+                        required=False,
+                    )
+                )
+        except FileNotFoundError:
+            self.results.append(
+                ValidationResult(
                     name="Docker",
                     status=ValidationStatus.WARNING,
-                    message="Docker not found",
+                    message="Docker not installed",
                     details="Install: https://docs.docker.com/get-docker/",
-                    required=False
-                ))
-        except FileNotFoundError:
-            self.results.append(ValidationResult(
-                name="Docker",
-                status=ValidationStatus.WARNING,
-                message="Docker not installed",
-                details="Install: https://docs.docker.com/get-docker/",
-                required=False
-            ))
+                    required=False,
+                )
+            )
         except subprocess.TimeoutExpired:
-            self.results.append(ValidationResult(
-                name="Docker",
-                status=ValidationStatus.WARNING,
-                message="Docker check timeout",
-                required=False
-            ))
+            self.results.append(
+                ValidationResult(
+                    name="Docker",
+                    status=ValidationStatus.WARNING,
+                    message="Docker check timeout",
+                    required=False,
+                )
+            )
         except Exception as e:
-            self.results.append(ValidationResult(
-                name="Docker",
-                status=ValidationStatus.WARNING,
-                message=f"Docker check error: {e}",
-                required=False
-            ))
+            self.results.append(
+                ValidationResult(
+                    name="Docker",
+                    status=ValidationStatus.WARNING,
+                    message=f"Docker check error: {e}",
+                    required=False,
+                )
+            )
 
     def check_kubernetes(self) -> None:
         """Check Kubernetes (kubectl) installation"""
@@ -330,38 +364,46 @@ class EnvironmentValidator:
                 ["kubectl", "version", "--client"],
                 capture_output=True,
                 text=True,
-                timeout=5
+                timeout=5,
             )
 
             if result.returncode == 0:
-                self.results.append(ValidationResult(
-                    name="Kubernetes",
-                    status=ValidationStatus.PASSED,
-                    message="kubectl installed",
-                    details="Kubernetes CLI available",
-                    required=False
-                ))
+                self.results.append(
+                    ValidationResult(
+                        name="Kubernetes",
+                        status=ValidationStatus.PASSED,
+                        message="kubectl installed",
+                        details="Kubernetes CLI available",
+                        required=False,
+                    )
+                )
             else:
-                self.results.append(ValidationResult(
+                self.results.append(
+                    ValidationResult(
+                        name="Kubernetes",
+                        status=ValidationStatus.SKIPPED,
+                        message="kubectl not found (optional)",
+                        required=False,
+                    )
+                )
+        except FileNotFoundError:
+            self.results.append(
+                ValidationResult(
                     name="Kubernetes",
                     status=ValidationStatus.SKIPPED,
-                    message="kubectl not found (optional)",
-                    required=False
-                ))
-        except FileNotFoundError:
-            self.results.append(ValidationResult(
-                name="Kubernetes",
-                status=ValidationStatus.SKIPPED,
-                message="kubectl not installed (optional)",
-                required=False
-            ))
+                    message="kubectl not installed (optional)",
+                    required=False,
+                )
+            )
         except Exception as e:
-            self.results.append(ValidationResult(
-                name="Kubernetes",
-                status=ValidationStatus.SKIPPED,
-                message=f"kubectl check skipped: {e}",
-                required=False
-            ))
+            self.results.append(
+                ValidationResult(
+                    name="Kubernetes",
+                    status=ValidationStatus.SKIPPED,
+                    message=f"kubectl check skipped: {e}",
+                    required=False,
+                )
+            )
 
     def check_disk_space(self) -> None:
         """Check available disk space"""
@@ -373,34 +415,42 @@ class EnvironmentValidator:
             free_gb = free // (2**30)  # Convert to GB
 
             if free_gb >= 10:
-                self.results.append(ValidationResult(
-                    name="Disk Space",
-                    status=ValidationStatus.PASSED,
-                    message=f"{free_gb} GB available",
-                    required=True
-                ))
+                self.results.append(
+                    ValidationResult(
+                        name="Disk Space",
+                        status=ValidationStatus.PASSED,
+                        message=f"{free_gb} GB available",
+                        required=True,
+                    )
+                )
             elif free_gb >= 5:
-                self.results.append(ValidationResult(
+                self.results.append(
+                    ValidationResult(
+                        name="Disk Space",
+                        status=ValidationStatus.WARNING,
+                        message=f"{free_gb} GB available - recommended 10+ GB",
+                        required=False,
+                    )
+                )
+            else:
+                self.results.append(
+                    ValidationResult(
+                        name="Disk Space",
+                        status=ValidationStatus.FAILED,
+                        message=f"{free_gb} GB available - requires 5+ GB",
+                        details="Free up disk space before continuing",
+                        required=True,
+                    )
+                )
+        except Exception as e:
+            self.results.append(
+                ValidationResult(
                     name="Disk Space",
                     status=ValidationStatus.WARNING,
-                    message=f"{free_gb} GB available - recommended 10+ GB",
-                    required=False
-                ))
-            else:
-                self.results.append(ValidationResult(
-                    name="Disk Space",
-                    status=ValidationStatus.FAILED,
-                    message=f"{free_gb} GB available - requires 5+ GB",
-                    details="Free up disk space before continuing",
-                    required=True
-                ))
-        except Exception as e:
-            self.results.append(ValidationResult(
-                name="Disk Space",
-                status=ValidationStatus.WARNING,
-                message=f"Could not check disk space: {e}",
-                required=False
-            ))
+                    message=f"Could not check disk space: {e}",
+                    required=False,
+                )
+            )
 
     def check_network_connectivity(self) -> None:
         """Check network connectivity to OpenAI API"""
@@ -410,27 +460,33 @@ class EnvironmentValidator:
             # Try to connect to OpenAI API
             socket.create_connection(("api.openai.com", 443), timeout=5)
 
-            self.results.append(ValidationResult(
-                name="Network Connectivity",
-                status=ValidationStatus.PASSED,
-                message="Can reach api.openai.com",
-                required=True
-            ))
+            self.results.append(
+                ValidationResult(
+                    name="Network Connectivity",
+                    status=ValidationStatus.PASSED,
+                    message="Can reach api.openai.com",
+                    required=True,
+                )
+            )
         except socket.timeout:
-            self.results.append(ValidationResult(
-                name="Network Connectivity",
-                status=ValidationStatus.FAILED,
-                message="Connection timeout to api.openai.com",
-                details="Check firewall/proxy settings",
-                required=True
-            ))
+            self.results.append(
+                ValidationResult(
+                    name="Network Connectivity",
+                    status=ValidationStatus.FAILED,
+                    message="Connection timeout to api.openai.com",
+                    details="Check firewall/proxy settings",
+                    required=True,
+                )
+            )
         except Exception as e:
-            self.results.append(ValidationResult(
-                name="Network Connectivity",
-                status=ValidationStatus.WARNING,
-                message=f"Network check failed: {e}",
-                required=False
-            ))
+            self.results.append(
+                ValidationResult(
+                    name="Network Connectivity",
+                    status=ValidationStatus.WARNING,
+                    message=f"Network check failed: {e}",
+                    required=False,
+                )
+            )
 
     def export_results_json(self, output_file: str = "validation_results.json") -> None:
         """Export validation results to JSON"""
@@ -441,16 +497,26 @@ class EnvironmentValidator:
                     "status": r.status.name,
                     "message": r.message,
                     "details": r.details,
-                    "required": r.required
+                    "required": r.required,
                 }
                 for r in self.results
             ],
             "summary": {
                 "total": len(self.results),
-                "passed": len([r for r in self.results if r.status == ValidationStatus.PASSED]),
-                "failed": len([r for r in self.results if r.status == ValidationStatus.FAILED and r.required]),
-                "warnings": len([r for r in self.results if r.status == ValidationStatus.WARNING])
-            }
+                "passed": len(
+                    [r for r in self.results if r.status == ValidationStatus.PASSED]
+                ),
+                "failed": len(
+                    [
+                        r
+                        for r in self.results
+                        if r.status == ValidationStatus.FAILED and r.required
+                    ]
+                ),
+                "warnings": len(
+                    [r for r in self.results if r.status == ValidationStatus.WARNING]
+                ),
+            },
         }
 
         with open(output_file, "w") as f:
@@ -463,19 +529,13 @@ def main():
     """Main entry point"""
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description="CAAS Environment Validation Tool"
-    )
+    parser = argparse.ArgumentParser(description="CAAS Environment Validation Tool")
     parser.add_argument(
         "--skip-optional",
         action="store_true",
-        help="Skip optional checks (Docker, K8s)"
+        help="Skip optional checks (Docker, K8s)",
     )
-    parser.add_argument(
-        "--export-json",
-        type=str,
-        help="Export results to JSON file"
-    )
+    parser.add_argument("--export-json", type=str, help="Export results to JSON file")
 
     args = parser.parse_args()
 

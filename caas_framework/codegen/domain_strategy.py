@@ -44,7 +44,9 @@ class DomainStrategyConfig(BaseModel):
 
     requires_database: bool = Field(description="Database 생성 필요 여부")
 
-    primary_artifact: str = Field(description="주요 아티팩트 (agents, backend, frontend)")
+    primary_artifact: str = Field(
+        description="주요 아티팩트 (agents, backend, frontend)"
+    )
 
     agent_purpose: Optional[str] = Field(
         default=None,
@@ -245,7 +247,9 @@ class DomainCodeStrategy:
 
         if config is None:
             # 기본값: Agent 기반 (가장 범용적)
-            logger.warning(f"도메인 {domain_type}에 대한 전략이 정의되지 않음. Agent 기반 사용.")
+            logger.warning(
+                f"도메인 {domain_type}에 대한 전략이 정의되지 않음. Agent 기반 사용."
+            )
             config = DomainStrategyConfig(
                 strategy=CodeGenStrategy.AGENT_BASED,
                 requires_agents=True,

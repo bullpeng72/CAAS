@@ -76,7 +76,12 @@ class SemanticMapper:
         # Translation map for common English-Korean feature/agent terms
         self._translation_map = {
             # Feature names
-            "keyword input": ["키워드 입력", "키워드입력", "keyword", "사용자 인터페이스"],
+            "keyword input": [
+                "키워드 입력",
+                "키워드입력",
+                "keyword",
+                "사용자 인터페이스",
+            ],
             "internet search": [
                 "인터넷 검색",
                 "인터넷검색",
@@ -84,11 +89,24 @@ class SemanticMapper:
                 "search",
                 "인터넷 정보 검색",
             ],
-            "internet information search": ["인터넷 정보 검색", "인터넷 검색", "정보 검색"],
+            "internet information search": [
+                "인터넷 정보 검색",
+                "인터넷 검색",
+                "정보 검색",
+            ],
             "trend report": ["동향 보고서", "트렌드 리포트", "보고서", "report"],
-            "trend report generation": ["동향 보고서 작성", "보고서 생성", "리포트 생성"],
+            "trend report generation": [
+                "동향 보고서 작성",
+                "보고서 생성",
+                "리포트 생성",
+            ],
             "trend report display": ["보고서 표시", "보고서 보여주기", "결과 표시"],
-            "keyword validation": ["키워드 검증", "키워드 유효성", "validation", "검증"],
+            "keyword validation": [
+                "키워드 검증",
+                "키워드 유효성",
+                "validation",
+                "검증",
+            ],
             "report generation": ["보고서 작성", "보고서 생성", "리포트 생성"],
             "data research": ["데이터 조사", "데이터 리서치", "자료 조사"],
             "data investigation": ["데이터 조사", "자료 조사"],
@@ -104,7 +122,11 @@ class SemanticMapper:
             ],
             "validation agent": ["검증 대리자", "검증 에이전트", "키워드 검증 관리자"],
             "research agent": ["조사 대리자", "조사 에이전트", "리서치 에이전트"],
-            "report agent": ["보고서 작성 대리자", "보고서 에이전트", "보고서 작성 관리자"],
+            "report agent": [
+                "보고서 작성 대리자",
+                "보고서 에이전트",
+                "보고서 작성 관리자",
+            ],
             "search agent": [
                 "검색 에이전트",
                 "검색 관리자",
@@ -186,9 +208,14 @@ class SemanticMapper:
         for feature in features:
             self.logger.debug(f"Analyzing feature: {feature.name} ({feature.id})")
 
-            implementation = await self._analyze_feature_implementation(feature, code_analyses)
+            implementation = await self._analyze_feature_implementation(
+                feature, code_analyses
+            )
 
-            if implementation.is_fully_implemented or implementation.is_partially_implemented:
+            if (
+                implementation.is_fully_implemented
+                or implementation.is_partially_implemented
+            ):
                 feature_implementations.append(implementation)
             else:
                 unimplemented.append(feature.id)
@@ -301,7 +328,9 @@ class SemanticMapper:
                         variant_score = 0.9  # High score for substring match
                     else:
                         # Fuzzy match on variants
-                        var_seq_ratio = SequenceMatcher(None, v1_lower, v2_lower).ratio()
+                        var_seq_ratio = SequenceMatcher(
+                            None, v1_lower, v2_lower
+                        ).ratio()
                         var_max_len = max(len(v1_lower), len(v2_lower))
                         if var_max_len == 0:
                             var_lev_sim = 1.0
@@ -346,7 +375,9 @@ class SemanticMapper:
             for file_path, task in all_tasks:
                 score = fuzzy_similarity(feature.description, task.description)
                 if task.expected_output:
-                    output_score = fuzzy_similarity(feature.description, task.expected_output)
+                    output_score = fuzzy_similarity(
+                        feature.description, task.expected_output
+                    )
                     score = max(score, output_score)
 
                 if score > best_task_score:
@@ -622,7 +653,9 @@ Be thorough but realistic. Don't claim implementation unless you see actual code
 
             # CrewAI Agents (IMPORTANT for feature mapping)
             if analysis.agent_definitions:
-                lines.append(f"\n**CrewAI Agents ({len(analysis.agent_definitions)}):**")
+                lines.append(
+                    f"\n**CrewAI Agents ({len(analysis.agent_definitions)}):**"
+                )
                 for agent in analysis.agent_definitions:
                     lines.append(f"  - Agent: {agent.role or agent.name}")
                     if agent.goal:
@@ -640,7 +673,9 @@ Be thorough but realistic. Don't claim implementation unless you see actual code
                     if task.agent_name:
                         lines.append(f"    Agent: {task.agent_name}")
                 if len(analysis.task_definitions) > 15:
-                    lines.append(f"  ... and {len(analysis.task_definitions) - 15} more tasks")
+                    lines.append(
+                        f"  ... and {len(analysis.task_definitions) - 15} more tasks"
+                    )
 
             # Functions
             if analysis.functions:
@@ -663,7 +698,9 @@ Be thorough but realistic. Don't claim implementation unless you see actual code
                         first_line = cls.docstring.split("\n")[0]
                         lines.append(f'    "{first_line}"')
                     if cls.methods:
-                        lines.append(f"    Methods: {', '.join(m.name for m in cls.methods[:5])}")
+                        lines.append(
+                            f"    Methods: {', '.join(m.name for m in cls.methods[:5])}"
+                        )
                         if len(cls.methods) > 5:
                             lines.append(f"    ... and {len(cls.methods) - 5} more")
                 if len(analysis.classes) > 5:

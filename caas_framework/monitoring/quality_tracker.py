@@ -91,7 +91,10 @@ class QualityTracker:
         )
 
     def get_current_avg(
-        self, phase: Optional[str] = None, metric_name: Optional[str] = None, days: int = 7
+        self,
+        phase: Optional[str] = None,
+        metric_name: Optional[str] = None,
+        days: int = 7,
     ) -> float:
         """
         Get current average score.
@@ -105,7 +108,9 @@ class QualityTracker:
             Average score
         """
         since = datetime.now() - timedelta(days=days)
-        metrics = self._filter_metrics(phase=phase, metric_name=metric_name, since=since)
+        metrics = self._filter_metrics(
+            phase=phase, metric_name=metric_name, since=since
+        )
 
         if not metrics:
             return 0.0
@@ -113,7 +118,10 @@ class QualityTracker:
         return statistics.mean(m.score for m in metrics)
 
     def get_trend(
-        self, metric_name: str = "overall", current_days: int = 7, previous_days: int = 7
+        self,
+        metric_name: str = "overall",
+        current_days: int = 7,
+        previous_days: int = 7,
     ) -> QualityTrend:
         """
         Get quality trend.
@@ -128,7 +136,9 @@ class QualityTracker:
         """
         # Current period
         current_since = datetime.now() - timedelta(days=current_days)
-        current_metrics = self._filter_metrics(metric_name=metric_name, since=current_since)
+        current_metrics = self._filter_metrics(
+            metric_name=metric_name, since=current_since
+        )
 
         # Previous period
         previous_until = current_since
@@ -137,9 +147,15 @@ class QualityTracker:
             metric_name=metric_name, since=previous_since, until=previous_until
         )
 
-        current_avg = statistics.mean(m.score for m in current_metrics) if current_metrics else 0.0
+        current_avg = (
+            statistics.mean(m.score for m in current_metrics)
+            if current_metrics
+            else 0.0
+        )
         previous_avg = (
-            statistics.mean(m.score for m in previous_metrics) if previous_metrics else 0.0
+            statistics.mean(m.score for m in previous_metrics)
+            if previous_metrics
+            else 0.0
         )
 
         # Calculate change
@@ -199,7 +215,12 @@ class QualityTracker:
         metrics = self._filter_metrics(since=since)
 
         if not metrics:
-            return {"measurements": 0, "avg_score": 0.0, "approval_rate": 0.0, "by_phase": {}}
+            return {
+                "measurements": 0,
+                "avg_score": 0.0,
+                "approval_rate": 0.0,
+                "by_phase": {},
+            }
 
         # Overall stats
         avg_score = statistics.mean(m.score for m in metrics)

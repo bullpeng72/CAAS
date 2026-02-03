@@ -84,7 +84,9 @@ class CrewAssembler:
             return DomainType(normalized)
         except ValueError:
             # Enum 값이 아니면 None 반환
-            self.logger.debug(f"도메인 타입 매핑 실패: '{domain_str}' -> '{normalized}'")
+            self.logger.debug(
+                f"도메인 타입 매핑 실패: '{domain_str}' -> '{normalized}'"
+            )
             return None
 
     def _infer_inputs_from_spec(self, spec: CrewAISpec) -> List[Dict[str, Any]]:
@@ -152,7 +154,14 @@ class CrewAssembler:
             else:
                 prompt = f"Enter {input_name}"
 
-            inputs.append({"name": input_name, "prompt": prompt, "required": True, "min_length": 1})
+            inputs.append(
+                {
+                    "name": input_name,
+                    "prompt": prompt,
+                    "required": True,
+                    "min_length": 1,
+                }
+            )
 
         # If no inputs detected, add a generic user_input
         if not inputs:
@@ -165,7 +174,9 @@ class CrewAssembler:
                 }
             )
 
-        self.logger.info(f"Inferred {len(inputs)} input field(s): {[i['name'] for i in inputs]}")
+        self.logger.info(
+            f"Inferred {len(inputs)} input field(s): {[i['name'] for i in inputs]}"
+        )
 
         return inputs
 
@@ -447,7 +458,9 @@ if __name__ == "__main__":
                 "domain": spec.project.domain,
             },
             "agents": [{"role": agent.role, "id": agent.id} for agent in spec.agents],
-            "tasks": [{"id": task.id, "description": task.description} for task in spec.tasks],
+            "tasks": [
+                {"id": task.id, "description": task.description} for task in spec.tasks
+            ],
             "inputs": ui_inputs,  # P1 FIX: Use inferred inputs
             "generated_at": datetime.now().isoformat(),
         }
@@ -473,7 +486,9 @@ if __name__ == "__main__":
         Returns:
             Dict[str, str]: 파일명 -> 코드 매핑
         """
-        self.logger.info(f"프로젝트 코드 생성: {spec.project.name} (템플릿: {project_template})")
+        self.logger.info(
+            f"프로젝트 코드 생성: {spec.project.name} (템플릿: {project_template})"
+        )
 
         # Lazy import to avoid circular dependency
         from caas_framework.codegen.domain_strategy import DomainCodeStrategy
@@ -491,7 +506,8 @@ if __name__ == "__main__":
             )
         else:
             self.logger.warning(
-                f"도메인 타입 인식 실패: '{spec.project.domain}'. " f"기본 agent_only 전략 사용."
+                f"도메인 타입 인식 실패: '{spec.project.domain}'. "
+                f"기본 agent_only 전략 사용."
             )
 
         # 프로젝트 정보 준비
@@ -502,9 +518,13 @@ if __name__ == "__main__":
         }
 
         # 에이전트/태스크 정의 생성
-        agent_definitions = [self.agent_factory.create_definition(agent) for agent in spec.agents]
+        agent_definitions = [
+            self.agent_factory.create_definition(agent) for agent in spec.agents
+        ]
 
-        task_definitions = [self.task_factory.create_definition(task) for task in spec.tasks]
+        task_definitions = [
+            self.task_factory.create_definition(task) for task in spec.tasks
+        ]
 
         # Agent context for tasks (for import statements)
         agent_contexts = [{"id": agent.id} for agent in spec.agents]
@@ -527,7 +547,9 @@ if __name__ == "__main__":
             # Agent 필요: agents.py, tasks.py, crew.py 생성
             self.logger.info("Agent 기반 코드 생성")
             files["agents.py"] = self.agent_factory.create_all_agents_code(
-                agent_definitions, project_info=project_info, use_error_handling=use_error_handling
+                agent_definitions,
+                project_info=project_info,
+                use_error_handling=use_error_handling,
             )
             files["tasks.py"] = self.task_factory.create_all_tasks_code(
                 task_definitions,
@@ -554,14 +576,20 @@ if __name__ == "__main__":
                 # Backend 파일 생성
                 files["backend/__init__.py"] = self._create_backend_init(spec)
                 files["backend/database.py"] = self._create_database_connection(spec)
-                files["backend/models.py"] = self._create_database_models(spec, entities)
-                files["backend/schemas.py"] = self._create_pydantic_schemas(spec, entities)
+                files["backend/models.py"] = self._create_database_models(
+                    spec, entities
+                )
+                files["backend/schemas.py"] = self._create_pydantic_schemas(
+                    spec, entities
+                )
                 files["backend/crud.py"] = self._create_crud_operations(spec, entities)
                 files["backend/main.py"] = self._create_fastapi_backend(spec, entities)
 
                 self.logger.info(f"CRUD 코드 생성 완료: {len(entities)}개 엔티티")
             else:
-                self.logger.warning("엔티티를 추출할 수 없어 CRUD 코드 생성을 스킵합니다")
+                self.logger.warning(
+                    "엔티티를 추출할 수 없어 CRUD 코드 생성을 스킵합니다"
+                )
 
         # 템플릿 타입별 추가 파일
         if project_template == "agent_only":
@@ -605,7 +633,10 @@ if __name__ == "__main__":
         return files
 
     def _create_requirements(
-        self, include_tests: bool = False, template: str = "agent_only", strategy_config=None
+        self,
+        include_tests: bool = False,
+        template: str = "agent_only",
+        strategy_config=None,
     ) -> str:
         """requirements.txt 생성"""
         # 기본 의존성
@@ -790,7 +821,9 @@ CREWAI_TELEMETRY_OPT_OUT=true
         # Task 정보 (Agent 기반인 경우만)
         tasks_section = ""
         if strategy_config is None or strategy_config.requires_agents:
-            tasks_list = "\n".join([f"- **{t.id}**: {t.description[:80]}..." for t in spec.tasks])
+            tasks_list = "\n".join(
+                [f"- **{t.id}**: {t.description[:80]}..." for t in spec.tasks]
+            )
             tasks_section = f"""## Tasks
 
 {tasks_list}
@@ -920,7 +953,9 @@ Process Type: **{spec.crew.process}**
             )
 
             # 필드 추출 (task description에서)
-            entity.fields = self._extract_fields_from_tasks(entity_name, task_definitions)
+            entity.fields = self._extract_fields_from_tasks(
+                entity_name, task_definitions
+            )
 
             # 기본 필드 추가
             entity.fields = self._add_default_fields(entity.fields)
@@ -977,7 +1012,9 @@ Process Type: **{spec.crew.process}**
                     # Remove leading conjunctions (and, or)
                     field_name = re.sub(r"^(and|or)\s+", "", field_name).strip()
                     if field_name and field_name not in fields:
-                        field_type, nullable = TYPE_KEYWORDS.get(field_name, ("String", True))
+                        field_type, nullable = TYPE_KEYWORDS.get(
+                            field_name, ("String", True)
+                        )
                         fields[field_name] = FieldDefinition(
                             name=field_name,
                             type=field_type,
@@ -985,7 +1022,9 @@ Process Type: **{spec.crew.process}**
                             optional=nullable,
                             python_type=self._get_python_type(field_type),
                             enum_values=(
-                                self._get_enum_values(field_name) if field_type == "Enum" else None
+                                self._get_enum_values(field_name)
+                                if field_type == "Enum"
+                                else None
                             ),
                             description=f"{field_name} field",
                         )
@@ -999,7 +1038,9 @@ Process Type: **{spec.crew.process}**
                     # Remove leading conjunctions (and, or)
                     field_name = re.sub(r"^(and|or)\s+", "", field_name).strip()
                     if field_name and field_name not in fields:
-                        field_type, nullable = TYPE_KEYWORDS.get(field_name, ("String", True))
+                        field_type, nullable = TYPE_KEYWORDS.get(
+                            field_name, ("String", True)
+                        )
                         fields[field_name] = FieldDefinition(
                             name=field_name,
                             type=field_type,
@@ -1007,7 +1048,9 @@ Process Type: **{spec.crew.process}**
                             optional=nullable,
                             python_type=self._get_python_type(field_type),
                             enum_values=(
-                                self._get_enum_values(field_name) if field_type == "Enum" else None
+                                self._get_enum_values(field_name)
+                                if field_type == "Enum"
+                                else None
                             ),
                             description=f"{field_name} field",
                         )
@@ -1022,7 +1065,9 @@ Process Type: **{spec.crew.process}**
                         optional=nullable,
                         python_type=self._get_python_type(field_type),
                         enum_values=(
-                            self._get_enum_values(keyword) if field_type == "Enum" else None
+                            self._get_enum_values(keyword)
+                            if field_type == "Enum"
+                            else None
                         ),
                         description=f"{keyword} field",
                     )
@@ -1122,7 +1167,9 @@ Process Type: **{spec.crew.process}**
         }
 
         return template.render(
-            project=project_info, entities=entities, generated_at=datetime.now().isoformat()
+            project=project_info,
+            entities=entities,
+            generated_at=datetime.now().isoformat(),
         )
 
     def _create_database_models(self, spec: CrewAISpec, entities: List) -> str:
@@ -1136,7 +1183,9 @@ Process Type: **{spec.crew.process}**
         }
 
         return template.render(
-            project=project_info, entities=entities, generated_at=datetime.now().isoformat()
+            project=project_info,
+            entities=entities,
+            generated_at=datetime.now().isoformat(),
         )
 
     def _create_crud_operations(self, spec: CrewAISpec, entities: List) -> str:
@@ -1150,7 +1199,9 @@ Process Type: **{spec.crew.process}**
         }
 
         return template.render(
-            project=project_info, entities=entities, generated_at=datetime.now().isoformat()
+            project=project_info,
+            entities=entities,
+            generated_at=datetime.now().isoformat(),
         )
 
     def _create_pydantic_schemas(self, spec: CrewAISpec, entities: List) -> str:
@@ -1200,7 +1251,9 @@ Process Type: **{spec.crew.process}**
             "domain": spec.project.domain,
         }
 
-        return template.render(project=project_info, generated_at=datetime.now().isoformat())
+        return template.render(
+            project=project_info, generated_at=datetime.now().isoformat()
+        )
 
     def _create_test_file(self, spec: CrewAISpec) -> str:
         """기본 테스트 파일 생성"""

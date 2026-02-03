@@ -41,21 +41,31 @@ class ArtifactGenerator:
         self.logger = get_logger()
 
         # Setup Jinja2 environment
-        template_dir = Path(__file__).parent.parent.parent / "data" / "templates" / "artifacts"
+        template_dir = (
+            Path(__file__).parent.parent.parent / "data" / "templates" / "artifacts"
+        )
 
         if not template_dir.exists():
-            self.logger.warning(f"Artifact template directory not found: {template_dir}")
+            self.logger.warning(
+                f"Artifact template directory not found: {template_dir}"
+            )
             self.template_env = None
         else:
             self.template_env = Environment(
-                loader=FileSystemLoader(str(template_dir)), trim_blocks=True, lstrip_blocks=True
+                loader=FileSystemLoader(str(template_dir)),
+                trim_blocks=True,
+                lstrip_blocks=True,
             )
 
             # Add custom filters
-            self.template_env.filters["datetime"] = lambda dt, fmt="%Y-%m-%d %H:%M:%S": (
-                dt.strftime(fmt) if hasattr(dt, "strftime") else str(dt)
+            self.template_env.filters["datetime"] = (
+                lambda dt, fmt="%Y-%m-%d %H:%M:%S": (
+                    dt.strftime(fmt) if hasattr(dt, "strftime") else str(dt)
+                )
             )
-            self.template_env.filters["default"] = lambda val, default="": val if val else default
+            self.template_env.filters["default"] = (
+                lambda val, default="": val if val else default
+            )
             self.template_env.filters["length"] = lambda val: len(val) if val else 0
 
             self.logger.info(f"Loaded artifact templates from: {template_dir}")
@@ -147,7 +157,9 @@ class ArtifactGenerator:
 
             # Create artifact object
             artifact = Artifact(
-                metadata=metadata, content=content, file_path=str(file_path) if file_path else None
+                metadata=metadata,
+                content=content,
+                file_path=str(file_path) if file_path else None,
             )
 
             return artifact
@@ -206,7 +218,9 @@ class ArtifactGenerator:
 
         return context
 
-    def _prepare_project_proposal_context(self, bmad_data: Dict[str, Any]) -> Dict[str, Any]:
+    def _prepare_project_proposal_context(
+        self, bmad_data: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Prepare context for project proposal"""
         golden_data = bmad_data.get("golden_data", {})
 
@@ -218,7 +232,9 @@ class ArtifactGenerator:
             "domain": golden_data.get("domain", "GENERAL"),
         }
 
-    def _prepare_requirements_spec_context(self, bmad_data: Dict[str, Any]) -> Dict[str, Any]:
+    def _prepare_requirements_spec_context(
+        self, bmad_data: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Prepare context for requirements specification"""
         golden_data = bmad_data.get("golden_data", {})
 
@@ -228,12 +244,16 @@ class ArtifactGenerator:
             "features": golden_data.get("features", []),
             "data_models": golden_data.get("data_models", []),
             "ui_components": golden_data.get("ui_components", []),
-            "non_functional_requirements": golden_data.get("non_functional_requirements", {}),
+            "non_functional_requirements": golden_data.get(
+                "non_functional_requirements", {}
+            ),
             "constraints": golden_data.get("constraints", []),
             "assumptions": golden_data.get("assumptions", []),
         }
 
-    def _prepare_architecture_design_context(self, bmad_data: Dict[str, Any]) -> Dict[str, Any]:
+    def _prepare_architecture_design_context(
+        self, bmad_data: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Prepare context for architecture design"""
         architecture = bmad_data.get("architecture", {})
 
@@ -256,7 +276,9 @@ class ArtifactGenerator:
             "relationships": self._extract_relationships(golden_data),
         }
 
-    def _prepare_agent_design_context(self, bmad_data: Dict[str, Any]) -> Dict[str, Any]:
+    def _prepare_agent_design_context(
+        self, bmad_data: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Prepare context for agent design"""
         agents = bmad_data.get("agents", [])
         tasks = bmad_data.get("tasks", [])
@@ -288,7 +310,9 @@ class ArtifactGenerator:
 
         return "AI Agent System"
 
-    def _extract_relationships(self, golden_data: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def _extract_relationships(
+        self, golden_data: Dict[str, Any]
+    ) -> List[Dict[str, Any]]:
         """Extract data model relationships"""
         relationships = []
         data_models = golden_data.get("data_models", [])
@@ -307,7 +331,9 @@ class ArtifactGenerator:
 
         return relationships
 
-    def _save_artifact(self, artifact_type: ArtifactType, content: str) -> Optional[Path]:
+    def _save_artifact(
+        self, artifact_type: ArtifactType, content: str
+    ) -> Optional[Path]:
         """
         Save artifact to file.
 
@@ -321,7 +347,9 @@ class ArtifactGenerator:
         try:
             # Generate filename
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"{artifact_type.value}_{timestamp}.{self.config.output_format.value}"
+            filename = (
+                f"{artifact_type.value}_{timestamp}.{self.config.output_format.value}"
+            )
             file_path = self.output_dir / filename
 
             # Write content

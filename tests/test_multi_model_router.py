@@ -38,7 +38,7 @@ class MockLLMPlugin:
         return LLMResponse(
             content=f"Response from {self.name}",
             model=self.name,
-            usage={"total_tokens": 100}
+            usage={"total_tokens": 100},
         )
 
     async def stream(self, messages, **kwargs):
@@ -67,7 +67,7 @@ def test_performance_tracker():
         success=True,
         latency_ms=100.0,
         tokens_used=50,
-        cost_per_1k=0.01
+        cost_per_1k=0.01,
     )
 
     metrics = tracker.get_metrics("model-1")
@@ -77,11 +77,7 @@ def test_performance_tracker():
     assert metrics.success_rate == 1.0
 
     # Record failed request
-    tracker.record_request(
-        model_name="model-1",
-        success=False,
-        latency_ms=50.0
-    )
+    tracker.record_request(model_name="model-1", success=False, latency_ms=50.0)
 
     metrics = tracker.get_metrics("model-1")
     assert metrics.total_requests == 2
@@ -124,22 +120,20 @@ async def test_multi_model_router_basic():
             plugin=plugin1,
             cost_per_1k_tokens=0.01,
             suitable_phases=[AgentPhase.DISCOVERY],
-            priority=2
+            priority=2,
         ),
         ModelConfig(
             name="model-2",
             plugin=plugin2,
             cost_per_1k_tokens=0.005,
             suitable_phases=[AgentPhase.DELIVERY],
-            priority=1
-        )
+            priority=1,
+        ),
     ]
 
     # Create router
     router = MultiModelRouter(
-        name="test-router",
-        models=models,
-        strategy=ModelSelectionStrategy.PHASE_BASED
+        name="test-router", models=models, strategy=ModelSelectionStrategy.PHASE_BASED
     )
 
     # Test invocation
@@ -161,20 +155,16 @@ async def test_multi_model_fallback():
         ModelConfig(
             name="model-1",
             plugin=plugin1,
-            priority=2  # Higher priority (tried first)
+            priority=2,  # Higher priority (tried first)
         ),
         ModelConfig(
             name="model-2",
             plugin=plugin2,
-            priority=1  # Lower priority (fallback)
-        )
+            priority=1,  # Lower priority (fallback)
+        ),
     ]
 
-    router = MultiModelRouter(
-        name="test-router",
-        models=models,
-        enable_fallback=True
-    )
+    router = MultiModelRouter(name="test-router", models=models, enable_fallback=True)
 
     messages = [LLMMessage(role="user", content="test")]
     response = await router.ainvoke(messages)
@@ -193,14 +183,10 @@ async def test_multi_model_all_fail():
 
     models = [
         ModelConfig(name="model-1", plugin=plugin1, priority=2),
-        ModelConfig(name="model-2", plugin=plugin2, priority=1)
+        ModelConfig(name="model-2", plugin=plugin2, priority=1),
     ]
 
-    router = MultiModelRouter(
-        name="test-router",
-        models=models,
-        enable_fallback=True
-    )
+    router = MultiModelRouter(name="test-router", models=models, enable_fallback=True)
 
     messages = [LLMMessage(role="user", content="test")]
 
@@ -218,20 +204,18 @@ def test_phase_based_selection():
             name="model-1",
             plugin=plugin1,
             suitable_phases=[AgentPhase.DISCOVERY, AgentPhase.ARCHITECTURE],
-            priority=2
+            priority=2,
         ),
         ModelConfig(
             name="model-2",
             plugin=plugin2,
             suitable_phases=[AgentPhase.DELIVERY],
-            priority=1
-        )
+            priority=1,
+        ),
     ]
 
     router = MultiModelRouter(
-        name="test-router",
-        models=models,
-        strategy=ModelSelectionStrategy.PHASE_BASED
+        name="test-router", models=models, strategy=ModelSelectionStrategy.PHASE_BASED
     )
 
     # Should select model-1 for DISCOVERY
@@ -253,20 +237,20 @@ def test_cost_optimized_selection():
             name="expensive-model",
             plugin=plugin1,
             cost_per_1k_tokens=0.03,  # Expensive
-            priority=2
+            priority=2,
         ),
         ModelConfig(
             name="cheap-model",
             plugin=plugin2,
             cost_per_1k_tokens=0.001,  # Cheap
-            priority=1
-        )
+            priority=1,
+        ),
     ]
 
     router = MultiModelRouter(
         name="test-router",
         models=models,
-        strategy=ModelSelectionStrategy.COST_OPTIMIZED
+        strategy=ModelSelectionStrategy.COST_OPTIMIZED,
     )
 
     # Should select cheapest model
@@ -278,14 +262,9 @@ def test_performance_report():
     """Test performance report generation"""
     plugin1 = MockLLMPlugin("model-1")
 
-    models = [
-        ModelConfig(name="model-1", plugin=plugin1, cost_per_1k_tokens=0.01)
-    ]
+    models = [ModelConfig(name="model-1", plugin=plugin1, cost_per_1k_tokens=0.01)]
 
-    router = MultiModelRouter(
-        name="test-router",
-        models=models
-    )
+    router = MultiModelRouter(name="test-router", models=models)
 
     # Record some metrics
     router.performance_tracker.record_request(
@@ -293,7 +272,7 @@ def test_performance_report():
         success=True,
         latency_ms=150.0,
         tokens_used=100,
-        cost_per_1k=0.01
+        cost_per_1k=0.01,
     )
 
     # Get report

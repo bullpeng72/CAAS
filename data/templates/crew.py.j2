@@ -20,25 +20,25 @@ def create_crew(
 ) -> Crew:
     """
     CrewAI Crew 인스턴스를 생성합니다.
-    
+
     Args:
         verbose: 상세 로그 출력 여부
         memory: 메모리 사용 여부
         process: 실행 프로세스 (sequential/hierarchical)
         max_rpm: 분당 최대 요청 수
-    
+
     Returns:
         Crew: CrewAI Crew 인스턴스
     """
     # 에이전트 생성
     agents = create_agents()
-    
+
     # 태스크 생성 (에이전트 참조 필요)
     tasks = create_tasks(agents)
-    
+
     # 프로세스 유형 결정
     process_type = Process.hierarchical if process == "hierarchical" else Process.sequential
-    
+
     # Crew 구성
     crew_config = {
         "agents": list(agents.values()),
@@ -47,7 +47,7 @@ def create_crew(
         "memory": memory,
         "process": process_type,
     }
-    
+
     {% if manager_llm %}
     # 계층적 프로세스를 위한 매니저 LLM
     if process == "hierarchical":
@@ -57,12 +57,12 @@ def create_crew(
             temperature=0.7
         )
     {% endif %}
-    
+
     if max_rpm:
         crew_config["max_rpm"] = max_rpm
-    
+
     crew = Crew(**crew_config)
-    
+
     return crew
 
 
@@ -72,31 +72,31 @@ def run_crew(
 ) -> Any:
     """
     Crew를 실행합니다.
-    
+
     Args:
         inputs: 입력 데이터
         verbose: 상세 로그 출력 여부
-    
+
     Returns:
         Any: Crew 실행 결과
     """
     crew = create_crew(verbose=verbose)
-    
+
     if inputs:
         result = crew.kickoff(inputs=inputs)
     else:
         result = crew.kickoff()
-    
+
     return result
 
 
 class {{ project_name | replace('-', ' ') | replace('_', ' ') | title | replace(' ', '') }}Crew:
     """
     {{ project_name }} Crew 클래스
-    
+
     Crew 생성 및 실행을 캡슐화합니다.
     """
-    
+
     def __init__(
         self,
         verbose: bool = {{ verbose | default(true) | lower }},
@@ -109,7 +109,7 @@ class {{ project_name | replace('-', ' ') | replace('_', ' ') | title | replace(
         self._crew = None
         self._agents = None
         self._tasks = None
-    
+
     @property
     def crew(self) -> Crew:
         """Crew 인스턴스 (지연 생성)"""
@@ -120,35 +120,35 @@ class {{ project_name | replace('-', ' ') | replace('_', ' ') | title | replace(
                 process=self.process,
             )
         return self._crew
-    
+
     @property
     def agents(self) -> dict:
         """에이전트 딕셔너리"""
         if self._agents is None:
             self._agents = create_agents()
         return self._agents
-    
+
     @property
     def tasks(self) -> List:
         """태스크 목록"""
         if self._tasks is None:
             self._tasks = create_tasks(self.agents)
         return self._tasks
-    
+
     def run(self, inputs: dict = None) -> Any:
         """
         Crew를 실행합니다.
-        
+
         Args:
             inputs: 입력 데이터
-        
+
         Returns:
             Any: 실행 결과
         """
         if inputs:
             return self.crew.kickoff(inputs=inputs)
         return self.crew.kickoff()
-    
+
     def reset(self) -> None:
         """Crew 상태를 리셋합니다."""
         self._crew = None
@@ -167,7 +167,7 @@ if __name__ == "__main__":
     print("Creating {{ project_name }} Crew...")
     crew = create_crew(verbose=True)
     print(f"Crew created with {len(crew.agents)} agents and {len(crew.tasks)} tasks")
-    
+
     # 실행 예시 (주석 처리)
     # result = crew.kickoff()
     # print(f"Result: {result}")

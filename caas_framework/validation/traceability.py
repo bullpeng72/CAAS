@@ -78,12 +78,16 @@ class TraceabilityMatrix:
             self._link_index[key] = []
         self._link_index[key].append(link)
 
-    def get_trace_forward(self, source_type: str, source_id: str) -> List[TraceabilityLink]:
+    def get_trace_forward(
+        self, source_type: str, source_id: str
+    ) -> List[TraceabilityLink]:
         """전방 추적 (Requirement → Code)"""
         key = f"{source_type}:{source_id}"
         return self._link_index.get(key, [])
 
-    def get_trace_backward(self, target_type: str, target_id: str) -> List[TraceabilityLink]:
+    def get_trace_backward(
+        self, target_type: str, target_id: str
+    ) -> List[TraceabilityLink]:
         """후방 추적 (Code → Requirement)"""
         return [
             link
@@ -91,7 +95,9 @@ class TraceabilityMatrix:
             if link.target_type == target_type and link.target_id == target_id
         ]
 
-    def get_full_trace_path(self, source_type: str, source_id: str) -> List[List[TraceabilityLink]]:
+    def get_full_trace_path(
+        self, source_type: str, source_id: str
+    ) -> List[List[TraceabilityLink]]:
         """전체 추적 경로 (모든 경로)"""
         paths = []
         self._find_paths(source_type, source_id, [], paths)
@@ -140,7 +146,9 @@ class TraceabilityMatrix:
             if link.source_type == "requirement":
                 implemented_reqs.add(link.source_id)
                 if "requirement_text" in link.metadata:
-                    req_id_to_text[link.source_id] = link.metadata["requirement_text"][:50]
+                    req_id_to_text[link.source_id] = link.metadata["requirement_text"][
+                        :50
+                    ]
             elif link.source_type == "feature":
                 implemented_features.add(link.source_id)
                 if "feature_name" in link.metadata:
@@ -244,7 +252,9 @@ class TraceabilityManager:
         """
 
         # 1. Requirement → Feature
-        req_id = TextNormalizer.normalize_id(requirement[:50], ascii_only=True, max_length=64)
+        req_id = TextNormalizer.normalize_id(
+            requirement[:50], ascii_only=True, max_length=64
+        )
         features = golden_data.features if golden_data.features else []
         for feature in features:
             feature_id = ObjectAccessor.get_value(feature, "id", "")
@@ -307,7 +317,10 @@ class TraceabilityManager:
                 task_agent,
                 "task",
                 task_id,
-                metadata={"agent_role": agent_role, "task_description": task_description[:100]},
+                metadata={
+                    "agent_role": agent_role,
+                    "task_description": task_description[:100],
+                },
             )
 
         # 4. Task → Code (generated_code가 있으면)
@@ -338,7 +351,9 @@ class TraceabilityManager:
             feature_id = ObjectAccessor.get_value(feature, "id", "")
             feature_name = ObjectAccessor.get_value(feature, "name", "")
             feature_description = ObjectAccessor.get_value(feature, "description", "")
-            feature_keywords = self._extract_keywords(f"{feature_name} {feature_description}")
+            feature_keywords = self._extract_keywords(
+                f"{feature_name} {feature_description}"
+            )
 
             # 키워드 매칭 개수
             match_count = sum(1 for keyword in feature_keywords if keyword in task_text)
@@ -471,7 +486,10 @@ class TraceabilityManager:
                 # Try to get meaningful name from metadata
                 source_display_name = link.source_id
 
-                if link.source_type == "requirement" and "requirement_text" in link.metadata:
+                if (
+                    link.source_type == "requirement"
+                    and "requirement_text" in link.metadata
+                ):
                     source_display_name = link.metadata["requirement_text"][:30] + "..."
                 elif link.source_type == "feature" and "feature_name" in link.metadata:
                     source_display_name = link.metadata["feature_name"]

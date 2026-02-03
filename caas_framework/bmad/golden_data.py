@@ -67,7 +67,9 @@ class RequirementConcretizer:
             result_text = response.get("content", "")
         else:
             # LLMResponse object with .content attribute
-            result_text = response.content if hasattr(response, "content") else str(response)
+            result_text = (
+                response.content if hasattr(response, "content") else str(response)
+            )
 
         # Debug logging
         self.logger.debug(f"LLM response type: {type(response)}")
@@ -104,7 +106,9 @@ class RequirementConcretizer:
 
         return golden_data
 
-    def _build_concretization_prompt(self, requirement: str, domain: Optional[str]) -> str:
+    def _build_concretization_prompt(
+        self, requirement: str, domain: Optional[str]
+    ) -> str:
         """Build prompt for requirement concretization."""
         prompt = f"""당신은 요구사항 분석 전문가입니다. 다음 요구사항을 분석하여 구조화된 정보를 추출하세요.
 
@@ -252,11 +256,17 @@ class RequirementConcretizer:
                 "always_allowed", ["읽기 작업", "기본 CRUD 작업", "로깅"]
             ),
             ask_first=boundaries_data.get(
-                "ask_first", ["파일 작업", "네트워크 호출", "데이터베이스 변경", "외부 API 호출"]
+                "ask_first",
+                ["파일 작업", "네트워크 호출", "데이터베이스 변경", "외부 API 호출"],
             ),
             never_allowed=boundaries_data.get(
                 "never_allowed",
-                ["시스템 명령 실행", "임의 코드 실행", "rm -rf", "파일 시스템 전체 삭제"],
+                [
+                    "시스템 명령 실행",
+                    "임의 코드 실행",
+                    "rm -rf",
+                    "파일 시스템 전체 삭제",
+                ],
             ),
         )
 
@@ -361,7 +371,6 @@ class GoldenDataPipeline:
 
         # Step 1.5: Enhanced feature extraction (if enabled)
         if self.use_hierarchical_extraction and self.feature_extractor:
-
             logger = get_logger()
             logger.info("Using hierarchical feature extraction...")
 
@@ -378,7 +387,9 @@ class GoldenDataPipeline:
                 )
                 golden_data.features = enhanced_features
             else:
-                logger.warning("Hierarchical extraction returned no features, keeping original")
+                logger.warning(
+                    "Hierarchical extraction returned no features, keeping original"
+                )
 
         # Step 2: Validate (optional)
         if validate:

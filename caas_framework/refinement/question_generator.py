@@ -61,7 +61,9 @@ class InteractiveQuestionGenerator:
         # Question templates (currently not loaded from external file)
         self.question_templates = {}
 
-    def generate_questions(self, gaps: List[RequirementGap], domain: str) -> List[Question]:
+    def generate_questions(
+        self, gaps: List[RequirementGap], domain: str
+    ) -> List[Question]:
         """
         갭 기반 질문 생성
 
@@ -98,7 +100,9 @@ class InteractiveQuestionGenerator:
 
         return optimized
 
-    def _create_question_from_gap(self, gap: RequirementGap, domain: str) -> Optional[Question]:
+    def _create_question_from_gap(
+        self, gap: RequirementGap, domain: str
+    ) -> Optional[Question]:
         """갭에서 질문 생성"""
 
         if gap.gap_type == GapType.MISSING_SECURITY:
@@ -140,7 +144,12 @@ class InteractiveQuestionGenerator:
                 id="ui_framework",
                 question_text="선호하는 프론트엔드 프레임워크가 있나요?",
                 question_type=QuestionType.SINGLE_CHOICE,
-                options=["Streamlit (간단)", "Gradio (ML 친화)", "React (전문)", "자동 선택"],
+                options=[
+                    "Streamlit (간단)",
+                    "Gradio (ML 친화)",
+                    "React (전문)",
+                    "자동 선택",
+                ],
                 default_value="자동 선택",
                 help_text="자동 선택 시 프로젝트에 최적화된 프레임워크를 선택합니다",
             )
@@ -191,7 +200,9 @@ class InteractiveQuestionGenerator:
             return []
 
         # 질문이 필요한 갭만 선택 (auto_fixable=False)
-        manual_gaps = [g for g in gaps if not g.auto_fixable and g.severity in ["critical", "high"]]
+        manual_gaps = [
+            g for g in gaps if not g.auto_fixable and g.severity in ["critical", "high"]
+        ]
 
         if not manual_gaps:
             return []

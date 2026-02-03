@@ -98,9 +98,13 @@ class GoldenPatternLibrary:
 
             # Get or create collection
             try:
-                self.collection = self.chroma_client.get_collection(name=self.collection_name)
+                self.collection = self.chroma_client.get_collection(
+                    name=self.collection_name
+                )
             except Exception:
-                self.collection = self.chroma_client.create_collection(name=self.collection_name)
+                self.collection = self.chroma_client.create_collection(
+                    name=self.collection_name
+                )
         except Exception as e:
             logger.warning(f"ChromaDB initialization failed: {e}")
             logger.info("Falling back to in-memory storage")
@@ -167,7 +171,9 @@ class GoldenPatternLibrary:
             "num_tasks": num_tasks,
             "satisfaction": user_feedback.satisfaction,
             "timestamp": datetime.now().isoformat(),
-            "domain": concretized.domain if hasattr(concretized, "domain") else "general",
+            "domain": concretized.domain
+            if hasattr(concretized, "domain")
+            else "general",
         }
 
         # Generate unique ID
@@ -178,7 +184,9 @@ class GoldenPatternLibrary:
         else:
             return self._store_chromadb(user_request, metadata, pattern_id)
 
-    def _store_chromadb(self, user_request: str, metadata: Dict[str, Any], pattern_id: str) -> bool:
+    def _store_chromadb(
+        self, user_request: str, metadata: Dict[str, Any], pattern_id: str
+    ) -> bool:
         """Store pattern in ChromaDB."""
         try:
             # Generate embedding
@@ -197,7 +205,9 @@ class GoldenPatternLibrary:
             logger.error(f"Error storing pattern: {e}")
             return False
 
-    def _store_fallback(self, user_request: str, metadata: Dict[str, Any], pattern_id: str) -> bool:
+    def _store_fallback(
+        self, user_request: str, metadata: Dict[str, Any], pattern_id: str
+    ) -> bool:
         """Store pattern in fallback in-memory storage."""
         try:
             self.fallback_storage.append(
@@ -253,7 +263,9 @@ class GoldenPatternLibrary:
 
                     # Calculate similarity from distance
                     # ChromaDB returns distances, convert to similarity
-                    distance = results["distances"][0][i] if "distances" in results else 0
+                    distance = (
+                        results["distances"][0][i] if "distances" in results else 0
+                    )
                     similarity = 1.0 / (1.0 + distance)
 
                     if similarity >= min_similarity:
@@ -348,7 +360,9 @@ class GoldenPatternLibrary:
 
         if not suggested_features:
             if verbose:
-                logger.info(f"✓ Found similar pattern (similarity: {best_match.similarity:.2%})")
+                logger.info(
+                    f"✓ Found similar pattern (similarity: {best_match.similarity:.2%})"
+                )
                 logger.info("  All features already included")
             return concretized
 
@@ -375,11 +389,15 @@ class GoldenPatternLibrary:
                 concretized.features.append(new_feature)
 
             if verbose:
-                logger.info(f"✓ Added {len(suggested_features)} features from pattern library")
+                logger.info(
+                    f"✓ Added {len(suggested_features)} features from pattern library"
+                )
 
         return concretized
 
-    def _print_suggestions(self, pattern: PatternMatch, suggested_features: List[Dict[str, Any]]):
+    def _print_suggestions(
+        self, pattern: PatternMatch, suggested_features: List[Dict[str, Any]]
+    ):
         """Print pattern suggestions to user."""
         logger.info("\n" + "=" * 70)
         logger.info("💡 PATTERN SUGGESTION")
@@ -407,8 +425,12 @@ class GoldenPatternLibrary:
             if total == 0:
                 return {"total_patterns": 0, "avg_satisfaction": 0, "domains": []}
 
-            satisfactions = [float(p["metadata"]["satisfaction"]) for p in self.fallback_storage]
-            domains = [p["metadata"].get("domain", "general") for p in self.fallback_storage]
+            satisfactions = [
+                float(p["metadata"]["satisfaction"]) for p in self.fallback_storage
+            ]
+            domains = [
+                p["metadata"].get("domain", "general") for p in self.fallback_storage
+            ]
         else:
             try:
                 total = self.collection.count()
@@ -424,7 +446,9 @@ class GoldenPatternLibrary:
 
         return {
             "total_patterns": total,
-            "avg_satisfaction": sum(satisfactions) / len(satisfactions) if satisfactions else 0,
+            "avg_satisfaction": sum(satisfactions) / len(satisfactions)
+            if satisfactions
+            else 0,
             "domains": list(set(domains)),
             "domain_counts": {d: domains.count(d) for d in set(domains)},
         }
@@ -452,7 +476,10 @@ def store_successful_pattern(
     """
     feedback = Feedback(satisfaction=satisfaction)
     return library.store_successful_generation(
-        user_request=user_request, concretized=concretized, design=design, user_feedback=feedback
+        user_request=user_request,
+        concretized=concretized,
+        design=design,
+        user_feedback=feedback,
     )
 
 

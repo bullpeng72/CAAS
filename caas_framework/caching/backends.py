@@ -206,7 +206,9 @@ class FileCacheBackend(CacheBackend):
     Survives restarts but slower than in-memory.
     """
 
-    def __init__(self, cache_dir: str = ".cache", max_size_mb: int = 100, use_pickle: bool = True):
+    def __init__(
+        self, cache_dir: str = ".cache", max_size_mb: int = 100, use_pickle: bool = True
+    ):
         """
         Initialize file cache.
 
@@ -332,13 +334,15 @@ class FileCacheBackend(CacheBackend):
     async def _cleanup_if_needed(self) -> None:
         """Cleanup old entries if cache size exceeds limit"""
         # Calculate total size
-        total_size_mb = sum(f.stat().st_size for f in self.cache_dir.glob("*.cache")) / (
-            1024 * 1024
-        )
+        total_size_mb = sum(
+            f.stat().st_size for f in self.cache_dir.glob("*.cache")
+        ) / (1024 * 1024)
 
         if total_size_mb > self.max_size_mb:
             # Delete oldest files until under limit
-            files = sorted(self.cache_dir.glob("*.cache"), key=lambda f: f.stat().st_mtime)
+            files = sorted(
+                self.cache_dir.glob("*.cache"), key=lambda f: f.stat().st_mtime
+            )
 
             for file_path in files:
                 file_path.unlink()
@@ -355,9 +359,9 @@ class FileCacheBackend(CacheBackend):
         hit_rate = (self._hits / total_requests * 100) if total_requests > 0 else 0.0
 
         # Calculate cache size
-        cache_size_mb = sum(f.stat().st_size for f in self.cache_dir.glob("*.cache")) / (
-            1024 * 1024
-        )
+        cache_size_mb = sum(
+            f.stat().st_size for f in self.cache_dir.glob("*.cache")
+        ) / (1024 * 1024)
 
         file_count = len(list(self.cache_dir.glob("*.cache")))
 

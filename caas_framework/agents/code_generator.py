@@ -33,7 +33,11 @@ class CodeGeneratorAgent(BaseExpertAgent):
     agent/task specifications and architecture design.
     """
 
-    def __init__(self, llm_plugin: LLMPlugin, golden_data: Optional[ConcretizedRequirement] = None):
+    def __init__(
+        self,
+        llm_plugin: LLMPlugin,
+        golden_data: Optional[ConcretizedRequirement] = None,
+    ):
         super().__init__(llm_plugin, golden_data, AgentPhase.DELIVERY)
         self.process_selector = ProcessSelector()
 
@@ -77,8 +81,12 @@ class CodeGeneratorAgent(BaseExpertAgent):
 
         # Get design and architecture from previous phases
         design = previous_outputs.get(AgentPhase.DESIGN) if previous_outputs else None
-        architecture = previous_outputs.get(AgentPhase.ARCHITECTURE) if previous_outputs else None
-        analysis = previous_outputs.get(AgentPhase.DISCOVERY) if previous_outputs else None
+        architecture = (
+            previous_outputs.get(AgentPhase.ARCHITECTURE) if previous_outputs else None
+        )
+        analysis = (
+            previous_outputs.get(AgentPhase.DISCOVERY) if previous_outputs else None
+        )
 
         if not design:
             return {"error": "No design provided for code generation"}
@@ -112,7 +120,10 @@ class CodeGeneratorAgent(BaseExpertAgent):
         )
 
         # Extract files and metadata from generated_files
-        if isinstance(generated_files, dict) and "_boundaries_violations" in generated_files:
+        if (
+            isinstance(generated_files, dict)
+            and "_boundaries_violations" in generated_files
+        ):
             # generated_files already contains metadata
             result = generated_files.copy()
         else:
@@ -163,7 +174,9 @@ class CodeGeneratorAgent(BaseExpertAgent):
 
         logger = get_logger()
         raw_response = str(response)[:1000]
-        logger.info(f"[CodeGenerator] Raw LLM response (first 1000 chars): {raw_response}")
+        logger.info(
+            f"[CodeGenerator] Raw LLM response (first 1000 chars): {raw_response}"
+        )
 
         # Parse response
         code_structure = ResponseParser.parse_structured_response(
@@ -202,12 +215,18 @@ class CodeGeneratorAgent(BaseExpertAgent):
         if result_files:
             has_crewai = self._validate_crewai_code(result_files)
             if not has_crewai:
-                logger.error("[CodeGenerator] Generated code does NOT contain CrewAI imports!")
-                logger.warning("[CodeGenerator] LLM generated wrong format, forcing fallback")
+                logger.error(
+                    "[CodeGenerator] Generated code does NOT contain CrewAI imports!"
+                )
+                logger.warning(
+                    "[CodeGenerator] LLM generated wrong format, forcing fallback"
+                )
                 # Force fallback with proper CrewAI code
                 fallback = self._create_fallback_code(agents, tasks)
                 result_files = fallback.get("files", {})
-                logger.info(f"[CodeGenerator] Forced fallback generated {len(result_files)} files")
+                logger.info(
+                    f"[CodeGenerator] Forced fallback generated {len(result_files)} files"
+                )
 
         # CRITICAL: Auto-fix common Agent bugs and ensure tools.py exists
         if result_files:
@@ -217,9 +236,13 @@ class CodeGeneratorAgent(BaseExpertAgent):
         # CRITICAL: Validate boundaries if specified
         boundaries_violations = []
         if self.golden_data and self.golden_data.boundaries:
-            violations = self._validate_boundaries(result_files, self.golden_data.boundaries)
+            violations = self._validate_boundaries(
+                result_files, self.golden_data.boundaries
+            )
             if violations:
-                logger.error(f"[CodeGenerator] BOUNDARY VIOLATIONS DETECTED: {len(violations)}")
+                logger.error(
+                    f"[CodeGenerator] BOUNDARY VIOLATIONS DETECTED: {len(violations)}"
+                )
                 for violation in violations:
                     logger.error(f"  - {violation}")
                 boundaries_violations = violations
@@ -263,7 +286,9 @@ class CodeGeneratorAgent(BaseExpertAgent):
 
                 # Check for common dangerous patterns
                 if "sudo" in pattern_lower and "sudo" in content_lower:
-                    violations.append(f"NEVER_ALLOWED: {filename} contains 'sudo' command")
+                    violations.append(
+                        f"NEVER_ALLOWED: {filename} contains 'sudo' command"
+                    )
 
                 if "system" in pattern_lower and "os.system" in content_lower:
                     violations.append(f"NEVER_ALLOWED: {filename} uses os.system()")
@@ -279,12 +304,16 @@ class CodeGeneratorAgent(BaseExpertAgent):
 
                 # Check for operations that should ask first
                 if "api" in pattern_lower and "requests" in content_lower:
-                    logger.warning(f"ASK_FIRST: {filename} makes API calls (review recommended)")
+                    logger.warning(
+                        f"ASK_FIRST: {filename} makes API calls (review recommended)"
+                    )
 
                 if "delete" in pattern_lower and (
                     "os.remove" in content_lower or "shutil.rmtree" in content_lower
                 ):
-                    logger.warning(f"ASK_FIRST: {filename} deletes files (review recommended)")
+                    logger.warning(
+                        f"ASK_FIRST: {filename} deletes files (review recommended)"
+                    )
 
         return violations
 
@@ -320,7 +349,9 @@ class CodeGeneratorAgent(BaseExpertAgent):
 
         return False
 
-    def _autofix_generated_code(self, files: Dict[str, str], agents: List[Any]) -> Dict[str, str]:
+    def _autofix_generated_code(
+        self, files: Dict[str, str], agents: List[Any]
+    ) -> Dict[str, str]:
         """
         Auto-fix common bugs in LLM-generated code.
 
@@ -350,7 +381,9 @@ class CodeGeneratorAgent(BaseExpertAgent):
 
             # Fix #1: Remove id='...' parameter from Agent() calls
             # Pattern: id='anything', or id="anything",
-            agents_code = re.sub(r"\bid\s*=\s*['\"][^'\"]*['\"],?\s*\n", "", agents_code)
+            agents_code = re.sub(
+                r"\bid\s*=\s*['\"][^'\"]*['\"],?\s*\n", "", agents_code
+            )
 
             # Fix #2: Convert tools=['str1', 'str2'] to tools=[]
             # Pattern: tools=['...', '...'] or tools=["...", "..."]
@@ -360,19 +393,25 @@ class CodeGeneratorAgent(BaseExpertAgent):
                 # Check if it contains quoted strings
                 if "'" in tools_value or '"' in tools_value:
                     # It's a string list - replace with empty list
-                    logger.warning(f"[AutoFix] Converting invalid tools={tools_value} to tools=[]")
+                    logger.warning(
+                        f"[AutoFix] Converting invalid tools={tools_value} to tools=[]"
+                    )
                     return "tools=[]"
                 else:
                     # It's a variable list - keep it
                     return match.group(0)
 
-            agents_code = re.sub(r"tools\s*=\s*\[([^\]]*)\]", fix_tools_param, agents_code)
+            agents_code = re.sub(
+                r"tools\s*=\s*\[([^\]]*)\]", fix_tools_param, agents_code
+            )
 
             # Fix #3: Remove extra parameters not supported by CrewAI Agent
             # Common issues: memory=, max_iter=, etc.
             unsupported_params = ["memory", "max_iter", "max_execution_time"]
             for param in unsupported_params:
-                agents_code = re.sub(rf"\b{param}\s*=\s*[^,\n]+,?\s*\n", "", agents_code)
+                agents_code = re.sub(
+                    rf"\b{param}\s*=\s*[^,\n]+,?\s*\n", "", agents_code
+                )
 
             if agents_code != original_code:
                 logger.info(
@@ -399,10 +438,14 @@ class CodeGeneratorAgent(BaseExpertAgent):
                 agents_code = fixed_files["agents.py"]
                 if "from tools import" not in agents_code:
                     # Find the import section and add tools import
-                    import_match = re.search(r"(from crewai import Agent.*?\n)", agents_code)
+                    import_match = re.search(
+                        r"(from crewai import Agent.*?\n)", agents_code
+                    )
                     if import_match:
                         import_section = import_match.group(1)
-                        tools_import = f"from tools import {', '.join(sorted(all_tools))}\n"
+                        tools_import = (
+                            f"from tools import {', '.join(sorted(all_tools))}\n"
+                        )
                         agents_code = agents_code.replace(
                             import_section, import_section + tools_import
                         )
@@ -502,7 +545,9 @@ CRITICAL REQUIREMENT: You MUST generate code using the CrewAI framework.
 
         return builder.build()
 
-    def _create_fallback_code(self, agents: List[Any], tasks: List[Any]) -> Dict[str, Any]:
+    def _create_fallback_code(
+        self, agents: List[Any], tasks: List[Any]
+    ) -> Dict[str, Any]:
         """Create basic code structure when LLM fails using AST-based generation."""
 
         # Convert to dicts if needed
@@ -577,7 +622,9 @@ CRITICAL REQUIREMENT: You MUST generate code using the CrewAI framework.
                     id=t.get("id", f"task_{i}"),
                     description=t.get("description", ""),
                     expected_output=t.get("expected_output", ""),
-                    agent=t.get("agent", agent_models[0].id if agent_models else "agent_0"),
+                    agent=t.get(
+                        "agent", agent_models[0].id if agent_models else "agent_0"
+                    ),
                     context=t.get("context", []),
                 )
                 for i, t in enumerate(tasks)
@@ -591,14 +638,15 @@ CRITICAL REQUIREMENT: You MUST generate code using the CrewAI framework.
             return selected_process.value
 
         except Exception as e:
-
             logger = get_logger()
             logger.warning(f"Process selection failed: {e}, defaulting to sequential")
             return "sequential"
 
     def _generate_main_file(self, agents: List[Dict], tasks: List[Dict]) -> str:
         """Generate main.py file with automatic input collection."""
-        project_name = self.golden_data.project_name if self.golden_data else "CrewAI Project"
+        project_name = (
+            self.golden_data.project_name if self.golden_data else "CrewAI Project"
+        )
 
         # Select optimal process type
         process_type = self._select_process(agents, tasks)
@@ -810,7 +858,9 @@ def create_agents():
             input_requirements = InputDetector.detect_input_requirements(tasks)
             if input_requirements:
                 # Inject placeholders into task descriptions
-                tasks = InputDetector.inject_input_placeholders(tasks, input_requirements)
+                tasks = InputDetector.inject_input_placeholders(
+                    tasks, input_requirements
+                )
         except Exception:
             # If detection fails, continue with original tasks
             pass
@@ -859,9 +909,13 @@ langchain>=0.2.0
 
     def _generate_readme_file(self) -> str:
         """Generate README.md file."""
-        project_name = self.golden_data.project_name if self.golden_data else "CrewAI Project"
+        project_name = (
+            self.golden_data.project_name if self.golden_data else "CrewAI Project"
+        )
         features = (
-            self.golden_data.features if self.golden_data and self.golden_data.features else []
+            self.golden_data.features
+            if self.golden_data and self.golden_data.features
+            else []
         )
 
         features_list = (
@@ -966,7 +1020,9 @@ OPENAI_API_KEY=your_openai_api_key_here
 
         from caas_framework.codegen.ast_code_generator import ASTCodeGenerator
 
-        project_name = self.golden_data.project_name if self.golden_data else "CrewAI Project"
+        project_name = (
+            self.golden_data.project_name if self.golden_data else "CrewAI Project"
+        )
 
         # Select optimal process type
         process_type = self._select_process(agents, tasks)
@@ -999,33 +1055,42 @@ OPENAI_API_KEY=your_openai_api_key_here
         module_body = []
 
         # Docstring
-        docstring = (
-            f'"""\n{project_name}\n\nMain execution script for CrewAI multi-agent system.\n"""'
-        )
+        docstring = f'"""\n{project_name}\n\nMain execution script for CrewAI multi-agent system.\n"""'
         module_body.append(ast.Expr(value=ast.Constant(value=docstring)))
 
         # Imports
         imports = [
             ast.ImportFrom(
                 module="crewai",
-                names=[ast.alias(name="Crew", asname=None), ast.alias(name="Process", asname=None)],
+                names=[
+                    ast.alias(name="Crew", asname=None),
+                    ast.alias(name="Process", asname=None),
+                ],
                 level=0,
             ),
             ast.ImportFrom(
-                module="agents", names=[ast.alias(name="create_agents", asname=None)], level=0
+                module="agents",
+                names=[ast.alias(name="create_agents", asname=None)],
+                level=0,
             ),
             ast.ImportFrom(
-                module="tasks", names=[ast.alias(name="create_tasks", asname=None)], level=0
+                module="tasks",
+                names=[ast.alias(name="create_tasks", asname=None)],
+                level=0,
             ),
             ast.ImportFrom(
-                module="dotenv", names=[ast.alias(name="load_dotenv", asname=None)], level=0
+                module="dotenv",
+                names=[ast.alias(name="load_dotenv", asname=None)],
+                level=0,
             ),
         ]
         module_body.extend(imports)
 
         # load_dotenv() call
         load_dotenv_call = ast.Expr(
-            value=ast.Call(func=ast.Name(id="load_dotenv", ctx=ast.Load()), args=[], keywords=[])
+            value=ast.Call(
+                func=ast.Name(id="load_dotenv", ctx=ast.Load()), args=[], keywords=[]
+            )
         )
         module_body.append(load_dotenv_call)
 
@@ -1053,7 +1118,9 @@ OPENAI_API_KEY=your_openai_api_key_here
             ),
             body=[
                 ast.Expr(
-                    value=ast.Call(func=ast.Name(id="main", ctx=ast.Load()), args=[], keywords=[])
+                    value=ast.Call(
+                        func=ast.Name(id="main", ctx=ast.Load()), args=[], keywords=[]
+                    )
                 )
             ],
             orelse=[],
@@ -1101,7 +1168,9 @@ OPENAI_API_KEY=your_openai_api_key_here
 
         # Imports
         imports = [
-            ast.ImportFrom(module="crewai", names=[ast.alias(name="Agent", asname=None)], level=0)
+            ast.ImportFrom(
+                module="crewai", names=[ast.alias(name="Agent", asname=None)], level=0
+            )
         ]
 
         # Add tools import if tools are used
@@ -1116,7 +1185,9 @@ OPENAI_API_KEY=your_openai_api_key_here
             imports.append(
                 ast.ImportFrom(
                     module="tools",
-                    names=[ast.alias(name=tool, asname=None) for tool in sorted(all_tools)],
+                    names=[
+                        ast.alias(name=tool, asname=None) for tool in sorted(all_tools)
+                    ],
                     level=0,
                 )
             )
@@ -1149,7 +1220,9 @@ OPENAI_API_KEY=your_openai_api_key_here
 
             input_requirements = InputDetector.detect_input_requirements(tasks)
             if input_requirements:
-                tasks = InputDetector.inject_input_placeholders(tasks, input_requirements)
+                tasks = InputDetector.inject_input_placeholders(
+                    tasks, input_requirements
+                )
         except Exception:
             pass
 
@@ -1170,7 +1243,9 @@ OPENAI_API_KEY=your_openai_api_key_here
 
         # Imports
         imports = [
-            ast.ImportFrom(module="crewai", names=[ast.alias(name="Task", asname=None)], level=0)
+            ast.ImportFrom(
+                module="crewai", names=[ast.alias(name="Task", asname=None)], level=0
+            )
         ]
         module_body.extend(imports)
 
@@ -1218,10 +1293,14 @@ OPENAI_API_KEY=your_openai_api_key_here
             context = {}
             if agents:
                 context["agents_count"] = len(agents)
-                context["agents"] = ObjectAccessor.to_dict_list(agents)[:3]  # First 3 for brevity
+                context["agents"] = ObjectAccessor.to_dict_list(agents)[
+                    :3
+                ]  # First 3 for brevity
             if tasks:
                 context["tasks_count"] = len(tasks)
-                context["tasks"] = ObjectAccessor.to_dict_list(tasks)[:3]  # First 3 for brevity
+                context["tasks"] = ObjectAccessor.to_dict_list(tasks)[
+                    :3
+                ]  # First 3 for brevity
 
             # Filter to Python files only
             python_files = {
@@ -1253,7 +1332,9 @@ OPENAI_API_KEY=your_openai_api_key_here
             # LLM Judge not available
 
             logger = get_logger()
-            logger.warning("[CodeGenerator] LLM Judge not available - skipping quality evaluation")
+            logger.warning(
+                "[CodeGenerator] LLM Judge not available - skipping quality evaluation"
+            )
             return None
 
         except Exception as e:
@@ -1333,7 +1414,9 @@ OPENAI_API_KEY=your_openai_api_key_here
             import json
 
             refinement_plan = ResponseParser.parse_structured_response(
-                response, expected_fields=["improvements", "changes"], fallback_factory=lambda: {}
+                response,
+                expected_fields=["improvements", "changes"],
+                fallback_factory=lambda: {},
             )
 
             # Add refinement info to output
@@ -1343,6 +1426,9 @@ OPENAI_API_KEY=your_openai_api_key_here
 
         except json.JSONDecodeError:
             # If parsing fails, just add raw response
-            output["refinement"] = {"raw_response": response.content, "iteration": iteration}
+            output["refinement"] = {
+                "raw_response": response.content,
+                "iteration": iteration,
+            }
 
         return output

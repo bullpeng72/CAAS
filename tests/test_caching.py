@@ -22,6 +22,7 @@ from caas_framework.plugins.llm.base import LLMMessage, LLMResponse
 
 # ==================== Backend Tests ====================
 
+
 @pytest.mark.asyncio
 async def test_in_memory_backend_basic():
     """Test basic in-memory cache operations"""
@@ -120,7 +121,7 @@ async def test_cache_entry_expiration():
         value="data",
         created_at=datetime.now() - timedelta(seconds=100),
         ttl_seconds=60,
-        metadata={}
+        metadata={},
     )
 
     assert entry.is_expired() is True
@@ -131,13 +132,14 @@ async def test_cache_entry_expiration():
         value="data2",
         created_at=datetime.now(),
         ttl_seconds=60,
-        metadata={}
+        metadata={},
     )
 
     assert entry2.is_expired() is False
 
 
 # ==================== Cache Manager Tests ====================
+
 
 def test_cache_key_generation():
     """Test deterministic cache key generation"""
@@ -146,7 +148,7 @@ def test_cache_key_generation():
         phase=AgentPhase.DISCOVERY,
         model="gpt-4",
         requirement_hash="abc123",
-        additional_params={"temp": 0.7}
+        additional_params={"temp": 0.7},
     )
 
     key2 = CacheKey(
@@ -154,7 +156,7 @@ def test_cache_key_generation():
         phase=AgentPhase.DISCOVERY,
         model="gpt-4",
         requirement_hash="abc123",
-        additional_params={"temp": 0.7}
+        additional_params={"temp": 0.7},
     )
 
     # Same inputs should generate same key
@@ -165,7 +167,7 @@ def test_cache_key_generation():
         namespace="test",
         phase=AgentPhase.ARCHITECTURE,  # Different phase
         model="gpt-4",
-        requirement_hash="abc123"
+        requirement_hash="abc123",
     )
 
     assert key1.build() != key3.build()
@@ -274,6 +276,7 @@ async def test_cache_manager_ttl_override():
 
 # ==================== LLM Cache Tests ====================
 
+
 class MockLLMPlugin:
     """Mock LLM plugin for testing"""
 
@@ -301,15 +304,14 @@ class MockLLMPlugin:
     async def ainvoke(self, messages, **kwargs):
         self.call_count += 1
         return LLMResponse(
-            content="Mock response",
-            model=self.model,
-            usage={"total_tokens": 50}
+            content="Mock response", model=self.model, usage={"total_tokens": 50}
         )
 
     async def stream(self, messages, **kwargs):
         async def _gen():
             yield "Mock"
             yield " stream"
+
         return _gen()
 
 
@@ -321,9 +323,7 @@ async def test_llm_cache_wrapper_basic():
     mock_llm = MockLLMPlugin()
 
     cached_llm = LLMCacheWrapper(
-        llm_plugin=mock_llm,
-        cache_manager=cache_manager,
-        enable_cache=True
+        llm_plugin=mock_llm, cache_manager=cache_manager, enable_cache=True
     )
 
     messages = [LLMMessage(role="user", content="test")]
@@ -347,9 +347,7 @@ async def test_llm_cache_bypass():
     mock_llm = MockLLMPlugin()
 
     cached_llm = LLMCacheWrapper(
-        llm_plugin=mock_llm,
-        cache_manager=cache_manager,
-        enable_cache=True
+        llm_plugin=mock_llm, cache_manager=cache_manager, enable_cache=True
     )
 
     messages = [LLMMessage(role="user", content="test")]
@@ -370,10 +368,7 @@ async def test_llm_cache_different_params():
     cache_manager = CacheManager(backend=backend)
     mock_llm = MockLLMPlugin()
 
-    cached_llm = LLMCacheWrapper(
-        llm_plugin=mock_llm,
-        cache_manager=cache_manager
-    )
+    cached_llm = LLMCacheWrapper(llm_plugin=mock_llm, cache_manager=cache_manager)
 
     messages = [LLMMessage(role="user", content="test")]
 
@@ -393,10 +388,7 @@ async def test_llm_cache_stats():
     cache_manager = CacheManager(backend=backend, enable_metrics=True)
     mock_llm = MockLLMPlugin()
 
-    cached_llm = LLMCacheWrapper(
-        llm_plugin=mock_llm,
-        cache_manager=cache_manager
-    )
+    cached_llm = LLMCacheWrapper(llm_plugin=mock_llm, cache_manager=cache_manager)
 
     messages = [LLMMessage(role="user", content="test")]
 

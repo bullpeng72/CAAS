@@ -66,7 +66,9 @@ class Python311Validator:
 
     def __init__(self):
         """Initialize validator"""
-        self.current_python_version = f"{sys.version_info.major}.{sys.version_info.minor}"
+        self.current_python_version = (
+            f"{sys.version_info.major}.{sys.version_info.minor}"
+        )
 
     def validate(self, files: Dict[str, str]) -> ValidationResult:
         """
@@ -93,7 +95,8 @@ class Python311Validator:
                 issues.extend(self._check_encoding(filepath, content))
 
         return ValidationResult(
-            is_valid=len([i for i in issues if i.severity == "error"]) == 0, issues=issues
+            is_valid=len([i for i in issues if i.severity == "error"]) == 0,
+            issues=issues,
         )
 
     def _check_python_version(self) -> List[ValidationIssue]:
@@ -113,7 +116,9 @@ class Python311Validator:
 
         return issues
 
-    def _check_deprecated_features(self, filepath: str, content: str) -> List[ValidationIssue]:
+    def _check_deprecated_features(
+        self, filepath: str, content: str
+    ) -> List[ValidationIssue]:
         """Check for deprecated features removed in Python 3.11"""
         issues = []
 
@@ -192,7 +197,9 @@ class Python311Validator:
                             return True
         return False
 
-    def _check_syntax_compatibility(self, filepath: str, content: str) -> List[ValidationIssue]:
+    def _check_syntax_compatibility(
+        self, filepath: str, content: str
+    ) -> List[ValidationIssue]:
         """Check for syntax that may not work in Python 3.11"""
         issues = []
 
@@ -250,7 +257,9 @@ class Python311Validator:
         if result.is_valid:
             lines.append("✅ All checks passed - Code is Python 3.11 compatible")
         else:
-            lines.append(f"❌ Found {result.error_count} errors, {result.warning_count} warnings")
+            lines.append(
+                f"❌ Found {result.error_count} errors, {result.warning_count} warnings"
+            )
 
         if result.issues:
             lines.append("\nIssues:")
@@ -258,9 +267,15 @@ class Python311Validator:
                 icon = (
                     "❌"
                     if issue.severity == "error"
-                    else "⚠️" if issue.severity == "warning" else "ℹ️"
+                    else "⚠️"
+                    if issue.severity == "warning"
+                    else "ℹ️"
                 )
-                location = f"{issue.file}:{issue.line}" if issue.file and issue.line else "general"
+                location = (
+                    f"{issue.file}:{issue.line}"
+                    if issue.file and issue.line
+                    else "general"
+                )
                 lines.append(f"  {icon} [{issue.severity.upper()}] {location}")
                 lines.append(f"     {issue.message}")
                 if issue.suggested_fix:

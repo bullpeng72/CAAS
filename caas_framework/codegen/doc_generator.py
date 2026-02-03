@@ -72,9 +72,7 @@ class DocumentationGenerator:
         files = {}
 
         # mkdocs.yml
-        files[
-            "mkdocs.yml"
-        ] = f"""
+        files["mkdocs.yml"] = f"""
 site_name: {config.project_name} Documentation
 site_author: {config.author}
 site_description: Documentation for {config.project_name}
@@ -109,9 +107,7 @@ markdown_extensions:
 """
 
         # docs/index.md
-        files[
-            "docs/index.md"
-        ] = f"""# {golden_data.project_name or "Project"} Documentation
+        files["docs/index.md"] = f"""# {golden_data.project_name or "Project"} Documentation
 
 {golden_data.description}
 
@@ -143,9 +139,7 @@ See [Architecture Overview](architecture/overview.md) for more details.
 """
 
         # docs/getting-started/installation.md
-        files[
-            "docs/getting-started/installation.md"
-        ] = """# Installation
+        files["docs/getting-started/installation.md"] = """# Installation
 
 ## Prerequisites
 
@@ -174,9 +168,7 @@ python -c "import crewai; print('CrewAI installed successfully')"
 """
 
         # docs/getting-started/quickstart.md
-        files[
-            "docs/getting-started/quickstart.md"
-        ] = """# Quick Start Guide
+        files["docs/getting-started/quickstart.md"] = """# Quick Start Guide
 
 ## Running the Application
 
@@ -202,9 +194,7 @@ docker-compose up --build
 """
 
         # docs/architecture/overview.md
-        files[
-            "docs/architecture/overview.md"
-        ] = f"""# Architecture Overview
+        files["docs/architecture/overview.md"] = f"""# Architecture Overview
 
 ## System Design
 
@@ -269,9 +259,7 @@ This project implements a multi-agent system using CrewAI.
         files["docs/architecture/tasks.md"] = tasks_content
 
         # docs/api/reference.md
-        files[
-            "docs/api/reference.md"
-        ] = """# API Reference
+        files["docs/api/reference.md"] = """# API Reference
 
 ## Core Modules
 
@@ -303,9 +291,7 @@ Execute the crew asynchronously.
 """
 
         # docs/contributing.md
-        files[
-            "docs/contributing.md"
-        ] = """# Contributing
+        files["docs/contributing.md"] = """# Contributing
 
 ## Development Setup
 
@@ -353,9 +339,7 @@ Execute the crew asynchronously.
         files = {}
 
         # conf.py
-        files[
-            "docs/conf.py"
-        ] = f"""
+        files["docs/conf.py"] = f"""
 # Configuration file for Sphinx documentation
 project = '{config.project_name}'
 author = '{config.author}'
@@ -375,9 +359,7 @@ html_static_path = ['_static']
 """
 
         # index.rst
-        files[
-            "docs/index.rst"
-        ] = f"""
+        files["docs/index.rst"] = f"""
 {config.project_name} Documentation
 {'=' * len(config.project_name)}
 

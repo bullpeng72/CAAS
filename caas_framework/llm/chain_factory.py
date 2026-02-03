@@ -25,14 +25,17 @@ try:
     LANGCHAIN_AVAILABLE = True
 except ImportError as e:
     logger.warning(
-        f"LangChain Core not available: {e}. " "Install with: pip install langchain-core"
+        f"LangChain Core not available: {e}. "
+        "Install with: pip install langchain-core"
     )
 
 
 def check_langchain():
     """Check LangChain availability"""
     if not LANGCHAIN_AVAILABLE:
-        raise ImportError("langchain not installed. " "pip install langchain-core langchain-openai")
+        raise ImportError(
+            "langchain not installed. " "pip install langchain-core langchain-openai"
+        )
 
 
 class BaseChainFactory(ABC):
@@ -51,7 +54,9 @@ class BaseChainFactory(ABC):
     - get_output_model() -> Type[BaseModel]
     """
 
-    def __init__(self, llm_config: Optional[Any] = None, use_function_calling: bool = True):
+    def __init__(
+        self, llm_config: Optional[Any] = None, use_function_calling: bool = True
+    ):
         """
         Initialize Chain
 
@@ -64,7 +69,9 @@ class BaseChainFactory(ABC):
         check_langchain()
 
         self.use_function_calling = use_function_calling
-        self.logger = logging.getLogger(f"{self.__class__.__module__}.{self.__class__.__name__}")
+        self.logger = logging.getLogger(
+            f"{self.__class__.__module__}.{self.__class__.__name__}"
+        )
 
         # Initialize LLM
         from caas_framework.llm.client import get_langchain_llm
@@ -90,12 +97,16 @@ class BaseChainFactory(ABC):
             # Use Function Calling: with_structured_output returns Pydantic model directly
             structured_llm = self.llm.with_structured_output(output_model)
             self.chain = self.prompt | structured_llm
-            self.logger.info(f"Chain initialized (Function Calling): {self.__class__.__name__}")
+            self.logger.info(
+                f"Chain initialized (Function Calling): {self.__class__.__name__}"
+            )
         else:
             # Legacy: Use JsonOutputParser
             self.parser = JsonOutputParser(pydantic_object=output_model)
             self.chain = self.prompt | self.llm | self.parser
-            self.logger.info(f"Chain initialized (JsonOutputParser): {self.__class__.__name__}")
+            self.logger.info(
+                f"Chain initialized (JsonOutputParser): {self.__class__.__name__}"
+            )
 
     @abstractmethod
     def get_system_prompt(self) -> str:
@@ -170,7 +181,9 @@ class BaseChainFactory(ABC):
 
             # Convert Pydantic models to dicts when using Function Calling
             if self.use_function_calling:
-                results = [r.model_dump() if isinstance(r, BaseModel) else r for r in results]
+                results = [
+                    r.model_dump() if isinstance(r, BaseModel) else r for r in results
+                ]
 
             self.logger.info("Batch execution completed")
             return results
@@ -232,7 +245,9 @@ class SimpleChainFactory:
         return chain
 
     @staticmethod
-    def create_string_chain(system_prompt: str, user_prompt: str, llm_config: Optional[Any] = None):
+    def create_string_chain(
+        system_prompt: str, user_prompt: str, llm_config: Optional[Any] = None
+    ):
         """
         Create string output Chain
 
@@ -281,6 +296,10 @@ def create_json_chain(
     )
 
 
-def create_text_chain(system_prompt: str, user_prompt: str, llm_config: Optional[Any] = None):
+def create_text_chain(
+    system_prompt: str, user_prompt: str, llm_config: Optional[Any] = None
+):
     """Create text output Chain (shortcut)"""
-    return SimpleChainFactory.create_string_chain(system_prompt, user_prompt, llm_config)
+    return SimpleChainFactory.create_string_chain(
+        system_prompt, user_prompt, llm_config
+    )

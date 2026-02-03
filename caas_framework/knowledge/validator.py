@@ -108,8 +108,12 @@ class OntologyValidator(LoggerMixin):
         # 요약 생성
         summary = {
             "total": len(issues),
-            "errors": len([i for i in issues if i.severity == ValidationSeverity.ERROR]),
-            "warnings": len([i for i in issues if i.severity == ValidationSeverity.WARNING]),
+            "errors": len(
+                [i for i in issues if i.severity == ValidationSeverity.ERROR]
+            ),
+            "warnings": len(
+                [i for i in issues if i.severity == ValidationSeverity.WARNING]
+            ),
             "info": len([i for i in issues if i.severity == ValidationSeverity.INFO]),
             "auto_fixable": len([i for i in issues if i.auto_fix_available]),
         }
@@ -122,7 +126,9 @@ class OntologyValidator(LoggerMixin):
 
         return ValidationResult(is_valid=is_valid, issues=issues, summary=summary)
 
-    def _validate_agent_roles(self, agents: List[Dict[str, Any]]) -> List[ValidationIssue]:
+    def _validate_agent_roles(
+        self, agents: List[Dict[str, Any]]
+    ) -> List[ValidationIssue]:
         """에이전트 역할 검증"""
         issues = []
 
@@ -227,7 +233,9 @@ class OntologyValidator(LoggerMixin):
             )
 
             # 추천 도구 중 Tool Registry에 있는 것만 필터링
-            recommended_tools = [tool for tool in recommended_tools if tool in enabled_tools]
+            recommended_tools = [
+                tool for tool in recommended_tools if tool in enabled_tools
+            ]
 
             # 누락된 도구 확인
             missing_tools = set(recommended_tools) - current_tools
@@ -260,14 +268,17 @@ class OntologyValidator(LoggerMixin):
         for task in tasks:
             task_id = _safe_get(task, "id", _safe_get(task, "name", "unknown"))
             # "assigned_agent" 또는 "agent" 키 모두 지원 (하위 호환성)
-            assigned_agent_name = _safe_get(task, "assigned_agent") or _safe_get(task, "agent", "")
+            assigned_agent_name = _safe_get(task, "assigned_agent") or _safe_get(
+                task, "agent", ""
+            )
 
             # 할당된 에이전트 찾기
             assigned_agent = None
             for agent in agents:
                 if (
                     _safe_get(agent, "id", "").lower() in assigned_agent_name.lower()
-                    or _safe_get(agent, "role", "").lower() in assigned_agent_name.lower()
+                    or _safe_get(agent, "role", "").lower()
+                    in assigned_agent_name.lower()
                 ):
                     assigned_agent = agent
                     break
@@ -312,7 +323,9 @@ class OntologyValidator(LoggerMixin):
                                 "action": "assign_agent",
                                 "task_id": task_id,
                                 "agent_id": _safe_get(
-                                    suitable_agent, "id", _safe_get(suitable_agent, "role")
+                                    suitable_agent,
+                                    "id",
+                                    _safe_get(suitable_agent, "role"),
                                 ),
                             },
                         )
@@ -377,7 +390,9 @@ class OntologyValidator(LoggerMixin):
 
         return issues
 
-    def _validate_task_dependencies(self, tasks: List[Dict[str, Any]]) -> List[ValidationIssue]:
+    def _validate_task_dependencies(
+        self, tasks: List[Dict[str, Any]]
+    ) -> List[ValidationIssue]:
         """태스크 의존성 검증"""
         issues = []
 
@@ -422,7 +437,10 @@ class OntologyValidator(LoggerMixin):
         return issues
 
     def apply_auto_fix(
-        self, agents: List[Dict[str, Any]], tasks: List[Dict[str, Any]], issue: ValidationIssue
+        self,
+        agents: List[Dict[str, Any]],
+        tasks: List[Dict[str, Any]],
+        issue: ValidationIssue,
     ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
         """
         자동 수정 적용
@@ -461,7 +479,9 @@ class OntologyValidator(LoggerMixin):
                 if _safe_get(agent, "id") == agent_id:
                     current_tools = _safe_get(agent, "tools", [])
                     agent["tools"] = list(set(current_tools) | set(tools_to_add))
-                    self.logger.info(f"✅ 도구 추가: {agent_id} + {len(tools_to_add)}개 도구")
+                    self.logger.info(
+                        f"✅ 도구 추가: {agent_id} + {len(tools_to_add)}개 도구"
+                    )
                     break
 
         elif action == "remove_tools":
@@ -472,7 +492,9 @@ class OntologyValidator(LoggerMixin):
             for agent in agents:
                 if _safe_get(agent, "id") == agent_id:
                     current_tools = _safe_get(agent, "tools", [])
-                    agent["tools"] = [t for t in current_tools if t not in tools_to_remove]
+                    agent["tools"] = [
+                        t for t in current_tools if t not in tools_to_remove
+                    ]
                     self.logger.info(
                         f"✅ 미등록 도구 제거: {agent_id} - {', '.join(tools_to_remove)}"
                     )
@@ -484,7 +506,10 @@ class OntologyValidator(LoggerMixin):
             dep_to_remove = issue.auto_fix_data.get("dependency_to_remove")
 
             for task in tasks:
-                if _safe_get(task, "id") == task_id or _safe_get(task, "name") == task_id:
+                if (
+                    _safe_get(task, "id") == task_id
+                    or _safe_get(task, "name") == task_id
+                ):
                     deps = _safe_get(task, "dependencies", [])
                     if dep_to_remove in deps:
                         deps.remove(dep_to_remove)
@@ -498,7 +523,10 @@ class OntologyValidator(LoggerMixin):
             agent_id = issue.auto_fix_data.get("agent_id")
 
             for task in tasks:
-                if _safe_get(task, "id") == task_id or _safe_get(task, "name") == task_id:
+                if (
+                    _safe_get(task, "id") == task_id
+                    or _safe_get(task, "name") == task_id
+                ):
                     # 둘 다 설정 (하위 호환성)
                     task["assigned_agent"] = agent_id
                     task["agent"] = agent_id
@@ -580,7 +608,10 @@ class OntologyValidator(LoggerMixin):
             AgentRole.MANAGER: ["관리하고", "조율합니다", "검토합니다"],
             AgentRole.REVIEWER: ["검토하고", "평가합니다", "피드백합니다"],
             AgentRole.ARCHITECT: ["설계하고", "아키텍처를 구성합니다"],
-            AgentRole.DATA_ENGINEER: ["데이터 파이프라인을 구축하고", "ETL 프로세스를 개발합니다"],
+            AgentRole.DATA_ENGINEER: [
+                "데이터 파이프라인을 구축하고",
+                "ETL 프로세스를 개발합니다",
+            ],
             AgentRole.UX_DESIGNER: ["UI를 설계하고", "사용자 경험을 개선합니다"],
         }
 
@@ -600,10 +631,15 @@ class OntologyValidator(LoggerMixin):
         }
 
         # 원본 설명의 주요 단어 추출 (명사 중심)
-        main_subject = original_description.split()[0] if original_description else "작업"
+        main_subject = (
+            original_description.split()[0] if original_description else "작업"
+        )
 
         # UI/프론트엔드 관련 키워드 감지
-        if any(kw in original_lower for kw in ["ui", "프론트", "frontend", "화면", "인터페이스"]):
+        if any(
+            kw in original_lower
+            for kw in ["ui", "프론트", "frontend", "화면", "인터페이스"]
+        ):
             if agent_role == AgentRole.CODER:
                 return f"React와 TypeScript를 사용하여 {main_subject} UI 컴포넌트를 코딩하고 구현합니다"
             elif agent_role == AgentRole.UX_DESIGNER:

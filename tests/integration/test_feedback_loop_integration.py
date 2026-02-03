@@ -31,6 +31,7 @@ class TestFeedbackLoopIntegration:
         """Create mock golden data for testing."""
         # Use centralized MockFactory to reduce duplication
         from tests.helpers import MockFactory
+
         return MockFactory.create_golden_data(
             project_name="User Management API",
             features=[
@@ -38,15 +39,15 @@ class TestFeedbackLoopIntegration:
                     id="feat_001",
                     name="User Registration",
                     description="Allow users to register",
-                    priority="high"
+                    priority="high",
                 ),
                 FeatureSpec(
                     id="feat_002",
                     name="User Login",
                     description="Allow users to log in",
-                    priority="high"
+                    priority="high",
                 ),
-            ]
+            ],
         )
 
     @pytest.fixture
@@ -55,20 +56,38 @@ class TestFeedbackLoopIntegration:
         # Use centralized MockFactory for consistency
         from tests.helpers import LLMResponseBuilder, MockFactory
 
-        custom_response = (LLMResponseBuilder()
-            .with_agents([
-                {"name": "UserAgent", "role": "user_management", "capabilities": ["register", "login"]}
-            ])
-            .with_tasks([
-                {"name": "RegisterUser", "agent": "UserAgent", "description": "Handle user registration"},
-                {"name": "LoginUser", "agent": "UserAgent", "description": "Handle user login"}
-            ])
-            .build())
+        custom_response = (
+            LLMResponseBuilder()
+            .with_agents(
+                [
+                    {
+                        "name": "UserAgent",
+                        "role": "user_management",
+                        "capabilities": ["register", "login"],
+                    }
+                ]
+            )
+            .with_tasks(
+                [
+                    {
+                        "name": "RegisterUser",
+                        "agent": "UserAgent",
+                        "description": "Handle user registration",
+                    },
+                    {
+                        "name": "LoginUser",
+                        "agent": "UserAgent",
+                        "description": "Handle user login",
+                    },
+                ]
+            )
+            .build()
+        )
 
         from caas_framework.agents.base import AgentPhase
+
         return MockFactory.create_llm_plugin(
-            model_name="test-model",
-            responses={AgentPhase.DESIGN: custom_response}
+            model_name="test-model", responses={AgentPhase.DESIGN: custom_response}
         )
 
     @pytest.mark.asyncio
@@ -82,7 +101,7 @@ class TestFeedbackLoopIntegration:
             llm_plugin=mock_llm,
             golden_data=mock_golden_data,
             max_feedback_loops=3,
-            enable_validation=True
+            enable_validation=True,
         )
 
         # Verify SafeFeedbackLoop is initialized
@@ -105,7 +124,7 @@ class TestFeedbackLoopIntegration:
         """
         feedback_loop = SafeFeedbackLoop(
             max_retries=2,
-            timeout_per_retry=1  # 1 second for quick test
+            timeout_per_retry=1,  # 1 second for quick test
         )
 
         # Mock agent that takes too long
@@ -118,6 +137,7 @@ class TestFeedbackLoopIntegration:
                 class MockResult:
                     needs_fixing = True
                     golden_result = None
+
                 return MockResult()
 
         mock_validator = MockValidator()
@@ -131,7 +151,7 @@ class TestFeedbackLoopIntegration:
             initial_output=initial_output,
             validator=mock_validator,
             phase=AgentPhase.DESIGN,
-            context=None
+            context=None,
         )
         duration = (datetime.now() - start_time).total_seconds()
 
@@ -146,26 +166,27 @@ class TestFeedbackLoopIntegration:
 
         This test shows the Producer-Critic pattern working correctly.
         """
-        feedback_loop = SafeFeedbackLoop(
-            max_retries=2,
-            timeout_per_retry=5
-        )
+        feedback_loop = SafeFeedbackLoop(max_retries=2, timeout_per_retry=5)
 
         # Track refinement iterations
         refinement_count = 0
 
         # Mock agent that refines on first attempt
-        async def mock_refine(original_output, validation_issues, context, max_iterations):
+        async def mock_refine(
+            original_output, validation_issues, context, max_iterations
+        ):
             nonlocal refinement_count
             refinement_count += 1
 
             # First refinement: fix the issues
             refined = original_output.copy()
-            refined["agents"].append({
-                "name": "FixedAgent",
-                "role": "fixed",
-                "capabilities": ["fixed_capability"]
-            })
+            refined["agents"].append(
+                {
+                    "name": "FixedAgent",
+                    "role": "fixed",
+                    "capabilities": ["fixed_capability"],
+                }
+            )
 
             class MockRefineResult:
                 success = True
@@ -185,17 +206,25 @@ class TestFeedbackLoopIntegration:
                 validation_attempts += 1
 
                 class MockResult:
-                    needs_fixing = (validation_attempts == 1)  # Fail first, pass second
+                    needs_fixing = validation_attempts == 1  # Fail first, pass second
 
                     class GoldenResult:
-                        missing_items = [
-                            type('Missing', (), {
-                                'item_type': 'agent',
-                                'item_name': 'FixedAgent',
-                                'severity': 'high',
-                                'description': 'Required agent missing'
-                            })()
-                        ] if validation_attempts == 1 else []
+                        missing_items = (
+                            [
+                                type(
+                                    "Missing",
+                                    (),
+                                    {
+                                        "item_type": "agent",
+                                        "item_name": "FixedAgent",
+                                        "severity": "high",
+                                        "description": "Required agent missing",
+                                    },
+                                )()
+                            ]
+                            if validation_attempts == 1
+                            else []
+                        )
 
                     golden_result = GoldenResult() if validation_attempts == 1 else None
 
@@ -211,7 +240,7 @@ class TestFeedbackLoopIntegration:
             initial_output=initial_output,
             validator=mock_validator,
             phase=AgentPhase.DESIGN,
-            context=None
+            context=None,
         )
 
         # Verify refinement occurred
@@ -227,15 +256,14 @@ class TestFeedbackLoopIntegration:
 
         This test ensures the feedback loop doesn't loop infinitely.
         """
-        feedback_loop = SafeFeedbackLoop(
-            max_retries=2,
-            timeout_per_retry=1
-        )
+        feedback_loop = SafeFeedbackLoop(max_retries=2, timeout_per_retry=1)
 
         refinement_count = 0
 
         # Mock agent that always refines but never fixes the issue
-        async def mock_refine(original_output, validation_issues, context, max_iterations):
+        async def mock_refine(
+            original_output, validation_issues, context, max_iterations
+        ):
             nonlocal refinement_count
             refinement_count += 1
 
@@ -256,12 +284,16 @@ class TestFeedbackLoopIntegration:
 
                     class GoldenResult:
                         missing_items = [
-                            type('Missing', (), {
-                                'item_type': 'agent',
-                                'item_name': 'RequiredAgent',
-                                'severity': 'high',
-                                'description': 'Required agent missing'
-                            })()
+                            type(
+                                "Missing",
+                                (),
+                                {
+                                    "item_type": "agent",
+                                    "item_name": "RequiredAgent",
+                                    "severity": "high",
+                                    "description": "Required agent missing",
+                                },
+                            )()
                         ]
 
                     golden_result = GoldenResult()
@@ -278,7 +310,7 @@ class TestFeedbackLoopIntegration:
             initial_output=initial_output,
             validator=mock_validator,
             phase=AgentPhase.DESIGN,
-            context=None
+            context=None,
         )
 
         # Verify max retries limit
@@ -295,14 +327,14 @@ class TestFeedbackLoopIntegration:
             llm_plugin=mock_llm,
             golden_data=mock_golden_data,
             max_feedback_loops=3,
-            enable_validation=True
+            enable_validation=True,
         )
 
         # Create context
         context = CollaborationContext(
             golden_data=mock_golden_data,
             requirement="Build a simple REST API for user management",
-            start_time=datetime.now()
+            start_time=datetime.now(),
         )
 
         # Verify feedback loops counter starts at 0
@@ -351,10 +383,14 @@ class TestFeedbackLoopRealWorld:
         from caas_framework.agents.collaboration import ExpertAgentCollaboration
 
         # Get source code of _execute_phase_with_feedback
-        source = inspect.getsource(ExpertAgentCollaboration._execute_phase_with_feedback)
+        source = inspect.getsource(
+            ExpertAgentCollaboration._execute_phase_with_feedback
+        )
 
         # Should NOT have "if False and" blocking the feedback loop
-        assert "if False and" not in source, "Feedback loop should not be blocked by 'if False'"
+        assert (
+            "if False and" not in source
+        ), "Feedback loop should not be blocked by 'if False'"
 
         # Should have the reactivation comment
         assert "REACTIVATED" in source or "Safe Feedback Loop" in source

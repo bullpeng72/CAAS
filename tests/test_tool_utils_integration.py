@@ -31,7 +31,7 @@ class TestLLMCodeGeneratorIntegration:
         sanitized_tools = {
             "FileReadTool": "file_read",
             "WebSearchTool": "web_search",
-            "DatabaseTool": "database"
+            "DatabaseTool": "database",
         }
 
         # Call the refactored method
@@ -79,10 +79,8 @@ class TestCodeGeneratorAgentIntegration:
     def golden_data(self):
         """Mock golden data"""
         from caas_framework.models.specifications import ConcretizedRequirement
-        return ConcretizedRequirement(
-            project_name="Test Project",
-            features=[]
-        )
+
+        return ConcretizedRequirement(project_name="Test Project", features=[])
 
     def test_generate_tools_file_fallback_integration(self, llm_plugin, golden_data):
         """Test that CodeGeneratorAgent._generate_tools_file_fallback() works after refactoring"""
@@ -143,10 +141,8 @@ class TestCrossPathConsistency:
     def golden_data(self):
         """Mock golden data"""
         from caas_framework.models.specifications import ConcretizedRequirement
-        return ConcretizedRequirement(
-            project_name="Test Project",
-            features=[]
-        )
+
+        return ConcretizedRequirement(project_name="Test Project", features=[])
 
     def test_both_paths_generate_compatible_classes(self, llm_plugin, golden_data):
         """
@@ -163,6 +159,7 @@ class TestCrossPathConsistency:
         # Path 1: LLM Code Generator
         llm_gen = LLMCodeGenerator(llm_plugin)
         from caas_framework.codegen.tool_utils import sanitize_tool_name
+
         sanitized = {sanitize_tool_name(t): t for t in tools}
         code_llm = llm_gen._generate_fallback_tools(sanitized)
 

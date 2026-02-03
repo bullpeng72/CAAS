@@ -20,10 +20,16 @@ from caas_cli.utils import (
 
 @click.command(name="generate-code")
 @click.option(
-    "--agents", type=click.Path(exists=True), required=True, help="Path to agents.json file"
+    "--agents",
+    type=click.Path(exists=True),
+    required=True,
+    help="Path to agents.json file",
 )
 @click.option(
-    "--tasks", type=click.Path(exists=True), required=True, help="Path to tasks.json file"
+    "--tasks",
+    type=click.Path(exists=True),
+    required=True,
+    help="Path to tasks.json file",
 )
 @click.option(
     "--golden-data",
@@ -43,9 +49,13 @@ from caas_cli.utils import (
     default="./generated_code",
     help="Output directory (default: ./generated_code)",
 )
-@click.option("--project-name", type=str, help="Project name (default: derived from spec)")
+@click.option(
+    "--project-name", type=str, help="Project name (default: derived from spec)"
+)
 @click.option("--verbose", "-v", is_flag=True, help="Show detailed generation output")
-@click.option("--tdd", is_flag=True, help="Enable Test-First Code Generation (TDD approach)")
+@click.option(
+    "--tdd", is_flag=True, help="Enable Test-First Code Generation (TDD approach)"
+)
 @handle_keyboard_interrupt
 async def generate_code(
     agents, tasks, golden_data, deployment_target, output, project_name, verbose, tdd
@@ -196,7 +206,11 @@ async def generate_code(
                 )
 
         # Build spec
-        spec = {"agents": agents_list, "tasks": tasks_list, "deployment_target": deployment_target}
+        spec = {
+            "agents": agents_list,
+            "tasks": tasks_list,
+            "deployment_target": deployment_target,
+        }
 
         if golden_data_dict:
             spec["golden_data"] = golden_data_dict

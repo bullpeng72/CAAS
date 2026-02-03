@@ -88,9 +88,7 @@ class StateManager:
             str: Checkpoint ID
         """
         timestamp = datetime.utcnow()
-        checkpoint_id = (
-            f"{session_id}_{workflow_id}_{phase}_{timestamp.strftime('%Y%m%d_%H%M%S_%f')}"
-        )
+        checkpoint_id = f"{session_id}_{workflow_id}_{phase}_{timestamp.strftime('%Y%m%d_%H%M%S_%f')}"
 
         checkpoint = Checkpoint(
             checkpoint_id=checkpoint_id,
@@ -311,7 +309,9 @@ class StateManager:
         """Get state history for a session"""
         return self.history.get(session_id, [])
 
-    def get_state_at_time(self, session_id: str, timestamp: datetime) -> Optional[Dict[str, Any]]:
+    def get_state_at_time(
+        self, session_id: str, timestamp: datetime
+    ) -> Optional[Dict[str, Any]]:
         """Get state at a specific timestamp"""
         history = self.get_history(session_id)
 

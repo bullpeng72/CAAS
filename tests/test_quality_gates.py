@@ -29,7 +29,7 @@ class TestQualityMetric:
             threshold=7.0,
             actual_value=8.5,
             weight=1.5,
-            critical=True
+            critical=True,
         )
 
         assert metric.name == "code_quality"
@@ -42,30 +42,26 @@ class TestQualityMetric:
         """Test metric passed property"""
         # Passing metric
         metric1 = QualityMetric(
-            name="test", metric_type=MetricType.SCORE,
-            threshold=7.0, actual_value=8.0
+            name="test", metric_type=MetricType.SCORE, threshold=7.0, actual_value=8.0
         )
         assert metric1.passed is True
 
         # Failing metric
         metric2 = QualityMetric(
-            name="test", metric_type=MetricType.SCORE,
-            threshold=7.0, actual_value=6.0
+            name="test", metric_type=MetricType.SCORE, threshold=7.0, actual_value=6.0
         )
         assert metric2.passed is False
 
         # Missing value
         metric3 = QualityMetric(
-            name="test", metric_type=MetricType.SCORE,
-            threshold=7.0, actual_value=None
+            name="test", metric_type=MetricType.SCORE, threshold=7.0, actual_value=None
         )
         assert metric3.passed is False
 
     def test_metric_margin(self):
         """Test metric margin calculation"""
         metric = QualityMetric(
-            name="test", metric_type=MetricType.SCORE,
-            threshold=7.0, actual_value=8.5
+            name="test", metric_type=MetricType.SCORE, threshold=7.0, actual_value=8.5
         )
         assert metric.margin == 1.5  # 8.5 - 7.0
 
@@ -77,7 +73,7 @@ class TestGateEvaluation:
         """Test creating gate evaluation"""
         metrics = [
             QualityMetric("m1", MetricType.SCORE, 7.0, 8.0, critical=True),
-            QualityMetric("m2", MetricType.SCORE, 7.0, 9.0)
+            QualityMetric("m2", MetricType.SCORE, 7.0, 9.0),
         ]
 
         evaluation = GateEvaluation(
@@ -86,7 +82,7 @@ class TestGateEvaluation:
             metrics=metrics,
             passed_metrics=["m1", "m2"],
             failed_metrics=[],
-            overall_score=8.5
+            overall_score=8.5,
         )
 
         assert evaluation.phase == AgentPhase.DESIGN
@@ -98,7 +94,7 @@ class TestGateEvaluation:
         """Test can_proceed blocks on critical failure"""
         metrics = [
             QualityMetric("m1", MetricType.SCORE, 7.0, 6.0, critical=True),  # FAIL
-            QualityMetric("m2", MetricType.SCORE, 7.0, 9.0, critical=False)
+            QualityMetric("m2", MetricType.SCORE, 7.0, 9.0, critical=False),
         ]
 
         evaluation = GateEvaluation(
@@ -106,7 +102,7 @@ class TestGateEvaluation:
             status=GateStatus.FAILED,
             metrics=metrics,
             passed_metrics=["m2"],
-            failed_metrics=["m1"]
+            failed_metrics=["m1"],
         )
 
         # Should block because critical metric failed
@@ -116,7 +112,7 @@ class TestGateEvaluation:
         """Test can_proceed allows non-critical failures"""
         metrics = [
             QualityMetric("m1", MetricType.SCORE, 7.0, 8.0, critical=True),
-            QualityMetric("m2", MetricType.SCORE, 7.0, 6.0, critical=False)  # FAIL
+            QualityMetric("m2", MetricType.SCORE, 7.0, 6.0, critical=False),  # FAIL
         ]
 
         evaluation = GateEvaluation(
@@ -124,7 +120,7 @@ class TestGateEvaluation:
             status=GateStatus.WARNING,
             metrics=metrics,
             passed_metrics=["m1"],
-            failed_metrics=["m2"]
+            failed_metrics=["m2"],
         )
 
         # Should allow proceed (only non-critical failed)
@@ -144,7 +140,7 @@ class TestGateEvaluation:
             status=GateStatus.WARNING,
             metrics=metrics,
             passed_metrics=["m1", "m2"],
-            failed_metrics=["m3", "m4"]
+            failed_metrics=["m3", "m4"],
         )
 
         # 2 passed out of 4 = 50%
@@ -158,14 +154,10 @@ class TestQualityGate:
         """Test creating a quality gate"""
         metrics = [
             QualityMetric("m1", MetricType.SCORE, 7.0, weight=1.5, critical=True),
-            QualityMetric("m2", MetricType.SCORE, 7.0, weight=1.0)
+            QualityMetric("m2", MetricType.SCORE, 7.0, weight=1.0),
         ]
 
-        gate = QualityGate(
-            phase=AgentPhase.DESIGN,
-            metrics=metrics,
-            min_pass_rate=80.0
-        )
+        gate = QualityGate(phase=AgentPhase.DESIGN, metrics=metrics, min_pass_rate=80.0)
 
         assert gate.phase == AgentPhase.DESIGN
         assert len(gate.metrics) == 2
@@ -175,16 +167,13 @@ class TestQualityGate:
         """Test gate evaluation when all metrics pass"""
         metrics = [
             QualityMetric("agent_role_clarity", MetricType.SCORE, 7.0),
-            QualityMetric("task_completeness", MetricType.SCORE, 7.0)
+            QualityMetric("task_completeness", MetricType.SCORE, 7.0),
         ]
 
         gate = QualityGate(AgentPhase.DESIGN, metrics)
 
         # Provide output with metric values
-        context = {
-            "agent_role_clarity": 8.5,
-            "task_completeness": 9.0
-        }
+        context = {"agent_role_clarity": 8.5, "task_completeness": 9.0}
 
         evaluation = gate.evaluate({}, context)
 
@@ -197,14 +186,14 @@ class TestQualityGate:
         """Test gate evaluation when critical metric fails"""
         metrics = [
             QualityMetric("critical_metric", MetricType.SCORE, 7.0, critical=True),
-            QualityMetric("normal_metric", MetricType.SCORE, 7.0, critical=False)
+            QualityMetric("normal_metric", MetricType.SCORE, 7.0, critical=False),
         ]
 
         gate = QualityGate(AgentPhase.DESIGN, metrics)
 
         context = {
             "critical_metric": 5.0,  # FAIL (critical)
-            "normal_metric": 8.0      # PASS
+            "normal_metric": 8.0,  # PASS
         }
 
         evaluation = gate.evaluate({}, context)
@@ -277,9 +266,7 @@ class TestQualityGateSystem:
         system = QualityGateSystem(enable_gates=False)
 
         evaluation = system.evaluate_gate(
-            phase=AgentPhase.DESIGN,
-            output={},
-            context={}
+            phase=AgentPhase.DESIGN, output={}, context={}
         )
 
         # Should skip when disabled
@@ -294,13 +281,11 @@ class TestQualityGateSystem:
             "agent_role_clarity": 8.5,
             "task_completeness": 9.0,
             "dependency_correctness": 8.0,
-            "tool_appropriateness": 7.5
+            "tool_appropriateness": 7.5,
         }
 
         evaluation = system.evaluate_gate(
-            phase=AgentPhase.DESIGN,
-            output={},
-            context=context
+            phase=AgentPhase.DESIGN, output={}, context=context
         )
 
         assert evaluation.status in [GateStatus.PASSED, GateStatus.WARNING]
@@ -311,16 +296,14 @@ class TestQualityGateSystem:
         system = QualityGateSystem(enable_gates=True)
 
         context = {
-            "agent_role_clarity": 5.0,      # FAIL (critical)
-            "task_completeness": 6.0,        # FAIL (critical)
-            "dependency_correctness": 4.0,   # FAIL (critical)
-            "tool_appropriateness": 5.0      # FAIL
+            "agent_role_clarity": 5.0,  # FAIL (critical)
+            "task_completeness": 6.0,  # FAIL (critical)
+            "dependency_correctness": 4.0,  # FAIL (critical)
+            "tool_appropriateness": 5.0,  # FAIL
         }
 
         evaluation = system.evaluate_gate(
-            phase=AgentPhase.DESIGN,
-            output={},
-            context=context
+            phase=AgentPhase.DESIGN, output={}, context=context
         )
 
         assert evaluation.status == GateStatus.FAILED
@@ -332,16 +315,14 @@ class TestQualityGateSystem:
 
         # Metrics that would normally pass but with warnings
         context = {
-            "agent_role_clarity": 8.0,       # PASS
-            "task_completeness": 8.5,        # PASS
-            "dependency_correctness": 8.5,   # PASS
-            "tool_appropriateness": 6.0      # FAIL (non-critical)
+            "agent_role_clarity": 8.0,  # PASS
+            "task_completeness": 8.5,  # PASS
+            "dependency_correctness": 8.5,  # PASS
+            "tool_appropriateness": 6.0,  # FAIL (non-critical)
         }
 
         evaluation = system.evaluate_gate(
-            phase=AgentPhase.DESIGN,
-            output={},
-            context=context
+            phase=AgentPhase.DESIGN, output={}, context=context
         )
 
         # In strict mode, can_proceed checks if status is exactly PASSED
@@ -358,17 +339,13 @@ class TestQualityGateSystem:
 
         # PASSED evaluation
         eval_passed = GateEvaluation(
-            phase=AgentPhase.DESIGN,
-            status=GateStatus.PASSED,
-            metrics=[]
+            phase=AgentPhase.DESIGN, status=GateStatus.PASSED, metrics=[]
         )
         assert system.can_proceed_to_next_phase(eval_passed) is True
 
         # WARNING evaluation (no critical failures)
         eval_warning = GateEvaluation(
-            phase=AgentPhase.DESIGN,
-            status=GateStatus.WARNING,
-            metrics=[]
+            phase=AgentPhase.DESIGN, status=GateStatus.WARNING, metrics=[]
         )
         assert system.can_proceed_to_next_phase(eval_warning) is True
 
@@ -376,9 +353,7 @@ class TestQualityGateSystem:
         eval_failed = GateEvaluation(
             phase=AgentPhase.DESIGN,
             status=GateStatus.FAILED,
-            metrics=[
-                QualityMetric("m1", MetricType.SCORE, 7.0, 5.0, critical=True)
-            ]
+            metrics=[QualityMetric("m1", MetricType.SCORE, 7.0, 5.0, critical=True)],
         )
         assert system.can_proceed_to_next_phase(eval_failed) is False
 

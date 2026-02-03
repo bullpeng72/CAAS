@@ -25,7 +25,9 @@ class PineconePlugin(VectorDBPlugin):
 
         # Pinecone specific
         self.api_key = config.get("api_key") or os.getenv("PINECONE_API_KEY")
-        self.environment = config.get("environment") or os.getenv("PINECONE_ENVIRONMENT")
+        self.environment = config.get("environment") or os.getenv(
+            "PINECONE_ENVIRONMENT"
+        )
         self.cloud = config.get("cloud", "aws")
         self.region = config.get("region", "us-east-1")
 
@@ -48,7 +50,8 @@ class PineconePlugin(VectorDBPlugin):
 
         except ImportError:
             raise ImportError(
-                "Pinecone package not installed. " "Install with: pip install pinecone-client"
+                "Pinecone package not installed. "
+                "Install with: pip install pinecone-client"
             )
 
     async def create_index(self) -> bool:
@@ -143,7 +146,9 @@ class PineconePlugin(VectorDBPlugin):
 
         return search_results
 
-    async def delete(self, ids: List[str], namespace: Optional[str] = None) -> Dict[str, Any]:
+    async def delete(
+        self, ids: List[str], namespace: Optional[str] = None
+    ) -> Dict[str, Any]:
         """Delete vectors by ID"""
         if not self._initialized:
             await self.initialize()
@@ -152,7 +157,9 @@ class PineconePlugin(VectorDBPlugin):
 
         return {"deleted_ids": ids}
 
-    async def get(self, ids: List[str], namespace: Optional[str] = None) -> List[VectorDocument]:
+    async def get(
+        self, ids: List[str], namespace: Optional[str] = None
+    ) -> List[VectorDocument]:
         """Retrieve vectors by ID"""
         if not self._initialized:
             await self.initialize()
@@ -166,7 +173,9 @@ class PineconePlugin(VectorDBPlugin):
                     id=vector_id,
                     text=vector_data.metadata.get("text", ""),
                     embedding=vector_data.values,
-                    metadata={k: v for k, v in vector_data.metadata.items() if k != "text"},
+                    metadata={
+                        k: v for k, v in vector_data.metadata.items() if k != "text"
+                    },
                 )
             )
 

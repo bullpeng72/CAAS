@@ -18,10 +18,7 @@ class TestCodeGeneratorAutoFix:
         """Create CodeGeneratorAgent instance for testing."""
         # Create a mock LLM plugin (not needed for auto-fix tests)
         mock_llm_plugin = Mock()
-        self.agent = CodeGeneratorAgent(
-            llm_plugin=mock_llm_plugin,
-            golden_data=None
-        )
+        self.agent = CodeGeneratorAgent(llm_plugin=mock_llm_plugin, golden_data=None)
 
     def test_fix_agent_id_parameter(self):
         """Test that id='...' parameter is removed from Agent() calls."""
@@ -87,7 +84,10 @@ agent = Agent(
         fixed_code = fixed_files["agents.py"]
 
         # Variable list should be preserved
-        assert "tools=[FileReadTool, FileWriteTool]" in fixed_code or "tools=[]" not in fixed_code
+        assert (
+            "tools=[FileReadTool, FileWriteTool]" in fixed_code
+            or "tools=[]" not in fixed_code
+        )
 
     def test_remove_unsupported_parameters(self):
         """Test that unsupported parameters (memory, max_iter) are removed."""
@@ -135,7 +135,7 @@ agent = Agent(
                 "role": "File Agent",
                 "goal": "Manage files",
                 "backstory": "Expert",
-                "tools": ["file_read", "file_write"]
+                "tools": ["file_read", "file_write"],
             }
         ]
 
@@ -200,7 +200,7 @@ task_manager_agent = Agent(
                 "role": "Task Manager",
                 "goal": "Manage tasks",
                 "backstory": "Expert",
-                "tools": ["file_read", "file_write"]
+                "tools": ["file_read", "file_write"],
             }
         ]
 

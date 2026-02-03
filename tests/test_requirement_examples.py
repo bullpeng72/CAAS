@@ -28,7 +28,7 @@ def test_requirement_example_creation():
         description="A test application",
         requirement_text="Build a test app",
         key_features=["Feature 1", "Feature 2"],
-        tags=["test", "simple"]
+        tags=["test", "simple"],
     )
 
     assert example.title == "Test App"
@@ -47,7 +47,7 @@ def test_requirement_example_format():
         description="A test application",
         requirement_text="Build a test app",
         key_features=["Feature 1"],
-        tags=["test"]
+        tags=["test"],
     )
 
     formatted = example.format_for_display()
@@ -112,8 +112,10 @@ def test_search_examples():
     # Search by common keywords
     blog_results = search_examples("blog")
     assert len(blog_results) > 0
-    assert any("blog" in ex.title.lower() or "blog" in ex.description.lower()
-               for ex in blog_results)
+    assert any(
+        "blog" in ex.title.lower() or "blog" in ex.description.lower()
+        for ex in blog_results
+    )
 
     chatbot_results = search_examples("chatbot")
     assert len(chatbot_results) > 0
@@ -242,13 +244,16 @@ def test_interactive_guide_show_example():
 
     # Capture output
     output = io.StringIO()
-    with patch('sys.stdout', output):
+    with patch("sys.stdout", output):
         guide.show_example(example)
 
     output_text = output.getvalue()
     assert example.title in output_text
     # Domain is formatted with title case and spaces (e.g., "Web App" instead of "web_app")
-    assert example.domain.value.replace('_', ' ').title() in output_text or example.domain.value in output_text
+    assert (
+        example.domain.value.replace("_", " ").title() in output_text
+        or example.domain.value in output_text
+    )
 
 
 def test_interactive_guide_get_suggestions():
@@ -263,12 +268,7 @@ def test_interactive_guide_get_suggestions():
 def test_examples_cover_common_use_cases():
     """Test that examples cover common use cases"""
     # Check for common domains
-    common_domains = [
-        Domain.WEB_APP,
-        Domain.API,
-        Domain.CHATBOT,
-        Domain.AUTOMATION
-    ]
+    common_domains = [Domain.WEB_APP, Domain.API, Domain.CHATBOT, Domain.AUTOMATION]
 
     for domain in common_domains:
         examples = get_examples_by_domain(domain)
@@ -310,9 +310,12 @@ def test_search_finds_relevant_examples():
     # Search for "todo" should find todo examples
     results = search_examples("todo")
     if results:
-        assert any("todo" in ex.title.lower() or "todo" in ex.description.lower() or
-                   any("todo" in tag.lower() for tag in ex.tags)
-                   for ex in results)
+        assert any(
+            "todo" in ex.title.lower()
+            or "todo" in ex.description.lower()
+            or any("todo" in tag.lower() for tag in ex.tags)
+            for ex in results
+        )
 
     # Search for "app" should find app-related examples (more general term)
     results = search_examples("app")
@@ -347,6 +350,6 @@ if __name__ == "__main__":
     test_tag_consistency()
     test_search_finds_relevant_examples()
 
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("✅ All Requirement Examples tests passed!")
-    print("="*70)
+    print("=" * 70)

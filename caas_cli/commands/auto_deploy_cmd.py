@@ -32,10 +32,14 @@ from caas_cli.utils import (
     default="./generated",
     help="Output directory (default: ./generated)",
 )
-@click.option("--skip-tests", is_flag=True, help="Skip test execution and code quality checks")
+@click.option(
+    "--skip-tests", is_flag=True, help="Skip test execution and code quality checks"
+)
 @click.option("--skip-docker", is_flag=True, help="Skip Docker build step")
 @click.option("--verbose", "-v", is_flag=True, help="Show detailed output")
-@click.option("--dry-run", is_flag=True, help="Show what would be done without executing")
+@click.option(
+    "--dry-run", is_flag=True, help="Show what would be done without executing"
+)
 @handle_keyboard_interrupt
 def auto_deploy(requirement, target, output, skip_tests, skip_docker, verbose, dry_run):
     """

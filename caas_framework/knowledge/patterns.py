@@ -47,7 +47,10 @@ def load_agent_patterns() -> Dict[DomainType, AgentPattern]:
         from pathlib import Path
 
         patterns_path = (
-            Path(__file__).parent.parent.parent / "data" / "ontology" / "agent_patterns.json"
+            Path(__file__).parent.parent.parent
+            / "data"
+            / "ontology"
+            / "agent_patterns.json"
         )
 
         if patterns_path.exists():
@@ -59,7 +62,9 @@ def load_agent_patterns() -> Dict[DomainType, AgentPattern]:
             for domain_str, pattern_dict in patterns_data.items():
                 try:
                     domain_type = DomainType(domain_str)
-                    execution_pattern = ExecutionPattern(pattern_dict["execution_pattern"])
+                    execution_pattern = ExecutionPattern(
+                        pattern_dict["execution_pattern"]
+                    )
 
                     pattern = AgentPattern(
                         execution_agents=pattern_dict["execution_agents"],

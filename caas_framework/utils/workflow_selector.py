@@ -178,7 +178,10 @@ def analyze_coordination_complexity(tasks: List[Dict[str, Any]]) -> bool:
         description = task.get("description", "").lower()
         goal = task.get("goal", "").lower()
 
-        if any(keyword in description or keyword in goal for keyword in coordination_keywords):
+        if any(
+            keyword in description or keyword in goal
+            for keyword in coordination_keywords
+        ):
             return True
 
     # Check if multiple tasks target same resources

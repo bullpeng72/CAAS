@@ -28,6 +28,7 @@ from caas_framework.performance.streaming import (
 
 # ==================== Profiler Tests ====================
 
+
 @pytest.mark.asyncio
 async def test_profiler_basic():
     """Test basic profiling"""
@@ -110,6 +111,7 @@ def test_profiler_disabled():
 
     # This should not collect any data
     import asyncio
+
     async def test():
         async with profiler.profile("test"):
             await asyncio.sleep(0.01)
@@ -144,6 +146,7 @@ def test_bottleneck_analyzer():
 
 # ==================== Async Batch Tests ====================
 
+
 @pytest.mark.asyncio
 async def test_batch_executor_basic():
     """Test basic batch execution"""
@@ -170,7 +173,7 @@ async def test_batch_executor_map_parallel():
     executor = AsyncBatchExecutor(config=config)
 
     async def square(x):
-        return x ** 2
+        return x**2
 
     items = [1, 2, 3, 4, 5]
     results = await executor.map_parallel(items, square)
@@ -221,6 +224,7 @@ async def test_batch_executor_timeout():
 @pytest.mark.asyncio
 async def test_run_parallel():
     """Test run_parallel convenience function"""
+
     async def task1():
         await asyncio.sleep(0.01)
         return 1
@@ -233,10 +237,7 @@ async def test_run_parallel():
         await asyncio.sleep(0.01)
         return 3
 
-    results = await run_parallel(
-        task1(), task2(), task3(),
-        max_concurrent=2
-    )
+    results = await run_parallel(task1(), task2(), task3(), max_concurrent=2)
 
     assert results == [1, 2, 3]
 
@@ -244,20 +245,19 @@ async def test_run_parallel():
 @pytest.mark.asyncio
 async def test_batch_process():
     """Test batch_process convenience function"""
+
     async def add_ten(x):
         return x + 10
 
     results = await batch_process(
-        items=[1, 2, 3, 4, 5],
-        process_fn=add_ten,
-        batch_size=2,
-        max_concurrent=3
+        items=[1, 2, 3, 4, 5], process_fn=add_ten, batch_size=2, max_concurrent=3
     )
 
     assert results == [11, 12, 13, 14, 15]
 
 
 # ==================== Streaming Tests ====================
+
 
 async def mock_stream(chunks: list):
     """Mock async stream"""
@@ -343,10 +343,7 @@ async def test_streaming_timeout():
         await asyncio.sleep(2.0)  # Longer than timeout
         yield "B"
 
-    buffer = await handler.stream_with_timeout(
-        slow_stream(),
-        timeout_seconds=0.1
-    )
+    buffer = await handler.stream_with_timeout(slow_stream(), timeout_seconds=0.1)
 
     assert len(buffer.chunks) == 1  # Only got "A" before timeout
     assert buffer.error is not None

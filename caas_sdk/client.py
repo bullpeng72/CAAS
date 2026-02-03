@@ -66,7 +66,8 @@ class BaseClient:
         elif response.status_code == 429:
             retry_after = int(response.headers.get("Retry-After", 60))
             raise RateLimitError(
-                f"Rate limit exceeded. Retry after {retry_after} seconds.", retry_after=retry_after
+                f"Rate limit exceeded. Retry after {retry_after} seconds.",
+                retry_after=retry_after,
             )
         elif response.status_code >= 400:
             try:
@@ -170,7 +171,8 @@ class CAAS(BaseClient):
         """
         try:
             response = self.client.get(
-                f"{self.base_url}/api/v1/projects/{project_id}", headers=self._get_headers()
+                f"{self.base_url}/api/v1/projects/{project_id}",
+                headers=self._get_headers(),
             )
 
             if response.status_code != 200:
@@ -199,7 +201,8 @@ class CAAS(BaseClient):
         """
         try:
             response = self.client.get(
-                f"{self.base_url}/api/v1/projects/{project_id}/result", headers=self._get_headers()
+                f"{self.base_url}/api/v1/projects/{project_id}/result",
+                headers=self._get_headers(),
             )
 
             if response.status_code != 200:
@@ -277,7 +280,9 @@ class CAAS(BaseClient):
                 params["status"] = status
 
             response = self.client.get(
-                f"{self.base_url}/api/v1/projects", params=params, headers=self._get_headers()
+                f"{self.base_url}/api/v1/projects",
+                params=params,
+                headers=self._get_headers(),
             )
 
             if response.status_code != 200:
@@ -384,7 +389,8 @@ class AsyncCAAS(BaseClient):
         """Get project by ID (async)"""
         try:
             response = await self.client.get(
-                f"{self.base_url}/api/v1/projects/{project_id}", headers=self._get_headers()
+                f"{self.base_url}/api/v1/projects/{project_id}",
+                headers=self._get_headers(),
             )
 
             if response.status_code != 200:
@@ -403,7 +409,8 @@ class AsyncCAAS(BaseClient):
         """Get generation result (async)"""
         try:
             response = await self.client.get(
-                f"{self.base_url}/api/v1/projects/{project_id}/result", headers=self._get_headers()
+                f"{self.base_url}/api/v1/projects/{project_id}/result",
+                headers=self._get_headers(),
             )
 
             if response.status_code != 200:

@@ -21,18 +21,41 @@ CUSTOMER_CONCEPT = Concept(
         "has_many": ["Order", "Review", "WishlistItem"],
         "has_one": ["Cart"],
     },
-    typical_operations=["register", "login", "update_profile", "view_orders", "add_to_wishlist"],
+    typical_operations=[
+        "register",
+        "login",
+        "update_profile",
+        "view_orders",
+        "add_to_wishlist",
+    ],
     description="Represents a customer in the e-commerce system",
 )
 
 PRODUCT_CONCEPT = Concept(
     name="Product",
-    properties=["id", "name", "description", "price", "stock", "sku", "category_id", "created_at"],
+    properties=[
+        "id",
+        "name",
+        "description",
+        "price",
+        "stock",
+        "sku",
+        "category_id",
+        "created_at",
+    ],
     relationships={
         "belongs_to": ["Category", "Vendor"],
         "has_many": ["Review", "CartItem", "OrderItem", "Image"],
     },
-    typical_operations=["create", "read", "update", "delete", "search", "filter", "update_stock"],
+    typical_operations=[
+        "create",
+        "read",
+        "update",
+        "delete",
+        "search",
+        "filter",
+        "update_stock",
+    ],
     description="Represents a product for sale",
 )
 
@@ -97,7 +120,15 @@ ORDER_ITEM_CONCEPT = Concept(
 
 PAYMENT_CONCEPT = Concept(
     name="Payment",
-    properties=["id", "order_id", "amount", "method", "status", "transaction_id", "created_at"],
+    properties=[
+        "id",
+        "order_id",
+        "amount",
+        "method",
+        "status",
+        "transaction_id",
+        "created_at",
+    ],
     relationships={"belongs_to": ["Order"]},
     typical_operations=["create", "process", "refund", "verify"],
     description="Represents a payment transaction",

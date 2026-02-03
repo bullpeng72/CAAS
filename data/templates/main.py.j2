@@ -60,22 +60,22 @@ def main():
     print(f"  {{ project.description }}")
     print("=" * 60)
     print()
-    
+
     # Create crew
     print("Initializing crew...")
     crew = create_crew()
-    
+
     # Get inputs
     inputs = get_inputs()
-    
+
     # Run the crew
     print()
     print("Starting crew execution...")
     print("-" * 40)
-    
+
     try:
         result = crew.kickoff(inputs=inputs)
-        
+
         print("-" * 40)
         print("Execution completed successfully!")
         print()
@@ -83,20 +83,20 @@ def main():
         print("RESULT:")
         print("=" * 60)
         print(result)
-        
+
         # Save result to file
         output_dir = Path("output")
         output_dir.mkdir(exist_ok=True)
-        
+
         output_file = output_dir / "result.md"
         with open(output_file, "w", encoding="utf-8") as f:
             f.write(f"# {{ project.name }} - Result\n\n")
             f.write(str(result))
-        
+
         print(f"\nResult saved to: {output_file}")
-        
+
         return result
-        
+
     except Exception as e:
         print(f"\nError during execution: {e}")
         raise

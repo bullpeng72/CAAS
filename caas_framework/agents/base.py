@@ -196,7 +196,9 @@ class BaseExpertAgent(ABC):
 
         for iteration in range(max_iterations):
             # Filter issues that still apply
-            remaining_issues = await self._filter_resolved_issues(current_output, validation_issues)
+            remaining_issues = await self._filter_resolved_issues(
+                current_output, validation_issues
+            )
 
             if not remaining_issues:
                 # All issues resolved
@@ -278,7 +280,9 @@ class BaseExpertAgent(ABC):
         """
 
     def _build_context_summary(
-        self, context: Optional[Dict[str, Any]], previous_outputs: Optional[Dict[AgentPhase, Any]]
+        self,
+        context: Optional[Dict[str, Any]],
+        previous_outputs: Optional[Dict[AgentPhase, Any]],
     ) -> str:
         """
         Build context summary for LLM prompts.
@@ -403,7 +407,9 @@ class BaseExpertAgent(ABC):
             ... )
         """
         # Use default temperature if not provided
-        temp = temperature if temperature is not None else self._get_default_temperature()
+        temp = (
+            temperature if temperature is not None else self._get_default_temperature()
+        )
 
         # Prepare invocation kwargs
         invoke_kwargs = {
@@ -454,7 +460,9 @@ class BaseExpertAgent(ABC):
 
     @staticmethod
     def _merge_outputs(
-        refined: Dict[str, Any], original: Dict[str, Any], exclude_keys: Optional[List[str]] = None
+        refined: Dict[str, Any],
+        original: Dict[str, Any],
+        exclude_keys: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         """
         Merge refined output with original to preserve missing keys.

@@ -30,7 +30,7 @@ def test_complexity_metrics_simple_project():
         dependency_depth=1,
         domain="TASK_MANAGEMENT",
         has_complex_coordination=False,
-        requires_dynamic_allocation=False
+        requires_dynamic_allocation=False,
     )
 
     # Simple project should have low complexity
@@ -45,7 +45,7 @@ def test_complexity_metrics_complex_project():
         dependency_depth=5,
         domain="FINANCE",
         has_complex_coordination=True,
-        requires_dynamic_allocation=True
+        requires_dynamic_allocation=True,
     )
 
     # Complex project should have high complexity
@@ -129,14 +129,12 @@ def test_determine_workflow_type_simple_project():
     """Test workflow type selection for simple project"""
     workflow = determine_workflow_type(
         requirement="Build a simple blog application",
-        agents=[
-            {"role": "developer", "goal": "write code"}
-        ],
+        agents=[{"role": "developer", "goal": "write code"}],
         tasks=[
             {"name": "create_post"},
             {"name": "list_posts"},
         ],
-        domain="CONTENT_GENERATION"
+        domain="CONTENT_GENERATION",
     )
 
     assert workflow == WorkflowType.SEQUENTIAL
@@ -145,22 +143,18 @@ def test_determine_workflow_type_simple_project():
 def test_determine_workflow_type_complex_project():
     """Test workflow type selection for complex project"""
     # Create 8 agents
-    agents = [
-        {"role": f"agent_{i}", "goal": f"handle task {i}"}
-        for i in range(8)
-    ]
+    agents = [{"role": f"agent_{i}", "goal": f"handle task {i}"} for i in range(8)]
 
     # Create 15 tasks with dependencies
     tasks = [
-        {"id": f"task_{i}", "name": f"task_{i}", "dependencies": []}
-        for i in range(15)
+        {"id": f"task_{i}", "name": f"task_{i}", "dependencies": []} for i in range(15)
     ]
 
     workflow = determine_workflow_type(
         requirement="Build enterprise financial trading platform",
         agents=agents,
         tasks=tasks,
-        domain="FINANCE"
+        domain="FINANCE",
     )
 
     assert workflow == WorkflowType.HIERARCHICAL
@@ -172,9 +166,7 @@ def test_determine_workflow_type_high_agent_count():
     tasks = [{"name": f"task_{i}"} for i in range(3)]
 
     workflow = determine_workflow_type(
-        requirement="Multi-agent system",
-        agents=agents,
-        tasks=tasks
+        requirement="Multi-agent system", agents=agents, tasks=tasks
     )
 
     assert workflow == WorkflowType.HIERARCHICAL
@@ -191,9 +183,7 @@ def test_determine_workflow_type_deep_dependencies():
     ]
 
     workflow = determine_workflow_type(
-        requirement="Complex pipeline",
-        agents=[{"role": "agent1"}],
-        tasks=tasks
+        requirement="Complex pipeline", agents=[{"role": "agent1"}], tasks=tasks
     )
 
     assert workflow == WorkflowType.HIERARCHICAL
@@ -209,7 +199,7 @@ def test_determine_workflow_type_force_sequential():
         requirement="Complex project",
         agents=agents,
         tasks=tasks,
-        force_type="sequential"
+        force_type="sequential",
     )
 
     assert workflow == WorkflowType.SEQUENTIAL
@@ -225,7 +215,7 @@ def test_determine_workflow_type_force_hierarchical():
         requirement="Simple project",
         agents=agents,
         tasks=tasks,
-        force_type="hierarchical"
+        force_type="hierarchical",
     )
 
     assert workflow == WorkflowType.HIERARCHICAL
@@ -237,7 +227,7 @@ def test_get_workflow_recommendation_simple():
         requirement="Build a chatbot",
         agents=[{"role": "bot_agent"}],
         tasks=[{"name": "respond_to_user"}],
-        domain="CHATBOT"
+        domain="CHATBOT",
     )
 
     assert recommendation["workflow_type"] == "sequential"
@@ -250,15 +240,14 @@ def test_get_workflow_recommendation_complex():
     """Test workflow recommendation with explanation for complex project"""
     agents = [{"role": f"agent_{i}"} for i in range(7)]
     tasks = [
-        {"id": f"task_{i}", "name": f"task_{i}", "dependencies": []}
-        for i in range(12)
+        {"id": f"task_{i}", "name": f"task_{i}", "dependencies": []} for i in range(12)
     ]
 
     recommendation = get_workflow_recommendation(
         requirement="Build enterprise workflow system",
         agents=agents,
         tasks=tasks,
-        domain="WORKFLOW"
+        domain="WORKFLOW",
     )
 
     assert recommendation["workflow_type"] == "hierarchical"
@@ -290,10 +279,7 @@ def test_bmad_integration_pattern():
 
     # 2. Get workflow recommendation
     recommendation = get_workflow_recommendation(
-        requirement=requirement,
-        agents=agent_specs,
-        tasks=task_specs,
-        domain=domain
+        requirement=requirement, agents=agent_specs, tasks=task_specs, domain=domain
     )
 
     # 3. Extract workflow type
@@ -310,7 +296,7 @@ def test_bmad_integration_pattern():
     analysis = {
         "workflow_type": workflow_type,
         "workflow_complexity_score": complexity_score,
-        "workflow_selection_reasons": reasons
+        "workflow_selection_reasons": reasons,
     }
 
     assert analysis["workflow_type"] in ["sequential", "hierarchical"]
@@ -325,7 +311,7 @@ def test_domain_preference_hierarchical():
             requirement=f"Build {domain.lower()} system",
             agents=[{"role": "agent1"}],
             tasks=[{"name": "task1"}],
-            domain=domain
+            domain=domain,
         )
         assert workflow == WorkflowType.HIERARCHICAL
 
@@ -337,7 +323,7 @@ def test_domain_preference_sequential():
             requirement=f"Build {domain.lower()} system",
             agents=[{"role": "agent1"}],
             tasks=[{"name": "task1"}],
-            domain=domain
+            domain=domain,
         )
         assert workflow == WorkflowType.SEQUENTIAL
 
@@ -365,6 +351,6 @@ if __name__ == "__main__":
     test_domain_preference_hierarchical()
     test_domain_preference_sequential()
 
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("✅ All Auto Process Selection tests passed!")
-    print("="*70)
+    print("=" * 70)

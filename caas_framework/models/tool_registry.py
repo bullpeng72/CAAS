@@ -24,7 +24,9 @@ class ToolMetadata(BaseModel):
     source: str = Field(..., description="도구 출처 (mcp/crewai/custom)")
     category: str = Field(default="general", description="도구 카테고리")
     enabled: bool = Field(default=True, description="활성화 여부")
-    parameters: Dict[str, Any] = Field(default_factory=dict, description="도구 파라미터")
+    parameters: Dict[str, Any] = Field(
+        default_factory=dict, description="도구 파라미터"
+    )
     requires_api_key: bool = Field(default=False, description="API 키 필요 여부")
     api_key_name: Optional[str] = Field(
         default=None, description="필요한 API 키 이름 (예: SERPER_API_KEY)"
@@ -32,7 +34,9 @@ class ToolMetadata(BaseModel):
     class_path: Optional[str] = Field(
         default=None, description="도구 클래스 경로 (예: SerperDevTool)"
     )
-    keywords: List[str] = Field(default_factory=list, description="도구 관련 키워드 (매칭용)")
+    keywords: List[str] = Field(
+        default_factory=list, description="도구 관련 키워드 (매칭용)"
+    )
     use_cases: List[str] = Field(default_factory=list, description="주요 사용 사례")
     created_at: str = Field(default_factory=lambda: datetime.now().isoformat())
     updated_at: str = Field(default_factory=lambda: datetime.now().isoformat())
@@ -44,17 +48,25 @@ class MCPServerConfig(BaseModel):
     name: str = Field(..., description="서버 이름")
     transport_type: str = Field(..., description="전송 타입 (stdio/sse/http)")
     server_url: Optional[str] = Field(default=None, description="서버 URL (sse/http)")
-    server_command: Optional[str] = Field(default=None, description="서버 명령어 (stdio)")
-    server_args: List[str] = Field(default_factory=list, description="서버 인자 (stdio)")
+    server_command: Optional[str] = Field(
+        default=None, description="서버 명령어 (stdio)"
+    )
+    server_args: List[str] = Field(
+        default_factory=list, description="서버 인자 (stdio)"
+    )
     connect_timeout: int = Field(default=30, description="연결 타임아웃 (초)")
     enabled: bool = Field(default=True, description="활성화 여부")
-    registered_tools: List[str] = Field(default_factory=list, description="등록된 도구 목록")
+    registered_tools: List[str] = Field(
+        default_factory=list, description="등록된 도구 목록"
+    )
 
 
 class ToolRegistry(BaseModel):
     """도구 저장소"""
 
-    tools: Dict[str, ToolMetadata] = Field(default_factory=dict, description="등록된 도구들")
+    tools: Dict[str, ToolMetadata] = Field(
+        default_factory=dict, description="등록된 도구들"
+    )
     mcp_servers: Dict[str, MCPServerConfig] = Field(
         default_factory=dict, description="MCP 서버 설정들"
     )
@@ -441,7 +453,12 @@ DEFAULT_CREWAI_TOOLS = {
             "html",
             "페이지",
         ],
-        use_cases=["웹페이지 데이터 수집", "HTML 파싱", "콘텐츠 추출", "자동 데이터 수집"],
+        use_cases=[
+            "웹페이지 데이터 수집",
+            "HTML 파싱",
+            "콘텐츠 추출",
+            "자동 데이터 수집",
+        ],
     ),
     "file_read": ToolMetadata(
         name="file_read",
@@ -461,7 +478,12 @@ DEFAULT_CREWAI_TOOLS = {
             "불러오기",
             "load",
         ],
-        use_cases=["텍스트 파일 읽기", "로그 파일 분석", "설정 파일 로드", "문서 내용 확인"],
+        use_cases=[
+            "텍스트 파일 읽기",
+            "로그 파일 분석",
+            "설정 파일 로드",
+            "문서 내용 확인",
+        ],
     ),
     "file_write": ToolMetadata(
         name="file_write",
@@ -528,8 +550,23 @@ DEFAULT_CREWAI_TOOLS = {
         source="crewai",
         category="document",
         class_path="PDFSearchTool",
-        keywords=["pdf", "문서", "document", "논문", "paper", "보고서", "report", "검색", "search"],
-        use_cases=["PDF 문서 내용 검색", "논문 분석", "보고서 검토", "문서 내 키워드 찾기"],
+        keywords=[
+            "pdf",
+            "문서",
+            "document",
+            "논문",
+            "paper",
+            "보고서",
+            "report",
+            "검색",
+            "search",
+        ],
+        use_cases=[
+            "PDF 문서 내용 검색",
+            "논문 분석",
+            "보고서 검토",
+            "문서 내 키워드 찾기",
+        ],
     ),
     "csv_search": ToolMetadata(
         name="csv_search",
@@ -537,7 +574,17 @@ DEFAULT_CREWAI_TOOLS = {
         source="crewai",
         category="data",
         class_path="CSVSearchTool",
-        keywords=["csv", "데이터", "data", "엑셀", "excel", "표", "table", "분석", "analyze"],
+        keywords=[
+            "csv",
+            "데이터",
+            "data",
+            "엑셀",
+            "excel",
+            "표",
+            "table",
+            "분석",
+            "analyze",
+        ],
         use_cases=["CSV 파일 데이터 검색", "표 형식 데이터 분석", "통계 데이터 조회"],
     ),
     "code_docs_search": ToolMetadata(
@@ -824,12 +871,16 @@ def get_tool_api_key_status() -> Dict[str, Dict[str, Any]]:
     for tool_name, tool in registry.tools.items():
         if tool.requires_api_key and tool.api_key_name:
             api_key_value = get_api_key(tool.api_key_name)
-            is_configured = bool(api_key_value and not api_key_value.startswith("your-"))
+            is_configured = bool(
+                api_key_value and not api_key_value.startswith("your-")
+            )
 
             status[tool_name] = {
                 "api_key_name": tool.api_key_name,
                 "is_configured": is_configured,
-                "value_preview": _mask_api_key(api_key_value) if api_key_value else None,
+                "value_preview": _mask_api_key(api_key_value)
+                if api_key_value
+                else None,
             }
 
     return status
@@ -859,7 +910,9 @@ def get_required_api_keys() -> List[Dict[str, Any]]:
     for tool_name, tool in registry.tools.items():
         if tool.requires_api_key and tool.api_key_name:
             api_key_value = get_api_key(tool.api_key_name)
-            is_configured = bool(api_key_value and not api_key_value.startswith("your-"))
+            is_configured = bool(
+                api_key_value and not api_key_value.startswith("your-")
+            )
 
             required_keys.append(
                 {
@@ -874,7 +927,9 @@ def get_required_api_keys() -> List[Dict[str, Any]]:
     return required_keys
 
 
-def recommend_tools_by_keywords(requirement_text: str, top_n: int = 5) -> List[Dict[str, Any]]:
+def recommend_tools_by_keywords(
+    requirement_text: str, top_n: int = 5
+) -> List[Dict[str, Any]]:
     """
     요구사항 텍스트를 분석하여 적합한 도구 추천
 
@@ -929,7 +984,9 @@ def recommend_tools_by_keywords(requirement_text: str, top_n: int = 5) -> List[D
     return tool_scores[:top_n]
 
 
-def get_tools_info_for_llm(include_keywords: bool = True, include_use_cases: bool = True) -> str:
+def get_tools_info_for_llm(
+    include_keywords: bool = True, include_use_cases: bool = True
+) -> str:
     """
     LLM에게 제공할 도구 정보를 포맷팅된 문자열로 반환
 

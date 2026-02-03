@@ -10,6 +10,8 @@ import tempfile
 from pathlib import Path
 from typing import Any, Dict, List
 
+from caas_framework.utils.logger import get_logger
+
 logger = get_logger(name="caas_framework.bmad.tester")
 
 
@@ -72,10 +74,14 @@ class TestGenerator:
         test_files = {}
 
         # 1. 에이전트 테스트 생성
-        test_files["tests/test_agents.py"] = self._generate_agent_tests(project_name, agent_specs)
+        test_files["tests/test_agents.py"] = self._generate_agent_tests(
+            project_name, agent_specs
+        )
 
         # 2. 태스크 테스트 생성
-        test_files["tests/test_tasks.py"] = self._generate_task_tests(project_name, task_specs)
+        test_files["tests/test_tasks.py"] = self._generate_task_tests(
+            project_name, task_specs
+        )
 
         # 3. 통합 테스트 생성
         test_files["tests/test_integration.py"] = self._generate_integration_tests(
@@ -385,7 +391,9 @@ def project_config():
 
                 result.success = process.returncode == 0
 
-                self.logger.info(f"테스트 완료: {result.passed_tests}/{result.total_tests} passed")
+                self.logger.info(
+                    f"테스트 완료: {result.passed_tests}/{result.total_tests} passed"
+                )
 
             except subprocess.TimeoutExpired:
                 self.logger.error(f"테스트 타임아웃 ({timeout}초)")
@@ -445,4 +453,6 @@ def project_config():
                     }
                 )
 
-        result.total_tests = result.passed_tests + result.failed_tests + result.skipped_tests
+        result.total_tests = (
+            result.passed_tests + result.failed_tests + result.skipped_tests
+        )

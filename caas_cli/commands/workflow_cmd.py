@@ -12,7 +12,6 @@ from caas_cli.utils import (
     echo_success,
     echo_warning,
     handle_keyboard_interrupt,
-    print_table,
 )
 
 
@@ -88,7 +87,9 @@ def resume(session_id):
 
 @workflow.command()
 @click.argument("session_id")
-@click.option("--verbose", "-v", is_flag=True, help="Show detailed progress information")
+@click.option(
+    "--verbose", "-v", is_flag=True, help="Show detailed progress information"
+)
 @handle_keyboard_interrupt
 def progress(session_id, verbose):
     """
@@ -122,7 +123,9 @@ def progress(session_id, verbose):
         click.echo(f"  Session:         {session_id}")
         click.echo(f"  Current Phase:   {progress_info.get('current_phase', 'N/A')}")
         click.echo(f"  Status:          {progress_info.get('status', 'N/A')}")
-        click.echo(f"  Progress:        {progress_info.get('progress_percent', 0):.1f}%")
+        click.echo(
+            f"  Progress:        {progress_info.get('progress_percent', 0):.1f}%"
+        )
 
         if "completed_phases" in progress_info:
             completed = progress_info["completed_phases"]
@@ -255,7 +258,9 @@ def list_workflows(status):
 
 @workflow.command()
 @click.argument("session_id")
-@click.option("--phase", type=click.IntRange(0, 5), required=True, help="Phase to retry (0-5)")
+@click.option(
+    "--phase", type=click.IntRange(0, 5), required=True, help="Phase to retry (0-5)"
+)
 @handle_keyboard_interrupt
 def retry(session_id, phase):
     """
@@ -272,7 +277,7 @@ def retry(session_id, phase):
     try:
         from caas_framework.workflow.orchestrator import WorkflowOrchestrator
 
-        echo_progress(f"Retrying Phase {phase} for session {session_id}...")
+        echo_info(f"Retrying Phase {phase} for session {session_id}...")
 
         orchestrator = WorkflowOrchestrator()
         result = orchestrator.retry_phase(session_id, phase)

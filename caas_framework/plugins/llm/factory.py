@@ -130,7 +130,8 @@ def create_multi_model_router(
         strategy = ModelSelectionStrategy(llm_config.model_selection_strategy)
     except ValueError:
         logger.warning(
-            f"Unknown strategy: {llm_config.model_selection_strategy}, " f"using PHASE_BASED"
+            f"Unknown strategy: {llm_config.model_selection_strategy}, "
+            f"using PHASE_BASED"
         )
         strategy = ModelSelectionStrategy.PHASE_BASED
 

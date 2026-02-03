@@ -47,7 +47,9 @@ class AgentPersonality(BaseModel):
 
     tone: PersonalityTone = PersonalityTone.PROFESSIONAL
     verbosity: VerbosityLevel = VerbosityLevel.MODERATE
-    creativity: float = Field(default=0.7, ge=0.0, le=1.0, description="LLM temperature (창의성)")
+    creativity: float = Field(
+        default=0.7, ge=0.0, le=1.0, description="LLM temperature (창의성)"
+    )
     risk_tolerance: RiskTolerance = RiskTolerance.BALANCED
     formality: float = Field(default=0.7, ge=0.0, le=1.0, description="격식 수준")
     empathy: float = Field(default=0.5, ge=0.0, le=1.0, description="공감 수준")
@@ -151,7 +153,9 @@ class PersonalityManager:
         """
         return self.presets.get(preset, AgentPersonality())
 
-    def customize_backstory(self, base_backstory: str, personality: AgentPersonality) -> str:
+    def customize_backstory(
+        self, base_backstory: str, personality: AgentPersonality
+    ) -> str:
         """
         성격에 맞게 백스토리 커스터마이즈
 
@@ -273,7 +277,9 @@ class PersonalityManager:
         return self.get_preset(preset)
 
     def blend_personalities(
-        self, personalities: list[AgentPersonality], weights: Optional[list[float]] = None
+        self,
+        personalities: list[AgentPersonality],
+        weights: Optional[list[float]] = None,
     ) -> AgentPersonality:
         """
         여러 성격을 혼합

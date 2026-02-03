@@ -25,11 +25,11 @@ class TestASTCodeGenerator:
         generator = ASTCodeGenerator()
 
         agent = {
-            'id': 'test_agent',
-            'role': 'Test Role',
-            'goal': 'Test Goal',
-            'backstory': 'Test Backstory',
-            'allow_delegation': False
+            "id": "test_agent",
+            "role": "Test Role",
+            "goal": "Test Goal",
+            "backstory": "Test Backstory",
+            "allow_delegation": False,
         }
 
         code = generator.generate_agent_code(agent)
@@ -38,68 +38,64 @@ class TestASTCodeGenerator:
         assert generator.validate_syntax(f"from crewai import Agent\n{code}")
 
         # Verify it contains expected elements
-        assert 'test_agent' in code
-        assert 'Test Role' in code
-        assert 'Test Goal' in code
-        assert 'allow_delegation=False' in code
+        assert "test_agent" in code
+        assert "Test Role" in code
+        assert "Test Goal" in code
+        assert "allow_delegation=False" in code
 
     def test_generate_agent_code_with_tools(self):
         """Test generating Agent code with tools"""
         generator = ASTCodeGenerator()
 
         agent = {
-            'id': 'researcher',
-            'role': 'Researcher',
-            'goal': 'Research topics',
-            'backstory': 'Expert researcher',
-            'allow_delegation': True
+            "id": "researcher",
+            "role": "Researcher",
+            "goal": "Research topics",
+            "backstory": "Expert researcher",
+            "allow_delegation": True,
         }
 
-        tools = ['search_tool', 'scraper_tool']
+        tools = ["search_tool", "scraper_tool"]
         code = generator.generate_agent_code(agent, tools=tools)
 
         # Verify tools are included
-        assert 'tools=' in code
-        assert 'search_tool' in code
-        assert 'scraper_tool' in code
+        assert "tools=" in code
+        assert "search_tool" in code
+        assert "scraper_tool" in code
 
     def test_generate_task_code(self):
         """Test generating Task creation code"""
         generator = ASTCodeGenerator()
 
         task = {
-            'id': 'test_task',
-            'description': 'Test description',
-            'expected_output': 'Test output',
-            'agent': 'test_agent',
-            'human_input': False
+            "id": "test_task",
+            "description": "Test description",
+            "expected_output": "Test output",
+            "agent": "test_agent",
+            "human_input": False,
         }
 
         code = generator.generate_task_code(task)
 
         # Verify it contains expected elements (ast.unparse uses single quotes)
-        assert 'Task(' in code
-        assert 'Test description' in code
-        assert 'Test output' in code
+        assert "Task(" in code
+        assert "Test description" in code
+        assert "Test output" in code
         assert "agents['test_agent']" in code or 'agents["test_agent"]' in code
-        assert 'human_input=False' in code
+        assert "human_input=False" in code
 
     def test_generate_imports(self):
         """Test generating import statements"""
         generator = ASTCodeGenerator()
 
-        modules = [
-            'os',
-            {'crewai': ['Agent', 'Task', 'Crew']},
-            {'pathlib': ['Path']}
-        ]
+        modules = ["os", {"crewai": ["Agent", "Task", "Crew"]}, {"pathlib": ["Path"]}]
 
         imports = generator.generate_imports(modules)
 
         assert len(imports) == 3
-        assert 'import os' in imports
-        assert 'from crewai import Agent, Task, Crew' in imports
-        assert 'from pathlib import Path' in imports
+        assert "import os" in imports
+        assert "from crewai import Agent, Task, Crew" in imports
+        assert "from pathlib import Path" in imports
 
     def test_generate_create_agents_function(self):
         """Test generating create_agents() function"""
@@ -107,19 +103,19 @@ class TestASTCodeGenerator:
 
         agents = [
             {
-                'id': 'agent1',
-                'role': 'Role 1',
-                'goal': 'Goal 1',
-                'backstory': 'Story 1',
-                'allow_delegation': False
+                "id": "agent1",
+                "role": "Role 1",
+                "goal": "Goal 1",
+                "backstory": "Story 1",
+                "allow_delegation": False,
             },
             {
-                'id': 'agent2',
-                'role': 'Role 2',
-                'goal': 'Goal 2',
-                'backstory': 'Story 2',
-                'allow_delegation': True
-            }
+                "id": "agent2",
+                "role": "Role 2",
+                "goal": "Goal 2",
+                "backstory": "Story 2",
+                "allow_delegation": True,
+            },
         ]
 
         code = generator.generate_create_agents_function(agents)
@@ -129,11 +125,11 @@ class TestASTCodeGenerator:
         assert generator.validate_syntax(full_code)
 
         # Verify function structure (ast.unparse uses single quotes)
-        assert 'def create_agents():' in code
-        assert 'agents = {}' in code
-        assert ("agents['agent1']" in code or 'agents["agent1"]' in code)
-        assert ("agents['agent2']" in code or 'agents["agent2"]' in code)
-        assert 'return agents' in code
+        assert "def create_agents():" in code
+        assert "agents = {}" in code
+        assert "agents['agent1']" in code or 'agents["agent1"]' in code
+        assert "agents['agent2']" in code or 'agents["agent2"]' in code
+        assert "return agents" in code
 
     def test_generate_create_tasks_function(self):
         """Test generating create_tasks() function"""
@@ -141,19 +137,19 @@ class TestASTCodeGenerator:
 
         tasks = [
             {
-                'id': 'task1',
-                'description': 'Task 1 description',
-                'expected_output': 'Output 1',
-                'agent': 'agent1',
-                'human_input': False
+                "id": "task1",
+                "description": "Task 1 description",
+                "expected_output": "Output 1",
+                "agent": "agent1",
+                "human_input": False,
             },
             {
-                'id': 'task2',
-                'description': 'Task 2 description',
-                'expected_output': 'Output 2',
-                'agent': 'agent2',
-                'human_input': True
-            }
+                "id": "task2",
+                "description": "Task 2 description",
+                "expected_output": "Output 2",
+                "agent": "agent2",
+                "human_input": True,
+            },
         ]
 
         code = generator.generate_create_tasks_function(tasks)
@@ -163,38 +159,42 @@ class TestASTCodeGenerator:
         assert generator.validate_syntax(full_code)
 
         # Verify function structure
-        assert 'def create_tasks(agents):' in code
-        assert 'tasks = []' in code
-        assert 'tasks.append' in code
-        assert 'Task(' in code
-        assert 'human_input=True' in code
-        assert 'return tasks' in code
+        assert "def create_tasks(agents):" in code
+        assert "tasks = []" in code
+        assert "tasks.append" in code
+        assert "Task(" in code
+        assert "human_input=True" in code
+        assert "return tasks" in code
 
     def test_generate_main_function(self):
         """Test generating main() function"""
         generator = ASTCodeGenerator()
 
-        code = generator.generate_main_function(process='sequential', has_user_inputs=False)
+        code = generator.generate_main_function(
+            process="sequential", has_user_inputs=False
+        )
 
         # Verify function structure
-        assert 'def main():' in code
-        assert 'agents = create_agents()' in code
-        assert 'tasks = create_tasks(agents)' in code
-        assert 'crew = Crew(' in code
-        assert 'Process.sequential' in code
-        assert 'result = crew.kickoff()' in code
-        assert 'return result' in code
+        assert "def main():" in code
+        assert "agents = create_agents()" in code
+        assert "tasks = create_tasks(agents)" in code
+        assert "crew = Crew(" in code
+        assert "Process.sequential" in code
+        assert "result = crew.kickoff()" in code
+        assert "return result" in code
 
     def test_generate_main_function_with_inputs(self):
         """Test generating main() function with user inputs"""
         generator = ASTCodeGenerator()
 
-        code = generator.generate_main_function(process='hierarchical', has_user_inputs=True)
+        code = generator.generate_main_function(
+            process="hierarchical", has_user_inputs=True
+        )
 
         # Verify user inputs handling
-        assert 'def main():' in code
-        assert 'crew.kickoff(inputs=user_inputs)' in code
-        assert 'Process.hierarchical' in code
+        assert "def main():" in code
+        assert "crew.kickoff(inputs=user_inputs)" in code
+        assert "Process.hierarchical" in code
 
     def test_generate_full_module(self):
         """Test generating a complete Python module"""
@@ -202,48 +202,45 @@ class TestASTCodeGenerator:
 
         agents = [
             {
-                'id': 'researcher',
-                'role': 'Researcher',
-                'goal': 'Research topics',
-                'backstory': 'Expert researcher',
-                'allow_delegation': False
+                "id": "researcher",
+                "role": "Researcher",
+                "goal": "Research topics",
+                "backstory": "Expert researcher",
+                "allow_delegation": False,
             }
         ]
 
         tasks = [
             {
-                'id': 'research_task',
-                'description': 'Research the topic',
-                'expected_output': 'Research report',
-                'agent': 'researcher',
-                'human_input': False
+                "id": "research_task",
+                "description": "Research the topic",
+                "expected_output": "Research report",
+                "agent": "researcher",
+                "human_input": False,
             }
         ]
 
         code = generator.generate_full_module(
-            agents=agents,
-            tasks=tasks,
-            process='sequential',
-            docstring='Test module'
+            agents=agents, tasks=tasks, process="sequential", docstring="Test module"
         )
 
         # Verify it's valid Python
         assert generator.validate_syntax(code)
 
         # Verify imports
-        assert 'from crewai import' in code
+        assert "from crewai import" in code
 
         # Verify functions
-        assert 'def create_agents():' in code
-        assert 'def create_tasks(agents):' in code
-        assert 'def main():' in code
+        assert "def create_agents():" in code
+        assert "def create_tasks(agents):" in code
+        assert "def main():" in code
 
         # Verify main guard
         assert 'if __name__ == "__main__":' in code
 
         # Verify it can be compiled
         try:
-            compile(code, '<string>', 'exec')
+            compile(code, "<string>", "exec")
         except SyntaxError as e:
             pytest.fail(f"Generated code has syntax error: {e}")
 
@@ -269,7 +266,7 @@ class TestASTCodeGenerator:
         formatted = generator.format_with_black(unformatted)
 
         # Black should add spaces around operators
-        assert 'x = 1' in formatted or 'x=1' in formatted  # May vary by black version
+        assert "x = 1" in formatted or "x=1" in formatted  # May vary by black version
 
     def test_format_without_black(self):
         """Test formatting when black is not available"""
@@ -296,7 +293,7 @@ class TestCodeGeneratorAgentAST:
                 goal="Goal 1",
                 backstory="Story 1",
                 tools=[],
-                allow_delegation=False
+                allow_delegation=False,
             )
         ]
 
@@ -306,7 +303,7 @@ class TestCodeGeneratorAgentAST:
                 description="Task 1",
                 expected_output="Output 1",
                 agent="agent1",
-                human_input=False
+                human_input=False,
             )
         ]
 
@@ -335,7 +332,7 @@ class TestCodeGeneratorAgentAST:
                 goal="Research",
                 backstory="Expert",
                 tools=[],
-                allow_delegation=False
+                allow_delegation=False,
             )
         ]
 
@@ -345,7 +342,7 @@ class TestCodeGeneratorAgentAST:
                 description="Research task",
                 expected_output="Report",
                 agent="researcher",
-                human_input=False
+                human_input=False,
             )
         ]
 
@@ -360,7 +357,7 @@ class TestCodeGeneratorAgentAST:
 
             # Verify syntax
             try:
-                compile(code, filename, 'exec')
+                compile(code, filename, "exec")
             except SyntaxError as e:
                 pytest.fail(f"{filename} has syntax error: {e}")
 
@@ -368,22 +365,26 @@ class TestCodeGeneratorAgentAST:
         """Test that generated code contains CrewAI imports"""
         code_gen = CodeGeneratorAgent(llm_plugin=None)
 
-        agents = [AgentSpecModel(
-            id="agent1",
-            role="Role",
-            goal="Goal",
-            backstory="Story",
-            tools=[],
-            allow_delegation=False
-        )]
+        agents = [
+            AgentSpecModel(
+                id="agent1",
+                role="Role",
+                goal="Goal",
+                backstory="Story",
+                tools=[],
+                allow_delegation=False,
+            )
+        ]
 
-        tasks = [TaskSpecModel(
-            id="task1",
-            description="Task",
-            expected_output="Output",
-            agent="agent1",
-            human_input=False
-        )]
+        tasks = [
+            TaskSpecModel(
+                id="task1",
+                description="Task",
+                expected_output="Output",
+                agent="agent1",
+                human_input=False,
+            )
+        ]
 
         result = code_gen._create_fallback_code(agents, tasks)
         files = result["files"]
@@ -404,7 +405,7 @@ class TestCodeGeneratorAgentAST:
                 goal=f"Goal {i}",
                 backstory=f"Story {i}",
                 tools=[],
-                allow_delegation=(i % 2 == 0)
+                allow_delegation=(i % 2 == 0),
             )
             for i in range(1, 6)
         ]
@@ -415,7 +416,7 @@ class TestCodeGeneratorAgentAST:
                 description=f"Task {i}",
                 expected_output=f"Output {i}",
                 agent=f"agent{i}",
-                human_input=False
+                human_input=False,
             )
             for i in range(1, 6)
         ]
@@ -431,12 +432,12 @@ class TestCodeGeneratorAgentAST:
         # Verify all tasks are in tasks.py
         tasks_py = files["tasks.py"]
         for i in range(1, 6):
-            assert f'Task {i}' in tasks_py
+            assert f"Task {i}" in tasks_py
 
         # Verify syntax
         for filename in ["main.py", "agents.py", "tasks.py"]:
             try:
-                compile(files[filename], filename, 'exec')
+                compile(files[filename], filename, "exec")
             except SyntaxError as e:
                 pytest.fail(f"{filename} has syntax error: {e}")
 

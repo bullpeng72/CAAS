@@ -105,7 +105,9 @@ class CodeGenerationEngine:
         self.test_generator = TestGenerator() if enable_tests else None
         self.deployment_generator = DeploymentGenerator() if enable_deployment else None
         self.llm_generator = (
-            LLMCodeGenerator(llm_plugin) if (enable_llm_generation and llm_plugin) else None
+            LLMCodeGenerator(llm_plugin)
+            if (enable_llm_generation and llm_plugin)
+            else None
         )
 
         # Initialize TDD generator if TDD mode is enabled
@@ -118,7 +120,9 @@ class CodeGenerationEngine:
 
         # Initialize port manager and frontend generator
         self.port_manager = PortManager() if enable_frontend else None
-        self.frontend_generator = FrontendGenerator(self.port_manager) if enable_frontend else None
+        self.frontend_generator = (
+            FrontendGenerator(self.port_manager) if enable_frontend else None
+        )
 
     async def generate(
         self,
@@ -141,7 +145,9 @@ class CodeGenerationEngine:
         Returns:
             CodeGenerationResult: Generation result
         """
-        result = CodeGenerationResult(project_name=golden_data.project_name or "my_crew_project")
+        result = CodeGenerationResult(
+            project_name=golden_data.project_name or "my_crew_project"
+        )
 
         try:
             # 1. Determine domain strategy
@@ -156,7 +162,10 @@ class CodeGenerationEngine:
             # Check if tools.py was generated using fallback
             if "src/tools.py" in core_files:
                 tools_content = core_files["src/tools.py"]
-                if "fallback" in tools_content.lower() or "stub" in tools_content.lower():
+                if (
+                    "fallback" in tools_content.lower()
+                    or "stub" in tools_content.lower()
+                ):
                     result.warnings.append(
                         "⚠️  tools.py was generated using fallback mechanism. "
                         "LLM generation may have failed. Review and implement actual tool logic."
@@ -165,12 +174,13 @@ class CodeGenerationEngine:
             # 2.5. Run TDD cycle if TDD mode is enabled
             if tdd_mode or self.tdd_mode:
                 if self.tdd_generator and golden_data.features:
-
                     logger = get_logger()
                     logger.info("🔴 Starting TDD (Test-First) Code Generation...")
 
                     # Run TDD cycle for each feature
-                    for feature in golden_data.features[:3]:  # Limit to first 3 features for now
+                    for feature in golden_data.features[
+                        :3
+                    ]:  # Limit to first 3 features for now
                         feature_spec = {
                             "name": feature.name.replace(" ", "_").lower(),
                             "description": feature.description,
@@ -187,30 +197,41 @@ class CodeGenerationEngine:
 
                         # Execute TDD cycle (RED-GREEN-REFACTOR)
                         tdd_result = self.tdd_generator.tdd_cycle(
-                            feature_spec=feature_spec, output_dir=f"./tdd_{result.project_name}"
+                            feature_spec=feature_spec,
+                            output_dir=f"./tdd_{result.project_name}",
                         )
 
                         # Integrate TDD-generated files into result
                         if tdd_result.get("all_tests_passed"):
-                            logger.info(f"  ✅ TDD cycle completed successfully for {feature.name}")
+                            logger.info(
+                                f"  ✅ TDD cycle completed successfully for {feature.name}"
+                            )
                             logger.info(
                                 f"     Coverage: {tdd_result.get('final_coverage', 0) * 100:.1f}%"
                             )
-                            logger.info(f"     Iterations: {tdd_result.get('iterations', 0)}")
+                            logger.info(
+                                f"     Iterations: {tdd_result.get('iterations', 0)}"
+                            )
 
                             # Add TDD test file to result
                             test_file_path = tdd_result.get("test_file", "")
                             if test_file_path:
                                 with open(test_file_path, "r") as f:
-                                    result.files[f"tests/tdd_{feature_spec['name']}.py"] = f.read()
+                                    result.files[
+                                        f"tests/tdd_{feature_spec['name']}.py"
+                                    ] = f.read()
 
                             # Add TDD implementation file to result
                             impl_file_path = tdd_result.get("implementation_file", "")
                             if impl_file_path:
                                 with open(impl_file_path, "r") as f:
-                                    result.files[f"src/tdd_{feature_spec['name']}.py"] = f.read()
+                                    result.files[
+                                        f"src/tdd_{feature_spec['name']}.py"
+                                    ] = f.read()
                         else:
-                            logger.warning(f"  ⚠️  TDD cycle incomplete for {feature.name}")
+                            logger.warning(
+                                f"  ⚠️  TDD cycle incomplete for {feature.name}"
+                            )
                             result.warnings.append(
                                 f"TDD cycle for {feature.name} did not complete successfully. "
                                 f"Failed tests: {tdd_result.get('test_results', {}).get('failed', 0)}"
@@ -239,7 +260,10 @@ class CodeGenerationEngine:
                     api_endpoints=(
                         []
                         if not strategy_config.requires_crud
-                        else [{"path": "/", "method": "GET"}, {"path": "/health", "method": "GET"}]
+                        else [
+                            {"path": "/", "method": "GET"},
+                            {"path": "/health", "method": "GET"},
+                        ]
                     ),
                 )
                 result.files.update(test_files)
@@ -261,7 +285,9 @@ class CodeGenerationEngine:
                     has_ui=True,
                     ui_port=frontend_port if frontend_port else 8600,
                 )
-                deployment_files = self.deployment_generator.generate_all(deployment_config)
+                deployment_files = self.deployment_generator.generate_all(
+                    deployment_config
+                )
                 result.files.update(deployment_files)
 
             # 8. Generate frontend
@@ -275,17 +301,22 @@ class CodeGenerationEngine:
                 frontend_files = self.frontend_generator.generate(frontend_config)
                 # Prefix all frontend files with "frontend/" directory
                 prefixed_frontend_files = {
-                    f"frontend/{path}": content for path, content in frontend_files.items()
+                    f"frontend/{path}": content
+                    for path, content in frontend_files.items()
                 }
                 result.files.update(prefixed_frontend_files)
 
             # 9. Generate additional files
-            additional_files = self._generate_additional_files(golden_data, strategy_config)
+            additional_files = self._generate_additional_files(
+                golden_data, strategy_config
+            )
             result.files.update(additional_files)
 
             # Convert to GeneratedFile objects
             result.generated_files = [
-                GeneratedFile(path=path, content=content, file_type=self._get_file_type(path))
+                GeneratedFile(
+                    path=path, content=content, file_type=self._get_file_type(path)
+                )
                 for path, content in result.files.items()
             ]
 
@@ -310,7 +341,9 @@ class CodeGenerationEngine:
         # 1. Generate custom tools (if LLM generator is available)
         generated_tool_classes = []
         if self.llm_generator and agents:
-            tools_code = await self.llm_generator.generate_custom_tools(agents, golden_data)
+            tools_code = await self.llm_generator.generate_custom_tools(
+                agents, golden_data
+            )
             if tools_code:
                 files["src/tools.py"] = tools_code
                 # Extract tool class names from generated code
@@ -328,11 +361,15 @@ class CodeGenerationEngine:
         # 2. Generate CRUD API (for CRUD_BASED and HYBRID strategies)
         if strategy in [CodeGenStrategy.CRUD_BASED, CodeGenStrategy.HYBRID]:
             if self.llm_generator:
-                crud_files = await self.llm_generator.generate_crud_api(golden_data, agents, tasks)
+                crud_files = await self.llm_generator.generate_crud_api(
+                    golden_data, agents, tasks
+                )
                 files.update(crud_files)
 
         # 3. agents.py (pass generated tool classes for proper mapping)
-        files["src/agents.py"] = self._generate_agents_file(agents, generated_tool_classes)
+        files["src/agents.py"] = self._generate_agents_file(
+            agents, generated_tool_classes
+        )
 
         # 4. tasks.py
         files["src/tasks.py"] = self._generate_tasks_file(tasks)
@@ -343,7 +380,9 @@ class CodeGenerationEngine:
         )
 
         # 6. main.py
-        files["main.py"] = self._generate_main_file(golden_data.project_name or "my_crew", strategy)
+        files["main.py"] = self._generate_main_file(
+            golden_data.project_name or "my_crew", strategy
+        )
 
         # 7. requirements.txt (pass generated files for dependency detection)
         files["requirements.txt"] = self._generate_requirements(strategy, files)
@@ -376,7 +415,9 @@ class CodeGenerationEngine:
         return matches
 
     def _generate_agents_file(
-        self, agents: List[AgentSpecModel], generated_tool_classes: Optional[List[str]] = None
+        self,
+        agents: List[AgentSpecModel],
+        generated_tool_classes: Optional[List[str]] = None,
     ) -> str:
         """
         Generate agents.py with tool imports.
@@ -631,7 +672,9 @@ if __name__ == "__main__":
         return code
 
     def _generate_requirements(
-        self, strategy: CodeGenStrategy, generated_files: Optional[Dict[str, str]] = None
+        self,
+        strategy: CodeGenStrategy,
+        generated_files: Optional[Dict[str, str]] = None,
     ) -> str:
         """
         Generate requirements.txt with auto-detected dependencies.
@@ -649,7 +692,12 @@ if __name__ == "__main__":
         # Strategy-specific requirements
         if strategy in [CodeGenStrategy.CRUD_BASED, CodeGenStrategy.HYBRID]:
             requirements.extend(
-                ["fastapi>=0.104.0", "uvicorn>=0.24.0", "sqlalchemy>=2.0.0", "alembic>=1.12.0"]
+                [
+                    "fastapi>=0.104.0",
+                    "uvicorn>=0.24.0",
+                    "sqlalchemy>=2.0.0",
+                    "alembic>=1.12.0",
+                ]
             )
 
         # Auto-detect dependencies from generated files
@@ -701,7 +749,9 @@ if __name__ == "__main__":
         detected_packages = set()
 
         # Only analyze Python files
-        python_files = {path: content for path, content in files.items() if path.endswith(".py")}
+        python_files = {
+            path: content for path, content in files.items() if path.endswith(".py")
+        }
 
         for file_path, content in python_files.items():
             # Find all import statements
@@ -835,9 +885,7 @@ MIT
         files = {}
 
         # .gitignore
-        files[
-            ".gitignore"
-        ] = """
+        files[".gitignore"] = """
 # Python
 __pycache__/
 *.py[cod]
@@ -869,9 +917,7 @@ htmlcov/
 """
 
         # pyproject.toml
-        files[
-            "pyproject.toml"
-        ] = """
+        files["pyproject.toml"] = """
 [tool.black]
 line-length = 100
 target-version = ['py311']

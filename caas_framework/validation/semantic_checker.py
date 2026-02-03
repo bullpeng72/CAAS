@@ -104,7 +104,11 @@ class SemanticConsistencyChecker:
             "reason": "Monolithic architecture doesn't support independent deployment of components",
             "severity": "warning",
             "keywords_a": ["monolithic", "monolith"],
-            "keywords_b": ["independent deploy", "separate deploy", "deploy independently"],
+            "keywords_b": [
+                "independent deploy",
+                "separate deploy",
+                "deploy independently",
+            ],
         },
         {
             "concept_a": "client_side_only",
@@ -149,7 +153,9 @@ class SemanticConsistencyChecker:
         """
         self.llm_provider = llm_provider
 
-    def check_consistency(self, concretized: ConcretizedRequirement) -> List[Contradiction]:
+    def check_consistency(
+        self, concretized: ConcretizedRequirement
+    ) -> List[Contradiction]:
         """
         Check semantic consistency of concretized requirements.
 
@@ -229,10 +235,14 @@ class SemanticConsistencyChecker:
 
         for rule in self.CONTRADICTION_RULES:
             # Check if concept A is present
-            concept_a_present = any(keyword in req_text for keyword in rule["keywords_a"])
+            concept_a_present = any(
+                keyword in req_text for keyword in rule["keywords_a"]
+            )
 
             # Check if concept B is present
-            concept_b_present = any(keyword in req_text for keyword in rule["keywords_b"])
+            concept_b_present = any(
+                keyword in req_text for keyword in rule["keywords_b"]
+            )
 
             # If both present, we have a contradiction
             if concept_a_present and concept_b_present:
@@ -316,7 +326,9 @@ If no contradictions found, return empty array.
 
         try:
             # Call LLM (implementation depends on LLM provider interface)
-            response = self.llm_provider.generate_structured(prompt, schema=ContradictionReport)
+            response = self.llm_provider.generate_structured(
+                prompt, schema=ContradictionReport
+            )
 
             # Convert to Contradiction objects
             contradictions = []
@@ -337,7 +349,9 @@ If no contradictions found, return empty array.
             # If LLM check fails, just return empty list
             return []
 
-    def generate_report(self, contradictions: List[Contradiction]) -> ContradictionReport:
+    def generate_report(
+        self, contradictions: List[Contradiction]
+    ) -> ContradictionReport:
         """
         Generate a formatted report of contradictions.
 
@@ -387,7 +401,9 @@ If no contradictions found, return empty array.
         print(f"\nFound {len(contradictions)} contradiction(s):\n")
 
         for i, c in enumerate(contradictions, 1):
-            severity_icon = {"warning": "⚠️ ", "error": "❌", "critical": "🔴"}.get(c.severity, "•")
+            severity_icon = {"warning": "⚠️ ", "error": "❌", "critical": "🔴"}.get(
+                c.severity, "•"
+            )
 
             print(f"{i}. {severity_icon} {c.severity.upper()}")
             print(f"   Conflict: '{c.concept_a}' ↔ '{c.concept_b}'")
@@ -408,7 +424,9 @@ If no contradictions found, return empty array.
 
 
 def validate_semantic_consistency(
-    concretized: ConcretizedRequirement, llm_provider: Optional[Any] = None, verbose: bool = False
+    concretized: ConcretizedRequirement,
+    llm_provider: Optional[Any] = None,
+    verbose: bool = False,
 ) -> tuple[bool, List[Contradiction]]:
     """
     Convenience function to validate semantic consistency.

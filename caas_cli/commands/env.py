@@ -13,14 +13,24 @@ from caas_cli.utils import echo_error, echo_info, echo_success, echo_warning
 
 @click.command()
 @click.option(
-    "--create", "-c", is_flag=True, help="Create .env file from template in current directory"
+    "--create",
+    "-c",
+    is_flag=True,
+    help="Create .env file from template in current directory",
 )
 @click.option(
-    "--show", "-s", is_flag=True, help="Show required environment variables and their descriptions"
+    "--show",
+    "-s",
+    is_flag=True,
+    help="Show required environment variables and their descriptions",
 )
 @click.option("--validate", "-v", is_flag=True, help="Validate existing .env file")
 @click.option(
-    "--path", "-p", type=click.Path(), default=".env", help="Path to .env file (default: .env)"
+    "--path",
+    "-p",
+    type=click.Path(),
+    default=".env",
+    help="Path to .env file (default: .env)",
 )
 def env(create, show, validate, path):
     """
@@ -325,7 +335,11 @@ def _validate_env_file(env_path: Path):
 
         if "OPENAI_API_KEY" in env_vars:
             key_value = env_vars["OPENAI_API_KEY"]
-            if key_value and key_value != "sk-proj-your-key-here" and key_value.startswith("sk-"):
+            if (
+                key_value
+                and key_value != "sk-proj-your-key-here"
+                and key_value.startswith("sk-")
+            ):
                 echo_success("✓ OPENAI_API_KEY is set")
             else:
                 echo_error("✗ OPENAI_API_KEY is not set or using placeholder")

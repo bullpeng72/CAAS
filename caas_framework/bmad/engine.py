@@ -164,7 +164,9 @@ class BMADEngine:
             )
 
             self.distributed_executor = DistributedPhaseExecutor(
-                strategy=ExecutionStrategy.AUTO, max_workers=max_workers, enable_monitoring=True
+                strategy=ExecutionStrategy.AUTO,
+                max_workers=max_workers,
+                enable_monitoring=True,
             )
             self.reporter.info(
                 f"🚀 Distributed execution enabled with {max_workers or 'auto'} workers"
@@ -190,7 +192,9 @@ class BMADEngine:
                 # Create ArtifactGenerationConfig from artifact_config
                 gen_config = ArtifactGenerationConfig(
                     enabled=True,
-                    output_directory=getattr(artifact_config, "output_dir", "./artifacts"),
+                    output_directory=getattr(
+                        artifact_config, "output_dir", "./artifacts"
+                    ),
                     output_format=getattr(artifact_config, "output_format", "markdown"),
                     generate_project_proposal=True,
                     generate_requirements_spec=True,
@@ -275,7 +279,9 @@ class BMADEngine:
         result.traceability_matrix = traceability
 
         # Start workflow reporting
-        self.reporter.start_workflow(workflow_name="BMAD AI-Driven Development", total_phases=6)
+        self.reporter.start_workflow(
+            workflow_name="BMAD AI-Driven Development", total_phases=6
+        )
 
         # Publish workflow started event
         self.event_bus.publish(
@@ -303,7 +309,9 @@ class BMADEngine:
                 result.golden_data = golden_data
                 self.reporter.info("Using pre-existing Golden Data")
             else:
-                result.golden_data = await self._phase_0_concretization(requirement, domain)
+                result.golden_data = await self._phase_0_concretization(
+                    requirement, domain
+                )
 
             self.reporter.complete_phase(
                 phase_name="Phase 0: Concretization",
@@ -313,7 +321,9 @@ class BMADEngine:
             result.phases_completed.append(BMADPhase.CONCRETIZATION)
 
             # Generate artifacts for Phase 0
-            await self._generate_artifact("PROJECT_PROPOSAL", result, "Phase 0", requirement)
+            await self._generate_artifact(
+                "PROJECT_PROPOSAL", result, "Phase 0", requirement
+            )
 
             # Register features in traceability matrix (Phase 2 enhancement)
             if traceability and result.golden_data:
@@ -356,7 +366,9 @@ class BMADEngine:
                         # Register tasks in traceability (Phase 2 enhancement)
                         if traceability and result.golden_data:
                             self._register_tasks_in_traceability(
-                                traceability, result.task_specs, result.golden_data.features
+                                traceability,
+                                result.task_specs,
+                                result.golden_data.features,
                             )
                             self.reporter.info(
                                 f"📊 Registered {len(result.task_specs)} tasks in traceability matrix"
@@ -382,10 +394,14 @@ class BMADEngine:
                                 "_quality_evaluation"
                             )
                             if result.quality_evaluation:
-                                score = result.quality_evaluation.get("overall_score", 0)
+                                score = result.quality_evaluation.get(
+                                    "overall_score", 0
+                                )
                                 passed = result.quality_evaluation.get("passed", False)
                                 if passed:
-                                    self.reporter.info(f"✅ Code quality score: {score:.1f}/10")
+                                    self.reporter.info(
+                                        f"✅ Code quality score: {score:.1f}/10"
+                                    )
                                 else:
                                     self.reporter.warning(
                                         f"⚠️  Code quality score: {score:.1f}/10 (below threshold)"
@@ -461,9 +477,13 @@ class BMADEngine:
 
                 # Initialize validator and fixer
                 if self.enable_validation:
-                    self.validator = ValidationOrchestrator(golden_data=result.golden_data)
+                    self.validator = ValidationOrchestrator(
+                        golden_data=result.golden_data
+                    )
                 if self.enable_auto_fix:
-                    self.fixer = AutoFixer(golden_data=result.golden_data, llm_plugin=self.llm)
+                    self.fixer = AutoFixer(
+                        golden_data=result.golden_data, llm_plugin=self.llm
+                    )
 
                 # Phase 1: Discovery
                 phase_start = datetime.now()
@@ -519,7 +539,9 @@ class BMADEngine:
 
                 # Validate and fix if enabled (legacy mode only)
                 if self.enable_validation and self.validator:
-                    self.reporter.validation_start("Design Validation", len(agents) + len(tasks))
+                    self.reporter.validation_start(
+                        "Design Validation", len(agents) + len(tasks)
+                    )
                     validation_result = self.validator.validate_design(
                         agents=agents,
                         tasks=tasks,
@@ -550,7 +572,11 @@ class BMADEngine:
                     )
 
                     # Auto-fix if needed
-                    if self.enable_auto_fix and self.fixer and validation_result.golden_result:
+                    if (
+                        self.enable_auto_fix
+                        and self.fixer
+                        and validation_result.golden_result
+                    ):
                         if validation_result.golden_result.needs_fixing:
                             self.reporter.info("Running auto-fix for design issues")
                             fix_result = self.fixer.fix_design(
@@ -561,10 +587,12 @@ class BMADEngine:
                             )
                             if fix_result.success:
                                 agents = [
-                                    AgentSpecModel(**a) for a in fix_result.fixed_output["agents"]
+                                    AgentSpecModel(**a)
+                                    for a in fix_result.fixed_output["agents"]
                                 ]
                                 tasks = [
-                                    TaskSpecModel(**t) for t in fix_result.fixed_output["tasks"]
+                                    TaskSpecModel(**t)
+                                    for t in fix_result.fixed_output["tasks"]
                                 ]
                                 self.reporter.info("Auto-fix completed successfully")
 
@@ -596,7 +624,9 @@ class BMADEngine:
                         requirement=requirement,
                         agents=agent_dicts,
                         tasks=task_dicts,
-                        domain=result.golden_data.domain if result.golden_data else domain,
+                        domain=result.golden_data.domain
+                        if result.golden_data
+                        else domain,
                     )
 
                     final_workflow_type = recommendation["workflow_type"]
@@ -687,8 +717,14 @@ class BMADEngine:
                 await self._run_security_scan(result)
 
             # Phase 3 Enhancement: Completeness Validation (for legacy path)
-            if enable_completeness_validation and result.generated_code and result.golden_data:
-                await self._run_completeness_validation(result, traceability, enable_gap_filling)
+            if (
+                enable_completeness_validation
+                and result.generated_code
+                and result.golden_data
+            ):
+                await self._run_completeness_validation(
+                    result, traceability, enable_gap_filling
+                )
 
             # Optional: Bootstrap Project
             if bootstrap_project and result.generated_code:
@@ -723,17 +759,23 @@ class BMADEngine:
                     # Warn about unimplemented features
                     if coverage["gaps"]["unimplemented_features"]:
                         unimpl_count = len(coverage["gaps"]["unimplemented_features"])
-                        self.reporter.warning(f"⚠️  {unimpl_count} features remain unimplemented")
+                        self.reporter.warning(
+                            f"⚠️  {unimpl_count} features remain unimplemented"
+                        )
 
                 except Exception as e:
-                    self.reporter.warning(f"Failed to generate traceability report: {e}")
+                    self.reporter.warning(
+                        f"Failed to generate traceability report: {e}"
+                    )
 
             # Complete workflow with summary
             summary = {
                 "total_duration": result.total_duration,
                 "phases_completed": len(result.phases_completed),
                 "validation_reports": len(result.validation_reports),
-                "files_generated": len(result.generated_code) if result.generated_code else 0,
+                "files_generated": len(result.generated_code)
+                if result.generated_code
+                else 0,
                 "errors": len(result.errors),
             }
 
@@ -793,14 +835,19 @@ JSON으로 반환하세요 (모든 텍스트 필드는 한국어로)."""
         )
 
     async def _phase_2_architecture(
-        self, requirement: str, golden_data: ConcretizedRequirement, analysis: Dict[str, Any]
+        self,
+        requirement: str,
+        golden_data: ConcretizedRequirement,
+        analysis: Dict[str, Any],
     ) -> Dict[str, Any]:
         """Phase 2: System Architecture Design"""
         # Safely extract features and data models
         features = golden_data.features if golden_data and golden_data.features else []
         feature_names = [f.name for f in features] if features else []
 
-        data_models = golden_data.data_models if golden_data and golden_data.data_models else []
+        data_models = (
+            golden_data.data_models if golden_data and golden_data.data_models else []
+        )
         model_names = [dm.entity_name for dm in data_models] if data_models else []
 
         prompt = f"""다음 요구사항에 대한 시스템 아키텍처를 설계하세요.
@@ -839,7 +886,10 @@ JSON으로 반환하세요 (모든 텍스트 필드는 한국어로)."""
         )
 
     async def _phase_3_design(
-        self, requirement: str, golden_data: ConcretizedRequirement, architecture: Dict[str, Any]
+        self,
+        requirement: str,
+        golden_data: ConcretizedRequirement,
+        architecture: Dict[str, Any],
     ) -> tuple[List[AgentSpecModel], List[TaskSpecModel]]:
         """Phase 3: Agent and Task Design"""
 
@@ -891,10 +941,15 @@ JSON으로 반환하세요 (모든 텍스트 필드는 한국어로)."""
         }
 
         # Use safe_dump for better compatibility and add explicit handling
-        return yaml.safe_dump(spec, default_flow_style=False, allow_unicode=True, sort_keys=False)
+        return yaml.safe_dump(
+            spec, default_flow_style=False, allow_unicode=True, sort_keys=False
+        )
 
     async def _phase_5_delivery(
-        self, spec_yaml: str, golden_data: ConcretizedRequirement, deployment_target: str
+        self,
+        spec_yaml: str,
+        golden_data: ConcretizedRequirement,
+        deployment_target: str,
     ) -> Dict[str, str]:
         """Phase 5: Code Generation"""
 
@@ -918,7 +973,10 @@ JSON으로 반환하세요 (모든 텍스트 필드는 한국어로)."""
 
         # Generate production-ready code
         gen_result = await code_gen_engine.generate(
-            golden_data=golden_data, agents=agents, tasks=tasks, deployment_target=deployment_target
+            golden_data=golden_data,
+            agents=agents,
+            tasks=tasks,
+            deployment_target=deployment_target,
         )
 
         return gen_result.files
@@ -985,7 +1043,10 @@ JSON으로 반환하세요 (모든 텍스트 필드는 한국어로)."""
         return task_feature_map
 
     def _register_tasks_in_traceability(
-        self, traceability: TraceabilityMatrix, tasks: List[TaskSpecModel], features: List[Any]
+        self,
+        traceability: TraceabilityMatrix,
+        tasks: List[TaskSpecModel],
+        features: List[Any],
     ) -> None:
         """Register tasks and their feature mappings in traceability matrix."""
         task_feature_map = self._map_tasks_to_features(tasks, features)
@@ -1052,7 +1113,9 @@ JSON으로 반환하세요 (모든 텍스트 필드는 한국어로)."""
         )
 
         result.completeness_report = completeness_report
-        result.completeness_text_report = validator.generate_text_report(completeness_report)
+        result.completeness_text_report = validator.generate_text_report(
+            completeness_report
+        )
 
         self.reporter.info(
             f"✅ Completeness validation complete: {completeness_report.implementation_rate:.1f}% "
@@ -1107,7 +1170,9 @@ JSON으로 반환하세요 (모든 텍스트 필드는 한국어로)."""
                     f"(Score: {completeness_report.completeness_score:.1f}/100)"
                 )
             elif gap_result.errors:
-                self.reporter.warning(f"⚠️  Gap filling had {len(gap_result.errors)} errors")
+                self.reporter.warning(
+                    f"⚠️  Gap filling had {len(gap_result.errors)} errors"
+                )
 
     async def _run_quality_validation(self, result: BMADResult) -> None:
         """
@@ -1166,7 +1231,9 @@ JSON으로 반환하세요 (모든 텍스트 필드는 한국어로)."""
                 errors = [i for i in validation_result.issues if i.severity == "error"]
                 for error in errors[:3]:
                     location = (
-                        f"{error.file}:{error.line}" if error.file and error.line else "general"
+                        f"{error.file}:{error.line}"
+                        if error.file and error.line
+                        else "general"
                     )
                     self.reporter.warning(f"  ❌ [{location}] {error.message}")
 
@@ -1221,7 +1288,9 @@ JSON으로 반환하세요 (모든 텍스트 필드는 한국어로)."""
 
             # Report critical and high severity issues
             critical_high = [
-                i for i in security_result.issues if i.severity.value in ("critical", "high")
+                i
+                for i in security_result.issues
+                if i.severity.value in ("critical", "high")
             ]
 
             if critical_high:
@@ -1232,8 +1301,12 @@ JSON으로 반환하세요 (모든 텍스트 필드는 한국어로)."""
                         if issue.line_number
                         else issue.file_path
                     )
-                    severity_emoji = "🔴" if issue.severity.value == "critical" else "🟠"
-                    self.reporter.warning(f"    {severity_emoji} [{location}] {issue.issue_text}")
+                    severity_emoji = (
+                        "🔴" if issue.severity.value == "critical" else "🟠"
+                    )
+                    self.reporter.warning(
+                        f"    {severity_emoji} [{location}] {issue.issue_text}"
+                    )
 
                 if len(critical_high) > 5:
                     self.reporter.warning(
@@ -1261,7 +1334,9 @@ JSON으로 반환하세요 (모든 텍스트 필드는 한국어로)."""
             requirement: Original requirement text
         """
         if not self.artifact_generator:
-            self.reporter.debug(f"Artifact generator not initialized, skipping {artifact_type}")
+            self.reporter.debug(
+                f"Artifact generator not initialized, skipping {artifact_type}"
+            )
             return
 
         self.reporter.debug(f"Generating artifact {artifact_type} for {phase}")
@@ -1289,8 +1364,12 @@ JSON으로 반환하세요 (모든 텍스트 필드는 한국어로)."""
             bmad_data = {
                 "requirement": context.get("requirement", ""),
                 "golden_data": self._convert_to_dict(context.get("golden_data")),
-                "requirement_analysis": self._convert_to_dict(context.get("requirement_analysis")),
-                "architecture": self._convert_to_dict(context.get("architecture_design")),
+                "requirement_analysis": self._convert_to_dict(
+                    context.get("requirement_analysis")
+                ),
+                "architecture": self._convert_to_dict(
+                    context.get("architecture_design")
+                ),
                 "agents": self._convert_to_list(context.get("agents", [])),
                 "tasks": self._convert_to_list(context.get("tasks", [])),
                 "code": context.get("generated_code", {}),

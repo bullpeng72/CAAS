@@ -106,7 +106,9 @@ class TaskRefiner:
 
         # 도메인별 정제 패턴 적용
         if domain_type == DomainType.TASK_MANAGEMENT:
-            return self._refine_task_management(task, detected_operation, detected_entity)
+            return self._refine_task_management(
+                task, detected_operation, detected_entity
+            )
         elif domain_type == DomainType.E_COMMERCE:
             return self._refine_e_commerce(task, detected_operation, detected_entity)
         elif domain_type == DomainType.DASHBOARD:
@@ -220,7 +222,9 @@ class TaskRefiner:
                 f"Support search, filtering by category/price, sorting, and pagination. "
                 f"Return product details with availability."
             )
-            task.expected_output = f"List of {entity} objects with pricing and availability"
+            task.expected_output = (
+                f"List of {entity} objects with pricing and availability"
+            )
             task.required_tools = ["database_read"]
 
         elif operation == "update":
@@ -270,7 +274,9 @@ class TaskRefiner:
                 "Use NLP to classify message type (question, command, statement). "
                 "Extract key entities (person, location, time) for context."
             )
-            task.expected_output = "Intent classification with confidence score and entities"
+            task.expected_output = (
+                "Intent classification with confidence score and entities"
+            )
             task.required_tools = ["nlp", "intent_classifier"]
 
         elif "respond" in description_lower or "응답" in description_lower:
@@ -318,7 +324,9 @@ class TaskRefiner:
 
         return task
 
-    def _refine_generic(self, task: TaskMapping, operation: str, entity: str) -> TaskMapping:
+    def _refine_generic(
+        self, task: TaskMapping, operation: str, entity: str
+    ) -> TaskMapping:
         """범용 정제 (도메인 특화가 없는 경우)"""
 
         operation_templates = {

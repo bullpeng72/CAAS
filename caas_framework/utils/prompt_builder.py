@@ -52,7 +52,9 @@ class PromptBuilder:
         Returns:
             Self for method chaining
         """
-        self.sections.extend(["# Task", f"Your task is to {self.task_description}.", ""])
+        self.sections.extend(
+            ["# Task", f"Your task is to {self.task_description}.", ""]
+        )
 
         if additional_context:
             self.sections.extend([additional_context, ""])
@@ -120,7 +122,9 @@ class PromptBuilder:
                 filtered = {k: v for k, v in golden_data.items() if k in fields}
                 self.sections.append(json.dumps(filtered, indent=2, ensure_ascii=False))
             else:
-                self.sections.append(json.dumps(golden_data, indent=2, ensure_ascii=False))
+                self.sections.append(
+                    json.dumps(golden_data, indent=2, ensure_ascii=False)
+                )
         else:
             # Object with attributes
             if fields:
@@ -132,11 +136,17 @@ class PromptBuilder:
                         data_dict[field] = None
                     elif hasattr(value, "model_dump"):
                         data_dict[field] = value.model_dump()
-                    elif isinstance(value, list) and value and hasattr(value[0], "model_dump"):
+                    elif (
+                        isinstance(value, list)
+                        and value
+                        and hasattr(value[0], "model_dump")
+                    ):
                         data_dict[field] = [item.model_dump() for item in value]
                     else:
                         data_dict[field] = value
-                self.sections.append(json.dumps(data_dict, indent=2, ensure_ascii=False))
+                self.sections.append(
+                    json.dumps(data_dict, indent=2, ensure_ascii=False)
+                )
             else:
                 # Extract common fields
                 data_dict = {}
@@ -163,12 +173,16 @@ class PromptBuilder:
                 if hasattr(golden_data, "deployment_target"):
                     data_dict["deployment_target"] = golden_data.deployment_target
 
-                self.sections.append(json.dumps(data_dict, indent=2, ensure_ascii=False))
+                self.sections.append(
+                    json.dumps(data_dict, indent=2, ensure_ascii=False)
+                )
 
         self.sections.append("")
         return self
 
-    def add_constraints(self, constraints: Optional[List[str]] = None) -> "PromptBuilder":
+    def add_constraints(
+        self, constraints: Optional[List[str]] = None
+    ) -> "PromptBuilder":
         """
         Add constraints section.
 
@@ -214,7 +228,9 @@ class PromptBuilder:
         return self
 
     def add_previous_outputs(
-        self, previous_outputs: Optional[Dict[str, Any]] = None, phases: Optional[List[str]] = None
+        self,
+        previous_outputs: Optional[Dict[str, Any]] = None,
+        phases: Optional[List[str]] = None,
     ) -> "PromptBuilder":
         """
         Add previous agent outputs section.
@@ -285,7 +301,10 @@ class PromptBuilder:
         return self
 
     def add_examples(
-        self, examples: List[Dict[str, Any]], show_input: bool = True, show_output: bool = True
+        self,
+        examples: List[Dict[str, Any]],
+        show_input: bool = True,
+        show_output: bool = True,
     ) -> "PromptBuilder":
         """
         Add examples section.
@@ -332,7 +351,9 @@ class PromptBuilder:
         if not guidelines:
             return self
 
-        self.sections.extend(["# Guidelines", *[f"- {guideline}" for guideline in guidelines], ""])
+        self.sections.extend(
+            ["# Guidelines", *[f"- {guideline}" for guideline in guidelines], ""]
+        )
         return self
 
     def add_refinement_intro(
@@ -383,10 +404,14 @@ class PromptBuilder:
             self.sections.append(json.dumps(output, indent=2, ensure_ascii=False))
         elif hasattr(output, "model_dump"):
             # Pydantic model
-            self.sections.append(json.dumps(output.model_dump(), indent=2, ensure_ascii=False))
+            self.sections.append(
+                json.dumps(output.model_dump(), indent=2, ensure_ascii=False)
+            )
         elif hasattr(output, "dict"):
             # Legacy Pydantic
-            self.sections.append(json.dumps(output.dict(), indent=2, ensure_ascii=False))
+            self.sections.append(
+                json.dumps(output.dict(), indent=2, ensure_ascii=False)
+            )
         else:
             self.sections.append(str(output))
 

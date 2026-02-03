@@ -117,7 +117,10 @@ class CriticAgent:
         )
 
     async def review(
-        self, output: Dict[str, Any], phase: AgentPhase, context: Optional[Dict[str, Any]] = None
+        self,
+        output: Dict[str, Any],
+        phase: AgentPhase,
+        context: Optional[Dict[str, Any]] = None,
     ) -> CriticReview:
         """
         Review producer's output and provide critique.
@@ -130,7 +133,9 @@ class CriticAgent:
         Returns:
             CriticReview with feedback and approval decision
         """
-        self.logger.info(f"🔍 Critic ({self.role.value}) reviewing {phase.name} output...")
+        self.logger.info(
+            f"🔍 Critic ({self.role.value}) reviewing {phase.name} output..."
+        )
 
         try:
             # Use LLM Judge for evaluation
@@ -142,7 +147,9 @@ class CriticAgent:
             review = self._convert_evaluation_to_review(evaluation)
 
             if review.approved:
-                self.logger.info(f"✅ Critic approved (score: {review.overall_score:.1f}/10.0)")
+                self.logger.info(
+                    f"✅ Critic approved (score: {review.overall_score:.1f}/10.0)"
+                )
             else:
                 self.logger.warning(
                     f"❌ Critic requests revision (score: {review.overall_score:.1f}/10.0, "
@@ -161,7 +168,9 @@ class CriticAgent:
                 feedback="Review failed due to error",
             )
 
-    def _convert_evaluation_to_review(self, evaluation: EvaluationResult) -> CriticReview:
+    def _convert_evaluation_to_review(
+        self, evaluation: EvaluationResult
+    ) -> CriticReview:
         """Convert LLM Judge evaluation to CriticReview"""
 
         # Extract strengths (high scores)
@@ -171,7 +180,9 @@ class CriticAgent:
 
         for dim_score in evaluation.dimension_scores:
             if dim_score.score >= 8.0:
-                strengths.append(f"{dim_score.dimension.value.capitalize()}: {dim_score.reasoning}")
+                strengths.append(
+                    f"{dim_score.dimension.value.capitalize()}: {dim_score.reasoning}"
+                )
             elif dim_score.score < 7.0:
                 weaknesses.append(
                     f"{dim_score.dimension.value.capitalize()}: {dim_score.reasoning}"
@@ -271,7 +282,9 @@ class ProducerCriticPattern:
                 # PRODUCER: Create or refine output
                 if iteration == 0:
                     # Initial production
-                    self.logger.info("📝 Producer creating initial output (iteration 1)...")
+                    self.logger.info(
+                        "📝 Producer creating initial output (iteration 1)..."
+                    )
                     work_result = await asyncio.wait_for(
                         producer.work(
                             requirement=requirement,
@@ -309,7 +322,9 @@ class ProducerCriticPattern:
                 work_results.append(work_result)
 
                 # CRITIC: Review output
-                self.logger.info(f"🔍 Critic reviewing output (iteration {iteration + 1})...")
+                self.logger.info(
+                    f"🔍 Critic reviewing output (iteration {iteration + 1})..."
+                )
                 review = await asyncio.wait_for(
                     critic.review(
                         output=output,
@@ -338,7 +353,8 @@ class ProducerCriticPattern:
 
             except asyncio.TimeoutError:
                 self.logger.error(
-                    f"⏱️ Iteration {iteration + 1} timed out " f"after {self.timeout_per_iteration}s"
+                    f"⏱️ Iteration {iteration + 1} timed out "
+                    f"after {self.timeout_per_iteration}s"
                 )
                 break
 
@@ -383,7 +399,10 @@ class ProducerCriticPattern:
         for critical in review.critical_issues:
             issues.append(
                 ValidationIssue(
-                    issue_type="critical", severity="high", message=critical, field="overall"
+                    issue_type="critical",
+                    severity="high",
+                    message=critical,
+                    field="overall",
                 )
             )
 
@@ -391,7 +410,10 @@ class ProducerCriticPattern:
         for weakness in review.weaknesses:
             issues.append(
                 ValidationIssue(
-                    issue_type="weakness", severity="medium", message=weakness, field="quality"
+                    issue_type="weakness",
+                    severity="medium",
+                    message=weakness,
+                    field="quality",
                 )
             )
 
@@ -441,11 +463,15 @@ async def collaborate_with_critic(
     """
     # Create critic agent
     critic = CriticAgent(
-        llm_plugin=critic_llm, role=CriticRole.GENERAL_CRITIC, approval_threshold=approval_threshold
+        llm_plugin=critic_llm,
+        role=CriticRole.GENERAL_CRITIC,
+        approval_threshold=approval_threshold,
     )
 
     # Create pattern orchestrator
-    pattern = ProducerCriticPattern(max_iterations=max_iterations, timeout_per_iteration=120)
+    pattern = ProducerCriticPattern(
+        max_iterations=max_iterations, timeout_per_iteration=120
+    )
 
     # Execute collaboration
     return await pattern.produce_with_critique(

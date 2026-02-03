@@ -23,6 +23,7 @@ def mock_llm():
 def mock_golden_data():
     """Mock golden data"""
     from caas_framework.models.specifications import ConcretizedRequirement
+
     return Mock(spec=ConcretizedRequirement)
 
 
@@ -41,7 +42,7 @@ def test_generation_config():
         llm_model="gpt-3.5-turbo",
         enable_plan_mode=True,
         output_dir="./my_output",
-        verbosity="debug"
+        verbosity="debug",
     )
     assert config.llm_model == "gpt-3.5-turbo"
     assert config.enable_plan_mode == True
@@ -57,7 +58,7 @@ def test_generation_result():
         files={"main.py": "print('hello')", "agents.py": "# agents"},
         metadata={"duration": 10.5, "phases_completed": ["discovery", "design"]},
         errors=[],
-        warnings=["Warning: unused variable"]
+        warnings=["Warning: unused variable"],
     )
 
     assert result.success == True
@@ -67,10 +68,7 @@ def test_generation_result():
     assert len(result.warnings) == 1
 
     # Failure result
-    result = GenerationResult(
-        success=False,
-        errors=["Generation failed: timeout"]
-    )
+    result = GenerationResult(success=False, errors=["Generation failed: timeout"])
 
     assert result.success == False
     assert len(result.errors) == 1
@@ -137,18 +135,17 @@ async def test_caas_api_generate_mock(mock_llm, mock_golden_data):
     mock_collab_result.errors = []
     mock_collab_result.context = Mock()
     mock_collab_result.context.code_artifacts = {
-        'files': {
-            'main.py': 'print("hello")',
-            'agents.py': '# agents'
-        }
+        "files": {"main.py": 'print("hello")', "agents.py": "# agents"}
     }
 
     # Mock _generate_golden_data
-    with patch.object(api, '_generate_golden_data', new_callable=AsyncMock) as mock_gen_golden:
+    with patch.object(
+        api, "_generate_golden_data", new_callable=AsyncMock
+    ) as mock_gen_golden:
         mock_gen_golden.return_value = mock_golden_data
 
         # Mock _create_collaboration
-        with patch.object(api, '_create_collaboration') as mock_create_collab:
+        with patch.object(api, "_create_collaboration") as mock_create_collab:
             mock_collaboration = Mock()
             mock_collaboration.collaborate = AsyncMock(return_value=mock_collab_result)
             mock_create_collab.return_value = mock_collaboration
@@ -169,25 +166,19 @@ async def test_caas_api_generate_from_design(mock_llm):
     config = GenerationConfig()
     api = CAAS_API(config, llm_plugin=mock_llm)
 
-    agents = [
-        {"id": "writer", "role": "Writer", "goal": "Write content"}
-    ]
-    tasks = [
-        {"description": "Write blog post", "agent": "writer"}
-    ]
+    agents = [{"id": "writer", "role": "Writer", "goal": "Write content"}]
+    tasks = [{"description": "Write blog post", "agent": "writer"}]
 
     # Mock code generator result
     mock_agent_result = Mock()
     mock_agent_result.success = True
     mock_agent_result.duration = 5.0
-    mock_agent_result.output = {
-        'files': {
-            'main.py': 'print("generated")'
-        }
-    }
+    mock_agent_result.output = {"files": {"main.py": 'print("generated")'}}
     mock_agent_result.errors = []
 
-    with patch('caas_framework.api.caas_api.CodeGeneratorAgent') as mock_generator_class:
+    with patch(
+        "caas_framework.api.caas_api.CodeGeneratorAgent"
+    ) as mock_generator_class:
         mock_generator = Mock()
         mock_generator.work = AsyncMock(return_value=mock_agent_result)
         mock_generator_class.return_value = mock_generator
@@ -216,10 +207,7 @@ def test_format_result(mock_llm):
     mock_result.errors = []
     mock_result.context = Mock()
     mock_result.context.code_artifacts = {
-        'files': {
-            'main.py': 'code',
-            'agents.py': 'code'
-        }
+        "files": {"main.py": "code", "agents.py": "code"}
     }
 
     # Format result
@@ -240,10 +228,7 @@ async def test_save_files_mock(mock_llm, tmp_path):
     config = GenerationConfig(output_dir=str(tmp_path))
     api = CAAS_API(config, llm_plugin=mock_llm)
 
-    files = {
-        "main.py": "print('hello')",
-        "agents.py": "# agents code"
-    }
+    files = {"main.py": "print('hello')", "agents.py": "# agents code"}
 
     # Save files
     await api._save_files(files, str(tmp_path))

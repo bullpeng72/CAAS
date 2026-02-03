@@ -49,18 +49,12 @@ def test_plan_mode_api_without_ui():
 
     # Create mock requirements
     concretized = ConcretizedRequirement(
-        system_scope=SystemScope(
-            project_name="Test",
-            purpose="Test project"
-        ),
+        system_scope=SystemScope(project_name="Test", purpose="Test project"),
         features=[
             FeatureSpec(
-                id="f1",
-                name="Feature 1",
-                description="Test feature",
-                priority="high"
+                id="f1", name="Feature 1", description="Test feature", priority="high"
             )
-        ]
+        ],
     )
 
     # Should auto-approve
@@ -79,10 +73,7 @@ def test_plan_mode_api_with_custom_handler():
 
     # Create mock requirements
     concretized = ConcretizedRequirement(
-        system_scope=SystemScope(
-            project_name="Test",
-            purpose="Test project"
-        )
+        system_scope=SystemScope(project_name="Test", purpose="Test project")
     )
 
     # Request review
@@ -111,16 +102,12 @@ def test_design_review_ui_independent():
                 "id": "agent1",
                 "role": "Researcher",
                 "goal": "Research topics",
-                "tools": ["web_search"]
+                "tools": ["web_search"],
             }
         ],
         "tasks": [
-            {
-                "id": "task1",
-                "description": "Research a topic",
-                "agent": "agent1"
-            }
-        ]
+            {"id": "task1", "description": "Research a topic", "agent": "agent1"}
+        ],
     }
 
     # Request review
@@ -143,10 +130,7 @@ def test_code_review_ui_independent():
     api = PlanModeAPI(review_handler=handler)
 
     # Mock generated files
-    files = {
-        "main.py": "print('Hello')\n" * 20,
-        "requirements.txt": "crewai>=0.65.0\n"
-    }
+    files = {"main.py": "print('Hello')\n" * 20, "requirements.txt": "crewai>=0.65.0\n"}
 
     # Request review
     decision = api.request_code_review(files)
@@ -184,10 +168,7 @@ def test_multiple_ui_implementations():
 
     # All can use the same PlanModeAPI
     concretized = ConcretizedRequirement(
-        system_scope=SystemScope(
-            project_name="Test",
-            purpose="Test"
-        )
+        system_scope=SystemScope(project_name="Test", purpose="Test")
     )
 
     for handler_class in [CLIHandler, StreamlitHandler, VSCodeHandler]:
@@ -204,24 +185,15 @@ def test_ui_independent_data_structure():
     api = PlanModeAPI(review_handler=handler)
 
     concretized = ConcretizedRequirement(
-        system_scope=SystemScope(
-            project_name="My Project",
-            purpose="My Purpose"
-        ),
+        system_scope=SystemScope(project_name="My Project", purpose="My Purpose"),
         features=[
             FeatureSpec(
-                id="f1",
-                name="Auth",
-                description="User authentication",
-                priority="high"
+                id="f1", name="Auth", description="User authentication", priority="high"
             ),
             FeatureSpec(
-                id="f2",
-                name="Posts",
-                description="Post management",
-                priority="medium"
-            )
-        ]
+                id="f2", name="Posts", description="Post management", priority="medium"
+            ),
+        ],
     )
 
     api.request_requirements_review(concretized)
@@ -263,8 +235,7 @@ def test_no_ui_dependencies_in_framework():
     prohibited = ["input(", "print(", "sys.stdin", "sys.stdout"]
 
     for item in prohibited:
-        assert item not in source, \
-            f"PlanModeAPI should not use {item} (UI-dependent)"
+        assert item not in source, f"PlanModeAPI should not use {item} (UI-dependent)"
 
 
 if __name__ == "__main__":

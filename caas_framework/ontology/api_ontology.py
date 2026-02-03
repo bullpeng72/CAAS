@@ -173,7 +173,13 @@ PAGINATION_PATTERN = DesignPattern(
 ERROR_RESPONSE_PATTERN = DesignPattern(
     name="Error_Response",
     applies_to=["ErrorHandling", "Endpoint"],
-    required_components=["error_code", "error_message", "error_details", "timestamp", "request_id"],
+    required_components=[
+        "error_code",
+        "error_message",
+        "error_details",
+        "timestamp",
+        "request_id",
+    ],
     description="Standardized error responses",
     benefits=["Consistent error format", "Easy debugging", "Client-friendly errors"],
 )

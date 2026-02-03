@@ -37,7 +37,9 @@ class LLMCodeGenerator:
         self.logger = get_logger(__name__)
 
     async def generate_custom_tools(
-        self, agents: List[AgentSpecModel], golden_data: Optional[ConcretizedRequirement] = None
+        self,
+        agents: List[AgentSpecModel],
+        golden_data: Optional[ConcretizedRequirement] = None,
     ) -> str:
         """
         Generate custom tool implementations for agents with fallback.
@@ -57,10 +59,14 @@ class LLMCodeGenerator:
 
         # 2. Check if empty
         if not all_tools:
-            self.logger.warning("⚠️  No tools found in agents, generating empty tools file")
+            self.logger.warning(
+                "⚠️  No tools found in agents, generating empty tools file"
+            )
             return self._generate_empty_tools()
 
-        self.logger.info(f"🔨 Generating {len(all_tools)} custom tools: {', '.join(all_tools)}")
+        self.logger.info(
+            f"🔨 Generating {len(all_tools)} custom tools: {', '.join(all_tools)}"
+        )
 
         # 3. Try LLM generation
         try:
@@ -68,7 +74,9 @@ class LLMCodeGenerator:
             sanitized_tools = {self._sanitize_tool_name(t): t for t in all_tools}
 
             # Build context and prompt
-            context = self._build_tool_generation_context(agents, all_tools, golden_data)
+            context = self._build_tool_generation_context(
+                agents, all_tools, golden_data
+            )
             prompt = self._build_prompt(sanitized_tools, context)
 
             # Call LLM
@@ -85,12 +93,16 @@ class LLMCodeGenerator:
             code = self._extract_code_from_response(response.content)
 
             if not code or len(code.strip()) < 50:
-                self.logger.warning("⚠️  LLM returned empty/invalid code, using fallback")
+                self.logger.warning(
+                    "⚠️  LLM returned empty/invalid code, using fallback"
+                )
                 return self._generate_fallback_tools(sanitized_tools)
 
             # Validate it's valid Python with BaseTool
             if "BaseTool" not in code:
-                self.logger.warning("⚠️  Generated code missing BaseTool, using fallback")
+                self.logger.warning(
+                    "⚠️  Generated code missing BaseTool, using fallback"
+                )
                 return self._generate_fallback_tools(sanitized_tools)
 
             self.logger.info(f"✅ Successfully generated {len(all_tools)} tools")
@@ -161,7 +173,9 @@ Now generate the logic:
         from caas_framework.plugins.llm.base import LLMMessage
 
         response = await self.llm.ainvoke(
-            messages=[LLMMessage(role="user", content=prompt)], temperature=0.3, max_tokens=2000
+            messages=[LLMMessage(role="user", content=prompt)],
+            temperature=0.3,
+            max_tokens=2000,
         )
 
         code = self._extract_code_from_response(response.content)
@@ -198,7 +212,9 @@ Now generate the logic:
 
         return files
 
-    async def _generate_database_models(self, golden_data: ConcretizedRequirement) -> str:
+    async def _generate_database_models(
+        self, golden_data: ConcretizedRequirement
+    ) -> str:
         """Generate SQLAlchemy database models from Golden Data."""
         if not golden_data.data_models:
             return self._generate_empty_models()
@@ -260,7 +276,9 @@ Now generate the models:
         from caas_framework.plugins.llm.base import LLMMessage
 
         response = await self.llm.ainvoke(
-            messages=[LLMMessage(role="user", content=prompt)], temperature=0.2, max_tokens=4000
+            messages=[LLMMessage(role="user", content=prompt)],
+            temperature=0.2,
+            max_tokens=4000,
         )
 
         return self._extract_code_from_response(response.content)
@@ -337,7 +355,9 @@ def list_users(db: Session = Depends(get_db)):
 Now generate the API:
 """
 
-        response = await self.llm.generate(prompt=prompt, temperature=0.3, max_tokens=4000)
+        response = await self.llm.generate(
+            prompt=prompt, temperature=0.3, max_tokens=4000
+        )
 
         return self._extract_code_from_response(response)
 
@@ -451,7 +471,9 @@ def health():
         # Add domain context
         if golden_data:
             context_parts.append(f"\n**Domain:** {golden_data.domain or 'General'}")
-            context_parts.append(f"**Project:** {golden_data.project_name or 'Unnamed'}")
+            context_parts.append(
+                f"**Project:** {golden_data.project_name or 'Unnamed'}"
+            )
             context_parts.append(f"**Description:** {golden_data.description}")
 
         return "\n".join(context_parts)
@@ -471,7 +493,9 @@ def health():
 
         if golden_data:
             context_parts.append(f"\n**Domain:** {golden_data.domain or 'General'}")
-            context_parts.append(f"**Project:** {golden_data.project_name or 'Unnamed'}")
+            context_parts.append(
+                f"**Project:** {golden_data.project_name or 'Unnamed'}"
+            )
 
         return "\n".join(context_parts)
 

@@ -51,7 +51,10 @@ class FeatureMatcher:
         return None
 
     def fuzzy_match(
-        self, golden_name: str, output_names: List[str], threshold: Optional[float] = None
+        self,
+        golden_name: str,
+        output_names: List[str],
+        threshold: Optional[float] = None,
     ) -> Optional[Tuple[str, float]]:
         """
         유사도 기반 매칭
@@ -89,7 +92,9 @@ class FeatureMatcher:
 
         return None
 
-    def match_features_to_tasks(self, golden_features: List[str], output_tasks: List[str]) -> dict:
+    def match_features_to_tasks(
+        self, golden_features: List[str], output_tasks: List[str]
+    ) -> dict:
         """
         Golden Features를 Output Tasks에 매칭
 
@@ -104,7 +109,9 @@ class FeatureMatcher:
                 "unmatched_output": [output_name, ...]
             }
         """
-        logger.info(f"🔍 Matching {len(golden_features)} features to {len(output_tasks)} tasks...")
+        logger.info(
+            f"🔍 Matching {len(golden_features)} features to {len(output_tasks)} tasks..."
+        )
 
         matched = []
         unmatched_golden = []
@@ -145,7 +152,9 @@ class FeatureMatcher:
             "unmatched_output": unmatched_output,
         }
 
-    def calculate_coverage_score(self, golden_items: List[str], output_items: List[str]) -> float:
+    def calculate_coverage_score(
+        self, golden_items: List[str], output_items: List[str]
+    ) -> float:
         """
         Coverage Score 계산
 

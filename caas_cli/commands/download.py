@@ -17,9 +17,13 @@ from caas_sdk.exceptions import CAASError
 @click.command()
 @click.argument("project_id")
 @click.argument("output_dir", type=click.Path(), default="./generated")
-@click.option("--api-key", type=str, envvar="CAAS_API_KEY", help="API key for authentication")
+@click.option(
+    "--api-key", type=str, envvar="CAAS_API_KEY", help="API key for authentication"
+)
 @click.option("--api-url", type=str, help="API URL (overrides config)")
-@click.option("--force", "-f", is_flag=True, help="Overwrite existing files without confirmation")
+@click.option(
+    "--force", "-f", is_flag=True, help="Overwrite existing files without confirmation"
+)
 def download(project_id, output_dir, api_key, api_url, force):
     """
     \b
@@ -153,7 +157,9 @@ def download(project_id, output_dir, api_key, api_url, force):
         # Check if directory exists
         output_path = Path(output_dir)
         if output_path.exists() and list(output_path.iterdir()) and not force:
-            if not click.confirm(f"Directory {output_dir} exists. Overwrite?", default=False):
+            if not click.confirm(
+                f"Directory {output_dir} exists. Overwrite?", default=False
+            ):
                 echo_error("Download cancelled")
                 return
 

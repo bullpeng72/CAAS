@@ -32,54 +32,54 @@ class MockLLM:
                     "criterion": "CrewAI framework usage is correct",
                     "score": 9.0,
                     "reasoning": "Correct imports and proper usage",
-                    "suggestions": "None"
+                    "suggestions": "None",
                 },
                 {
                     "criterion": "Agent definitions are complete and clear",
                     "score": 8.5,
                     "reasoning": "All required fields present",
-                    "suggestions": "Add more detailed backstories"
+                    "suggestions": "Add more detailed backstories",
                 },
                 {
                     "criterion": "Task definitions have clear objectives",
                     "score": 9.0,
                     "reasoning": "Clear descriptions",
-                    "suggestions": "None"
+                    "suggestions": "None",
                 },
                 {
                     "criterion": "Code is readable and well-structured",
                     "score": 8.0,
                     "reasoning": "Well-formatted",
-                    "suggestions": "Add comments"
+                    "suggestions": "Add comments",
                 },
                 {
                     "criterion": "No security vulnerabilities",
                     "score": 10.0,
                     "reasoning": "No issues detected",
-                    "suggestions": "None"
+                    "suggestions": "None",
                 },
                 {
                     "criterion": "Follows Python best practices",
                     "score": 8.5,
                     "reasoning": "PEP 8 compliant",
-                    "suggestions": "None"
+                    "suggestions": "None",
                 },
                 {
                     "criterion": "Code is maintainable",
                     "score": 8.0,
                     "reasoning": "Easy to understand",
-                    "suggestions": "Add docstrings"
+                    "suggestions": "Add docstrings",
                 },
                 {
                     "criterion": "Efficient resource usage",
                     "score": 9.0,
                     "reasoning": "No performance issues",
-                    "suggestions": "None"
-                }
+                    "suggestions": "None",
+                },
             ],
             "issues": [],
             "recommendations": ["Add type hints", "Add docstrings"],
-            "summary": "High-quality code with minor improvements suggested."
+            "summary": "High-quality code with minor improvements suggested.",
         }
 
     async def ainvoke(self, messages, **kwargs):
@@ -135,7 +135,7 @@ class TestCriterionScore:
             score=8.5,
             reasoning="Good implementation",
             suggestions="Add tests",
-            weight=1.5
+            weight=1.5,
         )
 
         assert score.criterion == "Test criterion"
@@ -156,7 +156,7 @@ class TestEvaluationResult:
                 score=8.0,
                 reasoning="Good",
                 suggestions="None",
-                weight=1.0
+                weight=1.0,
             ),
             CriterionScore(
                 criterion="Test 2",
@@ -164,8 +164,8 @@ class TestEvaluationResult:
                 score=9.0,
                 reasoning="Excellent",
                 suggestions="None",
-                weight=1.5
-            )
+                weight=1.5,
+            ),
         ]
 
         result = EvaluationResult(
@@ -174,7 +174,7 @@ class TestEvaluationResult:
             passed=True,
             summary="Good quality",
             issues=[],
-            recommendations=["Add docs"]
+            recommendations=["Add docs"],
         )
 
         assert result.overall_score == 8.5
@@ -186,7 +186,7 @@ class TestEvaluationResult:
         criteria_scores = [
             CriterionScore("C1", EvaluationCategory.CORRECTNESS, 8.0, "Good", "None"),
             CriterionScore("C2", EvaluationCategory.CORRECTNESS, 9.0, "Great", "None"),
-            CriterionScore("C3", EvaluationCategory.SECURITY, 10.0, "Perfect", "None")
+            CriterionScore("C3", EvaluationCategory.SECURITY, 10.0, "Perfect", "None"),
         ]
 
         result = EvaluationResult(
@@ -195,7 +195,7 @@ class TestEvaluationResult:
             passed=True,
             summary="Test",
             issues=[],
-            recommendations=[]
+            recommendations=[],
         )
 
         # Average of 8.0 and 9.0
@@ -209,8 +209,12 @@ class TestEvaluationResult:
     def test_get_weighted_score(self):
         """Test calculating weighted average score"""
         criteria_scores = [
-            CriterionScore("C1", EvaluationCategory.CORRECTNESS, 8.0, "Good", "None", weight=2.0),
-            CriterionScore("C2", EvaluationCategory.SECURITY, 10.0, "Perfect", "None", weight=1.0)
+            CriterionScore(
+                "C1", EvaluationCategory.CORRECTNESS, 8.0, "Good", "None", weight=2.0
+            ),
+            CriterionScore(
+                "C2", EvaluationCategory.SECURITY, 10.0, "Perfect", "None", weight=1.0
+            ),
         ]
 
         result = EvaluationResult(
@@ -219,7 +223,7 @@ class TestEvaluationResult:
             passed=True,
             summary="Test",
             issues=[],
-            recommendations=[]
+            recommendations=[],
         )
 
         # (8.0 * 2.0 + 10.0 * 1.0) / (2.0 + 1.0) = 26 / 3 = 8.67
@@ -245,9 +249,7 @@ class TestLLMJudge:
         mock_llm = MockLLM()
         judge = LLMJudge(llm_plugin=mock_llm)
 
-        code_files = {
-            "main.py": "from crewai import Crew\n\ndef main():\n    pass"
-        }
+        code_files = {"main.py": "from crewai import Crew\n\ndef main():\n    pass"}
 
         result = await judge.evaluate_code_quality(code_files)
 
@@ -263,10 +265,7 @@ class TestLLMJudge:
         judge = LLMJudge(llm_plugin=mock_llm)
 
         code_files = {"main.py": "from crewai import Crew"}
-        context = {
-            "agents_count": 2,
-            "tasks_count": 3
-        }
+        context = {"agents_count": 2, "tasks_count": 3}
 
         result = await judge.evaluate_code_quality(code_files, context)
 
@@ -289,7 +288,7 @@ class TestLLMJudge:
             **high_score_data,
             "criteria_scores": [
                 {**s, "score": 5.0} for s in high_score_data["criteria_scores"]
-            ]
+            ],
         }
         mock_llm_fail = MockLLM(return_data=low_score_data)
         judge_fail = LLMJudge(llm_plugin=mock_llm_fail, passing_score=7.0)
@@ -306,12 +305,12 @@ class TestLLMJudge:
         result = await judge.evaluate_code_quality({"main.py": "code"})
 
         # Check required fields
-        assert hasattr(result, 'overall_score')
-        assert hasattr(result, 'criteria_scores')
-        assert hasattr(result, 'passed')
-        assert hasattr(result, 'summary')
-        assert hasattr(result, 'issues')
-        assert hasattr(result, 'recommendations')
+        assert hasattr(result, "overall_score")
+        assert hasattr(result, "criteria_scores")
+        assert hasattr(result, "passed")
+        assert hasattr(result, "summary")
+        assert hasattr(result, "issues")
+        assert hasattr(result, "recommendations")
 
         # Check types
         assert isinstance(result.overall_score, float)

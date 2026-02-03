@@ -19,7 +19,13 @@ from caas_framework.modes.interfaces import ApprovalDecision
 from caas_framework.modes.plan_mode_core import ApprovalGate, PlanModeCore
 
 # For backward compatibility, re-export key types
-__all__ = ["PlanMode", "PlanModeCore", "ApprovalGate", "ApprovalDecision", "create_plan_mode"]
+__all__ = [
+    "PlanMode",
+    "PlanModeCore",
+    "ApprovalGate",
+    "ApprovalDecision",
+    "create_plan_mode",
+]
 
 
 class PlanMode:
@@ -69,7 +75,9 @@ class PlanMode:
         review_handler = RichReviewHandler(console=console)
 
         # Create core with CLI handler
-        self.core = PlanModeCore(review_handler=review_handler, auto_approve=auto_approve)
+        self.core = PlanModeCore(
+            review_handler=review_handler, auto_approve=auto_approve
+        )
 
         # For backward compatibility
         self.console = console or Console()
@@ -81,7 +89,11 @@ class PlanMode:
         return self.core.approval_history
 
     def request_approval(
-        self, phase: AgentPhase, phase_name: str, description: str, output: Dict[str, Any]
+        self,
+        phase: AgentPhase,
+        phase_name: str,
+        description: str,
+        output: Dict[str, Any],
     ) -> ApprovalGate:
         """
         Request user approval for phase output.
@@ -117,7 +129,9 @@ class PlanMode:
         self.core.reset_history()
 
 
-def create_plan_mode(auto_approve: bool = False, console: Optional[Console] = None) -> PlanMode:
+def create_plan_mode(
+    auto_approve: bool = False, console: Optional[Console] = None
+) -> PlanMode:
     """
     Factory function to create Plan Mode instance.
 

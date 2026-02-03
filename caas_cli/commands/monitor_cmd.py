@@ -72,7 +72,11 @@ def monitor():
 @monitor.command(name="metrics")
 @click.option("--watch", "-w", is_flag=True, help="Watch metrics in real-time")
 @click.option(
-    "--interval", "-i", type=int, default=5, help="Update interval in seconds (default: 5)"
+    "--interval",
+    "-i",
+    type=int,
+    default=5,
+    help="Update interval in seconds (default: 5)",
 )
 @click.option("--verbose", "-v", is_flag=True, help="Show detailed metrics")
 @handle_keyboard_interrupt
@@ -121,22 +125,38 @@ def metrics(watch, interval, verbose):
                 str(metrics_data.get("total_generations", 0)),
                 f"+{metrics_data.get('generation_delta', 0)}",
             )
-            table.add_row("Success Rate", f"{metrics_data.get('success_rate', 0):.1f}%", "")
-            table.add_row("Average Time", f"{metrics_data.get('avg_generation_time', 0):.2f}s", "")
+            table.add_row(
+                "Success Rate", f"{metrics_data.get('success_rate', 0):.1f}%", ""
+            )
+            table.add_row(
+                "Average Time", f"{metrics_data.get('avg_generation_time', 0):.2f}s", ""
+            )
             table.add_row(
                 "LLM API Calls",
                 str(metrics_data.get("llm_api_calls", 0)),
                 f"+{metrics_data.get('llm_calls_delta', 0)}",
             )
-            table.add_row("Cache Hit Rate", f"{metrics_data.get('cache_hit_rate', 0):.1f}%", "")
-            table.add_row("Active Sessions", str(metrics_data.get("active_sessions", 0)), "")
+            table.add_row(
+                "Cache Hit Rate", f"{metrics_data.get('cache_hit_rate', 0):.1f}%", ""
+            )
+            table.add_row(
+                "Active Sessions", str(metrics_data.get("active_sessions", 0)), ""
+            )
 
             if verbose:
                 table.add_row("", "", "")
                 table.add_row("[bold]Detailed Metrics[/bold]", "", "")
-                table.add_row("Total Errors", str(metrics_data.get("total_errors", 0)), "")
-                table.add_row("Avg Phase Time", f"{metrics_data.get('avg_phase_time', 0):.2f}s", "")
-                table.add_row("Memory Usage", f"{metrics_data.get('memory_mb', 0):.1f} MB", "")
+                table.add_row(
+                    "Total Errors", str(metrics_data.get("total_errors", 0)), ""
+                )
+                table.add_row(
+                    "Avg Phase Time",
+                    f"{metrics_data.get('avg_phase_time', 0):.2f}s",
+                    "",
+                )
+                table.add_row(
+                    "Memory Usage", f"{metrics_data.get('memory_mb', 0):.1f} MB", ""
+                )
 
             layout["body"].update(table)
             return layout
@@ -147,7 +167,9 @@ def metrics(watch, interval, verbose):
             console.print()
 
             try:
-                with Live(display_metrics(), refresh_per_second=1 / interval, console=console):
+                with Live(
+                    display_metrics(), refresh_per_second=1 / interval, console=console
+                ):
                     while True:
                         time.sleep(interval)
             except KeyboardInterrupt:
@@ -172,7 +194,9 @@ def metrics(watch, interval, verbose):
 
 
 @monitor.command(name="cost")
-@click.option("--breakdown", "-b", is_flag=True, help="Show cost breakdown by phase/model")
+@click.option(
+    "--breakdown", "-b", is_flag=True, help="Show cost breakdown by phase/model"
+)
 @click.option(
     "--period",
     "-p",
@@ -220,7 +244,10 @@ def cost(breakdown, period, export):
 
         console.print()
         console.print(
-            Panel.fit(f"[bold cyan]Cost Report - {period.upper()}[/bold cyan]", border_style="cyan")
+            Panel.fit(
+                f"[bold cyan]Cost Report - {period.upper()}[/bold cyan]",
+                border_style="cyan",
+            )
         )
         console.print()
 
@@ -232,7 +259,9 @@ def cost(breakdown, period, export):
         summary_table.add_row("Total Cost", f"${cost_data.get('total_cost', 0):.4f}")
         summary_table.add_row("Total Tokens", f"{cost_data.get('total_tokens', 0):,}")
         summary_table.add_row("API Calls", str(cost_data.get("api_calls", 0)))
-        summary_table.add_row("Avg Cost/Call", f"${cost_data.get('avg_cost_per_call', 0):.4f}")
+        summary_table.add_row(
+            "Avg Cost/Call", f"${cost_data.get('avg_cost_per_call', 0):.4f}"
+        )
 
         console.print(summary_table)
         console.print()
@@ -251,7 +280,9 @@ def cost(breakdown, period, export):
                         if cost_data["total_cost"] > 0
                         else 0
                     )
-                    phase_table.add_row(phase, f"${phase_cost:.4f}", f"{percentage:.1f}%")
+                    phase_table.add_row(
+                        phase, f"${phase_cost:.4f}", f"{percentage:.1f}%"
+                    )
 
                 console.print(phase_table)
                 console.print()
@@ -265,7 +296,9 @@ def cost(breakdown, period, export):
 
                 for model, model_data in cost_data["by_model"].items():
                     model_table.add_row(
-                        model, f"${model_data.get('cost', 0):.4f}", str(model_data.get("calls", 0))
+                        model,
+                        f"${model_data.get('cost', 0):.4f}",
+                        str(model_data.get("calls", 0)),
                     )
 
                 console.print(model_table)
@@ -317,7 +350,9 @@ def quality(detailed):
         quality_data = tracker.get_quality_metrics()
 
         console.print()
-        console.print(Panel.fit("[bold cyan]Quality Metrics[/bold cyan]", border_style="cyan"))
+        console.print(
+            Panel.fit("[bold cyan]Quality Metrics[/bold cyan]", border_style="cyan")
+        )
         console.print()
 
         # Summary
@@ -325,14 +360,20 @@ def quality(detailed):
         summary_table.add_column("Metric", style="cyan")
         summary_table.add_column("Value", style="green")
 
-        summary_table.add_row("Avg Quality Score", f"{quality_data.get('avg_score', 0):.1f}/10.0")
         summary_table.add_row(
-            "Validation Pass Rate", f"{quality_data.get('validation_pass_rate', 0):.1f}%"
+            "Avg Quality Score", f"{quality_data.get('avg_score', 0):.1f}/10.0"
         )
         summary_table.add_row(
-            "Auto-fix Success Rate", f"{quality_data.get('autofix_success_rate', 0):.1f}%"
+            "Validation Pass Rate",
+            f"{quality_data.get('validation_pass_rate', 0):.1f}%",
         )
-        summary_table.add_row("Total Validations", str(quality_data.get("total_validations", 0)))
+        summary_table.add_row(
+            "Auto-fix Success Rate",
+            f"{quality_data.get('autofix_success_rate', 0):.1f}%",
+        )
+        summary_table.add_row(
+            "Total Validations", str(quality_data.get("total_validations", 0))
+        )
 
         console.print(summary_table)
         console.print()
@@ -367,7 +408,9 @@ def quality(detailed):
 @click.argument("action", type=click.Choice(["list", "add", "remove", "test"]))
 @click.option("--metric", type=str, help="Metric name for alert")
 @click.option("--threshold", type=float, help="Alert threshold value")
-@click.option("--condition", type=click.Choice(["above", "below", "equals"]), default="above")
+@click.option(
+    "--condition", type=click.Choice(["above", "below", "equals"]), default="above"
+)
 @handle_keyboard_interrupt
 def alerts(action, metric, threshold, condition):
     """
@@ -409,7 +452,9 @@ def alerts(action, metric, threshold, condition):
 
             for alert in alerts:
                 status = "🔔 Active" if alert.get("active") else "🔕 Inactive"
-                table.add_row(alert["metric"], alert["condition"], str(alert["threshold"]), status)
+                table.add_row(
+                    alert["metric"], alert["condition"], str(alert["threshold"]), status
+                )
 
             console.print(table)
             console.print()
@@ -419,7 +464,9 @@ def alerts(action, metric, threshold, condition):
                 echo_error("--metric and --threshold are required for adding alerts")
                 return 1
 
-            alert_system.add_alert(metric=metric, threshold=threshold, condition=condition)
+            alert_system.add_alert(
+                metric=metric, threshold=threshold, condition=condition
+            )
             echo_success(f"✅ Added alert: {metric} {condition} {threshold}")
 
         elif action == "remove":
@@ -500,7 +547,9 @@ def export(format, output):
             console.print()
             console.print(
                 Panel(
-                    exported_data, title=f"Metrics Export ({format.upper()})", border_style="cyan"
+                    exported_data,
+                    title=f"Metrics Export ({format.upper()})",
+                    border_style="cyan",
                 )
             )
             console.print()

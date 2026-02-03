@@ -249,7 +249,9 @@ class SessionManager:
 
     # ========== State Management ==========
 
-    def update_session_state(self, session_id: str, state_updates: Dict[str, Any]) -> bool:
+    def update_session_state(
+        self, session_id: str, state_updates: Dict[str, Any]
+    ) -> bool:
         """
         Update session state.
 
@@ -334,7 +336,9 @@ class SessionManager:
         session = self.get_session(session_id)
 
         if session:
-            session.status = SessionStatus.COMPLETED if success else SessionStatus.FAILED
+            session.status = (
+                SessionStatus.COMPLETED if success else SessionStatus.FAILED
+            )
             session.completed_at = datetime.utcnow()
             session.updated_at = datetime.utcnow()
 
@@ -389,10 +393,18 @@ class SessionManager:
     def get_session_stats(self) -> Dict[str, Any]:
         """Get session statistics"""
         total = len(self.sessions)
-        active = sum(1 for s in self.sessions.values() if s.status == SessionStatus.ACTIVE)
-        paused = sum(1 for s in self.sessions.values() if s.status == SessionStatus.PAUSED)
-        completed = sum(1 for s in self.sessions.values() if s.status == SessionStatus.COMPLETED)
-        failed = sum(1 for s in self.sessions.values() if s.status == SessionStatus.FAILED)
+        active = sum(
+            1 for s in self.sessions.values() if s.status == SessionStatus.ACTIVE
+        )
+        paused = sum(
+            1 for s in self.sessions.values() if s.status == SessionStatus.PAUSED
+        )
+        completed = sum(
+            1 for s in self.sessions.values() if s.status == SessionStatus.COMPLETED
+        )
+        failed = sum(
+            1 for s in self.sessions.values() if s.status == SessionStatus.FAILED
+        )
 
         return {
             "total": total,
@@ -422,7 +434,9 @@ class SessionManager:
         ]
 
         # Sort by completion time (newest first)
-        completed_sessions.sort(key=lambda s: s.completed_at or s.updated_at, reverse=True)
+        completed_sessions.sort(
+            key=lambda s: s.completed_at or s.updated_at, reverse=True
+        )
 
         # Delete old ones
         deleted = 0

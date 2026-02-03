@@ -245,16 +245,18 @@ class JsonExtractor:
 
             # Validate return type if specified
             if return_type is not None and not isinstance(result, return_type):
-
                 logger = get_logger()
                 logger.warning(
                     f"JSON parsed but wrong type: expected {return_type}, got {type(result)}"
                 )
-                return default if default is not None else ([] if return_type == list else {})
+                return (
+                    default
+                    if default is not None
+                    else ([] if return_type == list else {})
+                )
 
             return result
         except json.JSONDecodeError as e:
-
             logger = get_logger()
             logger.error(f"JSON decode error: {e}")
 
@@ -273,7 +275,9 @@ class JsonExtractor:
                             f"Repaired JSON has wrong type: expected {return_type}, got {type(result)}"
                         )
                         return (
-                            default if default is not None else ([] if return_type == list else {})
+                            default
+                            if default is not None
+                            else ([] if return_type == list else {})
                         )
 
                     return result
@@ -284,7 +288,9 @@ class JsonExtractor:
             error_pos = getattr(e, "pos", 0)
             context_start = max(0, error_pos - 100)
             context_end = min(len(text_str), error_pos + 100)
-            logger.debug(f"Failed JSON context: ...{text_str[context_start:context_end]}...")
+            logger.debug(
+                f"Failed JSON context: ...{text_str[context_start:context_end]}..."
+            )
 
             return default if default is not None else None
 
@@ -293,7 +299,9 @@ class TextNormalizer:
     """Utilities for text normalization and sanitization"""
 
     @staticmethod
-    def normalize_agent_task_ids(agents_data: List[Dict], tasks_data: List[Dict]) -> None:
+    def normalize_agent_task_ids(
+        agents_data: List[Dict], tasks_data: List[Dict]
+    ) -> None:
         """
         Normalize IDs for agents and tasks in place.
 
@@ -354,7 +362,9 @@ class TextNormalizer:
         return normalized or "unnamed"
 
     @staticmethod
-    def sanitize_for_mermaid(text: str, max_length: int = 50, allow_korean: bool = True) -> str:
+    def sanitize_for_mermaid(
+        text: str, max_length: int = 50, allow_korean: bool = True
+    ) -> str:
         """
         Sanitize text for use in Mermaid diagrams.
 
@@ -393,7 +403,9 @@ class TextNormalizer:
         return sanitized or "label"
 
     @staticmethod
-    def sanitize_mermaid_id(text: str, allow_korean: bool = True, max_length: int = 64) -> str:
+    def sanitize_mermaid_id(
+        text: str, allow_korean: bool = True, max_length: int = 64
+    ) -> str:
         """
         Sanitize text to be a valid Mermaid node ID.
 

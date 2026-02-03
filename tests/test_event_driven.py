@@ -34,59 +34,50 @@ class TestEvent:
         """Test creating an event."""
         event = Event(
             type=PhaseEvent.PHASE_STARTED,
-            data={'phase': 'concretization'},
-            source='concretizer'
+            data={"phase": "concretization"},
+            source="concretizer",
         )
 
         assert event.type == PhaseEvent.PHASE_STARTED
-        assert event.data['phase'] == 'concretization'
-        assert event.source == 'concretizer'
+        assert event.data["phase"] == "concretization"
+        assert event.source == "concretizer"
 
     def test_event_get_data(self):
         """Test getting data from event."""
-        event = Event(
-            type=PhaseEvent.PHASE_COMPLETED,
-            data={'result': 'success'}
-        )
+        event = Event(type=PhaseEvent.PHASE_COMPLETED, data={"result": "success"})
 
-        assert event.get_data('result') == 'success'
-        assert event.get_data('missing', 'default') == 'default'
+        assert event.get_data("result") == "success"
+        assert event.get_data("missing", "default") == "default"
 
     def test_create_phase_event(self):
         """Test creating phase event."""
-        event = create_phase_event(
-            PhaseEvent.PHASE_STARTED,
-            'design',
-            {'agents': 3}
-        )
+        event = create_phase_event(PhaseEvent.PHASE_STARTED, "design", {"agents": 3})
 
         assert event.type == PhaseEvent.PHASE_STARTED
-        assert event.data['phase'] == 'design'
-        assert event.data['agents'] == 3
+        assert event.data["phase"] == "design"
+        assert event.data["agents"] == 3
 
     def test_create_validation_event(self):
         """Test creating validation event."""
         event = create_validation_event(
-            passed=False,
-            phase_name='architecture',
-            issues=['Missing component']
+            passed=False, phase_name="architecture", issues=["Missing component"]
         )
 
         assert event.type == PhaseEvent.VALIDATION_FAILED
-        assert event.data['passed'] is False
-        assert len(event.data['issues']) == 1
+        assert event.data["passed"] is False
+        assert len(event.data["issues"]) == 1
 
     def test_create_feedback_event(self):
         """Test creating feedback event."""
         event = create_feedback_event(
             message="Need more details",
             phase_name="concretization",
-            feedback_type="warning"
+            feedback_type="warning",
         )
 
         assert event.type == PhaseEvent.FEEDBACK_REQUESTED
-        assert event.data['message'] == "Need more details"
-        assert event.data['feedback_type'] == "warning"
+        assert event.data["message"] == "Need more details"
+        assert event.data["feedback_type"] == "warning"
 
 
 class TestEventBus:
@@ -106,10 +97,7 @@ class TestEventBus:
         """Test subscribing to events."""
         handler = Mock()
 
-        subscription = event_bus.subscribe(
-            PhaseEvent.PHASE_STARTED,
-            handler
-        )
+        subscription = event_bus.subscribe(PhaseEvent.PHASE_STARTED, handler)
 
         assert subscription.event_type == PhaseEvent.PHASE_STARTED
         assert event_bus.get_subscription_count(PhaseEvent.PHASE_STARTED) == 1
@@ -120,10 +108,7 @@ class TestEventBus:
 
         event_bus.subscribe(PhaseEvent.PHASE_COMPLETED, handler)
 
-        event = Event(
-            type=PhaseEvent.PHASE_COMPLETED,
-            data={'result': 'success'}
-        )
+        event = Event(type=PhaseEvent.PHASE_COMPLETED, data={"result": "success"})
 
         event_bus.publish(event)
 
@@ -228,8 +213,8 @@ class TestEventBus:
 
         stats = event_bus.get_statistics()
 
-        assert stats['total_subscriptions'] == 2
-        assert stats['total_events_published'] == 2
+        assert stats["total_subscriptions"] == 2
+        assert stats["total_events_published"] == 2
 
     @pytest.mark.asyncio
     async def test_publish_async(self, event_bus):
@@ -263,13 +248,11 @@ class TestAsyncOrchestrator:
     @pytest.mark.asyncio
     async def test_execute_phase_async(self, orchestrator):
         """Test executing a phase asynchronously."""
+
         def executor(context):
             return "result"
 
-        phase_def = PhaseDefinition(
-            name="test_phase",
-            executor=executor
-        )
+        phase_def = PhaseDefinition(name="test_phase", executor=executor)
 
         result = await orchestrator.execute_phase_async(phase_def, {})
 
@@ -280,14 +263,12 @@ class TestAsyncOrchestrator:
     @pytest.mark.asyncio
     async def test_execute_phase_async_with_async_executor(self, orchestrator):
         """Test executing phase with async executor."""
+
         async def async_executor(context):
             await asyncio.sleep(0.01)
             return "async_result"
 
-        phase_def = PhaseDefinition(
-            name="async_phase",
-            executor=async_executor
-        )
+        phase_def = PhaseDefinition(name="async_phase", executor=async_executor)
 
         result = await orchestrator.execute_phase_async(phase_def, {})
 
@@ -297,13 +278,11 @@ class TestAsyncOrchestrator:
     @pytest.mark.asyncio
     async def test_execute_phase_failure(self, orchestrator):
         """Test phase execution failure."""
+
         def failing_executor(context):
             raise ValueError("Test error")
 
-        phase_def = PhaseDefinition(
-            name="failing_phase",
-            executor=failing_executor
-        )
+        phase_def = PhaseDefinition(name="failing_phase", executor=failing_executor)
 
         result = await orchestrator.execute_phase_async(phase_def, {})
 
@@ -313,6 +292,7 @@ class TestAsyncOrchestrator:
     @pytest.mark.asyncio
     async def test_execute_phase_timeout(self, orchestrator):
         """Test phase execution timeout."""
+
         async def slow_executor(context):
             await asyncio.sleep(1.0)
             return "too_slow"
@@ -320,7 +300,7 @@ class TestAsyncOrchestrator:
         phase_def = PhaseDefinition(
             name="slow_phase",
             executor=slow_executor,
-            timeout=0.1  # 100ms timeout
+            timeout=0.1,  # 100ms timeout
         )
 
         result = await orchestrator.execute_phase_async(phase_def, {})
@@ -331,6 +311,7 @@ class TestAsyncOrchestrator:
     @pytest.mark.asyncio
     async def test_execute_parallel(self, orchestrator):
         """Test parallel phase execution."""
+
         def executor1(context):
             time.sleep(0.01)
             return "result1"
@@ -341,7 +322,7 @@ class TestAsyncOrchestrator:
 
         phase_defs = [
             PhaseDefinition(name="phase1", executor=executor1),
-            PhaseDefinition(name="phase2", executor=executor2)
+            PhaseDefinition(name="phase2", executor=executor2),
         ]
 
         start = time.time()
@@ -357,6 +338,7 @@ class TestAsyncOrchestrator:
     @pytest.mark.asyncio
     async def test_execute_with_dependencies(self, orchestrator):
         """Test execution with dependencies."""
+
         def executor1(context):
             return "result1"
 
@@ -371,7 +353,7 @@ class TestAsyncOrchestrator:
         phase_defs = [
             PhaseDefinition(name="phase1", executor=executor1),
             PhaseDefinition(name="phase2", executor=executor2, dependencies=["phase1"]),
-            PhaseDefinition(name="phase3", executor=executor3, dependencies=["phase2"])
+            PhaseDefinition(name="phase3", executor=executor3, dependencies=["phase2"]),
         ]
 
         results = await orchestrator.execute_with_dependencies(phase_defs, {})
@@ -384,6 +366,7 @@ class TestAsyncOrchestrator:
     @pytest.mark.asyncio
     async def test_execute_pipeline(self, orchestrator):
         """Test executing complete pipeline."""
+
         def phase_a(context):
             return "A"
 
@@ -396,7 +379,7 @@ class TestAsyncOrchestrator:
         phase_defs = [
             create_phase_definition("phase_a", phase_a),
             create_phase_definition("phase_b", phase_b, dependencies=["phase_a"]),
-            create_phase_definition("phase_c", phase_c, dependencies=["phase_b"])
+            create_phase_definition("phase_c", phase_c, dependencies=["phase_b"]),
         ]
 
         results = await orchestrator.execute_pipeline(phase_defs)
@@ -427,7 +410,9 @@ class TestAsyncOrchestrator:
         phase_defs = [
             PhaseDefinition(name="phase_a", executor=phase_a),
             PhaseDefinition(name="phase_b", executor=phase_b),
-            PhaseDefinition(name="phase_c", executor=phase_c, dependencies=["phase_a", "phase_b"])
+            PhaseDefinition(
+                name="phase_c", executor=phase_c, dependencies=["phase_a", "phase_b"]
+            ),
         ]
 
         start = time.time()
@@ -444,17 +429,19 @@ class TestAsyncOrchestrator:
     def test_get_execution_summary(self, orchestrator):
         """Test getting execution summary."""
         results = {
-            'phase1': PhaseResult('phase1', True, 'result1', execution_time=1.0),
-            'phase2': PhaseResult('phase2', True, 'result2', execution_time=2.0),
-            'phase3': PhaseResult('phase3', False, error=ValueError(), execution_time=0.5)
+            "phase1": PhaseResult("phase1", True, "result1", execution_time=1.0),
+            "phase2": PhaseResult("phase2", True, "result2", execution_time=2.0),
+            "phase3": PhaseResult(
+                "phase3", False, error=ValueError(), execution_time=0.5
+            ),
         }
 
         summary = orchestrator.get_execution_summary(results)
 
-        assert summary['total_phases'] == 3
-        assert summary['successful'] == 2
-        assert summary['failed'] == 1
-        assert summary['total_execution_time'] == 3.5
+        assert summary["total_phases"] == 3
+        assert summary["successful"] == 2
+        assert summary["failed"] == 1
+        assert summary["total_execution_time"] == 3.5
 
 
 class TestPhaseDefinition:
@@ -462,14 +449,12 @@ class TestPhaseDefinition:
 
     def test_phase_definition_creation(self):
         """Test creating phase definition."""
+
         def executor(context):
             return "result"
 
         phase_def = PhaseDefinition(
-            name="test",
-            executor=executor,
-            dependencies=["phase1"],
-            timeout=10.0
+            name="test", executor=executor, dependencies=["phase1"], timeout=10.0
         )
 
         assert phase_def.name == "test"
@@ -478,14 +463,11 @@ class TestPhaseDefinition:
 
     def test_create_phase_definition_convenience(self):
         """Test convenience function."""
+
         def executor(context):
             return "result"
 
-        phase_def = create_phase_definition(
-            "test",
-            executor,
-            dependencies=["phase1"]
-        )
+        phase_def = create_phase_definition("test", executor, dependencies=["phase1"])
 
         assert phase_def.name == "test"
         assert phase_def.dependencies == ["phase1"]
@@ -519,7 +501,7 @@ class TestIntegration:
 
         phases = [
             create_phase_definition("phase1", phase1),
-            create_phase_definition("phase2", phase2, dependencies=["phase1"])
+            create_phase_definition("phase2", phase2, dependencies=["phase1"]),
         ]
 
         # Execute pipeline
@@ -551,7 +533,7 @@ class TestIntegration:
         phases = [
             create_phase_definition("phase1", phase1),
             create_phase_definition("phase2", phase2, dependencies=["phase1"]),
-            create_phase_definition("phase3", phase3, dependencies=["phase2"])
+            create_phase_definition("phase3", phase3, dependencies=["phase2"]),
         ]
 
         results = await orchestrator.execute_with_dependencies(phases, {})

@@ -22,30 +22,31 @@ def test_protocol_implementation():
     reporter3 = NullProgressReporter()
 
     # Test that they have all required Protocol methods
-    assert hasattr(reporter1, 'start_workflow')
-    assert hasattr(reporter1, 'start_phase')
-    assert hasattr(reporter1, 'complete_phase')
-    assert hasattr(reporter1, 'update_phase_progress')
-    assert hasattr(reporter1, 'log_message')
-    assert hasattr(reporter1, 'log_validation')
-    assert hasattr(reporter1, 'log_feedback_iteration')
-    assert hasattr(reporter1, 'end_workflow')
+    assert hasattr(reporter1, "start_workflow")
+    assert hasattr(reporter1, "start_phase")
+    assert hasattr(reporter1, "complete_phase")
+    assert hasattr(reporter1, "update_phase_progress")
+    assert hasattr(reporter1, "log_message")
+    assert hasattr(reporter1, "log_validation")
+    assert hasattr(reporter1, "log_feedback_iteration")
+    assert hasattr(reporter1, "end_workflow")
 
-    assert hasattr(reporter2, 'start_workflow')
-    assert hasattr(reporter2, 'start_phase')
-    assert hasattr(reporter2, 'complete_phase')
-    assert hasattr(reporter2, 'update_phase_progress')
-    assert hasattr(reporter2, 'log_message')
-    assert hasattr(reporter2, 'log_validation')
-    assert hasattr(reporter2, 'log_feedback_iteration')
-    assert hasattr(reporter2, 'end_workflow')
+    assert hasattr(reporter2, "start_workflow")
+    assert hasattr(reporter2, "start_phase")
+    assert hasattr(reporter2, "complete_phase")
+    assert hasattr(reporter2, "update_phase_progress")
+    assert hasattr(reporter2, "log_message")
+    assert hasattr(reporter2, "log_validation")
+    assert hasattr(reporter2, "log_feedback_iteration")
+    assert hasattr(reporter2, "end_workflow")
 
-    assert hasattr(reporter3, 'start_workflow')
-    assert hasattr(reporter3, 'end_workflow')
+    assert hasattr(reporter3, "start_workflow")
+    assert hasattr(reporter3, "end_workflow")
 
 
 def test_protocol_usage():
     """Test that Protocol can be used as type hint"""
+
     def use_reporter(reporter: ProgressReporterProtocol) -> None:
         """Function that accepts any ProgressReporter implementation"""
         reporter.start_workflow("Test Workflow")

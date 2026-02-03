@@ -104,7 +104,9 @@ class CompletenessValidator:
 
         # Step 2: Semantic mapping
         self.logger.info("Step 2/4: Performing semantic mapping...")
-        mapping_result = await self.semantic_mapper.map_features_to_code(features, code_analyses)
+        mapping_result = await self.semantic_mapper.map_features_to_code(
+            features, code_analyses
+        )
 
         self.logger.info(
             f"Semantic mapping: {len(mapping_result.feature_implementations)} "
@@ -162,7 +164,9 @@ class CompletenessValidator:
                 if impl.evidence:
                     feature_trace.notes = "\n".join(impl.evidence)
 
-        self.logger.debug(f"Updated {len(mapping_result.feature_implementations)} feature traces")
+        self.logger.debug(
+            f"Updated {len(mapping_result.feature_implementations)} feature traces"
+        )
 
     def _generate_report(
         self, features: List[FeatureSpec], mapping_result: MappingResult
@@ -191,7 +195,9 @@ class CompletenessValidator:
                 report.partially_implemented += 1
 
         report.not_implemented = (
-            report.total_features - report.fully_implemented - report.partially_implemented
+            report.total_features
+            - report.fully_implemented
+            - report.partially_implemented
         )
 
         # Calculate implementation rate
@@ -204,8 +210,12 @@ class CompletenessValidator:
         )
 
         # Find unimplemented features
-        implemented_ids = {impl.feature_id for impl in mapping_result.feature_implementations}
-        report.unimplemented_features = [f for f in features if f.id not in implemented_ids]
+        implemented_ids = {
+            impl.feature_id for impl in mapping_result.feature_implementations
+        }
+        report.unimplemented_features = [
+            f for f in features if f.id not in implemented_ids
+        ]
 
         # Identify critical missing features
         for feature in report.unimplemented_features:
@@ -222,7 +232,8 @@ class CompletenessValidator:
 
         # Determine if complete
         report.is_complete = (
-            report.completeness_score >= 90.0 and len(report.missing_critical_features) == 0
+            report.completeness_score >= 90.0
+            and len(report.missing_critical_features) == 0
         )
 
         return report
@@ -233,7 +244,9 @@ class CompletenessValidator:
 
         # Missing features
         if report.not_implemented > 0:
-            recommendations.append(f"누락된 {report.not_implemented}개 기능을 구현하세요")
+            recommendations.append(
+                f"누락된 {report.not_implemented}개 기능을 구현하세요"
+            )
 
         # Partially implemented features
         if report.partially_implemented > 0:
@@ -253,7 +266,9 @@ class CompletenessValidator:
                 "구현률이 매우 낮습니다. 더 구체적인 지시사항으로 코드를 재생성하는 것을 고려하세요."
             )
         elif report.implementation_rate < 80:
-            recommendations.append("구현률이 중간 수준입니다. 검토하고 누락된 부분을 채우세요.")
+            recommendations.append(
+                "구현률이 중간 수준입니다. 검토하고 누락된 부분을 채우세요."
+            )
 
         return recommendations
 
@@ -329,7 +344,9 @@ class CompletenessValidator:
                 ]
             )
             fully_impl = [
-                impl for impl in report.feature_implementations if impl.is_fully_implemented
+                impl
+                for impl in report.feature_implementations
+                if impl.is_fully_implemented
             ]
             for impl in fully_impl[:10]:  # Limit to 10
                 lines.append(
@@ -351,7 +368,9 @@ class CompletenessValidator:
                 ]
             )
             partial_impl = [
-                impl for impl in report.feature_implementations if impl.is_partially_implemented
+                impl
+                for impl in report.feature_implementations
+                if impl.is_partially_implemented
             ]
             for impl in partial_impl[:5]:
                 lines.append(
@@ -371,7 +390,9 @@ class CompletenessValidator:
                 ]
             )
             for feature in report.unimplemented_features[:10]:
-                priority_marker = "🔴" if feature.priority.lower() in ("critical", "high") else "⚪"
+                priority_marker = (
+                    "🔴" if feature.priority.lower() in ("critical", "high") else "⚪"
+                )
                 lines.append(
                     f"  {priority_marker} {feature.name} ({feature.id}) - "
                     f"우선순위: {feature.priority}"

@@ -36,16 +36,16 @@ class ReactTemplates:
         props_def = ""
         if props_interface:
             props_def = f"\ninterface {name}Props {{\n{props_interface}\n}}\n"
-            component_signature = f"export const {name}: React.FC<{name}Props> = (props) => {{"
+            component_signature = (
+                f"export const {name}: React.FC<{name}Props> = (props) => {{"
+            )
         else:
             component_signature = f"export const {name}: React.FC = () => {{"
 
         # State hooks
         state_hooks = ""
         if has_state and state_type:
-            state_hooks = (
-                f"\n  const [state, setState] = useState<{state_type}>(/* initial state */);\n"
-            )
+            state_hooks = f"\n  const [state, setState] = useState<{state_type}>(/* initial state */);\n"
 
         # Effect hook
         effect_hook = ""
@@ -72,7 +72,9 @@ class ReactTemplates:
 """
 
     @staticmethod
-    def list_component_template(name: str, item_type: str, item_render: str = "item") -> str:
+    def list_component_template(
+        name: str, item_type: str, item_render: str = "item"
+    ) -> str:
         """Generate list component with map"""
 
         return f"""import React, {{ useState, useEffect }} from 'react';
@@ -198,7 +200,9 @@ export const {name}: React.FC<{name}Props> = ({{ onSubmit, onCancel }}) => {{
 """
 
     @staticmethod
-    def typescript_interface(name: str, fields: List[Dict[str, str]], export: bool = True) -> str:
+    def typescript_interface(
+        name: str, fields: List[Dict[str, str]], export: bool = True
+    ) -> str:
         """Generate TypeScript interface"""
 
         export_keyword = "export " if export else ""
@@ -211,7 +215,9 @@ export const {name}: React.FC<{name}Props> = ({{ onSubmit, onCancel }}) => {{
 """
 
     @staticmethod
-    def api_client_template(base_url: str = "/api", endpoints: List[Dict[str, str]] = None) -> str:
+    def api_client_template(
+        base_url: str = "/api", endpoints: List[Dict[str, str]] = None
+    ) -> str:
         """Generate API client with Axios"""
 
         methods = []

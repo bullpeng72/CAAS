@@ -55,9 +55,7 @@ class CICDGenerator:
         files = {}
 
         # Main CI workflow
-        files[
-            ".github/workflows/ci.yml"
-        ] = f"""name: CI
+        files[".github/workflows/ci.yml"] = f"""name: CI
 
 on:
   push:
@@ -106,9 +104,7 @@ jobs:
 
         # Build and push Docker image
         if config.build_docker:
-            files[
-                ".github/workflows/docker-build.yml"
-            ] = """name: Docker Build
+            files[".github/workflows/docker-build.yml"] = """name: Docker Build
 
 on:
   push:
@@ -149,9 +145,7 @@ jobs:
 
         # Deployment workflow
         if config.deploy_enabled:
-            files[
-                ".github/workflows/deploy.yml"
-            ] = f"""name: Deploy
+            files[".github/workflows/deploy.yml"] = f"""name: Deploy
 
 on:
   push:
@@ -180,9 +174,7 @@ jobs:
         # Coverage regex pattern (extracted to avoid f-string backslash issue)
         coverage_pattern = r"'/(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'"
 
-        files[
-            ".gitlab-ci.yml"
-        ] = f"""
+        files[".gitlab-ci.yml"] = f"""
 image: python:{config.python_version}
 
 stages:
@@ -252,9 +244,7 @@ before_script:
         """Generate Jenkinsfile"""
         files = {}
 
-        files[
-            "Jenkinsfile"
-        ] = f"""
+        files["Jenkinsfile"] = f"""
 pipeline {{
     agent any
 

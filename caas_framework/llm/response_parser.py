@@ -127,7 +127,9 @@ class ResponseParser:
         return result
 
     @staticmethod
-    def extract_list_from_response(content: str, pattern: Optional[str] = None) -> List[str]:
+    def extract_list_from_response(
+        content: str, pattern: Optional[str] = None
+    ) -> List[str]:
         """
         LLM 응답에서 리스트 항목 추출
 
@@ -219,7 +221,10 @@ class ResponseParser:
 
     @staticmethod
     def parse_to_model(
-        content: str, model_class: Type[T], extract_json: bool = True, strict: bool = True
+        content: str,
+        model_class: Type[T],
+        extract_json: bool = True,
+        strict: bool = True,
     ) -> Optional[T]:
         """
         LLM 응답을 Pydantic 모델로 파싱

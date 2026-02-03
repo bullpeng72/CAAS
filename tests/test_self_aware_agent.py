@@ -28,7 +28,7 @@ class TestCapabilityAssessment:
             reasoning="Agent has required tools",
             missing_capabilities=[],
             alternative_approach=None,
-            estimated_difficulty="Easy"
+            estimated_difficulty="Easy",
         )
 
         assert assessment.confidence == 0.8
@@ -41,13 +41,13 @@ class TestCapabilityAssessment:
         with pytest.raises(Exception):  # Pydantic validation error
             CapabilityAssessment(
                 confidence=1.5,  # > 1.0
-                reasoning="Invalid"
+                reasoning="Invalid",
             )
 
         with pytest.raises(Exception):
             CapabilityAssessment(
                 confidence=-0.1,  # < 0.0
-                reasoning="Invalid"
+                reasoning="Invalid",
             )
 
 
@@ -60,7 +60,7 @@ class TestAgentCapabilities:
             role="Developer",
             tools=["file_read", "file_write", "git"],
             expertise="Python development",
-            goal="Write clean code"
+            goal="Write clean code",
         )
 
         assert caps.role == "Developer"
@@ -74,7 +74,7 @@ class TestAgentCapabilities:
             tools=["file_write"],
             expertise="React and TypeScript",
             goal="Build UIs",
-            known_limitations=["backend", "database"]
+            known_limitations=["backend", "database"],
         )
 
         assert len(caps.known_limitations) == 2
@@ -92,13 +92,10 @@ class TestRuleBasedAssessment:
             role="Developer",
             tools=["file_read", "file_write"],
             expertise="Coding",
-            goal="Write code"
+            goal="Write code",
         )
 
-        assessment = strategy.assess(
-            "Read a file and write code",
-            caps
-        )
+        assessment = strategy.assess("Read a file and write code", caps)
 
         # Should have high confidence
         assert assessment.confidence >= 0.7
@@ -109,16 +106,10 @@ class TestRuleBasedAssessment:
         strategy = RuleBasedAssessment()
 
         caps = AgentCapabilities(
-            role="Developer",
-            tools=["file_read"],
-            expertise="Coding",
-            goal="Write code"
+            role="Developer", tools=["file_read"], expertise="Coding", goal="Write code"
         )
 
-        assessment = strategy.assess(
-            "Search the web for information",
-            caps
-        )
+        assessment = strategy.assess("Search the web for information", caps)
 
         # Should have lower confidence
         assert assessment.confidence < 0.7
@@ -134,13 +125,10 @@ class TestRuleBasedAssessment:
             tools=["file_write"],
             expertise="React",
             goal="Build UIs",
-            known_limitations=["database", "backend"]
+            known_limitations=["database", "backend"],
         )
 
-        assessment = strategy.assess(
-            "Design a database schema",
-            caps
-        )
+        assessment = strategy.assess("Design a database schema", caps)
 
         # Should have low confidence
         assert assessment.confidence < 0.7
@@ -154,14 +142,11 @@ class TestRuleBasedAssessment:
             role="Dev",
             tools=["file_read", "file_write"],
             expertise="Coding",
-            goal="Code"
+            goal="Code",
         )
 
         caps_without_tools = AgentCapabilities(
-            role="Dev",
-            tools=[],
-            expertise="Coding",
-            goal="Code"
+            role="Dev", tools=[], expertise="Coding", goal="Code"
         )
 
         # Easy task with tools
@@ -185,16 +170,13 @@ class TestLLMBasedAssessment:
             reasoning="LLM assessed high capability",
             missing_capabilities=[],
             alternative_approach=None,
-            estimated_difficulty="Easy"
+            estimated_difficulty="Easy",
         )
 
         strategy = LLMBasedAssessment(mock_llm)
 
         caps = AgentCapabilities(
-            role="Developer",
-            tools=["file_read"],
-            expertise="Coding",
-            goal="Code"
+            role="Developer", tools=["file_read"], expertise="Coding", goal="Code"
         )
 
         assessment = strategy.assess("Read a file", caps)
@@ -211,10 +193,7 @@ class TestLLMBasedAssessment:
         strategy = LLMBasedAssessment(mock_llm)
 
         caps = AgentCapabilities(
-            role="Developer",
-            tools=["file_read"],
-            expertise="Coding",
-            goal="Code"
+            role="Developer", tools=["file_read"], expertise="Coding", goal="Code"
         )
 
         assessment = strategy.assess("Read a file", caps)
@@ -230,16 +209,10 @@ class TestSelfAwareAgent:
     def test_agent_initialization(self):
         """Test creating self-aware agent."""
         caps = AgentCapabilities(
-            role="Developer",
-            tools=["file_read"],
-            expertise="Coding",
-            goal="Code"
+            role="Developer", tools=["file_read"], expertise="Coding", goal="Code"
         )
 
-        agent = SelfAwareAgent(
-            capabilities=caps,
-            confidence_threshold=0.7
-        )
+        agent = SelfAwareAgent(capabilities=caps, confidence_threshold=0.7)
 
         assert agent.capabilities == caps
         assert agent.confidence_threshold == 0.7
@@ -251,7 +224,7 @@ class TestSelfAwareAgent:
             role="Developer",
             tools=["file_read", "file_write"],
             expertise="Python coding",
-            goal="Write code"
+            goal="Write code",
         )
 
         agent = SelfAwareAgent(capabilities=caps)
@@ -267,7 +240,7 @@ class TestSelfAwareAgent:
             role="Developer",
             tools=["file_read"],
             expertise="Reading code",
-            goal="Analyze code"
+            goal="Analyze code",
         )
 
         agent = SelfAwareAgent(capabilities=caps)
@@ -283,21 +256,16 @@ class TestSelfAwareAgent:
             role="Developer",
             tools=["file_read"],
             expertise="Reading",
-            goal="Read files"
+            goal="Read files",
         )
 
-        agent = SelfAwareAgent(
-            capabilities=caps,
-            confidence_threshold=0.7
-        )
+        agent = SelfAwareAgent(capabilities=caps, confidence_threshold=0.7)
 
         # Mock executor
         mock_executor = Mock(return_value="Task completed")
 
         result, assessment = agent.execute_or_delegate_sync(
-            "Read a file",
-            executor=mock_executor,
-            verbose=False
+            "Read a file", executor=mock_executor, verbose=False
         )
 
         assert assessment.confidence >= 0.7
@@ -310,21 +278,17 @@ class TestSelfAwareAgent:
             role="Developer",
             tools=["file_read"],
             expertise="Reading",
-            goal="Read files"
+            goal="Read files",
         )
 
-        agent = SelfAwareAgent(
-            capabilities=caps,
-            confidence_threshold=0.7
-        )
+        agent = SelfAwareAgent(capabilities=caps, confidence_threshold=0.7)
 
         result, assessment = agent.execute_or_delegate_sync(
-            "Search the web",
-            verbose=False
+            "Search the web", verbose=False
         )
 
         assert assessment.confidence < 0.7
-        assert result['status'] == 'needs_delegation'
+        assert result["status"] == "needs_delegation"
 
     def test_execute_or_delegate_sync_with_delegate_handler(self):
         """Test sync delegation with custom handler."""
@@ -332,21 +296,18 @@ class TestSelfAwareAgent:
             role="Developer",
             tools=["file_read"],
             expertise="Reading",
-            goal="Read files"
+            goal="Read files",
         )
 
         # Mock delegate handler
         mock_delegate = Mock(return_value="Delegated successfully")
 
         agent = SelfAwareAgent(
-            capabilities=caps,
-            confidence_threshold=0.7,
-            delegate_handler=mock_delegate
+            capabilities=caps, confidence_threshold=0.7, delegate_handler=mock_delegate
         )
 
         result, assessment = agent.execute_or_delegate_sync(
-            "Search the web",
-            verbose=False
+            "Search the web", verbose=False
         )
 
         assert assessment.confidence < 0.7
@@ -360,7 +321,7 @@ class TestSelfAwareAgent:
             role="Developer",
             tools=["file_read", "file_write"],
             expertise="Coding",
-            goal="Write code"
+            goal="Write code",
         )
 
         agent = SelfAwareAgent(capabilities=caps)
@@ -369,9 +330,7 @@ class TestSelfAwareAgent:
         mock_executor = AsyncMock(return_value="Async task completed")
 
         result, assessment = await agent.execute_or_delegate(
-            "Read and write files",
-            executor=mock_executor,
-            verbose=False
+            "Read and write files", executor=mock_executor, verbose=False
         )
 
         assert assessment.confidence >= 0.7
@@ -385,20 +344,16 @@ class TestSelfAwareAgent:
             role="Developer",
             tools=["file_read"],
             expertise="Reading",
-            goal="Read files"
+            goal="Read files",
         )
 
         # Mock async delegate handler
         mock_delegate = AsyncMock(return_value="Delegated to expert")
 
-        agent = SelfAwareAgent(
-            capabilities=caps,
-            delegate_handler=mock_delegate
-        )
+        agent = SelfAwareAgent(capabilities=caps, delegate_handler=mock_delegate)
 
         result, assessment = await agent.execute_or_delegate(
-            "Build a complex web application with database",
-            verbose=False
+            "Build a complex web application with database", verbose=False
         )
 
         assert assessment.confidence < 0.7
@@ -408,18 +363,15 @@ class TestSelfAwareAgent:
     def test_get_assessment_statistics_empty(self):
         """Test statistics with no assessments."""
         caps = AgentCapabilities(
-            role="Developer",
-            tools=["file_read"],
-            expertise="Reading",
-            goal="Read"
+            role="Developer", tools=["file_read"], expertise="Reading", goal="Read"
         )
 
         agent = SelfAwareAgent(capabilities=caps)
 
         stats = agent.get_assessment_statistics()
 
-        assert stats['total_assessments'] == 0
-        assert stats['avg_confidence'] == 0.0
+        assert stats["total_assessments"] == 0
+        assert stats["avg_confidence"] == 0.0
 
     def test_get_assessment_statistics_with_history(self):
         """Test statistics with assessment history."""
@@ -427,7 +379,7 @@ class TestSelfAwareAgent:
             role="Developer",
             tools=["file_read", "file_write"],
             expertise="Coding",
-            goal="Code"
+            goal="Code",
         )
 
         agent = SelfAwareAgent(capabilities=caps, confidence_threshold=0.7)
@@ -439,10 +391,10 @@ class TestSelfAwareAgent:
 
         stats = agent.get_assessment_statistics()
 
-        assert stats['total_assessments'] == 3
-        assert stats['avg_confidence'] > 0.0
-        assert stats['tasks_within_capability'] >= 2
-        assert stats['tasks_requiring_delegation'] >= 1
+        assert stats["total_assessments"] == 3
+        assert stats["avg_confidence"] > 0.0
+        assert stats["tasks_within_capability"] >= 2
+        assert stats["tasks_requiring_delegation"] >= 1
 
 
 class TestFactoryFunction:
@@ -455,7 +407,7 @@ class TestFactoryFunction:
             tools=["file_read", "file_write"],
             expertise="Python development",
             goal="Write clean code",
-            confidence_threshold=0.7
+            confidence_threshold=0.7,
         )
 
         assert isinstance(agent, SelfAwareAgent)
@@ -471,7 +423,7 @@ class TestFactoryFunction:
             tools=["file_read"],
             expertise="Coding",
             goal="Code",
-            llm_provider=mock_llm
+            llm_provider=mock_llm,
         )
 
         assert isinstance(agent, SelfAwareAgent)
@@ -484,7 +436,7 @@ class TestFactoryFunction:
             tools=["file_write"],
             expertise="React",
             goal="Build UIs",
-            known_limitations=["backend", "database"]
+            known_limitations=["backend", "database"],
         )
 
         assert len(agent.capabilities.known_limitations) == 2
@@ -496,10 +448,7 @@ class TestEdgeCases:
     def test_empty_task(self):
         """Test with empty task string."""
         caps = AgentCapabilities(
-            role="Developer",
-            tools=["file_read"],
-            expertise="Coding",
-            goal="Code"
+            role="Developer", tools=["file_read"], expertise="Coding", goal="Code"
         )
 
         agent = SelfAwareAgent(capabilities=caps)
@@ -512,10 +461,7 @@ class TestEdgeCases:
     def test_agent_with_no_tools(self):
         """Test agent with no tools."""
         caps = AgentCapabilities(
-            role="Thinker",
-            tools=[],
-            expertise="Thinking",
-            goal="Think"
+            role="Thinker", tools=[], expertise="Thinking", goal="Think"
         )
 
         agent = SelfAwareAgent(capabilities=caps)
@@ -531,17 +477,16 @@ class TestEdgeCases:
             role="Developer",
             tools=["file_read", "file_write"],
             expertise="Expert coder",
-            goal="Perfect code"
+            goal="Perfect code",
         )
 
         agent = SelfAwareAgent(
             capabilities=caps,
-            confidence_threshold=0.95  # Very high
+            confidence_threshold=0.95,  # Very high
         )
 
         result, assessment = agent.execute_or_delegate_sync(
-            "Read a file",
-            verbose=False
+            "Read a file", verbose=False
         )
 
         # Even simple tasks might not meet threshold
@@ -558,23 +503,18 @@ class TestIntegration:
             role="File Manager",
             tools=["file_read", "file_write"],
             expertise="File operations",
-            goal="Manage files efficiently"
+            goal="Manage files efficiently",
         )
 
         # Mock executor
         async def mock_execute(task):
             return f"Executed: {task}"
 
-        agent = SelfAwareAgent(
-            capabilities=caps,
-            confidence_threshold=0.7
-        )
+        agent = SelfAwareAgent(capabilities=caps, confidence_threshold=0.7)
 
         # Execute task within capability
         result, assessment = await agent.execute_or_delegate(
-            "Read configuration file",
-            executor=mock_execute,
-            verbose=False
+            "Read configuration file", executor=mock_execute, verbose=False
         )
 
         assert assessment.confidence >= 0.7
@@ -582,8 +522,8 @@ class TestIntegration:
 
         # Check statistics
         stats = agent.get_assessment_statistics()
-        assert stats['total_assessments'] == 1
-        assert stats['tasks_within_capability'] == 1
+        assert stats["total_assessments"] == 1
+        assert stats["tasks_within_capability"] == 1
 
     @pytest.mark.asyncio
     async def test_full_workflow_with_delegation(self):
@@ -593,36 +533,29 @@ class TestIntegration:
             tools=["file_read"],
             expertise="Reading files",
             goal="Read files",
-            known_limitations=["database", "web"]
+            known_limitations=["database", "web"],
         )
 
         # Mock delegate handler
         async def mock_delegate(task, reason, missing_capabilities):
-            return {
-                'delegated_to': 'specialist',
-                'task': task,
-                'reason': reason
-            }
+            return {"delegated_to": "specialist", "task": task, "reason": reason}
 
         agent = SelfAwareAgent(
-            capabilities=caps,
-            confidence_threshold=0.7,
-            delegate_handler=mock_delegate
+            capabilities=caps, confidence_threshold=0.7, delegate_handler=mock_delegate
         )
 
         # Task outside capability
         result, assessment = await agent.execute_or_delegate(
-            "Search the web and query database",
-            verbose=False
+            "Search the web and query database", verbose=False
         )
 
         assert assessment.confidence < 0.7
-        assert 'delegated_to' in result
-        assert result['delegated_to'] == 'specialist'
+        assert "delegated_to" in result
+        assert result["delegated_to"] == "specialist"
 
         # Check statistics
         stats = agent.get_assessment_statistics()
-        assert stats['tasks_requiring_delegation'] == 1
+        assert stats["tasks_requiring_delegation"] == 1
 
     def test_assessment_history_tracking(self):
         """Test that assessment history is properly tracked."""
@@ -630,7 +563,7 @@ class TestIntegration:
             role="Developer",
             tools=["file_read", "file_write", "git"],
             expertise="Software development",
-            goal="Develop software"
+            goal="Develop software",
         )
 
         agent = SelfAwareAgent(capabilities=caps)
@@ -641,7 +574,7 @@ class TestIntegration:
             "Search the web",
             "Write code",
             "Query database",
-            "Commit changes with git"
+            "Commit changes with git",
         ]
 
         for task in tasks:
@@ -652,9 +585,9 @@ class TestIntegration:
 
         # Get statistics
         stats = agent.get_assessment_statistics()
-        assert stats['total_assessments'] == 5
-        assert stats['avg_confidence'] > 0.0
-        assert 0.0 <= stats['delegation_rate'] <= 1.0
+        assert stats["total_assessments"] == 5
+        assert stats["avg_confidence"] > 0.0
+        assert 0.0 <= stats["delegation_rate"] <= 1.0
 
     def test_multiple_agents_different_capabilities(self):
         """Test multiple agents with different capabilities."""
@@ -664,7 +597,7 @@ class TestIntegration:
             tools=["file_write"],
             expertise="React and TypeScript",
             goal="Build user interfaces",
-            known_limitations=["backend", "database"]
+            known_limitations=["backend", "database"],
         )
 
         # Backend developer
@@ -673,7 +606,7 @@ class TestIntegration:
             tools=["database", "http_client"],
             expertise="API development and databases",
             goal="Build robust backends",
-            known_limitations=["frontend", "UI design"]
+            known_limitations=["frontend", "UI design"],
         )
 
         # Assess same task with both

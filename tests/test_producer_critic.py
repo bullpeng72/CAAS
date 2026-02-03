@@ -30,7 +30,7 @@ class TestCriticReview:
             weaknesses=[],
             suggestions=["Add error handling"],
             critical_issues=[],
-            feedback="Good work"
+            feedback="Good work",
         )
 
         assert review.approved is True
@@ -50,9 +50,7 @@ class TestCriticReview:
 
         # Approved but has critical issues
         review3 = CriticReview(
-            approved=True,
-            overall_score=8.0,
-            critical_issues=["Something wrong"]
+            approved=True, overall_score=8.0, critical_issues=["Something wrong"]
         )
         assert review3.needs_revision is True
 
@@ -70,39 +68,66 @@ class TestCriticAgent:
     @pytest.fixture
     def sample_llm_response_approved(self):
         """Sample LLM response for approved review"""
-        return json.dumps({
-            "dimension_scores": [
-                {"dimension": "clarity", "score": 9.0, "reasoning": "Clear", "suggestions": []},
-                {"dimension": "completeness", "score": 8.5, "reasoning": "Complete", "suggestions": []},
-                {"dimension": "coherence", "score": 9.0, "reasoning": "Coherent", "suggestions": []}
-            ],
-            "overall_score": 8.8,
-            "feedback": "Excellent work",
-            "critical_issues": [],
-            "warnings": []
-        })
+        return json.dumps(
+            {
+                "dimension_scores": [
+                    {
+                        "dimension": "clarity",
+                        "score": 9.0,
+                        "reasoning": "Clear",
+                        "suggestions": [],
+                    },
+                    {
+                        "dimension": "completeness",
+                        "score": 8.5,
+                        "reasoning": "Complete",
+                        "suggestions": [],
+                    },
+                    {
+                        "dimension": "coherence",
+                        "score": 9.0,
+                        "reasoning": "Coherent",
+                        "suggestions": [],
+                    },
+                ],
+                "overall_score": 8.8,
+                "feedback": "Excellent work",
+                "critical_issues": [],
+                "warnings": [],
+            }
+        )
 
     @pytest.fixture
     def sample_llm_response_rejected(self):
         """Sample LLM response for rejected review"""
-        return json.dumps({
-            "dimension_scores": [
-                {"dimension": "clarity", "score": 5.0, "reasoning": "Unclear", "suggestions": ["Clarify roles"]},
-                {"dimension": "completeness", "score": 6.0, "reasoning": "Incomplete", "suggestions": ["Add missing"]},
-            ],
-            "overall_score": 5.5,
-            "feedback": "Needs improvement",
-            "critical_issues": ["Missing key elements"],
-            "warnings": []
-        })
+        return json.dumps(
+            {
+                "dimension_scores": [
+                    {
+                        "dimension": "clarity",
+                        "score": 5.0,
+                        "reasoning": "Unclear",
+                        "suggestions": ["Clarify roles"],
+                    },
+                    {
+                        "dimension": "completeness",
+                        "score": 6.0,
+                        "reasoning": "Incomplete",
+                        "suggestions": ["Add missing"],
+                    },
+                ],
+                "overall_score": 5.5,
+                "feedback": "Needs improvement",
+                "critical_issues": ["Missing key elements"],
+                "warnings": [],
+            }
+        )
 
     @pytest.mark.asyncio
     async def test_critic_agent_creation(self, mock_llm):
         """Test creating a Critic Agent"""
         critic = CriticAgent(
-            llm_plugin=mock_llm,
-            role=CriticRole.DESIGN_REVIEWER,
-            approval_threshold=7.0
+            llm_plugin=mock_llm, role=CriticRole.DESIGN_REVIEWER, approval_threshold=7.0
         )
 
         assert critic.llm == mock_llm
@@ -111,17 +136,14 @@ class TestCriticAgent:
 
     @pytest.mark.asyncio
     async def test_critic_approves_good_output(
-        self,
-        mock_llm,
-        sample_llm_response_approved
+        self, mock_llm, sample_llm_response_approved
     ):
         """Test critic approves high-quality output"""
         mock_llm.generate.return_value = sample_llm_response_approved
 
         critic = CriticAgent(mock_llm, approval_threshold=7.0)
         review = await critic.review(
-            output={"agents": [], "tasks": []},
-            phase=AgentPhase.DESIGN
+            output={"agents": [], "tasks": []}, phase=AgentPhase.DESIGN
         )
 
         assert isinstance(review, CriticReview)
@@ -131,17 +153,14 @@ class TestCriticAgent:
 
     @pytest.mark.asyncio
     async def test_critic_rejects_poor_output(
-        self,
-        mock_llm,
-        sample_llm_response_rejected
+        self, mock_llm, sample_llm_response_rejected
     ):
         """Test critic rejects low-quality output"""
         mock_llm.generate.return_value = sample_llm_response_rejected
 
         critic = CriticAgent(mock_llm, approval_threshold=7.0)
         review = await critic.review(
-            output={"agents": [], "tasks": []},
-            phase=AgentPhase.DESIGN
+            output={"agents": [], "tasks": []}, phase=AgentPhase.DESIGN
         )
 
         assert review.approved is False
@@ -155,10 +174,7 @@ class TestCriticAgent:
         mock_llm.generate.side_effect = Exception("LLM error")
 
         critic = CriticAgent(mock_llm)
-        review = await critic.review(
-            output={"test": "data"},
-            phase=AgentPhase.DESIGN
-        )
+        review = await critic.review(output={"test": "data"}, phase=AgentPhase.DESIGN)
 
         # Should return rejection on error
         assert review.approved is False
@@ -187,10 +203,7 @@ class TestProducerCriticPattern:
     @pytest.mark.asyncio
     async def test_producer_critic_pattern_creation(self):
         """Test creating Producer-Critic pattern"""
-        pattern = ProducerCriticPattern(
-            max_iterations=3,
-            timeout_per_iteration=120
-        )
+        pattern = ProducerCriticPattern(max_iterations=3, timeout_per_iteration=120)
 
         assert pattern.max_iterations == 3
         assert pattern.timeout_per_iteration == 120
@@ -205,14 +218,12 @@ class TestProducerCriticPattern:
             phase=AgentPhase.DESIGN,
             agent_name="test_producer",
             errors=[],
-            duration=1.0
+            duration=1.0,
         )
 
         # Critic approves immediately
         mock_critic.review.return_value = CriticReview(
-            approved=True,
-            overall_score=9.0,
-            feedback="Excellent"
+            approved=True, overall_score=9.0, feedback="Excellent"
         )
 
         pattern = ProducerCriticPattern(max_iterations=3)
@@ -220,7 +231,7 @@ class TestProducerCriticPattern:
             producer=mock_producer,
             critic=mock_critic,
             requirement="Test requirement",
-            phase=AgentPhase.DESIGN
+            phase=AgentPhase.DESIGN,
         )
 
         # Should complete in 1 iteration
@@ -232,11 +243,7 @@ class TestProducerCriticPattern:
         assert not mock_producer.refine.called  # No refinement needed
 
     @pytest.mark.asyncio
-    async def test_multiple_iterations_until_approval(
-        self,
-        mock_producer,
-        mock_critic
-    ):
+    async def test_multiple_iterations_until_approval(self, mock_producer, mock_critic):
         """Test multiple refinement iterations"""
         # Producer work
         mock_producer.work.return_value = AgentWorkResult(
@@ -245,7 +252,7 @@ class TestProducerCriticPattern:
             phase=AgentPhase.DESIGN,
             agent_name="test_producer",
             errors=[],
-            duration=1.0
+            duration=1.0,
         )
 
         # Refinement
@@ -255,13 +262,13 @@ class TestProducerCriticPattern:
             phase=AgentPhase.DESIGN,
             agent_name="test_producer",
             errors=[],
-            duration=1.0
+            duration=1.0,
         )
 
         # Critic rejects first, approves second
         mock_critic.review.side_effect = [
             CriticReview(approved=False, overall_score=6.0, suggestions=["Fix this"]),
-            CriticReview(approved=True, overall_score=8.5, feedback="Good")
+            CriticReview(approved=True, overall_score=8.5, feedback="Good"),
         ]
 
         pattern = ProducerCriticPattern(max_iterations=3)
@@ -269,7 +276,7 @@ class TestProducerCriticPattern:
             producer=mock_producer,
             critic=mock_critic,
             requirement="Test requirement",
-            phase=AgentPhase.DESIGN
+            phase=AgentPhase.DESIGN,
         )
 
         # Should complete in 2 iterations
@@ -290,7 +297,7 @@ class TestProducerCriticPattern:
             phase=AgentPhase.DESIGN,
             agent_name="test_producer",
             errors=[],
-            duration=1.0
+            duration=1.0,
         )
 
         mock_producer.refine.return_value = AgentWorkResult(
@@ -299,14 +306,12 @@ class TestProducerCriticPattern:
             phase=AgentPhase.DESIGN,
             agent_name="test_producer",
             errors=[],
-            duration=1.0
+            duration=1.0,
         )
 
         # Critic always rejects
         mock_critic.review.return_value = CriticReview(
-            approved=False,
-            overall_score=5.0,
-            critical_issues=["Always wrong"]
+            approved=False, overall_score=5.0, critical_issues=["Always wrong"]
         )
 
         pattern = ProducerCriticPattern(max_iterations=3)
@@ -314,7 +319,7 @@ class TestProducerCriticPattern:
             producer=mock_producer,
             critic=mock_critic,
             requirement="Test requirement",
-            phase=AgentPhase.DESIGN
+            phase=AgentPhase.DESIGN,
         )
 
         # Should reach max iterations
@@ -324,9 +329,7 @@ class TestProducerCriticPattern:
 
     @pytest.mark.asyncio
     async def test_producer_failure_stops_collaboration(
-        self,
-        mock_producer,
-        mock_critic
+        self, mock_producer, mock_critic
     ):
         """Test collaboration stops if producer fails"""
         # Producer fails
@@ -336,7 +339,7 @@ class TestProducerCriticPattern:
             phase=AgentPhase.DESIGN,
             agent_name="test_producer",
             errors=["Producer error"],
-            duration=1.0
+            duration=1.0,
         )
 
         pattern = ProducerCriticPattern(max_iterations=3)
@@ -344,7 +347,7 @@ class TestProducerCriticPattern:
             producer=mock_producer,
             critic=mock_critic,
             requirement="Test requirement",
-            phase=AgentPhase.DESIGN
+            phase=AgentPhase.DESIGN,
         )
 
         # Should stop immediately
@@ -361,7 +364,7 @@ class TestProducerCriticPattern:
             phase=AgentPhase.DESIGN,
             agent_name="test_producer",
             errors=[],
-            duration=1.0
+            duration=1.0,
         )
 
         mock_producer.refine.return_value = AgentWorkResult(
@@ -370,14 +373,14 @@ class TestProducerCriticPattern:
             phase=AgentPhase.DESIGN,
             agent_name="test_producer",
             errors=[],
-            duration=1.0
+            duration=1.0,
         )
 
         # Scores improve over iterations
         mock_critic.review.side_effect = [
             CriticReview(approved=False, overall_score=6.0),
             CriticReview(approved=False, overall_score=7.5),
-            CriticReview(approved=True, overall_score=8.5)
+            CriticReview(approved=True, overall_score=8.5),
         ]
 
         pattern = ProducerCriticPattern(max_iterations=3)
@@ -385,7 +388,7 @@ class TestProducerCriticPattern:
             producer=mock_producer,
             critic=mock_critic,
             requirement="Test requirement",
-            phase=AgentPhase.DESIGN
+            phase=AgentPhase.DESIGN,
         )
 
         # Check improvement trajectory

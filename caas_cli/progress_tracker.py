@@ -89,7 +89,9 @@ class CLIProgressTracker:
         if description:
             display_text += f" - {description}"
 
-        task_id = self.progress.add_task(display_text, total=None)  # Indeterminate progress
+        task_id = self.progress.add_task(
+            display_text, total=None
+        )  # Indeterminate progress
 
         self.phase_tasks[phase_name] = task_id
         self.phase_times[phase_name] = time.time()
@@ -139,7 +141,10 @@ class CLIProgressTracker:
         display_text += f" ({duration:.1f}s)"
 
         self.progress.update(
-            task_id, description=f"[{style}]{display_text}[/{style}]", completed=100, total=100
+            task_id,
+            description=f"[{style}]{display_text}[/{style}]",
+            completed=100,
+            total=100,
         )
 
     def debug(self, message: str):
@@ -248,7 +253,9 @@ class CLIProgressTracker:
                 f"[cyan]🔍 {validator_name}: Validating {items_count} items...[/cyan]"
             )
 
-    def validation_result(self, validator_name: str, passed: bool, issues_count: int = 0):
+    def validation_result(
+        self, validator_name: str, passed: bool, issues_count: int = 0
+    ):
         """
         Display validation result message.
 
@@ -266,7 +273,11 @@ class CLIProgressTracker:
                 )
 
     def display_summary(
-        self, phases_completed: list, total_duration: float, success: bool, errors: list = None
+        self,
+        phases_completed: list,
+        total_duration: float,
+        success: bool,
+        errors: list = None,
     ):
         """
         Display final summary.
@@ -405,12 +416,16 @@ class SimpleProgressReporter:
                 if "phases_completed" in summary:
                     msg += f"\nPhases Completed: {summary['phases_completed']}"
                 if "implementation_rate" in summary:
-                    msg += f"\nImplementation Rate: {summary['implementation_rate']:.1f}%"
+                    msg += (
+                        f"\nImplementation Rate: {summary['implementation_rate']:.1f}%"
+                    )
                 if "agents_count" in summary:
                     msg += f"\nAgents Created: {summary['agents_count']}"
 
             self.tracker.console.print(
-                Panel(msg, box=box.DOUBLE, border_style="green", title="Workflow Complete")
+                Panel(
+                    msg, box=box.DOUBLE, border_style="green", title="Workflow Complete"
+                )
             )
         else:
             # Build failure message
@@ -479,7 +494,9 @@ class SimpleProgressReporter:
         """Display validation start message."""
         self.tracker.validation_start(validator_name, items_count)
 
-    def validation_result(self, validator_name: str, passed: bool, issues_count: int = 0):
+    def validation_result(
+        self, validator_name: str, passed: bool, issues_count: int = 0
+    ):
         """Display validation result message."""
         self.tracker.validation_result(validator_name, passed, issues_count)
 

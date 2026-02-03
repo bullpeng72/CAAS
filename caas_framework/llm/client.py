@@ -109,7 +109,9 @@ class OpenAIClient(BaseLLMClient):
         # SECURITY: Get API key from SecretManager
         self._api_key = get_api_key("OPENAI_API_KEY")
         if not self._api_key:
-            raise ValueError("OPENAI_API_KEY not set. " "Please set OPENAI_API_KEY in .env file.")
+            raise ValueError(
+                "OPENAI_API_KEY not set. " "Please set OPENAI_API_KEY in .env file."
+            )
         # SECURITY: Only log masked version
         logger.info(
             f"OpenAI client initialized: model={self.config.model}, key={mask_secret(self._api_key)}"
@@ -168,7 +170,8 @@ class AnthropicClient(BaseLLMClient):
         self._api_key = get_api_key("ANTHROPIC_API_KEY")
         if not self._api_key:
             raise ValueError(
-                "ANTHROPIC_API_KEY not set. " "Please set ANTHROPIC_API_KEY in .env file."
+                "ANTHROPIC_API_KEY not set. "
+                "Please set ANTHROPIC_API_KEY in .env file."
             )
         # SECURITY: Only log masked version
         logger.info(

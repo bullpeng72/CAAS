@@ -45,7 +45,9 @@ class ExpandedRequirement(BaseModel):
     auto_expanded_features: List[FeatureSpec] = Field(default_factory=list)
     auto_expanded_data_models: List[DataModel] = Field(default_factory=list)
     auto_expanded_ui_components: List[UIComponent] = Field(default_factory=list)
-    suggested_nfr: NonFunctionalRequirements = Field(default_factory=NonFunctionalRequirements)
+    suggested_nfr: NonFunctionalRequirements = Field(
+        default_factory=NonFunctionalRequirements
+    )
     best_practices: List[BestPractice] = Field(default_factory=list)
     remaining_gaps: List[RequirementGap] = Field(default_factory=list)
     expansion_summary: str = ""
@@ -244,7 +246,9 @@ class RequirementExpander:
                 "에러 없이 완료됨",
             ]
 
-    def _generate_ui_components(self, spec: ConcretizedRequirement) -> List[UIComponent]:
+    def _generate_ui_components(
+        self, spec: ConcretizedRequirement
+    ) -> List[UIComponent]:
         """UI 컴포넌트 자동 생성"""
         if not self.llm:
             return []
@@ -289,11 +293,15 @@ class RequirementExpander:
                     description="메인 대시보드",
                 ),
                 UIComponent(
-                    page_name="목록", component_type="table", description="데이터 목록 조회"
+                    page_name="목록",
+                    component_type="table",
+                    description="데이터 목록 조회",
                 ),
             ]
 
-    def _generate_nfr(self, spec: ConcretizedRequirement, gap: RequirementGap) -> Dict[str, str]:
+    def _generate_nfr(
+        self, spec: ConcretizedRequirement, gap: RequirementGap
+    ) -> Dict[str, str]:
         """비기능 요구사항 생성"""
         nfr_updates = {}
 
@@ -307,7 +315,9 @@ class RequirementExpander:
                 nfr_updates["reliability"] = "99.9% 가용성 목표"
 
         elif gap.gap_type == GapType.MISSING_ERROR_HANDLING:
-            nfr_updates["reliability"] = "모든 에러를 로깅하고 사용자 친화적 메시지 제공"
+            nfr_updates[
+                "reliability"
+            ] = "모든 에러를 로깅하고 사용자 친화적 메시지 제공"
 
         return nfr_updates
 
@@ -379,16 +389,18 @@ class RequirementExpander:
         nfr = original.non_functional_requirements
 
         # 기존 NFR에 업데이트 적용
-        security = ObjectAccessor.get_value(nfr, "security") or fixes.nfr_updates.get("security")
-        performance = ObjectAccessor.get_value(nfr, "performance") or fixes.nfr_updates.get(
-            "performance"
+        security = ObjectAccessor.get_value(nfr, "security") or fixes.nfr_updates.get(
+            "security"
         )
-        scalability = ObjectAccessor.get_value(nfr, "scalability") or fixes.nfr_updates.get(
-            "scalability"
-        )
-        reliability = ObjectAccessor.get_value(nfr, "reliability") or fixes.nfr_updates.get(
-            "reliability"
-        )
+        performance = ObjectAccessor.get_value(
+            nfr, "performance"
+        ) or fixes.nfr_updates.get("performance")
+        scalability = ObjectAccessor.get_value(
+            nfr, "scalability"
+        ) or fixes.nfr_updates.get("scalability")
+        reliability = ObjectAccessor.get_value(
+            nfr, "reliability"
+        ) or fixes.nfr_updates.get("reliability")
 
         return NonFunctionalRequirements(
             security=security,

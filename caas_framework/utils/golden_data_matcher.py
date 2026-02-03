@@ -171,7 +171,9 @@ class GoldenDataMatcher:
         # Identify uncovered features
         uncovered_features = [f.id for f in features if f.id not in covered_feature_ids]
 
-        coverage_percentage = GoldenDataMatcher.calculate_percentage(covered_count, total_features)
+        coverage_percentage = GoldenDataMatcher.calculate_percentage(
+            covered_count, total_features
+        )
 
         return {
             "total_features": total_features,
@@ -209,7 +211,8 @@ class GoldenDataMatcher:
 
     @staticmethod
     def create_alignment_metadata(
-        golden_data: ConcretizedRequirement, coverage_metrics: Optional[Dict[str, Any]] = None
+        golden_data: ConcretizedRequirement,
+        coverage_metrics: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """
         Create Golden Data alignment metadata.
@@ -240,8 +243,12 @@ class GoldenDataMatcher:
             metadata.update(
                 {
                     "covered_features": coverage_metrics.get("covered_features", 0),
-                    "coverage_percentage": coverage_metrics.get("coverage_percentage", 0.0),
-                    "uncovered_features": coverage_metrics.get("uncovered_features", []),
+                    "coverage_percentage": coverage_metrics.get(
+                        "coverage_percentage", 0.0
+                    ),
+                    "uncovered_features": coverage_metrics.get(
+                        "uncovered_features", []
+                    ),
                 }
             )
 
@@ -280,7 +287,9 @@ class GoldenDataMatcher:
 
     @staticmethod
     def format_data_model_list(
-        data_models: List[DataModel], max_models: Optional[int] = None, max_attributes: int = 5
+        data_models: List[DataModel],
+        max_models: Optional[int] = None,
+        max_attributes: int = 5,
     ) -> str:
         """
         Format data model list for display or logging.

@@ -140,7 +140,9 @@ class DashboardDataExporter:
     """
 
     def __init__(
-        self, metrics_collector: EnhancedMetricsCollector, logger: Optional[logging.Logger] = None
+        self,
+        metrics_collector: EnhancedMetricsCollector,
+        logger: Optional[logging.Logger] = None,
     ):
         """
         Initialize dashboard exporter.
@@ -191,7 +193,9 @@ class DashboardDataExporter:
         distributions = {}
 
         # LLM duration distribution
-        llm_durations = [m.value for m in self.metrics.get_metrics_by_name("llm_duration")]
+        llm_durations = [
+            m.value for m in self.metrics.get_metrics_by_name("llm_duration")
+        ]
         if llm_durations:
             distributions["llm_duration"] = {
                 "min": min(llm_durations),
@@ -201,7 +205,9 @@ class DashboardDataExporter:
             }
 
         # Quality score distribution
-        quality_scores = [m.value for m in self.metrics.get_metrics_by_name("quality_score")]
+        quality_scores = [
+            m.value for m in self.metrics.get_metrics_by_name("quality_score")
+        ]
         if quality_scores:
             distributions["quality_score"] = {
                 "min": min(quality_scores),
@@ -218,10 +224,13 @@ class DashboardDataExporter:
 
         # Top phases by duration
         phase_durations = self.metrics.get_metrics_by_name("phase_duration")
-        top_phases = sorted(phase_durations, key=lambda m: m.value, reverse=True)[:count]
+        top_phases = sorted(phase_durations, key=lambda m: m.value, reverse=True)[
+            :count
+        ]
 
         top_metrics["slowest_phases"] = [
-            {"phase": m.labels.get("phase", "unknown"), "duration_ms": m.value} for m in top_phases
+            {"phase": m.labels.get("phase", "unknown"), "duration_ms": m.value}
+            for m in top_phases
         ]
 
         return top_metrics

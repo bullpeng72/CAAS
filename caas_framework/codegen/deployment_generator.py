@@ -377,9 +377,7 @@ help:
         # Docker
         files["Dockerfile"] = self.generate_dockerfile(config)
         files["docker-compose.yml"] = self.generate_docker_compose(config)
-        files[
-            ".dockerignore"
-        ] = """
+        files[".dockerignore"] = """
 __pycache__
 *.pyc
 *.pyo
@@ -410,9 +408,7 @@ htmlcov/
         files["Makefile"] = self.generate_makefile(config)
 
         # .env.example
-        files[
-            ".env.example"
-        ] = """
+        files[".env.example"] = """
 # Environment variables
 # Copy this file to .env and fill in your actual values
 

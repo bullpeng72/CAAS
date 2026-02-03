@@ -16,19 +16,19 @@ agents:
   - id: news_collector
     role: "Senior Financial News Researcher"
     goal: |
-      Collect and curate the most relevant and impactful financial news 
+      Collect and curate the most relevant and impactful financial news
       from reliable sources. Focus on market-moving events, earnings reports,
       economic indicators, and industry developments.
     backstory: |
-      You are a seasoned financial journalist with over 15 years of experience 
-      covering Wall Street and global markets. You have developed an extensive 
-      network of sources and have a keen eye for distinguishing noise from 
-      signal in financial news. Your expertise lies in identifying stories 
+      You are a seasoned financial journalist with over 15 years of experience
+      covering Wall Street and global markets. You have developed an extensive
+      network of sources and have a keen eye for distinguishing noise from
+      signal in financial news. Your expertise lies in identifying stories
       that will have material impact on markets before they become mainstream.
-      
-      You pride yourself on accuracy and timeliness, always cross-referencing 
-      multiple sources before presenting information. You understand the 
-      interconnected nature of global markets and can spot trends that 
+
+      You pride yourself on accuracy and timeliness, always cross-referencing
+      multiple sources before presenting information. You understand the
+      interconnected nature of global markets and can spot trends that
       others might miss.
     tools:
       - web_search
@@ -48,15 +48,15 @@ agents:
       assess risks, and uncover investment opportunities. Provide data-driven
       insights that can inform investment decisions.
     backstory: |
-      You are a CFA charterholder with 12 years of experience in equity research 
-      and portfolio management at top-tier investment firms. You have a deep 
-      understanding of financial markets, valuation methodologies, and 
+      You are a CFA charterholder with 12 years of experience in equity research
+      and portfolio management at top-tier investment firms. You have a deep
+      understanding of financial markets, valuation methodologies, and
       macroeconomic analysis.
-      
-      Your analytical approach combines quantitative rigor with qualitative 
-      judgment. You excel at synthesizing complex information into actionable 
-      insights and have a track record of identifying market opportunities 
-      before consensus forms. You're known for your ability to assess both 
+
+      Your analytical approach combines quantitative rigor with qualitative
+      judgment. You excel at synthesizing complex information into actionable
+      insights and have a track record of identifying market opportunities
+      before consensus forms. You're known for your ability to assess both
       risks and opportunities objectively.
     tools:
       - code_interpreter
@@ -76,15 +76,15 @@ agents:
       that provide actionable recommendations. Create professional-grade
       documents that communicate complex ideas effectively.
     backstory: |
-      You are an experienced financial writer who has authored research reports 
-      for major investment banks and financial publications. You have a unique 
-      ability to translate complex financial concepts into clear, accessible 
+      You are an experienced financial writer who has authored research reports
+      for major investment banks and financial publications. You have a unique
+      ability to translate complex financial concepts into clear, accessible
       language without sacrificing depth or accuracy.
-      
-      Your reports are known for their logical structure, compelling narratives, 
-      and actionable conclusions. You understand what institutional and retail 
-      investors need to make informed decisions and tailor your communication 
-      style accordingly. You pay meticulous attention to detail and always 
+
+      Your reports are known for their logical structure, compelling narratives,
+      and actionable conclusions. You understand what institutional and retail
+      investors need to make informed decisions and tailor your communication
+      style accordingly. You pay meticulous attention to detail and always
       ensure your recommendations are well-supported by evidence.
     tools:
       - file_write
@@ -101,7 +101,7 @@ tasks:
   - id: collect_news
     description: |
       Search and collect the latest financial news from the past 24 hours.
-      
+
       Focus on:
       1. Major market movements and their drivers
       2. Significant earnings reports and guidance updates
@@ -109,19 +109,19 @@ tasks:
       4. Central bank communications and policy changes
       5. Geopolitical events affecting markets
       6. Industry-specific developments and trends
-      
+
       For each news item, capture:
       - Headline and summary
       - Source and publication time
       - Affected sectors/companies
       - Potential market impact (high/medium/low)
-      
+
       Prioritize news from reliable financial sources like Bloomberg,
       Reuters, CNBC, Financial Times, and Wall Street Journal.
     expected_output: |
       A structured JSON document containing:
       - List of 10-15 most relevant news items
-      - Each item with: headline, summary, source, timestamp, 
+      - Each item with: headline, summary, source, timestamp,
         affected_sectors, impact_level
       - Brief overview of the day's market sentiment
     agent: news_collector
@@ -131,28 +131,28 @@ tasks:
     description: |
       Analyze the collected financial news to identify patterns, trends,
       and investment implications.
-      
+
       Your analysis should include:
       1. Market Sentiment Analysis
          - Overall market mood (bullish/bearish/neutral)
          - Key drivers of current sentiment
-         
+
       2. Sector Analysis
          - Sectors showing strength or weakness
          - Rotation patterns if any
-         
+
       3. Risk Assessment
          - Emerging risks to monitor
          - Potential black swan events
-         
+
       4. Opportunity Identification
          - Sectors/themes showing momentum
          - Contrarian opportunities
-         
+
       5. Macroeconomic Context
          - How current news fits broader economic trends
          - Interest rate and inflation implications
-      
+
       Use quantitative analysis where appropriate to support conclusions.
     expected_output: |
       A comprehensive analysis report in JSON format containing:
@@ -171,32 +171,32 @@ tasks:
     description: |
       Create a professional investment insight report based on the
       news collection and analysis.
-      
+
       The report should follow this structure:
-      
+
       1. Executive Summary (1 paragraph)
          - Key takeaways for busy readers
-         
+
       2. Market Overview
          - Current market conditions
          - Key events and their impact
-         
+
       3. Sector Spotlight
          - Deep dive into most relevant sectors
          - Winners and losers
-         
+
       4. Risk Monitor
          - Key risks to watch
          - Hedging considerations
-         
+
       5. Investment Ideas
          - Specific actionable recommendations
          - Entry points and risk management
-         
+
       6. Outlook
          - Near-term expectations
          - Key events to watch
-      
+
       Use clear, professional language. Include relevant data points
       but keep the report concise and actionable. Target length: 1500-2000 words.
     expected_output: |

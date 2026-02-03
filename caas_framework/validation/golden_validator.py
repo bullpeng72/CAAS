@@ -64,7 +64,9 @@ class GoldenDataValidator:
 
         # Null-safe feature count
         feature_count = len(golden_data.features) if golden_data.features else 0
-        logger.info(f"🎯 Golden Data Validator initialized with {feature_count} features")
+        logger.info(
+            f"🎯 Golden Data Validator initialized with {feature_count} features"
+        )
 
     def validate_discovery(
         self, requirement_analysis: RequirementAnalysis
@@ -105,7 +107,9 @@ class GoldenDataValidator:
                         item_id=feature.id,
                         item_name=feature.name,
                         description=f"Feature '{feature.name}' from Golden Data is missing in Discovery output",
-                        severity="high" if feature.priority in ["high", "critical"] else "medium",
+                        severity="high"
+                        if feature.priority in ["high", "critical"]
+                        else "medium",
                     )
                 )
 
@@ -130,7 +134,9 @@ class GoldenDataValidator:
 
             # RequirementAnalysis의 database_tables를 entities로 간주
             if requirement_analysis.database_tables:
-                output_entities = {table.lower() for table in requirement_analysis.database_tables}
+                output_entities = {
+                    table.lower() for table in requirement_analysis.database_tables
+                }
 
             for entity_name in golden_entities:
                 if entity_name not in output_entities:
@@ -145,7 +151,9 @@ class GoldenDataValidator:
                     )
 
         # 3. Calculate Coverage Score (null-safe)
-        data_models = self.golden_data.data_models if self.golden_data.data_models else []
+        data_models = (
+            self.golden_data.data_models if self.golden_data.data_models else []
+        )
         total_golden_items = len(features) + len(data_models)
         missing_count = len(missing_items)
 
@@ -168,9 +176,13 @@ class GoldenDataValidator:
         # 5. Generate Recommendations
         recommendations = []
         if missing_items:
-            recommendations.append(f"Add {len(missing_items)} missing items to match Golden Data")
+            recommendations.append(
+                f"Add {len(missing_items)} missing items to match Golden Data"
+            )
         if extra_items:
-            recommendations.append(f"Review {len(extra_items)} extra items - remove if not needed")
+            recommendations.append(
+                f"Review {len(extra_items)} extra items - remove if not needed"
+            )
 
         logger.info(
             f"✅ Discovery validation complete - "
@@ -215,14 +227,17 @@ class GoldenDataValidator:
         # Golden Data의 각 Feature가 Architecture의 Component로 매핑되어야 함
         features = self.golden_data.features if self.golden_data.features else []
         golden_features = {f.name.lower(): f for f in features}
-        architecture_components = {c.name.lower(): c for c in architecture_design.components}
+        architecture_components = {
+            c.name.lower(): c for c in architecture_design.components
+        }
 
         # High/Critical priority features는 반드시 Component로 존재해야 함
         for feature_name, feature in golden_features.items():
             if feature.priority in ["high", "critical"]:
                 # Component 이름에 feature 이름이 포함되어 있는지 확인 (유연한 매칭)
                 found = any(
-                    feature_name in comp_name for comp_name in architecture_components.keys()
+                    feature_name in comp_name
+                    for comp_name in architecture_components.keys()
                 )
 
                 if not found:
@@ -238,7 +253,9 @@ class GoldenDataValidator:
 
         # 2. Data Flow Coverage (null-safe)
         # Golden Data의 Data Models가 Architecture의 data flows에 반영되어야 함
-        data_models = self.golden_data.data_models if self.golden_data.data_models else []
+        data_models = (
+            self.golden_data.data_models if self.golden_data.data_models else []
+        )
         if data_models:
             golden_entities = {dm.entity_name.lower() for dm in data_models}
             data_flow_entities = set()
@@ -307,8 +324,12 @@ class GoldenDataValidator:
         # 6. Generate Recommendations
         recommendations = []
         if missing_items:
-            recommendations.append(f"Add {len(missing_items)} missing architectural elements")
-            recommendations.append("Ensure all high-priority features are reflected in components")
+            recommendations.append(
+                f"Add {len(missing_items)} missing architectural elements"
+            )
+            recommendations.append(
+                "Ensure all high-priority features are reflected in components"
+            )
 
         logger.info(
             f"✅ Architecture validation complete - "
@@ -358,7 +379,8 @@ class GoldenDataValidator:
         for feature_name, feature in golden_features.items():
             # Task description에 feature 이름이 포함되어 있는지 확인
             found = any(
-                feature_name in task.description.lower() or feature_name in task.id.lower()
+                feature_name in task.description.lower()
+                or feature_name in task.id.lower()
                 for task in task_specs
             )
 
@@ -369,12 +391,16 @@ class GoldenDataValidator:
                         item_id=feature.id,
                         item_name=feature.name,
                         description=f"No task found for feature '{feature.name}'",
-                        severity="high" if feature.priority in ["high", "critical"] else "medium",
+                        severity="high"
+                        if feature.priority in ["high", "critical"]
+                        else "medium",
                     )
                 )
 
         # 2. UI Component Coverage (null-safe)
-        ui_components = self.golden_data.ui_components if self.golden_data.ui_components else []
+        ui_components = (
+            self.golden_data.ui_components if self.golden_data.ui_components else []
+        )
         if ui_components:
             golden_ui_pages = {ui.page_name.lower() for ui in ui_components}
 
@@ -424,8 +450,12 @@ class GoldenDataValidator:
         # 5. Generate Recommendations
         recommendations = []
         if missing_items:
-            recommendations.append(f"Add {len(missing_items)} missing tasks to cover all features")
-            recommendations.append("Ensure all Golden Data features have corresponding tasks")
+            recommendations.append(
+                f"Add {len(missing_items)} missing tasks to cover all features"
+            )
+            recommendations.append(
+                "Ensure all Golden Data features have corresponding tasks"
+            )
 
         logger.info(
             f"✅ Design validation complete - "
@@ -469,7 +499,9 @@ class GoldenDataValidator:
 
         # 2. Task Coverage
         spec_tasks = generated_spec.get("tasks", [])
-        spec_task_descriptions = [task.get("description", "").lower() for task in spec_tasks]
+        spec_task_descriptions = [
+            task.get("description", "").lower() for task in spec_tasks
+        ]
 
         # Null-safe feature extraction
         features = self.golden_data.features if self.golden_data.features else []
@@ -486,7 +518,9 @@ class GoldenDataValidator:
                         item_id=feature.id,
                         item_name=feature.name,
                         description=f"Feature '{feature.name}' not implemented in generated code",
-                        severity="critical" if feature.priority in ["high", "critical"] else "high",
+                        severity="critical"
+                        if feature.priority in ["high", "critical"]
+                        else "high",
                     )
                 )
 
@@ -513,8 +547,12 @@ class GoldenDataValidator:
         # 5. Generate Recommendations
         recommendations = []
         if missing_items:
-            recommendations.append(f"Implement {len(missing_items)} missing features in code")
-            recommendations.append("Regenerate code to include all Golden Data features")
+            recommendations.append(
+                f"Implement {len(missing_items)} missing features in code"
+            )
+            recommendations.append(
+                "Regenerate code to include all Golden Data features"
+            )
 
         logger.info(
             f"✅ Code validation complete - "
@@ -534,7 +572,9 @@ class GoldenDataValidator:
             timestamp=datetime.now().isoformat(),
         )
 
-    def generate_summary_report(self, validation_reports: List[GoldenValidationReport]) -> str:
+    def generate_summary_report(
+        self, validation_reports: List[GoldenValidationReport]
+    ) -> str:
         """
         검증 결과 요약 리포트 생성
 
@@ -550,7 +590,9 @@ class GoldenDataValidator:
             report += f"## {validation.phase_name.upper()} Phase\n"
             report += f"**Coverage Score**: {validation.coverage_score:.2%}\n"
             report += f"**Compliance Status**: {validation.compliance_status.value}\n"
-            report += f"**Needs Fixing**: {'Yes' if validation.needs_fixing else 'No'}\n\n"
+            report += (
+                f"**Needs Fixing**: {'Yes' if validation.needs_fixing else 'No'}\n\n"
+            )
 
             if validation.missing_items:
                 report += f"**Missing Items ({len(validation.missing_items)})**:\n"

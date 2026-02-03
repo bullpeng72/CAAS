@@ -91,7 +91,9 @@ class GateEvaluation:
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""
         return {
-            "phase": self.phase.value if isinstance(self.phase, AgentPhase) else self.phase,
+            "phase": self.phase.value
+            if isinstance(self.phase, AgentPhase)
+            else self.phase,
             "status": self.status.value,
             "can_proceed": self.can_proceed,
             "pass_rate": self.pass_rate,
@@ -184,7 +186,9 @@ class QualityGate:
             # Check pass/fail
             if evaluated_metric.passed:
                 passed.append(metric.name)
-                self.logger.debug(f"  ✅ {metric.name}: {actual_value} >= {metric.threshold}")
+                self.logger.debug(
+                    f"  ✅ {metric.name}: {actual_value} >= {metric.threshold}"
+                )
             else:
                 failed.append(metric.name)
                 level = "CRITICAL" if metric.critical else "WARNING"
@@ -211,7 +215,9 @@ class QualityGate:
         # Determine status
         if pass_rate >= self.min_pass_rate:
             # Check critical metrics
-            critical_failures = [m for m in evaluated_metrics if m.critical and not m.passed]
+            critical_failures = [
+                m for m in evaluated_metrics if m.critical and not m.passed
+            ]
             if critical_failures:
                 status = GateStatus.FAILED
             else:
@@ -245,7 +251,10 @@ class QualityGate:
         return evaluation
 
     def _get_metric_value(
-        self, metric: QualityMetric, output: Dict[str, Any], context: Optional[Dict[str, Any]]
+        self,
+        metric: QualityMetric,
+        output: Dict[str, Any],
+        context: Optional[Dict[str, Any]],
     ) -> Optional[float]:
         """Extract metric value from output or context"""
 
@@ -526,7 +535,10 @@ class QualityGateSystem:
         return gates
 
     def evaluate_gate(
-        self, phase: AgentPhase, output: Dict[str, Any], context: Optional[Dict[str, Any]] = None
+        self,
+        phase: AgentPhase,
+        output: Dict[str, Any],
+        context: Optional[Dict[str, Any]] = None,
     ) -> GateEvaluation:
         """
         Evaluate quality gate for a phase.
@@ -557,7 +569,9 @@ class QualityGateSystem:
 
         # Strict mode: any failure blocks
         if self.strict_mode and evaluation.status == GateStatus.FAILED:
-            self.logger.error(f"🚫 Strict mode: blocking {phase.name} due to gate failure")
+            self.logger.error(
+                f"🚫 Strict mode: blocking {phase.name} due to gate failure"
+            )
 
         return evaluation
 

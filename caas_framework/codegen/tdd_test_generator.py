@@ -667,9 +667,7 @@ def test_{path.replace("/", "_").strip("_")}_post():
                 files["tests/test_api.py"] = api_test_code
 
         # Enhanced Conftest with comprehensive fixtures
-        files[
-            "tests/conftest.py"
-        ] = '''
+        files["tests/conftest.py"] = '''
 """
 Pytest configuration and fixtures
 
@@ -937,9 +935,7 @@ def assert_valid_task():
 '''
 
         # Enhanced test requirements for 80%+ coverage
-        files[
-            "tests/requirements-test.txt"
-        ] = """# Testing framework
+        files["tests/requirements-test.txt"] = """# Testing framework
 pytest>=7.0.0
 pytest-asyncio>=0.21.0
 pytest-cov>=4.0.0
@@ -1226,7 +1222,9 @@ def {name}(input_data: Any = None, error_condition: bool = False) -> Any:
             try:
                 with open("coverage.json", "r") as f:
                     cov_data = json.load(f)
-                    coverage = cov_data.get("totals", {}).get("percent_covered", 0.0) / 100.0
+                    coverage = (
+                        cov_data.get("totals", {}).get("percent_covered", 0.0) / 100.0
+                    )
             except:
                 pass
 
@@ -1238,7 +1236,9 @@ def {name}(input_data: Any = None, error_condition: bool = False) -> Any:
                 for line in lines:
                     if "FAILED" in line:
                         failed_tests.append(
-                            line.split("::")[1].split(" ")[0] if "::" in line else "unknown"
+                            line.split("::")[1].split(" ")[0]
+                            if "::" in line
+                            else "unknown"
                         )
                         error_messages.append(line)
 
@@ -1391,7 +1391,9 @@ def {name}(input_data: Any = None, error_condition: bool = False) -> Any:
             logger.info(f"  Iteration {iterations}/{self.max_iterations}...")
 
             # Refine implementation
-            impl_code = self.refine_implementation(feature_spec, impl_code, test_results)
+            impl_code = self.refine_implementation(
+                feature_spec, impl_code, test_results
+            )
 
             with open(impl_file, "w") as f:
                 f.write(impl_code)
@@ -1405,7 +1407,9 @@ def {name}(input_data: Any = None, error_condition: bool = False) -> Any:
 
         refactor_phase = {
             "status": (
-                "complete" if test_results.get("failed", 0) == 0 else "max_iterations_reached"
+                "complete"
+                if test_results.get("failed", 0) == 0
+                else "max_iterations_reached"
             ),
             "iterations": iterations,
             "final_passed": test_results.get("passed", 0),
@@ -1420,6 +1424,10 @@ def {name}(input_data: Any = None, error_condition: bool = False) -> Any:
             "iterations": iterations,
             "final_coverage": test_results.get("coverage", 0.0),
             "all_tests_passed": test_results.get("failed", 0) == 0,
-            "cycle_phases": {"red": red_phase, "green": green_phase, "refactor": refactor_phase},
+            "cycle_phases": {
+                "red": red_phase,
+                "green": green_phase,
+                "refactor": refactor_phase,
+            },
             "test_results": test_results,
         }

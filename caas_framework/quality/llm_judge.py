@@ -50,7 +50,9 @@ class EvaluationResult:
 
     def get_category_score(self, category: EvaluationCategory) -> float:
         """특정 카테고리의 평균 점수"""
-        category_scores = [cs.score for cs in self.criteria_scores if cs.category == category]
+        category_scores = [
+            cs.score for cs in self.criteria_scores if cs.category == category
+        ]
         return sum(category_scores) / len(category_scores) if category_scores else 0.0
 
     def get_weighted_score(self) -> float:
@@ -197,7 +199,9 @@ Be thorough but fair - code doesn't need to be perfect, but should meet professi
         for filename, content in code_files.items():
             # 긴 파일은 요약
             if len(content) > 500:
-                code_summary[filename] = f"{content[:500]}...\n(Total: {len(content)} chars)"
+                code_summary[
+                    filename
+                ] = f"{content[:500]}...\n(Total: {len(content)} chars)"
             else:
                 code_summary[filename] = content
 
@@ -262,7 +266,12 @@ Be thorough but fair - code doesn't need to be perfect, but should meet professi
             # Find matching spec for category and weight
             criterion_name = score_data.get("criterion", "")
             matching_spec = next(
-                (spec for spec in criteria_specs if spec["criterion"] == criterion_name), None
+                (
+                    spec
+                    for spec in criteria_specs
+                    if spec["criterion"] == criterion_name
+                ),
+                None,
             )
 
             category = EvaluationCategory.CORRECTNESS  # default
@@ -286,7 +295,9 @@ Be thorough but fair - code doesn't need to be perfect, but should meet professi
         # 가중 평균 계산
         if criteria_scores:
             total_weight = sum(cs.weight for cs in criteria_scores)
-            overall_score = sum(cs.score * cs.weight for cs in criteria_scores) / total_weight
+            overall_score = (
+                sum(cs.score * cs.weight for cs in criteria_scores) / total_weight
+            )
         else:
             overall_score = 0.0
 
@@ -302,7 +313,9 @@ Be thorough but fair - code doesn't need to be perfect, but should meet professi
             recommendations=evaluation_data.get("recommendations", []),
         )
 
-    def _create_fallback_evaluation(self, criteria_specs: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def _create_fallback_evaluation(
+        self, criteria_specs: List[Dict[str, Any]]
+    ) -> Dict[str, Any]:
         """LLM 호출 실패 시 fallback 평가"""
 
         return {
@@ -341,4 +354,6 @@ Be thorough but fair - code doesn't need to be perfect, but should meet professi
             return asyncio.create_task(self.evaluate_code_quality(code_files, context))
         else:
             # 새 루프 실행
-            return loop.run_until_complete(self.evaluate_code_quality(code_files, context))
+            return loop.run_until_complete(
+                self.evaluate_code_quality(code_files, context)
+            )

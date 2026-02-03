@@ -114,7 +114,9 @@ class SyntaxCheck(QualityCheck):
             except SyntaxError as e:
                 errors.append(f"{filename}:{e.lineno}:{e.offset}: {e.msg}")
             except Exception as e:
-                warnings.append(f"{filename}: Unexpected error during parsing: {str(e)}")
+                warnings.append(
+                    f"{filename}: Unexpected error during parsing: {str(e)}"
+                )
 
         duration = time.time() - start_time
 
@@ -172,7 +174,11 @@ class ImportCheck(QualityCheck):
         status = CheckStatus.PASSED if len(errors) == 0 else CheckStatus.FAILED
 
         return CheckResult(
-            name=self.name, status=status, errors=errors, warnings=warnings, duration=duration
+            name=self.name,
+            status=status,
+            errors=errors,
+            warnings=warnings,
+            duration=duration,
         )
 
     def _check_module(
@@ -218,7 +224,8 @@ class ImportCheck(QualityCheck):
         # If not in stdlib, it's likely a third-party dependency
         # We'll warn but not fail
         warnings.append(
-            f"{filename}: Third-party module '{module_name}' " f"(ensure it's in requirements.txt)"
+            f"{filename}: Third-party module '{module_name}' "
+            f"(ensure it's in requirements.txt)"
         )
 
 
@@ -246,11 +253,15 @@ class CodeStyleCheck(QualityCheck):
             # Check line length (warn if > 120 chars)
             for i, line in enumerate(lines, 1):
                 if len(line) > 120:
-                    warnings.append(f"{filename}:{i}: Line too long ({len(line)} > 120 chars)")
+                    warnings.append(
+                        f"{filename}:{i}: Line too long ({len(line)} > 120 chars)"
+                    )
 
             # Check for common style issues
             if "import *" in content:
-                warnings.append(f"{filename}: Wildcard import detected (avoid 'from x import *')")
+                warnings.append(
+                    f"{filename}: Wildcard import detected (avoid 'from x import *')"
+                )
 
             # Check for proper spacing around operators (basic check)
             for i, line in enumerate(lines, 1):
@@ -272,7 +283,11 @@ class CodeStyleCheck(QualityCheck):
         status = CheckStatus.PASSED if len(warnings) < 10 else CheckStatus.WARNING
 
         return CheckResult(
-            name=self.name, status=status, errors=errors, warnings=warnings, duration=duration
+            name=self.name,
+            status=status,
+            errors=errors,
+            warnings=warnings,
+            duration=duration,
         )
 
 
@@ -287,7 +302,10 @@ class CodeQualityPipeline:
     """
 
     def __init__(
-        self, enable_syntax: bool = True, enable_imports: bool = True, enable_style: bool = True
+        self,
+        enable_syntax: bool = True,
+        enable_imports: bool = True,
+        enable_style: bool = True,
     ):
         """
         Initialize quality pipeline.
@@ -339,7 +357,9 @@ class CodeQualityPipeline:
                         f"⚠️ {check.name} passed with warnings: {len(result.warnings)}"
                     )
                 else:
-                    self.logger.error(f"❌ {check.name} failed: {len(result.errors)} errors")
+                    self.logger.error(
+                        f"❌ {check.name} failed: {len(result.errors)} errors"
+                    )
 
             except Exception as e:
                 self.logger.exception(f"Error running {check.name}: {e}")
@@ -354,7 +374,9 @@ class CodeQualityPipeline:
         total_duration = time.time() - start_time
 
         # Calculate overall status
-        overall_passed = all(r.status in [CheckStatus.PASSED, CheckStatus.WARNING] for r in results)
+        overall_passed = all(
+            r.status in [CheckStatus.PASSED, CheckStatus.WARNING] for r in results
+        )
 
         total_errors = sum(len(r.errors) for r in results)
         total_warnings = sum(len(r.warnings) for r in results)
@@ -383,14 +405,18 @@ class CodeQualityPipeline:
         self.logger.info(f"  Errors: {report.total_errors}")
         self.logger.info(f"  Warnings: {report.total_warnings}")
 
-        self.logger.info(f"\n✅ Overall: {'PASSED' if report.overall_passed else 'FAILED'}")
+        self.logger.info(
+            f"\n✅ Overall: {'PASSED' if report.overall_passed else 'FAILED'}"
+        )
 
         self.logger.info("\n📋 Check Results:")
         for check in report.checks:
             status_icon = (
                 "✅"
                 if check.status == CheckStatus.PASSED
-                else "⚠️" if check.status == CheckStatus.WARNING else "❌"
+                else "⚠️"
+                if check.status == CheckStatus.WARNING
+                else "❌"
             )
             self.logger.info(f"\n  {status_icon} {check.name} ({check.duration:.2f}s)")
 

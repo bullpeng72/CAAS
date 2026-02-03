@@ -16,10 +16,7 @@ from caas_framework.agents.collaboration import SafeFeedbackLoop
 
 def test_safe_feedback_loop_creation():
     """Test that SafeFeedbackLoop can be created with proper configuration."""
-    loop = SafeFeedbackLoop(
-        max_retries=2,
-        timeout_per_retry=60
-    )
+    loop = SafeFeedbackLoop(max_retries=2, timeout_per_retry=60)
 
     assert loop.max_retries == 2
     assert loop.timeout_per_retry == 60
@@ -69,7 +66,7 @@ async def test_timeout_protection():
     """Test that timeout protection works (prevents hanging)."""
     loop = SafeFeedbackLoop(
         max_retries=1,
-        timeout_per_retry=1  # 1 second timeout for testing
+        timeout_per_retry=1,  # 1 second timeout for testing
     )
 
     # Mock agent that hangs
@@ -79,18 +76,18 @@ async def test_timeout_protection():
         async def refine(self, *args, **kwargs):
             # Simulate hanging operation
             await asyncio.sleep(5)  # Longer than timeout
-            return type('obj', (object,), {'success': True, 'output': {}})()
+            return type("obj", (object,), {"success": True, "output": {}})()
 
     # Mock validator that always needs fixing
     class MockValidator:
         async def validate_design(self, *args, **kwargs):
             class Result:
                 needs_fixing = True
-                golden_result = type('obj', (object,), {
-                    'missing_items': [],
-                    'extra_items': [],
-                    'mismatched_items': []
-                })()
+                golden_result = type(
+                    "obj",
+                    (object,),
+                    {"missing_items": [], "extra_items": [], "mismatched_items": []},
+                )()
 
             return Result()
 
@@ -104,7 +101,7 @@ async def test_timeout_protection():
         initial_output={"test": "data"},
         validator=MockValidator(),
         phase=AgentPhase.DESIGN,
-        context=None
+        context=None,
     )
 
     end_time = asyncio.get_event_loop().time()
@@ -113,7 +110,9 @@ async def test_timeout_protection():
     # Should timeout within ~1 second, not wait 5 seconds
     assert duration < 3, f"Operation should timeout quickly, but took {duration}s"
     assert output == {"test": "data"}, "Should return original output on timeout"
-    assert llm_evaluation is None, "Should return None for LLM evaluation when no LLM Judge"
+    assert (
+        llm_evaluation is None
+    ), "Should return None for LLM evaluation when no LLM Judge"
 
 
 def test_collaboration_file_imports():
@@ -128,9 +127,9 @@ def test_collaboration_file_imports():
 
         # Check that SafeFeedbackLoop is available
         assert SafeFeedbackLoop is not None
-        assert hasattr(SafeFeedbackLoop, 'run_with_feedback')
-        assert hasattr(SafeFeedbackLoop, '_validate_output')
-        assert hasattr(SafeFeedbackLoop, '_extract_issues')
+        assert hasattr(SafeFeedbackLoop, "run_with_feedback")
+        assert hasattr(SafeFeedbackLoop, "_validate_output")
+        assert hasattr(SafeFeedbackLoop, "_extract_issues")
 
         print("✅ SafeFeedbackLoop successfully integrated into collaboration.py")
         return True

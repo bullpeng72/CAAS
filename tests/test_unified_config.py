@@ -73,15 +73,10 @@ class TestUnifiedConfig:
     def test_yaml_config_file(self):
         """Test loading from YAML config file"""
         # Create temporary YAML file
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
             yaml_config = {
-                "llm": {
-                    "model": "gpt-4",
-                    "temperature": 0.5
-                },
-                "validation": {
-                    "strictness": "high"
-                }
+                "llm": {"model": "gpt-4", "temperature": 0.5},
+                "validation": {"strictness": "high"},
             }
             yaml.dump(yaml_config, f)
             temp_path = Path(f.name)
@@ -173,6 +168,7 @@ class TestUnifiedConfig:
 
         # Old imports should issue deprecation warnings
         import warnings
+
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
 
@@ -191,45 +187,45 @@ class TestConfigSubmodules:
         """Test LLM configuration"""
         config = get_config()
 
-        assert hasattr(config.llm, 'provider')
-        assert hasattr(config.llm, 'model')
-        assert hasattr(config.llm, 'temperature')
-        assert hasattr(config.llm, 'max_tokens')
+        assert hasattr(config.llm, "provider")
+        assert hasattr(config.llm, "model")
+        assert hasattr(config.llm, "temperature")
+        assert hasattr(config.llm, "max_tokens")
 
     def test_graph_config(self):
         """Test graph database configuration"""
         config = get_config()
 
-        assert hasattr(config.graph, 'backend')
-        assert hasattr(config.graph, 'neo4j_uri')
-        assert hasattr(config.graph, 'embedded_storage')
+        assert hasattr(config.graph, "backend")
+        assert hasattr(config.graph, "neo4j_uri")
+        assert hasattr(config.graph, "embedded_storage")
 
     def test_validation_config(self):
         """Test validation configuration"""
         config = get_config()
 
-        assert hasattr(config.validation, 'enabled')
-        assert hasattr(config.validation, 'strictness')
-        assert hasattr(config.validation, 'auto_fix')
-        assert hasattr(config.validation, 'max_fix_iterations')
+        assert hasattr(config.validation, "enabled")
+        assert hasattr(config.validation, "strictness")
+        assert hasattr(config.validation, "auto_fix")
+        assert hasattr(config.validation, "max_fix_iterations")
 
     def test_artifacts_config(self):
         """Test artifacts configuration"""
         config = get_config()
 
-        assert hasattr(config.artifacts, 'enabled')
-        assert hasattr(config.artifacts, 'output_dir')
-        assert hasattr(config.artifacts, 'output_format')
+        assert hasattr(config.artifacts, "enabled")
+        assert hasattr(config.artifacts, "output_dir")
+        assert hasattr(config.artifacts, "output_format")
 
     def test_app_config(self):
         """Test application configuration"""
         config = get_config()
 
-        assert hasattr(config.app, 'app_name')
-        assert hasattr(config.app, 'app_env')
-        assert hasattr(config.app, 'log_level')
-        assert hasattr(config.app, 'is_development')
-        assert hasattr(config.app, 'is_production')
+        assert hasattr(config.app, "app_name")
+        assert hasattr(config.app, "app_env")
+        assert hasattr(config.app, "log_level")
+        assert hasattr(config.app, "is_development")
+        assert hasattr(config.app, "is_production")
 
 
 class TestNoDuplication:

@@ -42,11 +42,15 @@ class ValidationIssueFactory:
         # Missing items (features, tasks, agents not implemented)
         if hasattr(golden_result, "missing_items"):
             for missing in golden_result.missing_items:
-                item_type = missing.item_type if hasattr(missing, "item_type") else "unknown"
+                item_type = (
+                    missing.item_type if hasattr(missing, "item_type") else "unknown"
+                )
                 issues.append(
                     ValidationIssue(
                         issue_type=f"missing_{item_type}",
-                        severity=missing.severity if hasattr(missing, "severity") else "medium",
+                        severity=missing.severity
+                        if hasattr(missing, "severity")
+                        else "medium",
                         message=f"Missing {item_type}: {missing.item_name if hasattr(missing, 'item_name') else str(missing)}",
                         field=f"{item_type}s",
                     )
@@ -55,7 +59,9 @@ class ValidationIssueFactory:
         # Extra items (unexpected implementations)
         if hasattr(golden_result, "extra_items"):
             for extra in golden_result.extra_items:
-                item_type = extra.item_type if hasattr(extra, "item_type") else "unknown"
+                item_type = (
+                    extra.item_type if hasattr(extra, "item_type") else "unknown"
+                )
                 issues.append(
                     ValidationIssue(
                         issue_type=f"extra_{item_type}",
@@ -70,8 +76,14 @@ class ValidationIssueFactory:
             for mismatch in golden_result.mismatched_items:
                 expected = mismatch.expected if hasattr(mismatch, "expected") else "N/A"
                 actual = mismatch.actual if hasattr(mismatch, "actual") else "N/A"
-                item_type = mismatch.item_type if hasattr(mismatch, "item_type") else "unknown"
-                item_name = mismatch.item_name if hasattr(mismatch, "item_name") else str(mismatch)
+                item_type = (
+                    mismatch.item_type if hasattr(mismatch, "item_type") else "unknown"
+                )
+                item_name = (
+                    mismatch.item_name
+                    if hasattr(mismatch, "item_name")
+                    else str(mismatch)
+                )
                 issues.append(
                     ValidationIssue(
                         issue_type=f"mismatch_{item_type}",
@@ -170,19 +182,32 @@ class ValidationIssueFactory:
         issues = []
 
         # Golden Data validation
-        if hasattr(validation_result, "golden_result") and validation_result.golden_result:
+        if (
+            hasattr(validation_result, "golden_result")
+            and validation_result.golden_result
+        ):
             issues.extend(
-                ValidationIssueFactory.from_golden_validation(validation_result.golden_result)
+                ValidationIssueFactory.from_golden_validation(
+                    validation_result.golden_result
+                )
             )
 
         # LLM evaluation
-        if hasattr(validation_result, "llm_evaluation") and validation_result.llm_evaluation:
+        if (
+            hasattr(validation_result, "llm_evaluation")
+            and validation_result.llm_evaluation
+        ):
             issues.extend(
-                ValidationIssueFactory.from_llm_evaluation(validation_result.llm_evaluation)
+                ValidationIssueFactory.from_llm_evaluation(
+                    validation_result.llm_evaluation
+                )
             )
 
         # Ontology validation errors
-        if hasattr(validation_result, "ontology_errors") and validation_result.ontology_errors:
+        if (
+            hasattr(validation_result, "ontology_errors")
+            and validation_result.ontology_errors
+        ):
             for error in validation_result.ontology_errors:
                 issues.append(
                     ValidationIssue(
@@ -190,20 +215,27 @@ class ValidationIssueFactory:
                         message=str(error),
                         severity="medium",
                         field=(
-                            error.get("entity", "unknown") if isinstance(error, dict) else "unknown"
+                            error.get("entity", "unknown")
+                            if isinstance(error, dict)
+                            else "unknown"
                         ),
                     )
                 )
 
         # Dependency errors
-        if hasattr(validation_result, "dependency_errors") and validation_result.dependency_errors:
+        if (
+            hasattr(validation_result, "dependency_errors")
+            and validation_result.dependency_errors
+        ):
             for error in validation_result.dependency_errors:
                 issues.append(
                     ValidationIssue(
                         issue_type="dependency",
                         message=str(error),
                         severity="high",
-                        field="circular" if "circular" in str(error).lower() else "dependency",
+                        field="circular"
+                        if "circular" in str(error).lower()
+                        else "dependency",
                     )
                 )
 
@@ -258,7 +290,9 @@ class ValidationIssueFactory:
                 field_name = (
                     issue.field
                     if hasattr(issue, "field")
-                    else (issue.issue_type if hasattr(issue, "issue_type") else "unknown")
+                    else (
+                        issue.issue_type if hasattr(issue, "issue_type") else "unknown"
+                    )
                 )
                 message = issue.message if hasattr(issue, "message") else str(issue)
 
@@ -294,7 +328,9 @@ class ValidationIssueFactory:
         for issue in issues:
             # By severity
             severity = issue.severity if hasattr(issue, "severity") else "medium"
-            summary["by_severity"][severity] = summary["by_severity"].get(severity, 0) + 1
+            summary["by_severity"][severity] = (
+                summary["by_severity"].get(severity, 0) + 1
+            )
 
             # By type
             issue_type = issue.issue_type if hasattr(issue, "issue_type") else "unknown"
@@ -307,9 +343,15 @@ class ValidationIssueFactory:
                         "name": (
                             issue.field
                             if hasattr(issue, "field")
-                            else (issue.issue_type if hasattr(issue, "issue_type") else "unknown")
+                            else (
+                                issue.issue_type
+                                if hasattr(issue, "issue_type")
+                                else "unknown"
+                            )
                         ),
-                        "message": issue.message if hasattr(issue, "message") else str(issue),
+                        "message": issue.message
+                        if hasattr(issue, "message")
+                        else str(issue),
                     }
                 )
 
@@ -338,7 +380,9 @@ class ValidationIssueFactory:
         return [
             issue
             for issue in issues
-            if severity_order.get(issue.severity if hasattr(issue, "severity") else "medium", 1)
+            if severity_order.get(
+                issue.severity if hasattr(issue, "severity") else "medium", 1
+            )
             >= min_level
         ]
 

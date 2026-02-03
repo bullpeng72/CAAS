@@ -19,7 +19,9 @@ from caas_cli.utils import echo_info, echo_success, print_table
     help="Set configuration value(s) - can be used multiple times",
 )
 @click.option("--get", "get_key", type=str, help="Get specific configuration value")
-@click.option("--list", "list_all", is_flag=True, help="List all configuration settings")
+@click.option(
+    "--list", "list_all", is_flag=True, help="List all configuration settings"
+)
 @click.option("--reset", is_flag=True, help="Reset configuration to default values")
 def config(set_value, get_key, list_all, reset):
     """
