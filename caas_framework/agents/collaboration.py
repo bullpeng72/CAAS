@@ -1622,7 +1622,7 @@ class ExpertAgentCollaboration:
                             name=metric.name,
                             description=metric.description,
                             threshold=metric.threshold,
-                            value=metric.value,
+                            actual_value=metric.actual_value,
                             passed=metric.passed,
                             critical=False,  # Force to non-critical
                             metric_type=metric.metric_type,
