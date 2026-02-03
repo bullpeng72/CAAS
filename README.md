@@ -16,7 +16,7 @@
 
 ### 🏗️ Framework-First Architecture
 - **UI-독립적인 코어 프레임워크** (`caas_framework/`)
-- **3가지 인터페이스**: CLI, Python SDK, Streamlit UI (선택적)
+- **2가지 인터페이스**: CLI, Python SDK
 - **플러그인 기반 확장성**: LLM, Vector DB, Graph DB
 - **세션 관리**: 다중 프로젝트 동시 작업
 
@@ -254,30 +254,33 @@ caas/
 │
 ├── 📁 caas_sdk/                     # Python SDK (선택적)
 │   ├── client.py                    # Sync & Async clients
+│   ├── local_client.py              # Local execution client
 │   ├── models.py                    # SDK models
 │   └── exceptions.py                # SDK exceptions
-│
-├── 📁 app/                          # Shared utilities
-│   ├── knowledge/                   # Graph DB clients
-│   ├── utils/                       # Common utilities
-│   ├── models/                      # Data models
-│   ├── codegen/                     # Code generation utilities
-│   └── artifacts/                   # Artifact generation
 │
 ├── 📁 data/                         # Data files
 │   ├── templates/                   # Code templates (Jinja2)
 │   └── golden_examples/             # Golden data examples
 │
-├── 📁 docs/                         # Documentation
-│   ├── README.md                    # Documentation index
-│   ├── ARCHITECTURE.md              # System architecture
-│   ├── CLI_GUIDE.md                 # Complete CLI reference
-│   ├── DEVELOPMENT_METHODOLOGY.md   # Development methodology
-│   ├── INSTALLATION.md              # Installation guide
-│   ├── INTEGRATION_GUIDE.md         # Integration patterns
-│   ├── DEPLOYMENT_GUIDE.md          # Production deployment
-│   ├── guides/                      # Detailed guides
-│   └── ko/                          # Korean documentation
+├── 📁 docs/                         # Documentation (한국어 중심)
+│   ├── README_KO.md                 # 한국어 문서 색인
+│   ├── 1_시작하기/                  # 설치 및 시작 가이드
+│   │   ├── 설치_가이드.md
+│   │   ├── 빠른_시작_가이드.md
+│   │   └── CLI_사용_가이드.md
+│   ├── 2_개발_방법론/               # BMAD 방법론 및 활용
+│   │   ├── 초보자_가이드.md
+│   │   └── 전문가_방법론_가이드.md
+│   ├── 3_시스템_문서/               # 아키텍처 및 배포
+│   │   ├── 아키텍처_가이드.md
+│   │   ├── 통합_가이드.md
+│   │   └── 배포_가이드.md
+│   └── 4_기능_가이드/               # 기능별 상세 가이드
+│       ├── API_키_관리.md
+│       ├── 산출물_자동생성.md
+│       ├── 요구사항_정제.md
+│       ├── 도구_매핑.md
+│       └── 진행상황_추적.md
 │
 ├── 📁 examples/                     # Examples
 ├── 📁 tests/                        # Test suite (100+ tests)
@@ -421,27 +424,29 @@ caas generate-code \
 
 ## 📚 문서
 
-### 📖 핵심 문서
-- 📋 [Documentation Index](docs/README.md) - 전체 문서 목록
-- 🏗️ [Architecture Guide](docs/ARCHITECTURE.md) - 시스템 아키텍처
-- 💻 [CLI Guide](docs/CLI_GUIDE.md) - CLI 완전 가이드
-- 🛠️ [Development Methodology](docs/DEVELOPMENT_METHODOLOGY.md) - 개발 방법론 (실전 사례 포함)
+### 📖 한국어 문서 (권장)
+- 📁 [문서 색인](docs/README_KO.md) - 전체 한국어 문서 목록
 
 ### 🚀 시작 가이드
-- 📦 [Installation Guide](docs/INSTALLATION.md) - 설치 가이드
-- 🎯 [Quick Start](docs/guides/QUICK_START.md) - 5분 안에 시작하기
-- 🔀 [Usage Comparison](docs/USAGE_COMPARISON.md) - CLI vs SDK vs UI 비교
+- 📦 [설치 가이드](docs/1_시작하기/설치_가이드.md) - 설치 및 환경 설정
+- 🎯 [빠른 시작 가이드](docs/1_시작하기/빠른_시작_가이드.md) - 5분 안에 시작하기
+- 💻 [CLI 사용 가이드](docs/1_시작하기/CLI_사용_가이드.md) - CLI 완전 가이드
 
-### 🔧 고급 가이드
-- 🔗 [Integration Guide](docs/INTEGRATION_GUIDE.md) - Frontend-Backend 통합
-- 🚀 [Deployment Guide](docs/DEPLOYMENT_GUIDE.md) - 프로덕션 배포
-- 📝 [Artifact Generation](docs/ARTIFACT_GENERATION.md) - 산출물 자동 생성
-- 🔑 [API Key Management](docs/API_KEY_MANAGEMENT.md) - API 키 설정
+### 🛠️ 개발 방법론
+- 👶 [초보자 가이드](docs/2_개발_방법론/초보자_가이드.md) - 실전 활용 완벽 매뉴얼 ⭐
+- 👨‍💻 [전문가 방법론 가이드](docs/2_개발_방법론/전문가_방법론_가이드.md) - BMAD 6-Phase 프로세스
 
-### 🌏 한국어 문서
-- 🛠️ [개발 방법론](docs/2_개발_방법론/개발_방법론.md) - BMAD 6-Phase 프로세스
-- 🎯 [실전 활용 가이드](docs/2_개발_방법론/실전_활용_가이드.md) - 초보자를 위한 완벽 매뉴얼 ⭐
-- 📁 [문서 색인](docs/README_KO.md) - 전체 한국어 문서 (13개)
+### 🔧 시스템 문서
+- 🏗️ [아키텍처 가이드](docs/3_시스템_문서/아키텍처_가이드.md) - 시스템 아키텍처
+- 🔗 [통합 가이드](docs/3_시스템_문서/통합_가이드.md) - Frontend-Backend 통합
+- 🚀 [배포 가이드](docs/3_시스템_문서/배포_가이드.md) - 프로덕션 배포
+
+### 📝 기능 가이드
+- 🔑 [API 키 관리](docs/4_기능_가이드/API_키_관리.md) - API 키 설정
+- 📋 [산출물 자동생성](docs/4_기능_가이드/산출물_자동생성.md) - 개발 문서 자동화
+- ✨ [요구사항 정제](docs/4_기능_가이드/요구사항_정제.md) - Gap Analysis & Expansion
+- 🔧 [도구 매핑](docs/4_기능_가이드/도구_매핑.md) - CrewAI Tools 번역
+- 📊 [진행상황 추적](docs/4_기능_가이드/진행상황_추적.md) - Progress Tracking
 
 ---
 
@@ -525,8 +530,7 @@ pytest tests/test_validation/        # 검증 시스템
 | **Code Gen** | Jinja2, Black, AST |
 | **CLI** | Click 8.0+, Rich |
 | **Testing** | pytest, pytest-asyncio |
-| **Backend** | FastAPI 0.100+, SQLAlchemy 2.0+ |
-| **Frontend** | Streamlit 1.30+ (선택적) |
+| **Backend** | FastAPI 0.100+, SQLAlchemy 2.0+ (생성 코드에 포함) |
 
 ---
 
@@ -667,8 +671,8 @@ MIT License - 자세한 내용은 [LICENSE](LICENSE) 파일 참조
 ## 📞 문의
 
 - GitHub Issues: [Issues](https://github.com/bullpeng72/CrewAI-Agent-Autogeneration-System/issues)
-- Email: team@aidx.com
-- Documentation: [https://caas.readthedocs.io](https://caas.readthedocs.io)
+- Email: sungwoo.kim@gmail.com
+- Documentation: [GitHub Docs](https://github.com/bullpeng72/CrewAI-Agent-Autogeneration-System#readme)
 
 ---
 
@@ -683,6 +687,6 @@ MIT License - 자세한 내용은 [LICENSE](LICENSE) 파일 참조
 
 ---
 
-**Made with ❤️ by AIDX Team**
+**Made with ❤️ by bullpeng72**
 
-**v0.2.0 Production Release** 🎉 | [Documentation](docs/) | Framework-First Architecture ✅ | 98.7% Implementation Rate for CrewAI Agents ⭐ | Last Updated: 2026-01-31
+**v0.2.0 Production Release** 🎉 | [Documentation](docs/README_KO.md) | Framework-First Architecture ✅ | 98.7% Implementation Rate for CrewAI Agents ⭐ | Last Updated: 2026-02-03
