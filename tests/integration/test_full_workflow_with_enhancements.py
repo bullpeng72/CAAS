@@ -378,7 +378,6 @@ async def test_multi_model_phase_based_selection(enhanced_system):
 
     router = enhanced_system["router"]
 
-
     # Test different phases
     phases_to_test = [
         (AgentPhase.DISCOVERY, "gpt-3.5-turbo"),  # Cheaper model for discovery

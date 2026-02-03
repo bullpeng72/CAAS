@@ -33,7 +33,7 @@ def test_generation_config():
     config = GenerationConfig()
     assert config.llm_provider == "openai"
     assert config.llm_model == "gpt-4"
-    assert config.enable_feedback_loop == True
+    assert config.enable_feedback_loop
     assert config.max_retries == 3
 
     # Custom config
@@ -45,7 +45,7 @@ def test_generation_config():
         verbosity="debug",
     )
     assert config.llm_model == "gpt-3.5-turbo"
-    assert config.enable_plan_mode == True
+    assert config.enable_plan_mode
     assert config.output_dir == "./my_output"
     assert config.verbosity == "debug"
 
@@ -61,7 +61,7 @@ def test_generation_result():
         warnings=["Warning: unused variable"],
     )
 
-    assert result.success == True
+    assert result.success
     assert len(result.files) == 2
     assert "main.py" in result.files
     assert result.metadata["duration"] == 10.5
@@ -70,7 +70,7 @@ def test_generation_result():
     # Failure result
     result = GenerationResult(success=False, errors=["Generation failed: timeout"])
 
-    assert result.success == False
+    assert not result.success
     assert len(result.errors) == 1
 
 
@@ -154,7 +154,7 @@ async def test_caas_api_generate_mock(mock_llm, mock_golden_data):
             result = await api.generate("Create a blog system")
 
             # Verify result
-            assert result.success == True
+            assert result.success
             assert len(result.files) == 2
             assert "main.py" in result.files
             assert result.metadata["duration"] == 10.5
@@ -187,7 +187,7 @@ async def test_caas_api_generate_from_design(mock_llm):
         result = await api.generate_from_design(agents, tasks)
 
         # Verify
-        assert result.success == True
+        assert result.success
         assert len(result.files) == 1
         assert "main.py" in result.files
 
@@ -215,7 +215,7 @@ def test_format_result(mock_llm):
 
     # Verify
     assert isinstance(result, GenerationResult)
-    assert result.success == True
+    assert result.success
     assert len(result.files) == 2
     assert result.metadata["duration"] == 15.3
     assert result.metadata["feedback_loops_executed"] == 2

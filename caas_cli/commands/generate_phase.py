@@ -181,9 +181,7 @@ async def generate_phase(
         output_path.mkdir(parents=True, exist_ok=True)
 
         if phase == 0:
-            await _execute_phase_0(
-                framework, requirement, domain, output_path, verbose
-            )
+            await _execute_phase_0(framework, requirement, domain, output_path, verbose)
         elif phase == 1:
             await _execute_phase_1(framework, input, output_path, verbose)
         elif phase == 2:

@@ -271,4 +271,4 @@ caas generate --help
 
 - **GitHub Issues**: https://github.com/bullpeng72/CrewAI-Agent-Autogeneration-System/issues
 - **문서**: `docs/README_KO.md`
-- **예제**: `examples/` 디렉토리 확인
+- **예제**: `tests/test_e2e_` 디렉토리 확인
