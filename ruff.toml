@@ -41,6 +41,9 @@ exclude = [
 "caas_framework/config/*.py" = ["T201"]
 "caas_framework/knowledge/patterns.py" = ["T201"]
 "caas_framework/performance/profiler.py" = ["T201"]
+# Allow print() in validation/debug output
+"caas_framework/validation/semantic_checker.py" = ["T201"]
+"caas_framework/models/domain_types.py" = ["T201"]
 # Allow print() in test files
 "tests/**/*.py" = ["T201"]
 
