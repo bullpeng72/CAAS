@@ -96,10 +96,10 @@ all = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/caas/caas-framework"
-Documentation = "https://caas-framework.readthedocs.io"
-Repository = "https://github.com/caas/caas-framework"
-Issues = "https://github.com/caas/caas-framework/issues"
+Homepage = "https://github.com/bullpeng72/CrewAI-Agent-Autogeneration-System"
+Documentation = "https://github.com/bullpeng72/CrewAI-Agent-Autogeneration-System#readme"
+Repository = "https://github.com/bullpeng72/CrewAI-Agent-Autogeneration-System"
+Issues = "https://github.com/bullpeng72/CrewAI-Agent-Autogeneration-System/issues"
 
 [project.scripts]
 caas = "caas_framework.cli:main"

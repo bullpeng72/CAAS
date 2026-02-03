@@ -82,9 +82,9 @@ dev = [
 caas = "caas_cli.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/aidx/caas"
-Documentation = "https://github.com/aidx/caas#readme"
-Repository = "https://github.com/aidx/caas"
+Homepage = "https://github.com/bullpeng72/CrewAI-Agent-Autogeneration-System"
+Documentation = "https://github.com/bullpeng72/CrewAI-Agent-Autogeneration-System#readme"
+Repository = "https://github.com/bullpeng72/CrewAI-Agent-Autogeneration-System"
 
 [tool.setuptools.packages.find]
 where = ["."]

@@ -298,7 +298,7 @@ def show_comprehensive_help():
     footer.append("🤔 For interactive help: ", style="bold")
     footer.append("caas questions\n", style="green")
     footer.append("📚 Documentation: ", style="bold")
-    footer.append("https://github.com/your-org/caas\n", style="cyan underline")
+    footer.append("https://github.com/bullpeng72/CrewAI-Agent-Autogeneration-System\n", style="cyan underline")
 
     console.print(Panel(footer, border_style="cyan", padding=(0, 2)))
     console.print("\n")
@@ -745,8 +745,8 @@ def cli(ctx):
     🌐 RESOURCES
     ═══════════════════════════════════════════════════════════════════════
 
-    Documentation:    https://github.com/your-org/caas
-    Issue Tracker:    https://github.com/your-org/caas/issues
+    Documentation:    https://github.com/bullpeng72/CrewAI-Agent-Autogeneration-System
+    Issue Tracker:    https://github.com/bullpeng72/CrewAI-Agent-Autogeneration-System/issues
     Examples:         caas examples list
     Methodology:      docs/BMAD_METHODOLOGY.md
 

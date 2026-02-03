@@ -361,10 +361,10 @@ generated/
 ## 🤝 기여 및 지원
 
 ### 버그 리포트
-- GitHub Issues: https://github.com/your-org/caas/issues
+- GitHub Issues: https://github.com/bullpeng72/CrewAI-Agent-Autogeneration-System/issues
 
 ### 기능 요청
-- GitHub Discussions: https://github.com/your-org/caas/discussions
+- GitHub Discussions: https://github.com/bullpeng72/CrewAI-Agent-Autogeneration-System/discussions
 
 ### 문의
 - Email: support@caas.dev

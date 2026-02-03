@@ -42,7 +42,7 @@ pip install caas-framework
 
 ### From Source
 ```bash
-git clone https://github.com/caas/caas-framework.git
+git clone https://github.com/bullpeng72/CrewAI-Agent-Autogeneration-System.git
 cd caas-framework
 pip install -e .
 ```
@@ -286,7 +286,7 @@ pytest -m integration
 ### Setup Development Environment
 
 ```bash
-git clone https://github.com/caas/caas-framework.git
+git clone https://github.com/bullpeng72/CrewAI-Agent-Autogeneration-System.git
 cd caas-framework
 python -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
@@ -331,7 +331,7 @@ If you use CAAS Framework in your research, please cite:
   title = {CAAS Framework: CrewAI Agent Auto-generation System},
   author = {CAAS Team},
   year = {2024},
-  url = {https://github.com/caas/caas-framework}
+  url = {https://github.com/bullpeng72/CrewAI-Agent-Autogeneration-System}
 }
 ```
 
@@ -345,5 +345,5 @@ If you use CAAS Framework in your research, please cite:
 
 - 📧 Email: support@caas-framework.io
 - 💬 Discord: https://discord.gg/caas-framework
-- 🐛 Issues: https://github.com/caas/caas-framework/issues
+- 🐛 Issues: https://github.com/bullpeng72/CrewAI-Agent-Autogeneration-System/issues
 - 📖 Docs: https://caas-framework.readthedocs.io
