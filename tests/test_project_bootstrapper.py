@@ -371,7 +371,7 @@ class TestProjectBootstrapper:
         """Test that verbose mode produces output"""
         bootstrapper = ProjectBootstrapper()
 
-        result = bootstrapper.bootstrap(
+        bootstrapper.bootstrap(
             generated_files=sample_generated_files,
             project_name="test_project",
             base_dir=temp_base_dir,

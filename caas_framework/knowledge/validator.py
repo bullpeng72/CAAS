@@ -132,7 +132,7 @@ class OntologyValidator(LoggerMixin):
         """에이전트 역할 검증"""
         issues = []
 
-        standard_roles = [r.value for r in AgentRole]
+        [r.value for r in AgentRole]
 
         for agent in agents:
             agent_id = _safe_get(agent, "id", "unknown")

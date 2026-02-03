@@ -317,7 +317,7 @@ class TestGoldenPatternLibrary:
         )
 
         # Enhance with verbose
-        enhanced = library.enhance_with_patterns(
+        library.enhance_with_patterns(
             user_request="Create another blog",
             concretized=sample_concretized_news,
             auto_add=True,

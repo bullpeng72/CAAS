@@ -77,7 +77,7 @@ class CodeGeneratorAgent(BaseExpertAgent):
             - project_structure: Dict - Project structure
             - generation_metadata: Dict - Generation details
         """
-        context_summary = self._build_context_summary(context, previous_outputs)
+        self._build_context_summary(context, previous_outputs)
 
         # Get design and architecture from previous phases
         design = previous_outputs.get(AgentPhase.DESIGN) if previous_outputs else None
@@ -867,7 +867,7 @@ def create_agents():
 
         tasks_code = []
         for task in tasks:
-            task_id = task.get("id", "task")
+            task.get("id", "task")
             description = task.get("description", "Execute task")
             expected_output = task.get("expected_output", "Task completed")
             agent_id = task.get("agent", agents[0].get("id") if agents else "agent")

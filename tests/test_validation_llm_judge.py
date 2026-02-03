@@ -235,7 +235,7 @@ class TestLLMJudgeValidation:
         judge = LLMJudge(mock_llm)
         context = {"requirement": "Build a user management system"}
 
-        result = await judge.evaluate_quality(
+        await judge.evaluate_quality(
             output=sample_design_output, phase=AgentPhase.DESIGN, context=context
         )
 

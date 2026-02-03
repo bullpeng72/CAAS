@@ -569,7 +569,7 @@ class TestSelfAwareAgentClass:
         registry._capabilities.clear()
 
         llm = MockLLM()
-        agent = TestSelfAwareAgent(
+        TestSelfAwareAgent(
             agent_name="RegisteredAgent", llm=llm, role="Tester", tools=["pytest"]
         )
 

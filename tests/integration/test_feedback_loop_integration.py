@@ -323,7 +323,7 @@ class TestFeedbackLoopIntegration:
 
         This test ensures we can monitor feedback loop effectiveness.
         """
-        collaboration = ExpertAgentCollaboration(
+        ExpertAgentCollaboration(
             llm_plugin=mock_llm,
             golden_data=mock_golden_data,
             max_feedback_loops=3,

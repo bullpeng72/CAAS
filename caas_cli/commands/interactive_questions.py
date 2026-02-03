@@ -249,7 +249,7 @@ def questions(gaps, domain, output, api_url, interactive):
 
                     elif q_type == "NUMBER_INPUT":
                         min_val = q.get("min_value", 0)
-                        max_val = q.get("max_value", 1000000)
+                        q.get("max_value", 1000000)
                         default_val = float(q.get("default_value", min_val))
 
                         answer = click.prompt(

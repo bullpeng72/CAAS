@@ -615,11 +615,11 @@ class ReactTemplateGenerator:
     def _generate_vite_config(self) -> str:
         """Generate vite.config.ts with backend proxy."""
         # Use template but override server config for backend integration
-        base_config = self.templates.vite_config_template()
+        self.templates.vite_config_template()
 
         # Replace the server config to use configured backend URL
-        backend_host = self.config.backend_url.split("://")[-1].split(":")[0]
-        backend_port = self.config.backend_url.split(":")[-1].rstrip("/")
+        self.config.backend_url.split("://")[-1].split(":")[0]
+        self.config.backend_url.split(":")[-1].rstrip("/")
 
         return f"""import {{ defineConfig }} from 'vite'
 import react from '@vitejs/plugin-react'
@@ -760,11 +760,6 @@ export default defineConfig({{
 
     def _generate_agent_runner_component(self) -> str:
         """Generate AgentRunner component using templates."""
-        form_fields = [
-            {"name": "task", "type": "string"},
-            {"name": "temperature", "type": "number"},
-            {"name": "max_iterations", "type": "number"},
-        ]
 
         # Use form template as base and customize
         return """import React, { useState } from 'react';

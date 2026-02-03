@@ -149,7 +149,7 @@ Provide a JSON fix.
 """
 
         try:
-            response = await self.llm_plugin.ainvoke(
+            await self.llm_plugin.ainvoke(
                 messages=[{"role": "user", "content": prompt}],
                 response_format={"type": "json_object"},
             )

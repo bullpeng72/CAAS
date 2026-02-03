@@ -227,7 +227,7 @@ class SemanticMatcher:
 
         try:
             # LLM 호출 (실제 구현 필요)
-            response = self.llm_client.invoke(prompt)
+            self.llm_client.invoke(prompt)
             # Parse response and return
             # (실제 구현에서는 JSON 파싱 및 오류 처리 필요)
             return (True, 0.8, "Semantic match found")

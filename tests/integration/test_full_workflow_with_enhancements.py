@@ -237,7 +237,7 @@ async def test_integrated_enhancements_work_together(enhanced_system):
     start_time = datetime.now()
 
     async with profiler.profile("llm_call_discovery", {"phase": "discovery"}):
-        response_1 = await cached_llm.ainvoke(test_messages, phase=AgentPhase.DISCOVERY)
+        await cached_llm.ainvoke(test_messages, phase=AgentPhase.DISCOVERY)
 
     duration_1 = (datetime.now() - start_time).total_seconds()
 
@@ -259,9 +259,9 @@ async def test_integrated_enhancements_work_together(enhanced_system):
     start_time_2 = datetime.now()
 
     async with profiler.profile("llm_call_discovery_cached", {"phase": "discovery"}):
-        response_2 = await cached_llm.ainvoke(test_messages, phase=AgentPhase.DISCOVERY)
+        await cached_llm.ainvoke(test_messages, phase=AgentPhase.DISCOVERY)
 
-    duration_2 = (datetime.now() - start_time_2).total_seconds()
+    (datetime.now() - start_time_2).total_seconds()
 
     # Cache hit (no cost/metrics recorded)
     metrics.record_cache_hit("llm_response")
@@ -378,7 +378,6 @@ async def test_multi_model_phase_based_selection(enhanced_system):
 
     router = enhanced_system["router"]
 
-    test_messages = [{"role": "user", "content": "Test"}]
 
     # Test different phases
     phases_to_test = [

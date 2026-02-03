@@ -333,7 +333,6 @@ class RequirementExpander:
 
     def _apply_best_practices(self, spec: ConcretizedRequirement) -> List[BestPractice]:
         """도메인별 모범 사례 적용"""
-        practices = []
 
         domain_practices = {
             "TASK_MANAGEMENT": [

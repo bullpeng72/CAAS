@@ -319,7 +319,7 @@ class ReflectionEngine:
         try:
             spec_dict = yaml.safe_load(spec_yaml)
             agents = spec_dict.get("agents", [])
-            tasks = spec_dict.get("tasks", [])
+            spec_dict.get("tasks", [])
 
             # agents.py 파일 확인
             agent_file = code_files.get("agents.py", "")

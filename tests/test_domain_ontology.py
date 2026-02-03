@@ -482,7 +482,7 @@ class TestIntegration:
         mentioned = ["Cart", "Product"]
 
         # Infer missing concepts
-        missing = reasoner.infer_missing_concepts(mentioned)
+        reasoner.infer_missing_concepts(mentioned)
 
         # Analyze completeness
         analysis = reasoner.analyze_completeness(mentioned)

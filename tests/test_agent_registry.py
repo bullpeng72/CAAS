@@ -125,7 +125,7 @@ class TestAgentRegistry:
 
     def test_registry_raises_on_duplicate_phase_without_override(self):
         """Test that registering same phase twice raises error"""
-        registry = get_agent_registry()
+        get_agent_registry()
 
         @register_agent(phase=AgentPhase.DISCOVERY)
         class Agent1(BaseExpertAgent):

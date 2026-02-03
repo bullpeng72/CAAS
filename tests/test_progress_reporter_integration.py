@@ -301,7 +301,7 @@ def test_bmad_engine_integration_pattern():
 def test_rich_availability():
     """Test Rich library availability check"""
     # With Rich (default)
-    reporter1 = ProgressReporter(use_rich=True)
+    ProgressReporter(use_rich=True)
     # Should have console if Rich is available
     # (We can't guarantee Rich is available in test environment)
 

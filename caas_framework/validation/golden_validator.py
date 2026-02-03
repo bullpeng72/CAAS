@@ -373,7 +373,7 @@ class GoldenDataValidator:
         # 1. Feature Coverage by Tasks (null-safe)
         features = self.golden_data.features if self.golden_data.features else []
         golden_features = {f.name.lower(): f for f in features}
-        output_tasks = {t.id.lower(): t for t in task_specs}
+        {t.id.lower(): t for t in task_specs}
 
         # 각 Golden Feature에 대응하는 Task가 있는지 확인
         for feature_name, feature in golden_features.items():
@@ -402,7 +402,7 @@ class GoldenDataValidator:
             self.golden_data.ui_components if self.golden_data.ui_components else []
         )
         if ui_components:
-            golden_ui_pages = {ui.page_name.lower() for ui in ui_components}
+            {ui.page_name.lower() for ui in ui_components}
 
             # Task descriptions에서 UI 관련 키워드 확인
             ui_related_tasks = [
@@ -495,7 +495,7 @@ class GoldenDataValidator:
 
         # 1. Agent Coverage
         spec_agents = generated_spec.get("agents", [])
-        spec_agent_roles = {agent.get("role", "").lower() for agent in spec_agents}
+        {agent.get("role", "").lower() for agent in spec_agents}
 
         # 2. Task Coverage
         spec_tasks = generated_spec.get("tasks", [])

@@ -177,26 +177,25 @@ async def generate_phase(
         framework = await initialize_framework()
 
         # Execute phase
-        result = None
         output_path = Path(output)
         output_path.mkdir(parents=True, exist_ok=True)
 
         if phase == 0:
-            result = await _execute_phase_0(
+            await _execute_phase_0(
                 framework, requirement, domain, output_path, verbose
             )
         elif phase == 1:
-            result = await _execute_phase_1(framework, input, output_path, verbose)
+            await _execute_phase_1(framework, input, output_path, verbose)
         elif phase == 2:
-            result = await _execute_phase_2(
+            await _execute_phase_2(
                 framework, input, workflow_type, output_path, verbose
             )
         elif phase == 3:
-            result = await _execute_phase_3(framework, input, output_path, verbose)
+            await _execute_phase_3(framework, input, output_path, verbose)
         elif phase == 4:
-            result = await _execute_phase_4(framework, input, output_path, verbose)
+            await _execute_phase_4(framework, input, output_path, verbose)
         elif phase == 5:
-            result = await _execute_phase_5(
+            await _execute_phase_5(
                 framework, input, deployment_target, output_path, verbose
             )
 
@@ -373,9 +372,9 @@ async def _execute_phase_3(framework, input_dir, output_path, verbose):
 
     # requirement_analysis may or may not exist
     try:
-        requirement_analysis = load_json(input_path / "requirement_analysis.json")
+        load_json(input_path / "requirement_analysis.json")
     except FileNotFoundError:
-        requirement_analysis = None
+        pass
 
     from caas_framework.bmad.engine import BMADEngine
     from caas_framework.models.specifications import (

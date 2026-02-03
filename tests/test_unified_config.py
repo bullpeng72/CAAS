@@ -112,7 +112,7 @@ class TestUnifiedConfig:
 
     def test_reload_config_creates_new_instance(self):
         """Test that reload_config creates new instance"""
-        config1 = get_config()
+        get_config()
         config2 = reload_config()
 
         # Should be different instances
@@ -169,7 +169,7 @@ class TestUnifiedConfig:
         # Old imports should issue deprecation warnings
         import warnings
 
-        with warnings.catch_warnings(record=True) as w:
+        with warnings.catch_warnings(record=True):
             warnings.simplefilter("always")
 
             # This should trigger deprecation warning

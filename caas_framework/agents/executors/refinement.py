@@ -98,13 +98,13 @@ class RefinementExecutor:
         """
         # Step 1: Format validation issues
         if issue_formatter:
-            issues_summary = issue_formatter(issues)
+            issue_formatter(issues)
         else:
-            issues_summary = self._format_issues_default(issues)
+            self._format_issues_default(issues)
 
         # Step 2: Extract Golden Data context
         golden_data_info = self._extract_golden_data_context()
-        golden_data_context_desc = self._get_golden_data_description()
+        self._get_golden_data_description()
 
         # Step 3: Build refinement prompt
         prompt = self.prompt_builder.build_refinement_prompt(

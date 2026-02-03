@@ -1017,7 +1017,7 @@ class TestFirstCodeGenerator:
             str: Generated test code (should FAIL initially)
         """
         name = feature_spec.get("name", "unknown_feature")
-        description = feature_spec.get("description", "")
+        feature_spec.get("description", "")
         acceptance_criteria = feature_spec.get("acceptance_criteria", [])
         components = feature_spec.get("components", [])
 
@@ -1300,7 +1300,7 @@ def {name}(input_data: Any = None, error_condition: bool = False) -> Any:
             # All tests pass, no refinement needed
             return current_implementation
 
-        name = feature_spec.get("name", "unknown_feature")
+        feature_spec.get("name", "unknown_feature")
         failed_tests = test_results.get("failed_tests", [])
         error_messages = test_results.get("error_messages", [])
 

@@ -320,7 +320,6 @@ class TestE2EFullWorkflow:
         # 1. Running with RUN_E2E_TESTS=1 (intended)
         # 2. Running this specific test (always allowed)
 
-        skip_reason = "E2E tests require RUN_E2E_TESTS=1"
 
         if os.getenv("RUN_E2E_TESTS"):
             # E2E enabled - verify we can access LLM

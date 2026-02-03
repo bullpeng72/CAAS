@@ -188,7 +188,7 @@ class OntologyValidator:
             tools_mentioned_in_tasks = set()
             for task in agent_tasks:
                 task_desc = _safe_get(task, "description", "").lower()
-                task_id = _safe_get(task, "id", _safe_get(task, "name", "unknown"))
+                _safe_get(task, "id", _safe_get(task, "name", "unknown"))
 
                 # Extract tool names from task description
                 # Look for patterns like "using X tool", "with X", "via X scraping", etc.
@@ -582,7 +582,7 @@ class OntologyValidator:
                 # Check for mismatches
                 if required_methods and task_methods:
                     missing_methods = set(required_methods) - set(task_methods)
-                    extra_methods = set(task_methods) - set(required_methods)
+                    set(task_methods) - set(required_methods)
 
                     if missing_methods:
                         method_str = ", ".join(missing_methods)

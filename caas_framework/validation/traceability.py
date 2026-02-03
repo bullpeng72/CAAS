@@ -130,7 +130,7 @@ class TraceabilityMatrix:
         # 모든 소스 타입별 집계
         requirements = self._get_unique_items("requirement")
         features = self._get_unique_items("feature")
-        agents = self._get_unique_items("agent")
+        self._get_unique_items("agent")
         tasks = self._get_unique_items("task")
         code_elements = self._get_unique_items("code")
 
