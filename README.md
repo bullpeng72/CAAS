@@ -2,7 +2,7 @@
 
 **Production-Ready Multi-Agent System Generator from Natural Language Requirements**
 
-자연어 요구사항을 입력하면 BMAD 6-Phase 방법론과 Expert Agents를 활용하여 프로덕션 레디 코드를 자동으로 생성하는 CLI 기반 시스템입니다.
+자연어 요구사항을 입력하면 BMAD 6-Phase 방법론과 Expert Agents를 활용하여 프로덕션 레디 코드를 자동으로 생성하는 통합 패키지입니다. CLI 도구와 Python 라이브러리로 모두 사용 가능합니다.
 
 ![Python](https://img.shields.io/badge/Python-3.11+-blue)
 ![CrewAI](https://img.shields.io/badge/CrewAI-0.65+-green)
@@ -16,7 +16,8 @@
 
 ### 🏗️ Framework-First Architecture
 - **UI-독립적인 코어 프레임워크** (`caas_framework/`)
-- **2가지 인터페이스**: CLI, Python SDK
+- **필수 CLI + 라이브러리**: CLI 도구 + Python 라이브러리로 사용 가능
+- **다양한 UI 지원**: Streamlit, FastAPI, React, VSCode Extension 등
 - **플러그인 기반 확장성**: LLM, Vector DB, Graph DB
 - **세션 관리**: 다중 프로젝트 동시 작업
 
@@ -140,6 +141,14 @@ Phase 5: Delivery           → Production Code + Tests + Deployment
 
 ### 설치
 
+**방법 1: PyPI에서 설치 (권장)**
+
+```bash
+pip install caas
+```
+
+**방법 2: 소스에서 설치**
+
 ```bash
 # 1. 저장소 클론
 git clone https://github.com/bullpeng72/CrewAI-Agent-Autogeneration-System.git
@@ -200,6 +209,123 @@ caas fix \
 caas list                    # 프로젝트 목록
 caas status <project-id>     # 상태 확인
 caas download <project-id> ./output  # 다운로드
+```
+
+### 라이브러리 사용법
+
+CAAS를 Python 라이브러리로 사용하여 커스텀 UI를 개발할 수 있습니다.
+
+#### 📝 Python 스크립트
+
+```python
+from caas_framework.framework import CrewAIFramework
+import asyncio
+
+async def main():
+    framework = CrewAIFramework()
+    await framework.initialize()
+
+    result = await framework.generate_from_requirement(
+        requirement="할일 관리 시스템 만들기",
+        domain="TASK_MANAGEMENT",
+        output_dir="./generated"
+    )
+
+    print(f"✅ {len(result.files)}개 파일 생성")
+    print(f"📊 완전성: {result.completeness_score}/100")
+
+asyncio.run(main())
+```
+
+#### 🌐 Streamlit 앱
+
+```python
+import streamlit as st
+from caas_framework.framework import CrewAIFramework
+import asyncio
+
+st.title("🤖 CAAS Agent Generator")
+
+requirement = st.text_area("요구사항 입력:", height=150)
+domain = st.selectbox("도메인 선택:",
+    ["CONVERSATIONAL_AI", "DATA_ANALYSIS", "TASK_MANAGEMENT"])
+
+if st.button("생성"):
+    with st.spinner("생성 중..."):
+        framework = CrewAIFramework()
+        await framework.initialize()
+
+        result = await framework.generate_from_requirement(
+            requirement=requirement,
+            domain=domain
+        )
+
+        st.success(f"✅ {len(result.files)}개 파일 생성!")
+        st.json(result.model_dump())
+```
+
+#### ⚡ FastAPI 백엔드
+
+```python
+from fastapi import FastAPI, BackgroundTasks
+from caas_framework.framework import CrewAIFramework
+from pydantic import BaseModel
+
+app = FastAPI()
+framework = CrewAIFramework()
+
+class GenerateRequest(BaseModel):
+    requirement: str
+    domain: str = "CONVERSATIONAL_AI"
+
+@app.post("/api/generate")
+async def generate_code(req: GenerateRequest):
+    await framework.initialize()
+
+    result = await framework.generate_from_requirement(
+        requirement=req.requirement,
+        domain=req.domain
+    )
+
+    return {
+        "success": result.success,
+        "files": len(result.files),
+        "completeness_score": result.completeness_score,
+        "output_dir": str(result.output_dir)
+    }
+```
+
+#### ⚛️ React + Flask 백엔드
+
+```python
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+from caas_framework.framework import CrewAIFramework
+import asyncio
+
+app = Flask(__name__)
+CORS(app)
+
+@app.route("/api/generate", methods=["POST"])
+def generate():
+    data = request.json
+
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+
+    framework = CrewAIFramework()
+    result = loop.run_until_complete(
+        framework.generate_from_requirement(
+            requirement=data["requirement"],
+            domain=data.get("domain", "CONVERSATIONAL_AI")
+        )
+    )
+
+    return jsonify({
+        "success": result.success,
+        "files": result.files,
+        "output_dir": str(result.output_dir)
+    })
 ```
 
 ---

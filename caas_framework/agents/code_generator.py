@@ -452,6 +452,106 @@ class CodeGeneratorAgent(BaseExpertAgent):
                         fixed_files["agents.py"] = agents_code
                         logger.info("[AutoFix] Added tools import to agents.py")
 
+        # Fix #5: Add manager_llm for hierarchical process
+        if "main.py" in fixed_files:
+            main_code = fixed_files["main.py"]
+            original_main = main_code
+
+            # Check if using Process.hierarchical without manager_llm
+            if (
+                "Process.hierarchical" in main_code
+                and "manager_llm" not in main_code
+            ):
+                # Add langchain_openai import
+                if "from langchain_openai import ChatOpenAI" not in main_code:
+                    # Find crewai import and add after it
+                    import_match = re.search(
+                        r"(from crewai import .*?\n)", main_code
+                    )
+                    if import_match:
+                        import_line = import_match.group(1)
+                        main_code = main_code.replace(
+                            import_line,
+                            import_line + "from langchain_openai import ChatOpenAI\n",
+                        )
+
+                # Add manager_llm initialization before Crew creation
+                crew_match = re.search(
+                    r"(\s+)(crew\s*=\s*Crew\()", main_code, re.MULTILINE
+                )
+                if crew_match:
+                    indent = crew_match.group(1)
+                    crew_start = crew_match.group(2)
+                    manager_llm_code = f"""{indent}# Manager LLM for hierarchical process
+{indent}manager_llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.1)
+
+{indent}"""
+                    main_code = main_code.replace(
+                        indent + crew_start, manager_llm_code + crew_start
+                    )
+
+                # Add manager_llm parameter to Crew
+                # Find Process.hierarchical and add manager_llm parameter
+                main_code = re.sub(
+                    r"(process=Process\.hierarchical),(\s*)",
+                    r"\1,\2manager_llm=manager_llm,\2",
+                    main_code,
+                )
+
+                if main_code != original_main:
+                    logger.info(
+                        "[AutoFix] Added manager_llm for hierarchical process in main.py"
+                    )
+                    fixed_files["main.py"] = main_code
+
+        # Same fix for crew.py if it exists
+        if "crew.py" in fixed_files or "src/crew.py" in fixed_files:
+            crew_file = "crew.py" if "crew.py" in fixed_files else "src/crew.py"
+            crew_code = fixed_files[crew_file]
+            original_crew = crew_code
+
+            if (
+                "Process.hierarchical" in crew_code
+                and "manager_llm" not in crew_code
+            ):
+                # Add langchain_openai import
+                if "from langchain_openai import ChatOpenAI" not in crew_code:
+                    import_match = re.search(
+                        r"(from crewai import .*?\n)", crew_code
+                    )
+                    if import_match:
+                        import_line = import_match.group(1)
+                        crew_code = crew_code.replace(
+                            import_line,
+                            import_line + "from langchain_openai import ChatOpenAI\n",
+                        )
+
+                # Add manager_llm initialization
+                crew_match = re.search(
+                    r"(^|\n)(crew\s*=\s*Crew\()", crew_code, re.MULTILINE
+                )
+                if crew_match:
+                    manager_llm_code = """# Manager LLM for hierarchical process
+manager_llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.1)
+
+"""
+                    crew_code = crew_code.replace(
+                        crew_match.group(2), manager_llm_code + crew_match.group(2)
+                    )
+
+                # Add manager_llm parameter
+                crew_code = re.sub(
+                    r"(process=Process\.hierarchical),(\s*)",
+                    r"\1,\2manager_llm=manager_llm,\2",
+                    crew_code,
+                )
+
+                if crew_code != original_crew:
+                    logger.info(
+                        f"[AutoFix] Added manager_llm for hierarchical process in {crew_file}"
+                    )
+                    fixed_files[crew_file] = crew_code
+
         return fixed_files
 
     def _build_code_generation_prompt(

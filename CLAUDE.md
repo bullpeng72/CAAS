@@ -4,12 +4,13 @@
 
 **CAAS (CrewAI Agent Auto-generation System)** v0.2.0
 
-자연어 요구사항을 입력받아 프로덕션 레디 멀티 에이전트 시스템 코드를 자동으로 생성하는 Framework-First CLI 도구입니다.
+자연어 요구사항을 입력받아 프로덕션 레디 멀티 에이전트 시스템 코드를 자동으로 생성하는 통합 패키지입니다.
 
 - **핵심 목표**: 자연어 → Golden Data → Agent/Task 설계 → Production Code 자동 생성
 - **방법론**: BMAD 6-Phase 프로세스 (Concretization → Discovery → Architecture → Design → Development → Delivery)
 - **강점**: CrewAI 멀티 에이전트 시스템 98.7% 구현률 달성
 - **아키텍처**: Framework-First (UI-독립적 코어 + 다중 인터페이스)
+- **배포 전략**: 단일 통합 패키지 (CLI 필수 + Framework 라이브러리)
 
 ## 프로젝트 구조
 
@@ -586,7 +587,98 @@ caas download <id> ./output
 2. **병렬 처리**: 독립적인 에이전트 작업 병렬화
 3. **Haiku 모델 사용**: 간단한 작업은 빠른 모델 사용
 
+## 설치 및 사용
+
+### 설치 방법
+
+```bash
+# PyPI에서 설치 (v0.2.0+)
+pip install caas
+```
+
+**패키지 내용**:
+- ✅ `caas_framework` - 코어 프레임워크 (UI-독립적)
+- ✅ `caas_cli` - CLI 인터페이스 (필수 포함)
+- ✅ `caas_sdk` - Python SDK
+- ✅ `data/` - 템플릿, 온톨로지, 예시
+- ✅ `scripts/` - 자동화 스크립트
+
+### 사용 방법
+
+#### 1️⃣ CLI 사용 (기본)
+
+```bash
+# 코드 생성
+caas generate "할일 관리 시스템 만들기" --output ./generated
+
+# 전체 자동화 워크플로우
+caas auto-deploy "블로그 시스템" --target docker
+```
+
+#### 2️⃣ Python 라이브러리 사용
+
+**Streamlit 앱 개발**:
+```python
+import streamlit as st
+from caas_framework.framework import CrewAIFramework
+
+st.title("CAAS Agent Generator")
+requirement = st.text_area("요구사항:")
+
+if st.button("생성"):
+    framework = CrewAIFramework()
+    await framework.initialize()
+    result = await framework.generate_from_requirement(requirement)
+    st.success(f"{len(result.files)}개 파일 생성!")
+```
+
+**FastAPI 백엔드 개발**:
+```python
+from fastapi import FastAPI
+from caas_framework.framework import CrewAIFramework
+
+app = FastAPI()
+framework = CrewAIFramework()
+
+@app.post("/generate")
+async def generate(requirement: str):
+    await framework.initialize()
+    result = await framework.generate_from_requirement(requirement)
+    return {"files": len(result.files), "success": True}
+```
+
+**React + Python 백엔드**:
+```python
+from flask import Flask, request, jsonify
+from caas_framework.framework import CrewAIFramework
+
+app = Flask(__name__)
+
+@app.route("/api/generate", methods=["POST"])
+async def generate():
+    data = request.json
+    framework = CrewAIFramework()
+    result = await framework.generate_from_requirement(data["requirement"])
+    return jsonify({"success": True, "files": result.files})
+```
+
+**VSCode Extension 백엔드**:
+```python
+from caas_framework.framework import CrewAIFramework
+import json
+import sys
+
+async def handle_request(request_json):
+    data = json.loads(request_json)
+    framework = CrewAIFramework()
+    result = await framework.generate_from_requirement(data["requirement"])
+    return json.dumps({"success": True, "output": str(result.output_dir)})
+```
+
 ## FAQ
+
+### Q: 패키지 이름이 왜 caas인가요?
+**A**: v0.2.0부터 `caas-cli`에서 `caas`로 변경. CLI만이 아닌 통합 패키지(Framework + CLI)임을 명확히 하기 위함. CLI 사용과 라이브러리 사용 모두 지원.
 
 ### Q: caas_app/ 디렉토리는 왜 제거되었나요?
 **A**: Framework-First 아키텍처로 리팩토링 완료 (2026-02-02). 모든 기능이 `caas_framework/`로 통합되어 UI-독립성 확보. 5개 핵심 파일(tool_generator, crud_entity_extractor, domain_strategy, matcher, mcp_client)이 마이그레이션되었습니다.
@@ -594,8 +686,8 @@ caas download <id> ./output
 ### Q: Quality Gate가 왜 우회되었나요?
 **A**: v0.2.0에서 무한 대기 버그 발견. 임시 우회로 워크플로우 정상화. v0.3.0에서 근본 수정 예정.
 
-### Q: 웹 애플리케이션 코드는 생성할 수 없나요?
-**A**: Flask/FastAPI 엔드포인트 직접 생성은 제한적. 대신 비즈니스 로직을 처리하는 CrewAI 에이전트 생성을 권장.
+### Q: 라이브러리로 사용할 수 있나요?
+**A**: ✅ 가능. `pip install caas` 후 `from caas_framework import CrewAIFramework`로 import하여 Streamlit, FastAPI, React, VSCode Extension 등 다양한 UI 개발에 사용 가능.
 
 ### Q: 어떤 도메인이 가장 잘 지원되나요?
 **A**: CrewAI 멀티 에이전트 시스템 (98.7% 구현률), 데이터 분석 워크플로우 (98.3% 구현률).
@@ -607,6 +699,14 @@ caas download <id> ./output
 
 ## 변경 이력
 
+### 2026-02-03: 패키지 이름 변경 및 배포 전략 확정 ✅
+- 패키지 이름: `caas-cli` → `caas` (통합 패키지 명확화)
+- 패키지 설명: CLI Interface → Complete Package (Framework + CLI)
+- `caas_app` 잔재 완전 제거 (setup.py, pyproject.toml)
+- MANIFEST.in 강화 (data/, scripts/ 명시적 포함)
+- 단일 통합 패키지 배포 전략 확정 (CLI 필수 + Framework 라이브러리)
+- 라이브러리 사용 시나리오 검증 (Streamlit, FastAPI, React, VSCode Extension)
+
 ### 2026-02-02: caas_app/ 마이그레이션 완료 ✅
 - `caas_app/` 디렉토리 전체 제거 (11개 파일)
 - 5개 핵심 파일을 `caas_framework/`로 통합
@@ -616,10 +716,11 @@ caas download <id> ./output
 
 ---
 
-**Last Updated**: 2026-02-02 (21:00 KST)
+**Last Updated**: 2026-02-03
 **Version**: 0.2.0
+**Package Name**: caas (통합 패키지)
 **Branch**: refactor/fundamental-redesign
 **Status**: Production-Ready ✅
-**Migration**: caas_app/ → caas_framework/ Complete ✅
+**Deployment Strategy**: Single Unified Package (CLI + Framework Library)
 
-**Made with ❤️ by AIDX Team**
+**Made with ❤️ by bullpeng72**

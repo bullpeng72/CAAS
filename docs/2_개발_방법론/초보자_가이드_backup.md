@@ -1,0 +1,282 @@
+# CAAS 초보자 가이드 🌱
+
+**CAAS 버전**: v0.2.0+
+**문서 버전**: v2.2.0
+**최종 업데이트**: 2026-02-02
+**검증 상태**: ✅ 실전 검증 완료 | ✨ Auto-Fix 지원 (v0.2.0+)
+**대상**: CAAS를 처음 사용하는 개발자
+
+**✨ 좋은 소식**: v0.2.0 이상 버전부터 일반적인 코드 오류가 **자동으로 수정**됩니다!
+
+---
+
+## 📖 이 가이드에 대하여
+
+이 가이드는 CAAS를 처음 접하는 분들을 위한 **실전 중심** 튜토리얼입니다. 복잡한 이론보다는 **바로 실행 가능한 예제**를 통해 CAAS의 핵심 기능을 배울 수 있으며, 각 단계마다 **품질 검증**과 **검토 포인트**를 포함하여 프로덕션 레벨 코드를 생성할 수 있습니다.
+
+### 이 가이드에서 배울 내용
+
+- ✅ CAAS로 첫 프로젝트 생성하기 (5분)
+- ✅ 품질 게이트와 검증 프로세스 이해하기
+- ✅ CrewAI 멀티 에이전트 시스템 만들기 (10분)
+- ✅ 생성된 코드 실행, 테스트 및 검증하기
+- ✅ 문제 진단 및 해결 방법
+
+---
+
+## 🚀 준비 사항
+
+### 1. 설치 확인
+
+```bash
+# CAAS 설치 (아직 설치하지 않았다면)
+pip install caas
+
+# CAAS 버전 확인
+caas --version
+# 예상 출력: caas, version 0.2.0
+
+# 도움말 확인
+caas --help
+```
+
+### 2. API 키 설정
+
+프로젝트를 생성할 디렉토리에서 `.env` 파일을 생성하고 API 키를 입력합니다.
+
+```bash
+mkdir -p ~/caas-projects
+cd ~/caas-projects
+touch .env
+nano .env
+```
+
+**.env 파일 예시**:
+```env
+# OpenAI 사용 시 (권장 - gpt-4o-mini)
+OPENAI_API_KEY=sk-proj-xxxxxxxxxxxxx
+
+# 또는 Anthropic 사용 시
+ANTHROPIC_API_KEY=sk-ant-xxxxxxxxxxxxx
+```
+**🔒 보안 주의사항**: `.env` 파일은 Git에 커밋하지 마세요.
+
+### 3. 작업 디렉토리 및 가상 환경
+
+```bash
+# Python 가상 환경 생성 (권장)
+python3 -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+
+# Python 버전 확인 (3.11+ 필요)
+python --version
+```
+
+---
+
+## 🎯 레벨 1: 첫 프로젝트 생성 (5분)
+
+### 가장 간단한 예제: 할일 관리 AI 에이전트
+
+```bash
+caas generate "할일을 추가하고 조회하고 삭제하는 AI 에이전트" \
+  --output ./todo-agent \
+  --verbosity normal
+```
+
+**실행 과정 (약 2-3분)**:
+```
+✨ Phase 0: Concretization... ✅
+✨ Phase 1: Discovery... ✅
+✨ Phase 2: Architecture... ✅
+✨ Phase 3: Design... ✅
+✨ Phase 4: Development... ✅
+✨ Phase 5: Delivery... ✅
+
+📊 최종 결과:
+   - 구현률: 90%+
+   - 품질 점수: 8.4/10
+   - 완료 시간: ~2.2분
+```
+
+### 생성된 파일 확인
+
+```bash
+cd todo-agent
+ls -R
+
+# v0.2.0 실제 출력:
+# main.py              # 실행 진입점
+# requirements.txt     # 의존성
+# README.md            # 프로젝트 문서
+# .env.example         # 환경 변수 예시
+#
+# src/
+# ├── __init__.py
+# ├── agents.py        # CrewAI 에이전트 정의
+# ├── tasks.py         # 태스크 정의
+# ├── crew.py          # Crew 구성
+# └── tools.py         # 커스텀 도구 (조건부 생성)
+#
+# artifacts/
+# ├── golden_data.json
+# └── ... (총 10여개 artifact 파일)
+```
+
+**⚠️ v0.2.0에서 생성되지 않을 수 있는 파일**:
+- `src/tools.py`: 요구사항에 특정 도구가 필요하다고 판단될 때만 생성됩니다.
+- `tests/`: 테스트 코드 생성은 아직 실험적인 기능입니다.
+
+### 🔍 코드 품질 검증 및 수정
+
+**✨ v0.2.0+ 사용자**: 아래 오류들이 **자동으로 수정**됩니다. 별도의 수동 수정이 필요 없습니다!
+
+#### 🤖 자동 수정 기능 (v0.2.0+)
+
+v0.2.0부터 생성된 코드의 일반적인 오류가 자동으로 수정됩니다.
+- ✅ `id='...'` 파라미터 자동 제거
+- ✅ `tools=['str']` 문자열 리스트를 올바른 도구 객체로 자동 변환 (또는 빈 리스트 `[]`)
+- ✅ 미지원 파라미터 (`memory`, `max_iter` 등) 자동 제거
+- ✅ `tools.py` 파일 누락 시 자동 생성 및 `agents.py`에 import 구문 추가
+
+**결과적으로, v0.2.0 이상에서는 생성된 코드가 수정 없이 바로 실행 가능합니다.**
+
+---
+
+#### 📋 수동 수정 가이드 (v0.2.0 이하 - 참고용)
+
+v0.2.0 이하 버전에서는 생성된 `agents.py`에 수정이 필요할 수 있습니다.
+
+**예상 오류**: `ValidationError` 또는 `NameError`
+```
+ValidationError: 3 validation errors for Agent
+1. id: This field is not to be set by the user
+2. tools.0: Input should be a valid dictionary or instance of BaseTool
+...
+NameError: name 'file_read' is not defined
+```
+
+**`agents.py` 수정 (필수!)**:
+```python
+# ❌ 수정 전 (오류 발생 가능)
+task_manager_agent = Agent(
+    id='task_manager_agent',      # ← 제거!
+    tools=['file_read', 'file_write'],  # ← 수정!
+    memory=True,                  # ← 제거!
+    ...
+)
+
+# ✅ 수정 후 (정상 동작)
+task_manager_agent = Agent(
+    # id, memory 파라미터 제거
+    tools=[],  # ← 빈 리스트로 변경 (tools.py가 없거나 도구 정의가 안 된 경우)
+    ...
+)
+```
+
+### 실행하기
+
+```bash
+# 1. (필요시) 위 가이드에 따라 코드 수정
+
+# 2. 의존성 설치
+pip install -r requirements.txt
+
+# 3. 환경 변수 설정
+cp .env.example .env
+nano .env  # .env 파일에 OPENAI_API_KEY=sk-... 입력
+
+# 4. 실행
+python main.py
+```
+
+**예상 출력**:
+```
+🤖 Todo Agent 시작...
+[Task Manager Agent] 할일 관리 시스템을 초기화합니다...
+✅ 모든 작업 완료!
+```
+
+### 💡 무엇을 배웠나요?
+
+- **BMAD 6-Phase 프로세스**: CAAS가 요구사항을 분석하고 코드를 생성하는 체계적인 과정.
+- **자동 품질 보증**: 각 단계별로 품질 게이트를 통과하며 결과물의 신뢰성을 높이는 과정.
+- **3-Layer Defense (`tools.py`)**: `tools.py` 파일이 항상 실행 가능하도록 보장하는 내부 메커니즘.
+
+---
+
+## ❓ 문제 진단 트리
+
+### 문제 1: Phase가 중간에 멈춤
+- **원인**: API 키 오류, 네트워크 문제, API 할당량 초과 등.
+- **해결**:
+    1.  `.env` 파일의 API 키를 확인하세요.
+    2.  인터넷 연결을 확인하세요 (`ping api.openai.com`).
+    3.  `--verbosity debug` 옵션으로 재실행하여 상세 로그를 확인하세요.
+
+### 문제 2: 생성된 코드가 실행되지 않음
+- **원인**: `NameError` (도구 미정의), `ModuleNotFoundError` (의존성 미설치), `ValidationError` (잘못된 Agent 파라미터) 등.
+- **해결**:
+    1.  **v0.2.0 이상 사용을 권장합니다 (자동 수정 기능).**
+    2.  `pip install -r requirements.txt`로 의존성을 설치했는지 확인하세요.
+    3.  (v0.2.0 이하) 위 "수동 수정 가이드"에 따라 `agents.py`를 수정하세요.
+    4.  `caas fix` 명령어로 자동 수정을 시도해볼 수 있습니다.
+
+### 문제 3: 에이전트가 0개 생성됨
+- **원인**: 요구사항이 너무 모호함.
+- **해결**: "AI 에이전트"가 수행할 작업을 중심으로 더 구체적인 요구사항을 작성하여 다시 시도하세요.
+    - **좋은 예**: "사용자가 할일을 추가, 조회, 삭제할 수 있는 할일 관리 AI 에이전트"
+    - **나쁜 예**: "앱 만들기"
+
+---
+
+## 🎯 레벨 2: 데이터 분석 에이전트 (15분)
+
+더 구체적인 요구사항과 `--domain` 옵션을 사용하여 고품질 코드를 생성해 봅시다.
+
+```bash
+caas generate "CSV 파일을 읽고, 통계 분석(평균, 중앙값, 표준편차)을 수행하고, 결과를 요약하는 데이터 분석 에이전트 시스템" \
+  --domain DATA_ANALYSIS \
+  --output ./data-analyzer \
+  --verbosity verbose
+```
+
+### 결과 확인 및 실행
+
+`data-analyzer` 디렉토리로 이동하여 `sample_data.csv` 같은 테스트 파일을 직접 만들고, `main.py`를 실행하여 결과를 확인합니다. `pandas`, `numpy` 같은 라이브러리가 `requirements.txt`에 포함되어 있을 것입니다.
+
+```bash
+cd data-analyzer
+
+# 테스트 데이터 생성
+echo "value\n10\n20\n30\n40\n50" > sample_data.csv
+
+# 의존성 설치 및 실행
+pip install -r requirements.txt
+python main.py
+```
+
+### 💡 무엇을 배웠나요?
+
+- **도메인 특화**: `--domain` 옵션을 사용하면 CAAS가 해당 도메인에 최적화된 에이전트와 도구를 생성합니다.
+- **Human-in-the-Loop**: `--verbosity verbose` 옵션을 통해 각 단계의 진행 상황을 상세히 보며, 생성 과정을 검토하고 개입할 지점을 파악할 수 있습니다. (실제 개입은 `questions` 명령어 등 사용)
+
+---
+
+## 🔧 유용한 CLI 명령어
+
+- **`caas list`**: 생성된 프로젝트 목록 조회
+- **`caas status <project-id>`**: 특정 프로젝트의 상태 및 품질 메트릭 확인
+- **`caas validate --validator all ...`**: 생성된 설계 파일 검증
+- **`caas fix --level 3 ...`**: 검증된 이슈 자동 수정
+- **`caas codegen --component <name> ...`**: `tests`, `tools` 등 특정 부분만 재생성
+
+---
+
+## 🎓 다음 단계
+
+이제 CAAS의 기본을 익혔습니다. 다음 가이드들을 통해 더 깊이 학습해 보세요.
+
+1.  **[전문가 방법론 가이드](./전문가_방법론_가이드.md)**: 대규모 프로젝트 생성 기법과 고급 워크플로우를 학습합니다.
+2.  **[CLI 사용 가이드](../1_시작하기/CLI_사용_가이드.md)**: 20여 개의 모든 CLI 명령어를 상세히 알아봅니다.
+3.  **[아키텍처 가이드](../3_시스템_문서/아키텍처_가이드.md)**: CAAS의 내부 구조를 이해합니다.
