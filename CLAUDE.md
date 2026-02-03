@@ -2,7 +2,7 @@
 
 ## 프로젝트 개요
 
-**CAAS (CrewAI Agent Auto-generation System)** v1.0.0
+**CAAS (CrewAI Agent Auto-generation System)** v0.2.0
 
 자연어 요구사항을 입력받아 프로덕션 레디 멀티 에이전트 시스템 코드를 자동으로 생성하는 Framework-First CLI 도구입니다.
 
@@ -133,7 +133,7 @@ Phase 5: Delivery
   └─> Production Code (main.py, agents.py, tasks.py, tools.py, tests, deployment)
 ```
 
-**중요**: Quality Gate 시스템이 v1.0.0에서 일부 Phase에서 임시 우회됨 (무한 대기 문제 해결). v1.1.0에서 근본 수정 예정.
+**중요**: Quality Gate 시스템이 v0.2.0에서 일부 Phase에서 임시 우회됨 (무한 대기 문제 해결). v0.3.0에서 근본 수정 예정.
 
 ### 3. 5 Expert Agents Collaboration
 
@@ -451,7 +451,7 @@ from caas_framework.knowledge.graph_client import GraphClient
 - **문제**: `QualityGateSystem.evaluate_gate()` 무한 대기
 - **해결**: Phase 1, 2, 3, 5의 Quality Gate 임시 우회
 - **영향**: 워크플로우는 정상 동작하지만 자동 품질 검증 비활성화
-- **계획**: v1.1.0에서 근본 수정
+- **계획**: v0.3.0에서 근본 수정
 
 ### 3. tools.py 3-Layer Defense
 
@@ -592,7 +592,7 @@ caas download <id> ./output
 **A**: Framework-First 아키텍처로 리팩토링 완료 (2026-02-02). 모든 기능이 `caas_framework/`로 통합되어 UI-독립성 확보. 5개 핵심 파일(tool_generator, crud_entity_extractor, domain_strategy, matcher, mcp_client)이 마이그레이션되었습니다.
 
 ### Q: Quality Gate가 왜 우회되었나요?
-**A**: v1.0.0에서 무한 대기 버그 발견. 임시 우회로 워크플로우 정상화. v1.1.0에서 근본 수정 예정.
+**A**: v0.2.0에서 무한 대기 버그 발견. 임시 우회로 워크플로우 정상화. v0.3.0에서 근본 수정 예정.
 
 ### Q: 웹 애플리케이션 코드는 생성할 수 없나요?
 **A**: Flask/FastAPI 엔드포인트 직접 생성은 제한적. 대신 비즈니스 로직을 처리하는 CrewAI 에이전트 생성을 권장.
@@ -617,7 +617,7 @@ caas download <id> ./output
 ---
 
 **Last Updated**: 2026-02-02 (21:00 KST)
-**Version**: 1.0.0
+**Version**: 0.2.0
 **Branch**: refactor/fundamental-redesign
 **Status**: Production-Ready ✅
 **Migration**: caas_app/ → caas_framework/ Complete ✅

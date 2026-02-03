@@ -12,7 +12,7 @@ from caas_sdk.exceptions import AuthenticationError, CAASError, RateLimitError, 
 from caas_sdk.local_client import CAASLocalClient, generate
 from caas_sdk.models import GenerationConfig, GenerationResult, Project, ProjectStatus
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 __all__ = [
     # REST API Clients
     "CAAS",

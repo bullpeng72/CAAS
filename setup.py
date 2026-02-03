@@ -18,7 +18,7 @@ long_description = readme_path.read_text(encoding='utf-8') if readme_path.exists
 
 setup(
     name="caas-cli",
-    version="1.0.0",
+    version="0.2.0",
     description="CrewAI Agent Auto-generation System - Command-Line Interface",
     long_description=long_description,
     long_description_content_type="text/markdown",

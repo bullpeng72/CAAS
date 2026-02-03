@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "caas-cli"
-version = "1.0.0"
+version = "0.2.0"
 description = "CrewAI Agent Auto-generation System - Command-Line Interface"
 readme = "README.md"
 license = {text = "MIT"}

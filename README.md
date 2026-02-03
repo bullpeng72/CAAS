@@ -7,7 +7,7 @@
 ![Python](https://img.shields.io/badge/Python-3.11+-blue)
 ![CrewAI](https://img.shields.io/badge/CrewAI-0.65+-green)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
-![Version](https://img.shields.io/badge/Version-1.0.0-orange)
+![Version](https://img.shields.io/badge/Version-0.2.0-orange)
 ![Status](https://img.shields.io/badge/Status-Stable-brightgreen)
 
 ---
@@ -51,7 +51,7 @@ Phase 5: Delivery           → Production Code + Tests + Deployment
 
 **개선 효과**: 완전성 검증 0% → 60%+ 향상
 
-### 📝 Automatic Artifact Generation (v1.0.0 기본 활성화) ✨
+### 📝 Automatic Artifact Generation (v0.2.0 기본 활성화) ✨
 **10가지 개발 산출물 자동 생성 (한국어 지원)**:
 - 프로젝트 기획서 (PROJECT_PROPOSAL)
 - 요구사항 명세서 (REQUIREMENTS_SPEC)
@@ -66,7 +66,7 @@ Phase 5: Delivery           → Production Code + Tests + Deployment
 
 **특징**: Jinja2 템플릿 기반, Phase별 자동 생성, Markdown/HTML/PDF 지원
 
-### 📊 Production-Ready Performance (v1.0.0) ⭐
+### 📊 Production-Ready Performance (v0.2.0) ⭐
 **종합 테스트 검증 완료 (2026-01-31)**:
 
 | 메트릭 | CrewAI 멀티 에이전트 | 데이터 분석 모듈 | 평균 |
@@ -532,7 +532,7 @@ pytest tests/test_validation/        # 검증 시스템
 
 ## 🗺️ 로드맵
 
-### ✅ v1.0.0 완료 (Current - 2026-01-31) 🎉
+### ✅ v0.2.0 완료 (Current - 2026-01-31) 🎉
 **Production-Ready Release**
 
 - [x] **BMAD 6-Phase 완전 구현** - 모든 Phase 100% 완료 검증
@@ -553,7 +553,7 @@ pytest tests/test_validation/        # 검증 시스템
 - [x] **Session & Workflow 관리**
 - [x] **Plugin 시스템**
 
-### 🚧 v1.1.0 계획 (2026-Q2)
+### 🚧 v0.3.0 계획 (2026-Q2)
 **Performance & Stability**
 
 - [ ] Quality Gate 근본 원인 수정 (현재 임시 우회)
@@ -562,7 +562,7 @@ pytest tests/test_validation/        # 검증 시스템
 - [ ] Multi-LLM 지원 확대 (Gemini, Mistral)
 - [ ] 에러 복구 메커니즘 강화
 
-### 📅 v2.0.0 목표 (2026-Q3)
+### 📅 v1.0.0 목표 (2026-Q3)
 **Advanced Features**
 
 - [ ] Frontend 생성 지원 (React, Vue)
@@ -576,7 +576,7 @@ pytest tests/test_validation/        # 검증 시스템
 
 ## ⚠️ 알려진 제한사항 및 해결 방법
 
-### Quality Gate 임시 우회 (v1.0.0)
+### Quality Gate 임시 우회 (v0.2.0)
 **현재 상태**: Quality Gate 시스템이 일부 Phase에서 임시로 우회되어 있습니다.
 
 **배경**:
@@ -594,7 +594,7 @@ pytest tests/test_validation/        # 검증 시스템
 - ⚠️ Phase 간 자동 품질 검증이 일시적으로 비활성화됨
 
 **향후 계획**:
-- v1.1.0에서 Quality Gate 근본 원인 수정 예정
+- v0.3.0에서 Quality Gate 근본 원인 수정 예정
 - Quality Gate 재활성화 후 더욱 강력한 품질 보장
 
 ### 웹 프레임워크 생성 제한
@@ -685,4 +685,4 @@ MIT License - 자세한 내용은 [LICENSE](LICENSE) 파일 참조
 
 **Made with ❤️ by AIDX Team**
 
-**v1.0.0 Production Release** 🎉 | [Documentation](docs/) | Framework-First Architecture ✅ | 98.7% Implementation Rate for CrewAI Agents ⭐ | Last Updated: 2026-01-31
+**v0.2.0 Production Release** 🎉 | [Documentation](docs/) | Framework-First Architecture ✅ | 98.7% Implementation Rate for CrewAI Agents ⭐ | Last Updated: 2026-01-31
