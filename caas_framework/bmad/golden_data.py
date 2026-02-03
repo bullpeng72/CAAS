@@ -6,6 +6,7 @@ Converts natural language requirements into structured Golden Data.
 """
 
 import json
+import re
 from typing import Any, Dict, Optional
 
 from caas_framework.models.specifications import (
@@ -75,31 +76,38 @@ class RequirementConcretizer:
         self.logger.debug(f"LLM response type: {type(response)}")
         self.logger.debug(f"LLM response text (first 500 chars): {result_text[:500]}")
 
-        # Extract JSON from response
-        try:
-            # Try to parse as JSON
-            result_data = json.loads(result_text)
-            self.logger.debug("Successfully parsed JSON directly")
-        except json.JSONDecodeError as e:
-            self.logger.warning(f"JSON decode error: {e}")
-            # If not valid JSON, try to extract JSON from markdown code blocks
-            import re
+        # Extract JSON from response (improved parsing logic)
+        result_data = None
 
-            json_match = re.search(r"```json\s*(.*?)\s*```", result_text, re.DOTALL)
-            if json_match:
-                self.logger.debug("Found JSON in markdown code block")
+        # Strategy 1: Check for markdown code blocks first (most common)
+        json_match = re.search(r"```json\s*(.*?)\s*```", result_text, re.DOTALL)
+        if json_match:
+            try:
                 result_data = json.loads(json_match.group(1))
-            else:
-                self.logger.error(
-                    f"Failed to parse LLM response. Full response: {result_text[:1000]}"
-                )
-                # Fallback: create minimal structure
-                result_data = {
-                    "domain": domain or "GENERAL",
-                    "project_name": "Generated Project",
-                    "description": requirement[:200],
-                    "features": [],
-                }
+                self.logger.debug("Successfully parsed JSON from markdown code block")
+            except json.JSONDecodeError as e:
+                self.logger.debug(f"Markdown JSON parse failed: {e}")
+
+        # Strategy 2: Try direct JSON parse with stripped whitespace
+        if result_data is None:
+            try:
+                result_data = json.loads(result_text.strip())
+                self.logger.debug("Successfully parsed JSON directly (after strip)")
+            except json.JSONDecodeError as e:
+                self.logger.debug(f"Direct JSON parse failed: {e}")
+
+        # Strategy 3: Fallback to minimal structure
+        if result_data is None:
+            self.logger.error(
+                f"Failed to parse LLM response with all strategies. "
+                f"Response (first 1000 chars): {result_text[:1000]}"
+            )
+            result_data = {
+                "domain": domain or "GENERAL",
+                "project_name": "Generated Project",
+                "description": requirement[:200],
+                "features": [],
+            }
 
         # Convert to ConcretizedRequirement
         golden_data = self._parse_golden_data(result_data, requirement, domain)
