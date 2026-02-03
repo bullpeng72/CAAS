@@ -5,6 +5,7 @@ Main client for interacting with CAAS API.
 """
 
 import asyncio
+import json
 import time
 from pathlib import Path
 from typing import Dict, Optional
@@ -73,7 +74,7 @@ class BaseClient:
             try:
                 error_data = response.json()
                 message = error_data.get("detail", response.text)
-            except:
+            except (json.JSONDecodeError, ValueError):
                 message = response.text
 
             raise APIError(f"API error: {message}", status_code=response.status_code)

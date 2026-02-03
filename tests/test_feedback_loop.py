@@ -118,12 +118,7 @@ async def test_timeout_protection():
 def test_collaboration_file_imports():
     """Test that collaboration.py imports correctly with new changes."""
     try:
-        from caas_framework.agents.collaboration import (
-            CollaborationContext,
-            CollaborationResult,
-            ExpertAgentCollaboration,
-            SafeFeedbackLoop,
-        )
+        from caas_framework.agents.collaboration import SafeFeedbackLoop
 
         # Check that SafeFeedbackLoop is available
         assert SafeFeedbackLoop is not None

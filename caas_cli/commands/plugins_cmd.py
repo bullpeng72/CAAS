@@ -11,6 +11,7 @@ from caas_cli.utils import (
     echo_info,
     echo_success,
     handle_keyboard_interrupt,
+    print_table,
 )
 
 

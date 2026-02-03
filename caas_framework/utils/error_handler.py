@@ -6,7 +6,7 @@ Context manager를 통한 일관된 에러 처리
 
 import traceback
 from contextlib import contextmanager
-from typing import Any, Callable, List, Optional, Type
+from typing import Any, Callable, Dict, List, Optional, Type
 
 import streamlit as st
 import yaml

@@ -113,7 +113,7 @@ class GoldenDataEnhancer:
             coverage_percentage = GoldenDataMatcher.calculate_percentage(
                 covered=covered_features, total=total_features
             )
-        except:
+        except (ZeroDivisionError, AttributeError, TypeError):
             coverage_percentage = (
                 (covered_features / total_features * 100.0)
                 if total_features > 0

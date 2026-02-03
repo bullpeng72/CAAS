@@ -359,7 +359,6 @@ def generate(
         from caas_framework import CrewAIFramework
         from caas_framework.config.loader import load_config
         from caas_framework.config.settings import ValidationConfig
-        from caas_framework.reporting import VerbosityLevel
 
         # Load framework configuration from .env (includes artifact settings)
         config = load_config()

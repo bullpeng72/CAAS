@@ -1313,8 +1313,6 @@ OPENAI_API_KEY=your_openai_api_key_here
                 return None
 
             # Evaluate
-            import logging
-
             logger = get_logger()
             logger.info("[CodeGenerator] Evaluating code quality with LLM Judge...")
 

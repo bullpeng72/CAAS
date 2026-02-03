@@ -1225,7 +1225,7 @@ def {name}(input_data: Any = None, error_condition: bool = False) -> Any:
                     coverage = (
                         cov_data.get("totals", {}).get("percent_covered", 0.0) / 100.0
                     )
-            except:
+            except (FileNotFoundError, json.JSONDecodeError, KeyError):
                 pass
 
             # Extract failed test names

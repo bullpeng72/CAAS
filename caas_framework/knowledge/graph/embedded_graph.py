@@ -312,7 +312,7 @@ class EmbeddedGraphClient(LoggerMixin):
             if "LIMIT" in query_upper:
                 try:
                     limit = int(query_upper.split("LIMIT")[-1].strip())
-                except:
+                except (ValueError, IndexError):
                     pass
 
             results = []

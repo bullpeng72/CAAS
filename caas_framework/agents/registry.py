@@ -264,7 +264,7 @@ def discover_agents() -> AgentRegistry:
     """
     try:
         # Import all agent modules to trigger registration
-        from caas_framework.agents import (
+        from caas_framework.agents import (  # noqa: F401
             agent_designer,
             code_generator,
             qa_specialist,
