@@ -20,15 +20,15 @@ long_description = (
 )
 
 setup(
-    name="caas-cli",
+    name="caas",
     version="0.2.0",
-    description="CrewAI Agent Auto-generation System - Command-Line Interface",
+    description="CrewAI Agent Auto-generation System - Complete Package (Framework + CLI)",
     long_description=long_description,
     long_description_content_type="text/markdown",
     author="bullpeng72",
     author_email="sungwoo.kim@gmail.com",
     url="https://github.com/bullpeng72/CrewAI-Agent-Autogeneration-System",
-    # Include framework, CLI, SDK, and necessary app components
+    # Include framework, CLI, and SDK
     packages=find_packages(
         include=[
             "caas_framework",
@@ -37,8 +37,6 @@ setup(
             "caas_cli.*",
             "caas_sdk",
             "caas_sdk.*",
-            "caas_app",
-            "caas_app.*",
         ]
     ),
     package_data={

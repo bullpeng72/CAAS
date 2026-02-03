@@ -2,6 +2,12 @@
 include README.md
 include LICENSE
 
+# Include data directory (templates, ontology, examples)
+recursive-include data *
+
+# Include scripts for automation
+recursive-include scripts *.sh *.py
+
 # Include package data
 recursive-include caas_framework/templates *
 recursive-include caas_framework/config *.yaml *.yml *.json
@@ -11,3 +17,7 @@ recursive-include caas_framework *.yaml *.yml *.json
 global-exclude __pycache__
 global-exclude *.py[co]
 global-exclude .DS_Store
+global-exclude tests
+global-exclude .git*
+global-exclude .mypy_cache
+global-exclude .pytest_cache

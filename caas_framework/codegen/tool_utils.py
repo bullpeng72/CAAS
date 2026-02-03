@@ -151,15 +151,12 @@ Each tool provides specific capabilities to agents.
         imports = """
 from crewai.tools import BaseTool
 from typing import Any
-
-logger = get_logger()
 """
     else:  # return_type == "str"
         imports = """
 from crewai.tools import BaseTool
 from typing import Type, Any, Optional
 from pydantic import BaseModel, Field
-from caas_framework.utils.logger import get_logger
 """
     code_parts.append(imports)
 

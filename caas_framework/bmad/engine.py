@@ -437,17 +437,17 @@ class BMADEngine:
 
                     # Generate artifacts for all phases (Expert Agent path)
                     if result.requirement_analysis:
-                        await self._generate_artifact("\1", result, "\2", requirement)
+                        await self._generate_artifact("REQUIREMENTS_SPEC", result, "Phase 1", requirement)
                     if result.architecture_design:
-                        await self._generate_artifact("\1", result, "\2", requirement)
-                        await self._generate_artifact("\1", result, "\2", requirement)
+                        await self._generate_artifact("ARCHITECTURE_DESIGN", result, "Phase 2", requirement)
+                        await self._generate_artifact("DATA_DESIGN", result, "Phase 2", requirement)
                     if result.agent_specs and result.task_specs:
-                        await self._generate_artifact("\1", result, "\2", requirement)
-                        await self._generate_artifact("\1", result, "\2", requirement)
+                        await self._generate_artifact("AGENT_DESIGN", result, "Phase 3", requirement)
+                        await self._generate_artifact("TEST_PLAN", result, "Phase 3", requirement)
                     if result.generated_code:
-                        await self._generate_artifact("\1", result, "\2", requirement)
-                        await self._generate_artifact("\1", result, "\2", requirement)
-                        await self._generate_artifact("\1", result, "\2", requirement)
+                        await self._generate_artifact("CODE_REVIEW", result, "Phase 5", requirement)
+                        await self._generate_artifact("TEST_REPORT", result, "Phase 5", requirement)
+                        await self._generate_artifact("DEPLOYMENT_GUIDE", result, "Phase 5", requirement)
 
                     # Quality Validation: Syntax/Import checks (Phase 5 Post-Generation)
                     if result.generated_code:
@@ -503,7 +503,7 @@ class BMADEngine:
                 result.phases_completed.append(BMADPhase.DISCOVERY)
 
                 # Generate artifacts for Phase 1
-                await self._generate_artifact("\1", result, "\2", requirement)
+                await self._generate_artifact("REQUIREMENTS_SPEC", result, "Phase 1", requirement)
 
                 # Phase 2: Architecture
                 phase_start = datetime.now()
@@ -523,8 +523,8 @@ class BMADEngine:
                 result.phases_completed.append(BMADPhase.ARCHITECTURE)
 
                 # Generate artifacts for Phase 2
-                await self._generate_artifact("\1", result, "\2", requirement)
-                await self._generate_artifact("\1", result, "\2", requirement)
+                await self._generate_artifact("ARCHITECTURE_DESIGN", result, "Phase 2", requirement)
+                await self._generate_artifact("DATA_DESIGN", result, "Phase 2", requirement)
 
                 # Phase 3: Design
                 phase_start = datetime.now()
@@ -651,8 +651,8 @@ class BMADEngine:
                 result.phases_completed.append(BMADPhase.DESIGN)
 
                 # Generate artifacts for Phase 3
-                await self._generate_artifact("\1", result, "\2", requirement)
-                await self._generate_artifact("\1", result, "\2", requirement)
+                await self._generate_artifact("AGENT_DESIGN", result, "Phase 3", requirement)
+                await self._generate_artifact("TEST_PLAN", result, "Phase 3", requirement)
 
                 # Phase 4: Development (Spec Generation)
                 phase_start = datetime.now()
@@ -706,9 +706,9 @@ class BMADEngine:
                 result.phases_completed.append(BMADPhase.DELIVERY)
 
                 # Generate artifacts for Phase 5
-                await self._generate_artifact("\1", result, "\2", requirement)
-                await self._generate_artifact("\1", result, "\2", requirement)
-                await self._generate_artifact("\1", result, "\2", requirement)
+                await self._generate_artifact("CODE_REVIEW", result, "Phase 5", requirement)
+                await self._generate_artifact("TEST_REPORT", result, "Phase 5", requirement)
+                await self._generate_artifact("DEPLOYMENT_GUIDE", result, "Phase 5", requirement)
 
                 # Quality Validation: Syntax/Import checks (Phase 5 Post-Generation)
                 await self._run_quality_validation(result)
