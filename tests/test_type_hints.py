@@ -145,7 +145,7 @@ def test_type_annotations_present():
 
     # Check auto_approve is annotated
     assert "auto_approve" in init_annotations
-    assert init_annotations["auto_approve"] == bool
+    assert init_annotations["auto_approve"] is bool
 
 
 def test_mypy_config_exists():

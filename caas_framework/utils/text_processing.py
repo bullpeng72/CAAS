@@ -252,7 +252,7 @@ class JsonExtractor:
                 return (
                     default
                     if default is not None
-                    else ([] if return_type == list else {})
+                    else ([] if return_type is list else {})
                 )
 
             return result
@@ -277,7 +277,7 @@ class JsonExtractor:
                         return (
                             default
                             if default is not None
-                            else ([] if return_type == list else {})
+                            else ([] if return_type is list else {})
                         )
 
                     return result
