@@ -4,14 +4,13 @@ Validate Command
 Run specific validators on agent/task design
 """
 
-from pathlib import Path
 
 import click
+
 from caas_cli.utils import (
     echo_error,
     echo_info,
     echo_progress,
-    echo_success,
     handle_keyboard_interrupt,
     load_json,
     print_validation_results,
@@ -162,7 +161,9 @@ def _validate_ontology(agents_list, tasks_list, verbose):
 
 def _validate_golden(agents_list, tasks_list, golden_data, verbose):
     """Run golden data validation"""
-    from caas_framework.models.specifications import ConcretizedRequirement as GoldenData
+    from caas_framework.models.specifications import (
+        ConcretizedRequirement as GoldenData,
+    )
     from caas_framework.validation.golden_validator import GoldenDataValidator
 
     echo_progress("Validating against Golden Data...")
@@ -239,7 +240,9 @@ def _validate_crewai(agents_list, tasks_list, verbose):
 
 def _validate_all(agents_list, tasks_list, golden_data, verbose):
     """Run all validators"""
-    from caas_framework.models.specifications import ConcretizedRequirement as GoldenData
+    from caas_framework.models.specifications import (
+        ConcretizedRequirement as GoldenData,
+    )
     from caas_framework.validation.orchestrator import ValidationOrchestrator
 
     echo_progress("Running all validators...")

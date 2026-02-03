@@ -4,28 +4,27 @@ Tests for Performance Optimization
 Tests profiler, batch executor, and streaming handler.
 """
 
-import pytest
 import asyncio
-from datetime import datetime
 
-from caas_framework.performance.profiler import (
-    PerformanceProfiler,
-    ProfiledOperation,
-    BottleneckAnalyzer
-)
+import pytest
+
 from caas_framework.performance.async_batch import (
     AsyncBatchExecutor,
     BatchConfig,
+    batch_process,
     run_parallel,
-    batch_process
+)
+from caas_framework.performance.profiler import (
+    BottleneckAnalyzer,
+    PerformanceProfiler,
+    ProfiledOperation,
 )
 from caas_framework.performance.streaming import (
-    StreamingResponseHandler,
     StreamBuffer,
+    StreamingResponseHandler,
     consume_stream,
-    stream_to_list
+    stream_to_list,
 )
-
 
 # ==================== Profiler Tests ====================
 

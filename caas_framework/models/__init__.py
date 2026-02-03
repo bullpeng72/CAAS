@@ -30,7 +30,11 @@ from caas_framework.models.artifact_types import (
     ArtifactMetadata,
     ArtifactType,
 )
-from caas_framework.models.domain_types import DomainClassification, DomainType, ExecutionPattern
+from caas_framework.models.domain_types import (
+    DomainClassification,
+    DomainType,
+    ExecutionPattern,
+)
 from caas_framework.models.specifications import (
     AgentSpecModel,
     ConcretizedRequirement,

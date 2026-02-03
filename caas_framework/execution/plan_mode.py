@@ -83,7 +83,7 @@ class PlanMode:
 
         # Display boundaries if available
         if hasattr(concretized, "boundaries") and concretized.boundaries:
-            print(f"\n🔒 Security Boundaries:")
+            print("\n🔒 Security Boundaries:")
             if concretized.boundaries.never_allowed:
                 print(
                     f"  ❌ Never Allowed: {len(concretized.boundaries.never_allowed)} restrictions"

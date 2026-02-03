@@ -12,13 +12,12 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import List, Optional
 
-from caas_framework.utils.logger import get_logger
-
 from caas_framework.models.specifications import ConcretizedRequirement, FeatureSpec
 from caas_framework.plugins.llm.base import LLMPlugin
 from caas_framework.testing.bdd_test_generator import TestCodeResult, TestFirstGenerator
 from caas_framework.testing.test_executor import TestExecutor, TestResult
 from caas_framework.testing.test_scenario import TestScenario, TestScenarioGenerator
+from caas_framework.utils.logger import get_logger
 
 logger = get_logger()
 
@@ -156,7 +155,7 @@ class TDDOrchestrator:
                 errors.append("Failed to generate implementation")
                 return self._create_error_result(cycles, errors, start_time)
 
-            logger.info(f"Generated implementation code")
+            logger.info("Generated implementation code")
 
             # Step 4: Run tests (Validate GREEN)
             logger.info(f"🧪 Running tests for {entity_name}")
@@ -176,7 +175,7 @@ class TDDOrchestrator:
 
             # Step 5: Refactor if needed (optional)
             if cycle.passed and self.max_refactor_cycles > 0:
-                logger.info(f"🔧 REFACTOR: Improving code quality")
+                logger.info("🔧 REFACTOR: Improving code quality")
                 refactored_cycles = await self._refactor_cycles(
                     cycle=cycle, entity_name=entity_name
                 )
@@ -200,12 +199,12 @@ class TDDOrchestrator:
             )
 
             if result.success:
-                logger.info(f"✅ TDD workflow completed successfully!")
+                logger.info("✅ TDD workflow completed successfully!")
                 logger.info(f"   Scenarios: {result.total_scenarios}")
                 logger.info(f"   Tests passed: {result.total_tests_passed}")
                 logger.info(f"   Coverage: {result.test_coverage:.1%}")
             else:
-                logger.warning(f"⚠️ TDD workflow completed with failures")
+                logger.warning("⚠️ TDD workflow completed with failures")
                 logger.warning(f"   Tests failed: {result.total_tests_failed}")
 
             return result

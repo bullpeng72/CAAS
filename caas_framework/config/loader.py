@@ -84,7 +84,7 @@ class ConfigLoader:
             env_config = project_root / f"config.{env}.yaml"
             if env_config.exists():
                 return str(env_config)
-        except (OSError, AttributeError) as e:
+        except (OSError, AttributeError):
             # Failed to access file system or path resolution
             pass
 

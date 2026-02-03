@@ -5,7 +5,11 @@ Provides different execution modes for the CAAS framework.
 """
 
 # Protocol interfaces (UI-independent)
-from caas_framework.modes.interfaces import ApprovalDecision, NullReviewHandler, ReviewHandler
+from caas_framework.modes.interfaces import (
+    ApprovalDecision,
+    NullReviewHandler,
+    ReviewHandler,
+)
 
 # Backward compatible wrapper
 from caas_framework.modes.plan_mode import PlanMode, create_plan_mode

@@ -7,12 +7,12 @@ Execute specific BMAD phase (0-5)
 from pathlib import Path
 
 import click
+
 from caas_cli.utils import (
     echo_error,
     echo_info,
     echo_progress,
     echo_success,
-    echo_warning,
     handle_keyboard_interrupt,
     initialize_framework,
     load_json,
@@ -268,7 +268,9 @@ async def _execute_phase_1(framework, input_dir, output_path, verbose):
     golden_data_dict = load_json(Path(input_dir) / "golden_data.json")
 
     from caas_framework.bmad.engine import BMADEngine
-    from caas_framework.models.specifications import ConcretizedRequirement as GoldenData
+    from caas_framework.models.specifications import (
+        ConcretizedRequirement as GoldenData,
+    )
 
     golden_data = GoldenData(**golden_data_dict)
 
@@ -290,7 +292,7 @@ async def _execute_phase_1(framework, input_dir, output_path, verbose):
 
     if verbose:
         click.echo()
-        echo_info(f"Analysis completed")
+        echo_info("Analysis completed")
 
     # Save analysis and copy golden_data for next phase
     save_json(output_path / "requirement_analysis.json", analysis)
@@ -310,7 +312,9 @@ async def _execute_phase_2(framework, input_dir, workflow_type, output_path, ver
     analysis = load_json(input_path / "requirement_analysis.json")
 
     from caas_framework.bmad.engine import BMADEngine
-    from caas_framework.models.specifications import ConcretizedRequirement as GoldenData
+    from caas_framework.models.specifications import (
+        ConcretizedRequirement as GoldenData,
+    )
 
     golden_data = GoldenData(**golden_data_dict)
 
@@ -360,7 +364,9 @@ async def _execute_phase_3(framework, input_dir, output_path, verbose):
         requirement_analysis = None
 
     from caas_framework.bmad.engine import BMADEngine
-    from caas_framework.models.specifications import ConcretizedRequirement as GoldenData
+    from caas_framework.models.specifications import (
+        ConcretizedRequirement as GoldenData,
+    )
 
     golden_data = GoldenData(**golden_data_dict)
 
@@ -406,9 +412,10 @@ async def _execute_phase_4(framework, input_dir, output_path, verbose):
     golden_data_dict = load_json(input_path / "golden_data.json")
 
     from caas_framework.bmad.engine import BMADEngine
-    from caas_framework.models.specifications import AgentSpecModel
-    from caas_framework.models.specifications import ConcretizedRequirement as GoldenData
-    from caas_framework.models.specifications import TaskSpecModel
+    from caas_framework.models.specifications import AgentSpecModel, TaskSpecModel
+    from caas_framework.models.specifications import (
+        ConcretizedRequirement as GoldenData,
+    )
 
     # Convert to models
     agents = [AgentSpecModel(**a) for a in agents_data]
@@ -469,7 +476,9 @@ async def _execute_phase_5(framework, input_dir, deployment_target, output_path,
     golden_data_dict = load_json(golden_data_path)
 
     from caas_framework.bmad.engine import BMADEngine
-    from caas_framework.models.specifications import ConcretizedRequirement as GoldenData
+    from caas_framework.models.specifications import (
+        ConcretizedRequirement as GoldenData,
+    )
 
     golden_data = GoldenData(**golden_data_dict)
 

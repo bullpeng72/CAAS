@@ -13,7 +13,10 @@ from typing import Any, Dict, List, Optional
 
 from caas_framework.agents.collaboration import ExpertAgentCollaboration
 from caas_framework.automation import BootstrapResult, ProjectBootstrapper
-from caas_framework.bmad.completeness_validator import CompletenessReport, CompletenessValidator
+from caas_framework.bmad.completeness_validator import (
+    CompletenessReport,
+    CompletenessValidator,
+)
 from caas_framework.bmad.gap_filler import GapFiller, GapFillingResult
 from caas_framework.bmad.golden_data import GoldenDataPipeline
 from caas_framework.bmad.traceability import TraceabilityMatrix
@@ -27,7 +30,11 @@ from caas_framework.models.specifications import (
     TaskSpecModel,
 )
 from caas_framework.plugins.llm.base import LLMPlugin
-from caas_framework.reporting import ProgressReporter, ProgressReporterProtocol, VerbosityLevel
+from caas_framework.reporting import (
+    ProgressReporter,
+    ProgressReporterProtocol,
+    VerbosityLevel,
+)
 from caas_framework.utils import ResponseParser
 from caas_framework.utils.workflow_selector import get_workflow_recommendation
 from caas_framework.validation.orchestrator import ValidationOrchestrator
@@ -1218,7 +1225,7 @@ JSON으로 반환하세요 (모든 텍스트 필드는 한국어로)."""
             ]
 
             if critical_high:
-                self.reporter.warning(f"  🚨 Critical/High severity issues:")
+                self.reporter.warning("  🚨 Critical/High severity issues:")
                 for issue in critical_high[:5]:  # Show first 5
                     location = (
                         f"{issue.file_path}:{issue.line_number}"

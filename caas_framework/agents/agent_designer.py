@@ -10,8 +10,6 @@ Expert agent responsible for Phase 3 (Design):
 
 from typing import Any, Dict, List, Optional
 
-from caas_framework.utils.logger import get_logger
-
 from caas_framework.agents.base import AgentPhase, BaseExpertAgent, ValidationIssue
 from caas_framework.agents.executors import GoldenDataEnhancer
 from caas_framework.agents.registry import register_agent
@@ -23,6 +21,7 @@ from caas_framework.models.specifications import (
 )
 from caas_framework.plugins.llm.base import LLMPlugin
 from caas_framework.utils import ObjectAccessor, PromptBuilder, ResponseParser
+from caas_framework.utils.logger import get_logger
 
 
 @register_agent(phase=AgentPhase.DESIGN)
@@ -88,7 +87,6 @@ class AgentDesignerAgent(BaseExpertAgent):
         )
 
         # Debug logging
-        import logging
 
         logger = get_logger()
 
@@ -141,7 +139,9 @@ class AgentDesignerAgent(BaseExpertAgent):
 
         # Apply post-generation fixes
         try:
-            from caas_framework.fixing.post_generation_fixer import apply_post_generation_fixes
+            from caas_framework.fixing.post_generation_fixer import (
+                apply_post_generation_fixes,
+            )
 
             result = apply_post_generation_fixes(result)
             logger.info("[AgentDesigner] Applied post-generation fixes")
@@ -619,6 +619,6 @@ class AgentDesignerAgent(BaseExpertAgent):
 
             return result
 
-        except (KeyError, TypeError, ValueError) as e:
+        except (KeyError, TypeError, ValueError):
             # Failed to validate refinement response (parsing already handled by ResponseParser)
             return output

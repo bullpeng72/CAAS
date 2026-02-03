@@ -5,18 +5,16 @@ Verifies that Plan Mode Protocol-based implementation works correctly
 and can be used with different UI implementations.
 """
 
-import pytest
-from typing import Dict, Any, Tuple, Optional
+from typing import Any, Dict, Optional, Tuple
 
-from caas_framework.modes import (
-    PlanModeCore,
-    ApprovalGate,
-    ApprovalDecision,
-    ReviewHandler,
-    NullReviewHandler,
-    PlanMode
-)
 from caas_framework.agents.base import AgentPhase
+from caas_framework.modes import (
+    ApprovalDecision,
+    NullReviewHandler,
+    PlanMode,
+    PlanModeCore,
+    ReviewHandler,
+)
 
 
 class MockReviewHandler:

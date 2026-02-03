@@ -8,13 +8,12 @@ Verifies that:
 4. Overall pipeline runs successfully
 """
 
-import pytest
 from caas_framework.quality.pipeline import (
+    CheckStatus,
     CodeQualityPipeline,
-    SyntaxCheck,
-    ImportCheck,
     CodeStyleCheck,
-    CheckStatus
+    ImportCheck,
+    SyntaxCheck,
 )
 
 

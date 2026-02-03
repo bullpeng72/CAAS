@@ -4,9 +4,9 @@ Generate Code Command
 Generate production-ready code from spec (agents.json + tasks.json)
 """
 
-from pathlib import Path
 
 import click
+
 from caas_cli.utils import (
     echo_error,
     echo_info,
@@ -253,10 +253,10 @@ async def generate_code(
             click.echo()
             click.echo(click.style("Next steps:", bold=True))
             click.echo(f"  1. cd {output}")
-            click.echo(f"  2. Review generated code")
-            click.echo(f"  3. Create .env file: cp .env.example .env")
-            click.echo(f"  4. Install dependencies: pip install -r requirements.txt")
-            click.echo(f"  5. Run tests: pytest tests/")
+            click.echo("  2. Review generated code")
+            click.echo("  3. Create .env file: cp .env.example .env")
+            click.echo("  4. Install dependencies: pip install -r requirements.txt")
+            click.echo("  5. Run tests: pytest tests/")
             click.echo(f"  6. Run with {deployment_target}")
 
             return 0

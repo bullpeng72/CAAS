@@ -8,6 +8,12 @@ import time
 from datetime import datetime
 
 import click
+from rich.console import Console
+from rich.layout import Layout
+from rich.live import Live
+from rich.panel import Panel
+from rich.table import Table
+
 from caas_cli.utils import (
     echo_error,
     echo_info,
@@ -15,11 +21,6 @@ from caas_cli.utils import (
     echo_warning,
     handle_keyboard_interrupt,
 )
-from rich.console import Console
-from rich.layout import Layout
-from rich.live import Live
-from rich.panel import Panel
-from rich.table import Table
 
 console = Console()
 
@@ -142,7 +143,7 @@ def metrics(watch, interval, verbose):
 
         if watch:
             # Watch mode with live updates
-            echo_info(f"Monitoring metrics (press Ctrl+C to stop)...")
+            echo_info("Monitoring metrics (press Ctrl+C to stop)...")
             console.print()
 
             try:

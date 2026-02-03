@@ -4,26 +4,21 @@ Tests for Advanced Caching System
 Tests cache backends, cache manager, and LLM caching.
 """
 
-import pytest
-import asyncio
 import tempfile
-from pathlib import Path
 from datetime import datetime, timedelta
+from pathlib import Path
 
+import pytest
+
+from caas_framework.agents.base import AgentPhase
 from caas_framework.caching.backends import (
-    InMemoryCacheBackend,
+    CacheEntry,
     FileCacheBackend,
-    CacheEntry
+    InMemoryCacheBackend,
 )
-from caas_framework.caching.cache_manager import (
-    CacheManager,
-    CacheKey,
-    CacheMetrics
-)
+from caas_framework.caching.cache_manager import CacheKey, CacheManager, CacheMetrics
 from caas_framework.caching.llm_cache import LLMCacheWrapper
 from caas_framework.plugins.llm.base import LLMMessage, LLMResponse
-from caas_framework.agents.base import AgentPhase
-
 
 # ==================== Backend Tests ====================
 

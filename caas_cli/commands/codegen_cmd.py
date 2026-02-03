@@ -4,9 +4,9 @@ Codegen Command
 Generate specific code components independently
 """
 
-from pathlib import Path
 
 import click
+
 from caas_cli.utils import (
     echo_error,
     echo_info,
@@ -187,16 +187,16 @@ async def codegen(
             save_files(output, files)
 
             click.echo()
-            echo_success(f"Code generation completed!")
+            echo_success("Code generation completed!")
             echo_info(f"Output directory: {output}")
 
             # Show next steps
             click.echo()
             click.echo(click.style("Next steps:", bold=True))
             click.echo(f"  1. cd {output}")
-            click.echo(f"  2. Review generated files")
+            click.echo("  2. Review generated files")
             if component in ["tests", "all"]:
-                click.echo(f"  3. Run tests: pytest")
+                click.echo("  3. Run tests: pytest")
             if component in ["deployment", "all"]:
                 click.echo(f"  3. Deploy with {deployment_target}")
         else:
@@ -236,7 +236,10 @@ async def _generate_tests(agents_list, tasks_list, golden_data, verbose):
 
 async def _generate_deployment(agents_list, tasks_list, deployment_target, verbose):
     """Generate deployment configs"""
-    from caas_framework.codegen.deployment_generator import DeploymentConfig, DeploymentGenerator
+    from caas_framework.codegen.deployment_generator import (
+        DeploymentConfig,
+        DeploymentGenerator,
+    )
 
     echo_progress(f"Generating {deployment_target} deployment configs...")
 

@@ -1383,7 +1383,7 @@ def {name}(input_data: Any = None, error_condition: bool = False) -> Any:
         }
 
         # Phase 3: REFACTOR - Iteratively improve until tests pass
-        logger.info(f"🔵 REFACTOR Phase: Refining implementation...")
+        logger.info("🔵 REFACTOR Phase: Refining implementation...")
         iterations = 0
 
         while test_results.get("failed", 0) > 0 and iterations < self.max_iterations:

@@ -9,9 +9,8 @@ from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
-from caas_framework.utils.logger import get_logger
-
 from caas_framework.bmad.code_analyzer import AnalysisResult
+from caas_framework.utils.logger import get_logger
 
 logger = get_logger(name="caas_framework.bmad.adaptive")
 

@@ -8,20 +8,12 @@ Verifies that:
 4. No direct print() or input() in Framework core
 """
 
-import pytest
-from caas_framework.api.interfaces import (
-    UICallback,
-    EventData,
-    UIEvent,
-    ReviewHandler,
-    ReviewRequest,
-    ReviewType
-)
+from caas_framework.api.interfaces import EventData, ReviewRequest, ReviewType
 from caas_framework.execution.plan_mode_api import PlanModeAPI
 from caas_framework.models.specifications import (
     ConcretizedRequirement,
+    FeatureSpec,
     SystemScope,
-    FeatureSpec
 )
 
 
@@ -262,6 +254,7 @@ def test_no_ui_dependencies_in_framework():
     # - CLI-specific libraries
 
     import inspect
+
     from caas_framework.execution import plan_mode_api
 
     source = inspect.getsource(plan_mode_api)

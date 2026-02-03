@@ -4,26 +4,26 @@ Tests for Event-Driven Architecture
 Tests the event bus, async orchestration, and parallel execution.
 """
 
-import pytest
 import asyncio
 import time
-from unittest.mock import Mock, AsyncMock
+from unittest.mock import AsyncMock, Mock
+
+import pytest
 
 from caas_framework.events import (
-    PhaseEvent,
+    AsyncOrchestrator,
     Event,
     EventBus,
-    get_global_event_bus,
-    AsyncOrchestrator,
+    PhaseEvent,
     PhaseResult,
+    create_feedback_event,
     create_phase_event,
     create_validation_event,
-    create_feedback_event
+    get_global_event_bus,
 )
-
 from caas_framework.events.async_orchestrator import (
     PhaseDefinition,
-    create_phase_definition
+    create_phase_definition,
 )
 
 

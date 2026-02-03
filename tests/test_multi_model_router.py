@@ -4,18 +4,18 @@ Tests for Multi-Model Router
 Tests model selection, fallback, and performance tracking.
 """
 
-import pytest
-from unittest.mock import AsyncMock, Mock
 
+import pytest
+
+from caas_framework.agents.base import AgentPhase
 from caas_framework.plugins.llm.base import LLMMessage, LLMResponse
 from caas_framework.plugins.llm.multi_model_router import (
-    MultiModelRouter,
     ModelConfig,
-    ModelSelectionStrategy,
+    ModelMetrics,
     ModelPerformanceTracker,
-    ModelMetrics
+    ModelSelectionStrategy,
+    MultiModelRouter,
 )
-from caas_framework.agents.base import AgentPhase
 
 
 class MockLLMPlugin:

@@ -11,10 +11,9 @@ Task Description Refiner
 
 from typing import List, Optional
 
-from caas_framework.utils.logger import get_logger
-
 from caas_framework.bmad.models import TaskMapping
 from caas_framework.models.domain_types import DomainType
+from caas_framework.utils.logger import get_logger
 
 logger = get_logger(name="caas_framework.bmad.task_refiner")
 
@@ -333,7 +332,7 @@ class TaskRefiner:
             "create": f"{entity} ID and creation status",
             "read": f"List of {entity} objects",
             "update": f"Updated {entity} object",
-            "delete": f"Deletion confirmation",
+            "delete": "Deletion confirmation",
         }
 
         task.description = operation_templates.get(operation, task.description)

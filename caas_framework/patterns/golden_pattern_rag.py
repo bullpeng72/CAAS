@@ -387,7 +387,7 @@ class GoldenPatternLibrary:
         logger.info(f"Found similar project (similarity: {pattern.similarity:.1%})")
         logger.info(f'Original request: "{pattern.request}"')
         logger.info(f"User satisfaction: {pattern.satisfaction}/5 ⭐")
-        logger.info(f"\nSuggested features from this pattern:")
+        logger.info("\nSuggested features from this pattern:")
 
         for feature in suggested_features:
             logger.info(f"  • {feature['name']}")

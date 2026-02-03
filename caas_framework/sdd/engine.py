@@ -11,10 +11,13 @@ from typing import Any, Dict, List, Optional
 import yaml
 from pydantic import BaseModel, field_validator
 
-from caas_framework.utils.logger import get_logger
-
 from caas_framework.models import AgentSpecModel, LLMConfigSpec, TaskSpecModel
-from caas_framework.utils.security import YAMLSecurityError, safe_yaml_load, validate_project_name
+from caas_framework.utils.logger import get_logger
+from caas_framework.utils.security import (
+    YAMLSecurityError,
+    safe_yaml_load,
+    validate_project_name,
+)
 
 logger = get_logger(name="caas_framework.sdd.engine")
 
@@ -110,7 +113,10 @@ class SpecValidator:
         # Tool Registry에서 등록된 도구 가져오기
         from difflib import get_close_matches
 
-        from caas_framework.models.tool_registry import get_all_tools_dict, get_enabled_tools_dict
+        from caas_framework.models.tool_registry import (
+            get_all_tools_dict,
+            get_enabled_tools_dict,
+        )
 
         enabled_tools = set(get_enabled_tools_dict().keys())
         all_tools = set(get_all_tools_dict().keys())
@@ -274,7 +280,7 @@ class SpecParser:
         except YAMLSecurityError as e:
             self.logger.error(f"YAML 보안 검사 실패: {e}")
             raise ValueError(f"YAML이 보안 정책을 위반했습니다: {e}")
-        except ValueError as e:
+        except ValueError:
             # 이미 ValueError
             raise
         except Exception as e:

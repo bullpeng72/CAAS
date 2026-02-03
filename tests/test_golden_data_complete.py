@@ -10,20 +10,16 @@ Tests that all 6 core spec areas are properly populated:
 6. Boundaries (CRITICAL for security)
 """
 
-import pytest
 import json
-from unittest.mock import AsyncMock, MagicMock
 
-from caas_framework.bmad.golden_data import (
-    RequirementConcretizer,
-    GoldenDataPipeline
-)
+import pytest
+
+from caas_framework.bmad.golden_data import GoldenDataPipeline, RequirementConcretizer
 from caas_framework.models.specifications import (
-    ConcretizedRequirement,
     BoundariesSpec,
-    CommandsSpec,
     CodeStyleSpec,
-    GitWorkflowSpec
+    CommandsSpec,
+    GitWorkflowSpec,
 )
 from caas_framework.plugins.llm.base import LLMPlugin, LLMResponse
 

@@ -7,14 +7,13 @@ Verifies that:
 3. CodeGenerator validates generated code against boundaries
 """
 
-import pytest
 from caas_framework.models.specifications import (
     BoundariesSpec,
-    CommandsSpec,
     CodeStyleSpec,
-    GitWorkflowSpec,
+    CommandsSpec,
     ConcretizedRequirement,
-    SystemScope
+    GitWorkflowSpec,
+    SystemScope,
 )
 
 

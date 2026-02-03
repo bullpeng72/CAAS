@@ -5,6 +5,7 @@ List projects.
 """
 
 import click
+
 from caas_cli.config import get_config
 from caas_cli.utils import echo_error, print_table
 from caas_sdk import CAAS

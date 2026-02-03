@@ -9,16 +9,16 @@ Verifies that:
 """
 
 import pytest
+
 from caas_framework.utils.type_helpers import (
     AgentDict,
-    TaskDict,
     DesignOutput,
+    PhaseStatus,
+    TaskDict,
+    assert_agent_dict,
     is_agent_dict,
     is_task_dict,
     validate_design_output,
-    assert_agent_dict,
-    assert_task_dict,
-    PhaseStatus
 )
 
 

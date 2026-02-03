@@ -4,12 +4,12 @@ Simple Plan Mode Integration Tests
 Tests that don't require full BMAD Engine dependencies.
 """
 
-import pytest
 from unittest.mock import Mock
 
+import pytest
+
+from caas_cli.ui.cli_review_handler import AutoApproveHandler
 from caas_framework.execution.plan_mode_api import PlanModeAPI
-from caas_framework.api import ReviewRequest, ReviewType
-from caas_cli.ui.cli_review_handler import CLIReviewHandler, AutoApproveHandler
 
 
 def test_cli_review_handler_with_plan_mode_api():

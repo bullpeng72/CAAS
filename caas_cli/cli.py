@@ -4,9 +4,12 @@ CAAS CLI Main Entry Point
 Command-line interface for generating CrewAI agents.
 """
 
-import sys
 
 import click
+from rich.console import Console
+from rich.panel import Panel
+from rich.text import Text
+
 from caas_cli.commands import (  # Phase 1: Core Features; Phase 2: Advanced Features; Phase 2 Enhancement: Monitoring & Performance; Phase 3: Management Features; Phase 4: Production Ready
     analyze_gaps,
     auto_deploy_cmd,
@@ -35,9 +38,6 @@ from caas_cli.commands import (  # Phase 1: Core Features; Phase 2: Advanced Fea
     validate_cmd,
     workflow_cmd,
 )
-from rich.console import Console
-from rich.panel import Panel
-from rich.text import Text
 
 
 class CustomGroup(click.Group):
@@ -55,8 +55,6 @@ console = Console()
 def show_comprehensive_help():
     """Display comprehensive help with methodology when --help is used"""
 
-    from rich.columns import Columns
-    from rich.markdown import Markdown
     from rich.table import Table
 
     console.print("\n")

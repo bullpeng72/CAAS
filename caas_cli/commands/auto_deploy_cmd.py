@@ -5,14 +5,13 @@ Full automation workflow: requirement → production in one command.
 """
 
 import subprocess
-import sys
 from pathlib import Path
 
 import click
+
 from caas_cli.utils import (
     echo_error,
     echo_info,
-    echo_progress,
     echo_success,
     handle_keyboard_interrupt,
 )
@@ -204,7 +203,7 @@ def auto_deploy(requirement, target, output, skip_tests, skip_docker, verbose, d
     caas test            - Run tests only
     """
     try:
-        echo_info(f"Starting full automation workflow...")
+        echo_info("Starting full automation workflow...")
         echo_info(f"Requirement: {requirement}")
         echo_info(f"Target: {target}")
         echo_info(f"Output: {output}")

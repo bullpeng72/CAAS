@@ -333,7 +333,7 @@ If no contradictions found, return empty array.
 
             return contradictions
 
-        except Exception as e:
+        except Exception:
             # If LLM check fails, just return empty list
             return []
 

@@ -5,15 +5,13 @@ Verifies that both existing ProgressReporter and new RichProgressReporter
 implement the Protocol correctly and can be used interchangeably.
 """
 
-import pytest
-from typing import Protocol
-from caas_framework.reporting import (
-    ProgressReporterProtocol,
-    ProgressReporter,
-    VerbosityLevel,
-    NullProgressReporter
-)
 from caas_cli.ui.rich_progress_reporter import RichProgressReporter
+from caas_framework.reporting import (
+    NullProgressReporter,
+    ProgressReporter,
+    ProgressReporterProtocol,
+    VerbosityLevel,
+)
 
 
 def test_protocol_implementation():

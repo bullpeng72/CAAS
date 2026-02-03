@@ -160,12 +160,12 @@ class CriticAgentPattern:
         logger.info(f"   Feedback: {critique.feedback}")
 
         if critique.issues:
-            logger.info(f"\n   Issues found:")
+            logger.info("\n   Issues found:")
             for issue in critique.issues:
                 logger.info(f"      • {issue}")
 
         if critique.suggestions:
-            logger.info(f"\n   Suggestions:")
+            logger.info("\n   Suggestions:")
             for suggestion in critique.suggestions:
                 logger.info(f"      • {suggestion}")
 
@@ -286,12 +286,12 @@ class SimpleSyncCriticPattern:
         logger.info(f"   Feedback: {critique.feedback}")
 
         if critique.issues:
-            logger.info(f"\n   Issues found:")
+            logger.info("\n   Issues found:")
             for issue in critique.issues:
                 logger.info(f"      • {issue}")
 
         if critique.suggestions:
-            logger.info(f"\n   Suggestions:")
+            logger.info("\n   Suggestions:")
             for suggestion in critique.suggestions:
                 logger.info(f"      • {suggestion}")
 

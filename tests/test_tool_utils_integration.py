@@ -5,10 +5,12 @@ Verifies that the refactored code works correctly with the actual
 LLMCodeGenerator and CodeGeneratorAgent classes.
 """
 
+from unittest.mock import AsyncMock, Mock
+
 import pytest
-from unittest.mock import Mock, AsyncMock
-from caas_framework.codegen.llm_code_generator import LLMCodeGenerator
+
 from caas_framework.agents.code_generator import CodeGeneratorAgent
+from caas_framework.codegen.llm_code_generator import LLMCodeGenerator
 
 
 class TestLLMCodeGeneratorIntegration:

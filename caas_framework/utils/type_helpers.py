@@ -6,7 +6,17 @@ for the CAAS framework.
 """
 
 from enum import Enum
-from typing import Any, Awaitable, Callable, Dict, List, Protocol, TypedDict, TypeVar, Union
+from typing import (
+    Any,
+    Awaitable,
+    Callable,
+    Dict,
+    List,
+    Protocol,
+    TypedDict,
+    TypeVar,
+    Union,
+)
 
 # ==================== Type Variables ====================
 

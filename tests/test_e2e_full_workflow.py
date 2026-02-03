@@ -18,11 +18,10 @@ Usage:
     pytest tests/test_e2e_full_workflow.py -v  # Will skip
 """
 
-import pytest
 import os
-import asyncio
-from pathlib import Path
 from datetime import datetime
+
+import pytest
 
 # Skip E2E tests by default (too expensive for CI)
 pytestmark = pytest.mark.skipif(
@@ -45,8 +44,8 @@ class TestE2EFullWorkflow:
 
         Uses cost-efficient model by default.
         """
-        from caas_framework.plugins.llm import get_llm_plugin
         from caas_framework.config import get_settings
+        from caas_framework.plugins.llm import get_llm_plugin
 
         settings = get_settings()
 
@@ -157,7 +156,7 @@ class TestE2EFullWorkflow:
                 reporter.info(f"✅ Validations: {len(result.validation_reports)}")
 
             # Cost estimate (if available)
-            reporter.warning(f"💰 Estimated cost: ~$0.10-0.50 (depending on model)")
+            reporter.warning("💰 Estimated cost: ~$0.10-0.50 (depending on model)")
 
         except Exception as e:
             duration = (datetime.now() - start_time).total_seconds()
@@ -178,8 +177,8 @@ class TestE2EFullWorkflow:
         """
         from caas_framework.bmad.engine import BMADEngine
         from caas_framework.caching import get_cache_manager
-        from caas_framework.performance import get_profiler
         from caas_framework.monitoring import get_metrics_collector
+        from caas_framework.performance import get_profiler
         from caas_framework.reporting import ProgressReporter, VerbosityLevel
 
         # Enable Phase 2 enhancements
@@ -288,7 +287,7 @@ class TestE2EFullWorkflow:
 
             # Even with a poor requirement, auto-fix should improve it
             # But we may see warnings or lower quality scores
-            reporter.info(f"✅ Workflow completed (with auto-fix assistance)")
+            reporter.info("✅ Workflow completed (with auto-fix assistance)")
             reporter.info(f"⚠️  Validation reports: {len(result.validation_reports)}")
 
             # Check that validation ran
@@ -364,7 +363,7 @@ if __name__ == "__main__":
     model = os.getenv("E2E_MODEL", "gpt-3.5-turbo")
     cost = estimate_e2e_cost(model)
 
-    print(f"✅ E2E tests enabled")
+    print("✅ E2E tests enabled")
     print(f"📊 Model: {model}")
     print(f"💰 Estimated cost: ${cost:.2f} per test")
     print("=" * 60)

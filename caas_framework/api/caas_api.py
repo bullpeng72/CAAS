@@ -9,13 +9,12 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
-from caas_framework.utils.logger import get_logger
-
 from caas_framework.agents.base import AgentPhase
 from caas_framework.agents.collaboration import ExpertAgentCollaboration
 from caas_framework.events.event_bus import EventBus
 from caas_framework.models.specifications import ConcretizedRequirement
 from caas_framework.plugins.llm.base import LLMPlugin
+from caas_framework.utils.logger import get_logger
 
 logger = get_logger()
 

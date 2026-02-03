@@ -7,6 +7,7 @@ Download generated code.
 from pathlib import Path
 
 import click
+
 from caas_cli.config import get_config
 from caas_cli.utils import echo_error, echo_progress, echo_success
 from caas_sdk import CAAS
@@ -167,9 +168,9 @@ def download(project_id, output_dir, api_key, api_url, force):
         click.echo()
         click.echo(click.style("Next steps:", bold=True))
         click.echo(f"  1. cd {output_dir}")
-        click.echo(f"  2. Review generated code")
-        click.echo(f"  3. Install dependencies: pip install -r requirements.txt")
-        click.echo(f"  4. Run: python main.py")
+        click.echo("  2. Review generated code")
+        click.echo("  3. Install dependencies: pip install -r requirements.txt")
+        click.echo("  4. Run: python main.py")
 
     except CAASError as e:
         echo_error(f"Error: {e}")

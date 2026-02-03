@@ -5,8 +5,14 @@ Traceability Command
 """
 
 import click
+
 from caas_cli.config import get_config
-from caas_cli.utils import echo_error, echo_info, echo_success, handle_keyboard_interrupt
+from caas_cli.utils import (
+    echo_error,
+    echo_info,
+    echo_success,
+    handle_keyboard_interrupt,
+)
 
 
 @click.command()

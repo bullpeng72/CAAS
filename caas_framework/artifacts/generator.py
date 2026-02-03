@@ -10,16 +10,14 @@ from typing import Any, Dict, List, Optional
 
 from jinja2 import Environment, FileSystemLoader, TemplateNotFound
 
-from caas_framework.utils.logger import get_logger
-
 from caas_framework.models.artifact_types import (
     Artifact,
-    ArtifactFormat,
     ArtifactGenerationConfig,
     ArtifactMetadata,
     ArtifactType,
     get_artifact_template_name,
 )
+from caas_framework.utils.logger import get_logger
 
 logger = get_logger()
 

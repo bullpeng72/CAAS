@@ -11,9 +11,8 @@ from typing import Any, Dict, Generic, Optional, TypeVar
 from jinja2 import Environment, FileSystemLoader, Template
 from pydantic import BaseModel
 
-from caas_framework.utils.logger import get_logger
-
 from caas_framework.config import get_settings
+from caas_framework.utils.logger import get_logger
 
 PROJECT_ROOT = Path.cwd()
 

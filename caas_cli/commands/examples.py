@@ -8,8 +8,8 @@ quickly with common project types.
 from typing import Optional
 
 import click
-from caas_cli.utils import echo_error, echo_info, echo_success, echo_warning
 
+from caas_cli.utils import echo_error, echo_info, echo_success, echo_warning
 from caas_framework.examples.requirement_examples import (
     REQUIREMENT_EXAMPLES,
     Complexity,
@@ -253,7 +253,7 @@ def search_examples_cmd(query: str, limit: int):
         click.echo(f"   Domain: {ex.domain.value} | Tags: {', '.join(ex.tags[:3])}")
         click.echo()
 
-    echo_info(f"Use 'caas examples show <title>' to see full details")
+    echo_info("Use 'caas examples show <title>' to see full details")
 
 
 @examples_group.command(name="by-domain")
@@ -301,7 +301,7 @@ def filter_by_domain(domain: str):
         click.echo(f"     {ex.description}")
         click.echo()
 
-    echo_info(f"Use 'caas examples show <title>' to see full details")
+    echo_info("Use 'caas examples show <title>' to see full details")
 
 
 @examples_group.command(name="by-complexity")
@@ -346,7 +346,7 @@ def filter_by_complexity(complexity: str):
         click.echo(f"    Domain: {ex.domain.value} | {ex.description}")
         click.echo()
 
-    echo_info(f"Use 'caas examples show <title>' to see full details")
+    echo_info("Use 'caas examples show <title>' to see full details")
 
 
 @examples_group.command(name="stats")

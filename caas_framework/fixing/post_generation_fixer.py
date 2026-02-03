@@ -6,9 +6,8 @@ Automatically validates and fixes generated code after generation.
 
 from typing import Any, Dict, List, Tuple
 
-from caas_framework.utils.logger import get_logger
-
 from caas_framework.fixing.tool_fixer import ToolFixer
+from caas_framework.utils.logger import get_logger
 from caas_framework.validation.task_validator import TaskValidator
 
 logger = get_logger()
@@ -80,7 +79,10 @@ class PostGenerationFixer:
         # Convert dicts back to models if needed
         if agents and hasattr(agents[0], "model_dump"):
             # Were Pydantic models, convert back
-            from caas_framework.models.specifications import AgentSpecModel, TaskSpecModel
+            from caas_framework.models.specifications import (
+                AgentSpecModel,
+                TaskSpecModel,
+            )
 
             fixed_agents = [AgentSpecModel(**agent) for agent in agents_dict]
             fixed_tasks = [TaskSpecModel(**task) for task in tasks_dict]

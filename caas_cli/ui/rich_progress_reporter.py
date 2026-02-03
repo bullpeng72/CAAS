@@ -12,7 +12,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
-from caas_framework.reporting.interfaces import ProgressReporter, VerbosityLevel
+from caas_framework.reporting.interfaces import VerbosityLevel
 
 
 class RichProgressReporter:

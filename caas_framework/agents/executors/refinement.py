@@ -7,10 +7,9 @@ Provides standardized workflow for LLM-based refinement with validation feedback
 
 from typing import Any, Callable, Dict, List, Optional
 
-from caas_framework.utils.logger import get_logger
-
 from caas_framework.agents.mixins import PromptBuildingMixin
 from caas_framework.models.validation import ValidationIssue
+from caas_framework.utils.logger import get_logger
 
 logger = get_logger()
 

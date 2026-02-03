@@ -5,7 +5,6 @@ Utilities for standardized LLM invocation patterns.
 Consolidates duplicate LLM calling code from across the framework.
 """
 
-import logging
 from typing import Any, Optional
 
 from caas_framework.utils.logger import get_logger

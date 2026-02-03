@@ -5,16 +5,16 @@ Manage caching system - statistics, clearing, configuration.
 """
 
 import click
+from rich.console import Console
+from rich.panel import Panel
+from rich.table import Table
+
 from caas_cli.utils import (
     echo_error,
     echo_info,
     echo_success,
-    echo_warning,
     handle_keyboard_interrupt,
 )
-from rich.console import Console
-from rich.panel import Panel
-from rich.table import Table
 
 console = Console()
 

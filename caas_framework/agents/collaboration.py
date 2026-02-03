@@ -12,7 +12,12 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from caas_framework.agents.base import AgentPhase, AgentWorkResult, BaseExpertAgent, ValidationIssue
+from caas_framework.agents.base import (
+    AgentPhase,
+    AgentWorkResult,
+    BaseExpertAgent,
+    ValidationIssue,
+)
 from caas_framework.agents.registry import create_agent, get_agent_registry
 from caas_framework.events import (
     Event,
@@ -36,7 +41,11 @@ from caas_framework.patterns.producer_critic import (
 )
 from caas_framework.plugins.llm.base import LLMPlugin
 from caas_framework.quality.quality_gates import GateEvaluation, QualityGateSystem
-from caas_framework.reporting import ProgressReporter, ProgressReporterProtocol, VerbosityLevel
+from caas_framework.reporting import (
+    ProgressReporter,
+    ProgressReporterProtocol,
+    VerbosityLevel,
+)
 from caas_framework.utils.logger import get_logger
 from caas_framework.validation.llm_judge import EvaluationResult, LLMJudge
 from caas_framework.validation.orchestrator import ValidationOrchestrator
@@ -1512,7 +1521,7 @@ class ExpertAgentCollaboration:
                 metrics=[],
                 passed_metrics=[],
                 failed_metrics=[],
-                warnings=[f"Quality gate evaluation timed out"],
+                warnings=["Quality gate evaluation timed out"],
                 recommendations=["Check quality gate configuration"],
                 overall_score=100.0,
             )
@@ -1715,7 +1724,7 @@ class ExpertAgentCollaboration:
                         )
                     else:
                         self.reporter.info(
-                            f"✅ Critic approved on first iteration (no refinement needed)"
+                            "✅ Critic approved on first iteration (no refinement needed)"
                         )
                 else:
                     self.reporter.warning(

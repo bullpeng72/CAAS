@@ -4,15 +4,11 @@ Test CAAS_API Integration
 Verifies that CAAS_API and SDK clients work correctly.
 """
 
-import pytest
-from unittest.mock import Mock, AsyncMock, patch
-from typing import Dict, Any
+from unittest.mock import AsyncMock, Mock, patch
 
-from caas_framework.api import (
-    CAAS_API,
-    GenerationConfig,
-    GenerationResult
-)
+import pytest
+
+from caas_framework.api import CAAS_API, GenerationConfig, GenerationResult
 
 
 @pytest.fixture

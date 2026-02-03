@@ -7,6 +7,7 @@ Check project status.
 import time
 
 import click
+
 from caas_cli.config import get_config
 from caas_cli.utils import echo_error, echo_info, echo_progress, echo_success
 from caas_sdk import CAAS
@@ -144,7 +145,7 @@ def status(project_id, watch, interval, api_key, api_url):
 
     if watch:
         # Watch mode
-        echo_info(f"Watching status (press Ctrl+C to stop)...")
+        echo_info("Watching status (press Ctrl+C to stop)...")
 
         try:
             while True:

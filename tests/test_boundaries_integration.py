@@ -4,7 +4,6 @@ Test Boundaries Integration with BMAD Engine
 Tests that boundaries are automatically validated during code generation.
 """
 
-import pytest
 from caas_framework.models.specifications import BoundariesSpec
 
 

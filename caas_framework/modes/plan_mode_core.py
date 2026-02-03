@@ -8,10 +8,13 @@ Works with any ReviewHandler implementation (CLI, Streamlit, VSCode, etc.).
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
-from caas_framework.utils.logger import get_logger
-
 from caas_framework.agents.base import AgentPhase
-from caas_framework.modes.interfaces import ApprovalDecision, NullReviewHandler, ReviewHandler
+from caas_framework.modes.interfaces import (
+    ApprovalDecision,
+    NullReviewHandler,
+    ReviewHandler,
+)
+from caas_framework.utils.logger import get_logger
 
 logger = get_logger()
 

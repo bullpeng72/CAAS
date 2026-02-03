@@ -5,6 +5,7 @@ Interactive Questions Command
 """
 
 import click
+
 from caas_cli.config import get_config
 from caas_cli.utils import (
     echo_error,

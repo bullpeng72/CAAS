@@ -4,20 +4,18 @@ Tests for Producer-Critic Pattern
 Tests the Producer-Critic collaboration pattern for iterative refinement.
 """
 
-import pytest
-import asyncio
-from unittest.mock import AsyncMock, MagicMock, patch
 import json
+from unittest.mock import AsyncMock, MagicMock
 
-from caas_framework.patterns.producer_critic import (
-    ProducerCriticPattern,
-    CriticAgent,
-    CriticRole,
-    CriticReview,
-    ProducerCriticResult,
-    collaborate_with_critic
-)
+import pytest
+
 from caas_framework.agents.base import AgentPhase, AgentWorkResult
+from caas_framework.patterns.producer_critic import (
+    CriticAgent,
+    CriticReview,
+    CriticRole,
+    ProducerCriticPattern,
+)
 
 
 class TestCriticReview:

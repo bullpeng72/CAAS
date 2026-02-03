@@ -24,12 +24,10 @@ Usage:
     >>> agent_instance = discovery_agent_class(llm_plugin, golden_data)
 """
 
-from enum import Enum
 from typing import Callable, Dict, List, Optional, Type
 
-from caas_framework.utils.logger import get_logger
-
 from caas_framework.agents.base import AgentPhase, BaseExpertAgent
+from caas_framework.utils.logger import get_logger
 
 logger = get_logger()
 

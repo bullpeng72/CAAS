@@ -5,15 +5,14 @@ Tests that process type (sequential/hierarchical) is automatically selected
 based on project complexity in the BMAD Engine.
 """
 
-import pytest
 from caas_framework.utils.workflow_selector import (
+    ComplexityMetrics,
+    WorkflowType,
+    analyze_coordination_complexity,
+    calculate_dependency_depth,
     determine_workflow_type,
     get_workflow_recommendation,
-    WorkflowType,
-    ComplexityMetrics,
-    calculate_dependency_depth,
-    analyze_coordination_complexity,
-    requires_dynamic_allocation
+    requires_dynamic_allocation,
 )
 
 

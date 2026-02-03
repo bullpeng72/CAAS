@@ -10,9 +10,8 @@ from typing import Any, Callable, Dict, List, Optional, Type, TypeVar
 
 from pydantic import BaseModel, ValidationError
 
-from caas_framework.utils.logger import get_logger
-
 from caas_framework.utils.json_helper import JSONHelper
+from caas_framework.utils.logger import get_logger
 
 logger = get_logger(name="caas_framework.llm.response_parser")
 

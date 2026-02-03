@@ -7,10 +7,11 @@ Verifies that:
 3. Timeout prevents hanging issues
 """
 
-import pytest
 import asyncio
+
+import pytest
+
 from caas_framework.agents.collaboration import SafeFeedbackLoop
-from caas_framework.agents.base import ValidationIssue
 
 
 def test_safe_feedback_loop_creation():
@@ -119,10 +120,10 @@ def test_collaboration_file_imports():
     """Test that collaboration.py imports correctly with new changes."""
     try:
         from caas_framework.agents.collaboration import (
+            CollaborationContext,
+            CollaborationResult,
             ExpertAgentCollaboration,
             SafeFeedbackLoop,
-            CollaborationContext,
-            CollaborationResult
         )
 
         # Check that SafeFeedbackLoop is available

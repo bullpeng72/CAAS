@@ -7,8 +7,6 @@ RequirementAnalysis를 MultiProjectSpec으로 변환합니다.
 import re
 from typing import Any, Dict, List, Optional
 
-from caas_framework.utils.logger import get_logger
-
 from caas_framework.knowledge.patterns import get_agent_pattern
 from caas_framework.models import DomainType
 from caas_framework.models.analysis import (
@@ -44,6 +42,7 @@ from caas_framework.sdd.multi_spec import (
     UIComponentType,
     UIPage,
 )
+from caas_framework.utils.logger import get_logger
 
 logger = get_logger(name="caas_framework.sdd.spec_converter")
 
@@ -250,7 +249,7 @@ def generate_execution_agents_from_domain(
 
     except Exception as e:
         logger.warning(f"⚠️ Failed to generate execution agents: {e}")
-        logger.warning(f"   Falling back to build agents")
+        logger.warning("   Falling back to build agents")
         return []
 
 
@@ -417,7 +416,7 @@ def convert_analysis_to_multi_spec(
     Returns:
         MultiProjectSpec 객체
     """
-    logger.info(f"Converting RequirementAnalysis to MultiProjectSpec")
+    logger.info("Converting RequirementAnalysis to MultiProjectSpec")
     logger.info(f"  Template: {analysis.project_template}")
     logger.info(f"  Requires UI: {analysis.requires_ui}")
     logger.info(f"  Requires Backend: {analysis.requires_backend}")

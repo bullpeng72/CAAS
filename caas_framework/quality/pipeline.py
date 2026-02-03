@@ -377,7 +377,7 @@ class CodeQualityPipeline:
         self.logger.info("CODE QUALITY REPORT")
         self.logger.info("=" * 70)
 
-        self.logger.info(f"\n📊 Summary:")
+        self.logger.info("\n📊 Summary:")
         self.logger.info(f"  Files Checked: {report.files_checked}")
         self.logger.info(f"  Total Duration: {report.total_duration:.2f}s")
         self.logger.info(f"  Errors: {report.total_errors}")

@@ -5,11 +5,14 @@ Generate CrewAI agents from requirements - Uses caas_framework directly
 """
 
 import asyncio
-import os
 import time
 from pathlib import Path
 
 import click
+
+# Load .env file for API keys
+from dotenv import load_dotenv
+
 from caas_cli.utils import (
     echo_error,
     echo_info,
@@ -18,9 +21,6 @@ from caas_cli.utils import (
     echo_warning,
     handle_keyboard_interrupt,
 )
-
-# Load .env file for API keys
-from dotenv import load_dotenv
 
 # Try to load .env from current directory or project root
 env_paths = [Path.cwd() / ".env", Path(__file__).parent.parent.parent / ".env"]
@@ -454,7 +454,7 @@ def generate(
                 if report.is_complete:
                     echo_success("  Status: ✅ COMPLETE")
                 else:
-                    echo_warning(f"  Status: ⚠️  INCOMPLETE")
+                    echo_warning("  Status: ⚠️  INCOMPLETE")
 
             # Gap Filling
             if result.gap_filling_result:
@@ -771,13 +771,13 @@ def generate(
             click.echo(click.style("Next steps:", bold=True))
             click.echo(f"  1. cd {output}")
             if result.generated_code:
-                click.echo(f"  2. Review generated code")
-                click.echo(f"  3. Review BMAD artifacts (*.json, *.md)")
-                click.echo(f"  4. Install dependencies: pip install -r requirements.txt")
+                click.echo("  2. Review generated code")
+                click.echo("  3. Review BMAD artifacts (*.json, *.md)")
+                click.echo("  4. Install dependencies: pip install -r requirements.txt")
                 click.echo(f"  5. Run with {deployment}")
             else:
-                click.echo(f"  2. Review BMAD artifacts (*.json, *.md)")
-                click.echo(f"  3. Use artifacts for code generation:")
+                click.echo("  2. Review BMAD artifacts (*.json, *.md)")
+                click.echo("  3. Use artifacts for code generation:")
                 click.echo(
                     f"     caas codegen --component all --agents {output}/agents.json --tasks {output}/tasks.json"
                 )

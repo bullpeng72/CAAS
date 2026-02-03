@@ -4,7 +4,6 @@ Test CodeQualityPipeline Integration with BMAD Engine
 Tests that code quality checks are automatically run during code generation.
 """
 
-import pytest
 from caas_framework.quality.pipeline import CodeQualityPipeline, QualityReport
 
 

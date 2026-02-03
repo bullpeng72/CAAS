@@ -10,7 +10,7 @@ import asyncio
 import logging
 import time
 from functools import wraps
-from typing import Any, Awaitable, Callable, List, Optional, Tuple, TypeVar
+from typing import Awaitable, Callable, List, Optional, Tuple, TypeVar
 
 from caas_framework.utils.logger import get_logger
 

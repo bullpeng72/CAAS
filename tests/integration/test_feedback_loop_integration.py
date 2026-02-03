@@ -5,22 +5,20 @@ Demonstrates the feedback loop working in the full collaboration workflow.
 This test verifies the #1 critical gap fix from FINAL_COMPREHENSIVE_ANALYSIS.md.
 """
 
-import pytest
 import asyncio
-from unittest.mock import AsyncMock, MagicMock, patch
 from datetime import datetime
+from unittest.mock import AsyncMock, MagicMock
 
+import pytest
+
+from caas_framework.agents.base import AgentPhase
 from caas_framework.agents.collaboration import (
+    CollaborationContext,
     ExpertAgentCollaboration,
     SafeFeedbackLoop,
-    CollaborationContext,
-    CollaborationResult
 )
-from caas_framework.agents.base import AgentPhase, ValidationIssue
 from caas_framework.models.specifications import (
-    ConcretizedRequirement,
-    SystemScope,
-    FeatureSpec
+    FeatureSpec,
 )
 from caas_framework.validation.orchestrator import ValidationOrchestrator
 
@@ -55,7 +53,7 @@ class TestFeedbackLoopIntegration:
     def mock_llm(self):
         """Create mock LLM plugin."""
         # Use centralized MockFactory for consistency
-        from tests.helpers import MockFactory, LLMResponseBuilder
+        from tests.helpers import LLMResponseBuilder, MockFactory
 
         custom_response = (LLMResponseBuilder()
             .with_agents([
@@ -326,7 +324,6 @@ class TestFeedbackLoopRealWorld:
 
         This test confirms the completion documentation exists.
         """
-        import os
         from pathlib import Path
 
         project_root = Path(__file__).parent.parent.parent
@@ -350,6 +347,7 @@ class TestFeedbackLoopRealWorld:
         This is the critical fix - ensure it's not blocked anymore.
         """
         import inspect
+
         from caas_framework.agents.collaboration import ExpertAgentCollaboration
 
         # Get source code of _execute_phase_with_feedback

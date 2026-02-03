@@ -5,16 +5,17 @@ Tests the quality gate system for BMAD phase exit criteria.
 """
 
 import pytest
+
+from caas_framework.agents.base import AgentPhase
 from caas_framework.quality.quality_gates import (
-    QualityGateSystem,
-    QualityGate,
-    QualityMetric,
     GateEvaluation,
     GateStatus,
     MetricType,
-    create_quality_gate_system
+    QualityGate,
+    QualityGateSystem,
+    QualityMetric,
+    create_quality_gate_system,
 )
-from caas_framework.agents.base import AgentPhase
 
 
 class TestQualityMetric:

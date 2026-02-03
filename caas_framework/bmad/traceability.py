@@ -9,9 +9,8 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set
 
-from caas_framework.utils.logger import get_logger
-
 from caas_framework.models.specifications import FeatureSpec, TaskSpecModel
+from caas_framework.utils.logger import get_logger
 
 logger = get_logger()
 

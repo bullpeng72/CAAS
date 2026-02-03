@@ -11,21 +11,15 @@ from pydantic import BaseModel, Field
 
 from caas_framework.knowledge.graph.neo4j_client import Neo4jClient
 from caas_framework.knowledge.graph.queries import (  # Advanced pattern queries; Template queries; Lifecycle queries
-    CREATE_CODE_TEMPLATE,
-    CREATE_PATTERN,
     CREATE_PATTERN_WITH_TEMPLATE,
     DEPRECATE_PATTERN,
-    FIND_LATEST_PATTERN,
     FIND_PATTERNS_BY_DOMAIN,
-    FIND_PATTERNS_BY_ONTOLOGY,
     FIND_SIMILAR_PATTERNS,
     FIND_TEMPLATES_FOR_PATTERN,
     GET_PATTERN_HISTORY,
     GET_PATTERN_RECOMMENDATIONS,
-    GET_PATTERN_USAGE_STATS,
     GET_PATTERN_WITH_TEMPLATES,
     INCREMENT_PATTERN_USAGE,
-    LINK_TEMPLATE_TO_PATTERN,
     RECORD_PATTERN_SUCCESS,
     UPDATE_PATTERN_VERSION,
 )

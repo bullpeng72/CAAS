@@ -4,20 +4,19 @@ Test Requirement Examples and Interactive Guide
 Tests the example requirement system and interactive guide functionality.
 """
 
-import pytest
+from caas_framework.examples.interactive_guide import InteractiveGuide
 from caas_framework.examples.requirement_examples import (
-    RequirementExample,
-    Domain,
-    Complexity,
     REQUIREMENT_EXAMPLES,
-    get_examples_by_domain,
+    Complexity,
+    Domain,
+    RequirementExample,
+    get_example_summary,
     get_examples_by_complexity,
+    get_examples_by_domain,
     get_examples_by_tag,
     search_examples,
-    get_example_summary,
-    suggest_examples
+    suggest_examples,
 )
-from caas_framework.examples.interactive_guide import InteractiveGuide
 
 
 def test_requirement_example_creation():

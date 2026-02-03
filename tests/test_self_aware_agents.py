@@ -4,22 +4,18 @@ Tests for Self-Aware Agent Implementation
 Tests capability assessment, self-awareness, and delegation.
 """
 
+from typing import Any, Dict, Optional
+
 import pytest
-from typing import Dict, Any, Optional
-from unittest.mock import AsyncMock, MagicMock, patch
 
 from caas_framework.agents.capability_assessment import (
+    AgentCapability,
     CapabilityAssessment,
     CapabilityLevel,
-    AgentCapability,
     CapabilityRegistry,
     get_capability_registry,
-    register_agent_capability
 )
-from caas_framework.agents.self_aware import (
-    SelfAwareMixin,
-    SelfAwareAgent
-)
+from caas_framework.agents.self_aware import SelfAwareAgent
 from caas_framework.plugins.llm.base import LLMPlugin
 
 

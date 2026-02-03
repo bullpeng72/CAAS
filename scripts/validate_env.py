@@ -6,14 +6,13 @@ Pre-flight checks before running CAAS automation workflow.
 Validates Python version, packages, API keys, Docker, and Kubernetes.
 """
 
-import sys
+import json
 import os
 import subprocess
-import json
-from pathlib import Path
-from typing import Dict, List, Tuple, Optional
+import sys
 from dataclasses import dataclass
 from enum import Enum
+from typing import List, Optional
 
 
 class ValidationStatus(Enum):

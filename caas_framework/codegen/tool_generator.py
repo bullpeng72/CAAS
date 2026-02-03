@@ -80,7 +80,9 @@ def get_tool_name_to_crewai() -> Dict[str, Optional[str]]:
     mapping = {}
 
     try:
-        from caas_framework.knowledge.ontology.tool_manager import get_tool_ontology_manager
+        from caas_framework.knowledge.ontology.tool_manager import (
+            get_tool_ontology_manager,
+        )
 
         tool_manager = get_tool_ontology_manager()
         all_tools = tool_manager.get_all_tools(
@@ -350,15 +352,15 @@ def generate_tool_imports(
                     [
                         f'@tool("{custom_tool}")',
                         f"def {custom_tool}_tool(input_data: str) -> str:",
-                        f'    """',
+                        '    """',
                         f"    Custom tool: {custom_tool}",
-                        f"    ",
-                        f"    Args:",
-                        f"        input_data: Input data for the tool",
-                        f"    ",
-                        f"    Returns:",
-                        f"        Result of the tool execution",
-                        f'    """',
+                        "    ",
+                        "    Args:",
+                        "        input_data: Input data for the tool",
+                        "    ",
+                        "    Returns:",
+                        "        Result of the tool execution",
+                        '    """',
                         f"    # TODO: Implement {custom_tool} logic",
                         f'    return f"Executed {custom_tool} with input: {{input_data}}"',
                         "",

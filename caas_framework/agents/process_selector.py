@@ -8,9 +8,8 @@ based on task dependencies and agent collaboration patterns.
 from enum import Enum
 from typing import Dict, List, Set
 
-from caas_framework.utils.logger import get_logger
-
 from caas_framework.models.specifications import AgentSpecModel, TaskSpecModel
+from caas_framework.utils.logger import get_logger
 
 logger = get_logger()
 
@@ -112,7 +111,7 @@ class ProcessSelector:
 
         if verbose:
             logger.info(f"\n{'='*70}")
-            logger.info(f"🔍 Process Selection Analysis")
+            logger.info("🔍 Process Selection Analysis")
             logger.info(f"{'='*70}")
             logger.info(f"Total tasks: {len(tasks)}")
             logger.info(f"Total agents: {len(agents)}")

@@ -4,10 +4,10 @@ Test Command
 Execute tests on generated code
 """
 
-import sys
 from pathlib import Path
 
 import click
+
 from caas_cli.utils import (
     echo_error,
     echo_info,

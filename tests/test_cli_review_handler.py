@@ -4,13 +4,12 @@ Test CLI Review Handler
 Tests for CLI-based review handler implementation.
 """
 
-import pytest
-from unittest.mock import MagicMock, patch
-from io import StringIO
+from unittest.mock import patch
 
-from caas_cli.ui.cli_review_handler import CLIReviewHandler, AutoApproveHandler
-from caas_framework.api import ReviewRequest, ReviewType
 from rich.console import Console
+
+from caas_cli.ui.cli_review_handler import AutoApproveHandler, CLIReviewHandler
+from caas_framework.api import ReviewRequest, ReviewType
 
 
 def test_cli_review_handler_creation():

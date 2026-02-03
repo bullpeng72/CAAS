@@ -39,7 +39,11 @@ except ImportError as e:
 
 import logging
 
-from caas_framework.llm.chain_factory import BaseChainFactory, SimpleChainFactory, check_langchain
+from caas_framework.llm.chain_factory import (
+    BaseChainFactory,
+    SimpleChainFactory,
+    check_langchain,
+)
 from caas_framework.llm.prompts.analysis import (
     AGENT_DESIGN_SYSTEM,
     AGENT_DESIGN_USER,
@@ -414,7 +418,7 @@ class RequirementAnalysisChain(BaseChainFactory):
         context += "Use this as the primary reference for your analysis.\n\n"
 
         # System Scope
-        context += f"**System Scope:**\n"
+        context += "**System Scope:**\n"
         context += f"- Project: {golden_data.system_scope.project_name}\n"
         context += f"- Purpose: {golden_data.system_scope.purpose}\n"
         context += f"- Domain: {golden_data.domain}\n"
@@ -460,7 +464,7 @@ class RequirementAnalysisChain(BaseChainFactory):
 
         # Success Criteria
         if golden_data.success_criteria:
-            context += f"**Success Criteria:**\n"
+            context += "**Success Criteria:**\n"
             for criterion in golden_data.success_criteria:
                 context += f"- {criterion}\n"
             context += "\n"
@@ -659,7 +663,7 @@ class RequirementAnalysisChain(BaseChainFactory):
 
             # 추천 도구 추가
             if recommended_tools:
-                tools_section += f"\n**🎯 Recommended Tools (based on requirement keywords):**\n"
+                tools_section += "\n**🎯 Recommended Tools (based on requirement keywords):**\n"
                 tools_section += f"{', '.join(recommended_tools)}\n"
                 tools_section += "These tools are highly relevant to the requirement. Prioritize them when selecting tools.\n"
                 logger.info(f"추천 도구: {len(recommended_tools)}개")
@@ -802,7 +806,7 @@ class AgentDesignChain(BaseChainFactory):
         # Architecture context 추가 (있는 경우)
         if architecture_context:
             inputs["architecture_context"] = architecture_context
-            logger.info(f"  ✓ 아키텍처 컨텍스트 포함")
+            logger.info("  ✓ 아키텍처 컨텍스트 포함")
 
         # Quality metrics 추가 (있는 경우)
         if quality_metrics:
@@ -812,7 +816,7 @@ class AgentDesignChain(BaseChainFactory):
             metrics_summary += f"Clarity: {quality_metrics.get('clarity_score', 0.7):.2f}, "
             metrics_summary += f"Complexity: {quality_metrics.get('complexity_score', 5)}"
             inputs["quality_context"] = metrics_summary
-            logger.info(f"  ✓ 품질 메트릭 컨텍스트 포함")
+            logger.info("  ✓ 품질 메트릭 컨텍스트 포함")
 
         result = self.invoke(inputs)
 
@@ -876,12 +880,12 @@ class TaskDesignChain(BaseChainFactory):
         # Data flow context 추가 (있는 경우)
         if data_flow_context:
             inputs["data_flow_context"] = data_flow_context
-            logger.info(f"  ✓ 데이터 흐름 컨텍스트 포함")
+            logger.info("  ✓ 데이터 흐름 컨텍스트 포함")
 
         # Architecture context 추가 (있는 경우)
         if architecture_context:
             inputs["architecture_context"] = architecture_context
-            logger.info(f"  ✓ 아키텍처 컨텍스트 포함")
+            logger.info("  ✓ 아키텍처 컨텍스트 포함")
 
         result = self.invoke(inputs)
 
@@ -1359,16 +1363,16 @@ class SystemArchitectChain(BaseChainFactory):
 
         text += f"\n## Workflow Type\n{analysis.workflow_type.value}\n"
 
-        text += f"\n## Suggested Tools\n"
+        text += "\n## Suggested Tools\n"
         text += (
             ", ".join(analysis.suggested_tools) if analysis.suggested_tools else "None specified"
         )
 
-        text += f"\n\n## Constraints\n"
+        text += "\n\n## Constraints\n"
         for constraint in analysis.constraints:
             text += f"- {constraint}\n"
 
-        text += f"\n## Success Criteria\n"
+        text += "\n## Success Criteria\n"
         for criterion in analysis.success_criteria:
             text += f"- {criterion}\n"
 
@@ -1376,18 +1380,18 @@ class SystemArchitectChain(BaseChainFactory):
             text += f"\n## Project Template\n{analysis.project_template.value}\n"
 
         if analysis.requires_ui:
-            text += f"\n## UI Requirements\n"
-            text += f"- Requires UI: Yes\n"
+            text += "\n## UI Requirements\n"
+            text += "- Requires UI: Yes\n"
             text += f"- Pages: {len(analysis.ui_pages)}\n"
 
         if analysis.requires_backend:
-            text += f"\n## Backend Requirements\n"
-            text += f"- Requires Backend: Yes\n"
+            text += "\n## Backend Requirements\n"
+            text += "- Requires Backend: Yes\n"
             text += f"- APIs: {len(analysis.backend_apis)}\n"
 
         if analysis.requires_database:
-            text += f"\n## Database Requirements\n"
-            text += f"- Requires Database: Yes\n"
+            text += "\n## Database Requirements\n"
+            text += "- Requires Database: Yes\n"
             text += f"- Tables: {', '.join(analysis.database_tables)}\n"
 
         return text.strip()

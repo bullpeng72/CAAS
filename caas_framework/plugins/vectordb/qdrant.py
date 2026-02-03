@@ -10,7 +10,11 @@ Supports:
 import os
 from typing import Any, Dict, List, Optional
 
-from caas_framework.plugins.vectordb.base import VectorDBPlugin, VectorDocument, VectorSearchResult
+from caas_framework.plugins.vectordb.base import (
+    VectorDBPlugin,
+    VectorDocument,
+    VectorSearchResult,
+)
 
 
 class QdrantPlugin(VectorDBPlugin):

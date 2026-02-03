@@ -24,6 +24,7 @@ exclude = [
     "*.egg-info",
     ".eggs",
     "data/templates/*",  # Exclude code generation templates
+    "scripts/*",         # Utility scripts (user-facing output)
 ]
 
 [lint.per-file-ignores]
@@ -35,6 +36,11 @@ exclude = [
 # Allow print() in interactive guides
 "caas_framework/examples/interactive_guide.py" = ["T20"]
 "caas_framework/execution/plan_mode.py" = ["T20"]
+# Allow print() in automation scripts (user-facing progress)
+"caas_framework/automation/*.py" = ["T201"]
+"caas_framework/config/*.py" = ["T201"]
+"caas_framework/knowledge/patterns.py" = ["T201"]
+"caas_framework/performance/profiler.py" = ["T201"]
 # Allow print() in test files
 "tests/**/*.py" = ["T201"]
 

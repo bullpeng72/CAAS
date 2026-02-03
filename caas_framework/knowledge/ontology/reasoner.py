@@ -9,7 +9,11 @@ from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
-from caas_framework.knowledge.ontology.manager import AgentRole, OntologyManager, TaskType
+from caas_framework.knowledge.ontology.manager import (
+    AgentRole,
+    OntologyManager,
+    TaskType,
+)
 from caas_framework.utils.logger import LoggerMixin, get_logger
 
 logger = get_logger("knowledge.reasoner")

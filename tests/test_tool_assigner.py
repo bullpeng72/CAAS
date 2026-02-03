@@ -5,9 +5,10 @@ Tests the tool assignment optimization functionality.
 """
 
 import pytest
+
 from caas_framework.agents.tool_assigner import (
     MinimalToolAssigner,
-    optimize_agent_tools
+    optimize_agent_tools,
 )
 
 

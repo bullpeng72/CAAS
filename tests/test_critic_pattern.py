@@ -4,16 +4,16 @@ Tests for Critic Agent Pattern
 Tests the Producer-Critic pattern implementation.
 """
 
-import pytest
-import asyncio
 from typing import Any
 
+import pytest
+
 from caas_framework.agents.critic_pattern import (
+    CriticAgentPattern,
     Critique,
     CritiqueResponse,
-    CriticAgentPattern,
     SimpleSyncCriticPattern,
-    create_critic_pattern
+    create_critic_pattern,
 )
 
 

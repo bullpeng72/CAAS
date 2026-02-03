@@ -7,8 +7,6 @@ Phase 3: Automatically generate code for unimplemented features
 from dataclasses import dataclass, field
 from typing import Dict, List, Tuple
 
-from caas_framework.utils.logger import get_logger
-
 from caas_framework.bmad.code_analyzer import FileAnalysis
 from caas_framework.bmad.completeness_validator import CompletenessReport
 from caas_framework.bmad.semantic_mapper import SemanticMapper
@@ -16,6 +14,7 @@ from caas_framework.config.settings import LLMConstants
 from caas_framework.models.specifications import FeatureSpec
 from caas_framework.plugins.llm.base import LLMPlugin
 from caas_framework.utils import PromptBuilder, ResponseParser
+from caas_framework.utils.logger import get_logger
 
 logger = get_logger()
 
@@ -215,7 +214,7 @@ class GapFiller:
         # Include analysis
         if target_file in code_analyses:
             analysis = code_analyses[target_file]
-            context_lines.append(f"\n### Code structure:")
+            context_lines.append("\n### Code structure:")
             context_lines.append(f"- {len(analysis.functions)} functions")
             context_lines.append(f"- {len(analysis.classes)} classes")
             if analysis.imports:

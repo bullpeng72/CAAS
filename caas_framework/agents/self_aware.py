@@ -8,14 +8,13 @@ ability to complete tasks and delegate when necessary.
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional
 
-from caas_framework.utils.logger import get_logger
-
 from caas_framework.agents.capability_assessment import (
     AgentCapability,
     CapabilityAssessment,
     get_capability_registry,
 )
 from caas_framework.plugins.llm.base import LLMPlugin
+from caas_framework.utils.logger import get_logger
 
 logger = get_logger()
 

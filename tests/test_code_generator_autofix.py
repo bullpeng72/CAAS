@@ -4,8 +4,10 @@ Tests for CodeGeneratorAgent auto-fix functionality.
 Validates that common LLM-generated code bugs are automatically fixed.
 """
 
-import pytest
 from unittest.mock import Mock
+
+import pytest
+
 from caas_framework.agents.code_generator import CodeGeneratorAgent
 
 

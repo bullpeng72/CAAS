@@ -19,7 +19,10 @@ try:
 except ImportError:
     RICH_AVAILABLE = False
 
-from caas_framework.monitoring.metrics_collector import MetricsCollector, WorkflowMetrics
+from caas_framework.monitoring.metrics_collector import (
+    MetricsCollector,
+    WorkflowMetrics,
+)
 
 
 class PerformanceDashboard:
@@ -502,7 +505,7 @@ class PerformanceDashboard:
             cost_imp = comparison["cost_improvement"]
             cost_class = "improvement" if cost_imp["improved"] else "regression"
 
-            html_lines.append(f"<h3>Duration</h3>")
+            html_lines.append("<h3>Duration</h3>")
             html_lines.append(
                 f"<p>Baseline: {duration_imp['baseline_seconds']:.2f}s → Current: {duration_imp['current_seconds']:.2f}s</p>"
             )
@@ -511,7 +514,7 @@ class PerformanceDashboard:
             )
             html_lines.append(f"<p>Speedup: {comparison['speedup']:.2f}x</p>")
 
-            html_lines.append(f"<h3>Cost</h3>")
+            html_lines.append("<h3>Cost</h3>")
             html_lines.append(
                 f"<p>Baseline: ${cost_imp['baseline_usd']:.4f} → Current: ${cost_imp['current_usd']:.4f}</p>"
             )

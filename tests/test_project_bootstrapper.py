@@ -4,15 +4,12 @@ Tests for ProjectBootstrapper
 Tests automated project setup and initialization functionality.
 """
 
-import pytest
-import shutil
 import subprocess
 from pathlib import Path
-from caas_framework.automation import (
-    ProjectBootstrapper,
-    BootstrapResult,
-    TestResult
-)
+
+import pytest
+
+from caas_framework.automation import BootstrapResult, ProjectBootstrapper, TestResult
 
 
 @pytest.fixture

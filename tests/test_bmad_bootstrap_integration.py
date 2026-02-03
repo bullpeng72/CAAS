@@ -4,15 +4,16 @@ Integration test for BMAD Engine with ProjectBootstrapper
 Tests that BMAD Engine can successfully bootstrap a complete project.
 """
 
-import pytest
 import json
-from pathlib import Path
-from caas_framework.bmad.engine import BMADEngine, BMADResult
+
+import pytest
+
 from caas_framework.automation import BootstrapResult
+from caas_framework.bmad.engine import BMADEngine, BMADResult
 from caas_framework.models.specifications import (
     ConcretizedRequirement,
     FeatureSpec,
-    SystemScope
+    SystemScope,
 )
 
 

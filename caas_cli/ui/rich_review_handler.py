@@ -14,7 +14,7 @@ from rich.prompt import Confirm, Prompt
 from rich.syntax import Syntax
 from rich.table import Table
 
-from caas_framework.modes.interfaces import ApprovalDecision, ReviewHandler
+from caas_framework.modes.interfaces import ApprovalDecision
 
 
 class RichReviewHandler:
@@ -288,7 +288,7 @@ class RichReviewHandler:
 
         # Tasks summary
         if tasks:
-            self.console.print(f"[bold]Tasks:[/bold]")
+            self.console.print("[bold]Tasks:[/bold]")
             for i, task in enumerate(tasks[:5], 1):
                 if isinstance(task, dict):
                     desc = task.get("description", "")[:60]

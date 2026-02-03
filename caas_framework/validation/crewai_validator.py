@@ -382,7 +382,7 @@ print("=" * 70)
                     message=f"Agent '{agent_name}' uses positional arguments. "
                     f"CrewAI Agent (Pydantic v2 model) only accepts keyword arguments.",
                     line=line,
-                    suggested_fix=f"Convert to keyword arguments: Agent(role='...', goal='...', backstory='...', ...)",
+                    suggested_fix="Convert to keyword arguments: Agent(role='...', goal='...', backstory='...', ...)",
                 )
             )
             # Don't continue validation if using positional args
@@ -474,7 +474,7 @@ print("=" * 70)
                     message=f"Task '{task_name}' uses positional arguments. "
                     f"CrewAI Task (Pydantic v2 model) only accepts keyword arguments.",
                     line=line,
-                    suggested_fix=f"Convert to keyword arguments: Task(description='...', expected_output='...', agent=..., ...)",
+                    suggested_fix="Convert to keyword arguments: Task(description='...', expected_output='...', agent=..., ...)",
                 )
             )
             # Don't continue validation if using positional args
@@ -531,7 +531,7 @@ print("=" * 70)
                         issue_type="invalid_context_type",
                         message=f"Task '{task_name}': context should reference Task objects, not strings",
                         line=line,
-                        suggested_fix=f"Remove quotes: context=[task_1] not context=['task_1']",
+                        suggested_fix="Remove quotes: context=[task_1] not context=['task_1']",
                     )
                 )
 
@@ -547,10 +547,10 @@ print("=" * 70)
                 ValidationIssue(
                     severity="error",
                     issue_type="invalid_api_usage",
-                    message=f"Crew uses positional arguments. "
-                    f"CrewAI Crew (Pydantic v2 model) only accepts keyword arguments.",
+                    message="Crew uses positional arguments. "
+                    "CrewAI Crew (Pydantic v2 model) only accepts keyword arguments.",
                     line=line,
-                    suggested_fix=f"Convert to keyword arguments: Crew(agents=[...], tasks=[...], ...)",
+                    suggested_fix="Convert to keyword arguments: Crew(agents=[...], tasks=[...], ...)",
                 )
             )
             # Don't continue validation if using positional args

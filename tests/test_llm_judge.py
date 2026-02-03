@@ -4,14 +4,16 @@ Tests for LLM-as-a-Judge Quality Evaluation
 Tests the LLM Judge system that evaluates generated code quality.
 """
 
-import pytest
 import json
+
+import pytest
+
 from caas_framework.quality.llm_judge import (
-    LLMJudge,
     CodeQualityCriteria,
-    EvaluationResult,
+    CriterionScore,
     EvaluationCategory,
-    CriterionScore
+    EvaluationResult,
+    LLMJudge,
 )
 
 

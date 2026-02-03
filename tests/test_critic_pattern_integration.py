@@ -4,16 +4,18 @@ Integration tests for Producer-Critic Pattern in ExpertAgentCollaboration
 Tests that Producer-Critic Pattern is properly integrated into the collaboration workflow.
 """
 
+from unittest.mock import Mock
+
 import pytest
-from unittest.mock import Mock, AsyncMock, MagicMock
+
 from caas_framework.agents.collaboration import ExpertAgentCollaboration
 from caas_framework.models.specifications import ConcretizedRequirement
-from caas_framework.plugins.llm.base import LLMPlugin
 from caas_framework.patterns.producer_critic import (
-    ProducerCriticPattern,
     CriticAgent,
-    CriticRole
+    CriticRole,
+    ProducerCriticPattern,
 )
+from caas_framework.plugins.llm.base import LLMPlugin
 
 
 class TestCriticPatternIntegration:
@@ -116,10 +118,10 @@ class TestCriticPatternIntegration:
         """Test that all necessary imports are available"""
         from caas_framework.agents.collaboration import ExpertAgentCollaboration
         from caas_framework.patterns.producer_critic import (
-            ProducerCriticPattern,
             CriticAgent,
             CriticRole,
-            ProducerCriticResult
+            ProducerCriticPattern,
+            ProducerCriticResult,
         )
 
         # All imports should succeed without error

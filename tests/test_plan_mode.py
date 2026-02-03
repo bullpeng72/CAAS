@@ -8,13 +8,12 @@ Verifies that:
 4. Auto-approve mode works for testing
 """
 
-import pytest
-from caas_framework.execution.plan_mode import PlanMode, ApprovalDecision
+from caas_framework.execution.plan_mode import ApprovalDecision, PlanMode
 from caas_framework.models.specifications import (
+    BoundariesSpec,
     ConcretizedRequirement,
-    SystemScope,
     FeatureSpec,
-    BoundariesSpec
+    SystemScope,
 )
 
 

@@ -396,17 +396,17 @@ OPENAI_API_KEY=your_api_key_here
     def _print_completion(self, project_dir: Path, project_name: str):
         """Print completion message with next steps"""
         activate_cmd = (
-            f"venv\\Scripts\\activate" if sys.platform == "win32" else "source venv/bin/activate"
+            "venv\\Scripts\\activate" if sys.platform == "win32" else "source venv/bin/activate"
         )
 
         print(f"\n{'=' * 70}")
         print("✅ PROJECT READY!")
         print(f"{'=' * 70}")
         print(f"Location: {project_dir}")
-        print(f"\nTo start:")
+        print("\nTo start:")
         print(f"  cd {project_name}")
         print(f"  {activate_cmd}")
-        print(f"  python main.py")
+        print("  python main.py")
         print(f"{'=' * 70}\n")
 
     def _generate_cicd(self, project_dir: Path, include_docker: bool, verbose: bool):

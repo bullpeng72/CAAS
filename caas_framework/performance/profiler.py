@@ -4,13 +4,11 @@ Performance Profiler
 Tools for profiling workflow execution and identifying bottlenecks.
 """
 
-import asyncio
 import time
 from collections import defaultdict
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
-from datetime import datetime
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from caas_framework.utils.logger import get_logger
 
@@ -331,7 +329,7 @@ class BottleneckAnalyzer:
             print(f"\n🔴 Bottleneck #{i}: {b['operation']}")
             print(f"   Time: {b['total_time_ms']:.2f}ms ({b['percentage_of_total']:.1f}% of total)")
             print(f"   Calls: {b['call_count']} (avg: {b['avg_time_ms']:.2f}ms per call)")
-            print(f"   Recommendations:")
+            print("   Recommendations:")
             for rec in b["recommendations"]:
                 print(f"   - {rec}")
 

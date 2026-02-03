@@ -8,7 +8,9 @@ import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from caas_framework.knowledge.ontology.tool_data_generator import generate_initial_ontology
+from caas_framework.knowledge.ontology.tool_data_generator import (
+    generate_initial_ontology,
+)
 from caas_framework.knowledge.ontology.tool_ontology import (
     ConceptualTool,
     ToolCategory,

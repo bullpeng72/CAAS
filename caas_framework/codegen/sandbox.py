@@ -158,7 +158,7 @@ class DockerSandbox:
                     try:
                         container.stop(timeout=1)
                         container.remove()
-                    except (docker.errors.APIError, docker.errors.NotFound) as cleanup_error:
+                    except (docker.errors.APIError, docker.errors.NotFound):
                         # Container cleanup failed (already stopped/removed)
                         pass
 
@@ -173,7 +173,7 @@ class DockerSandbox:
                     # Cleanup image
                     try:
                         self.docker_client.images.remove(image.id, force=True)
-                    except (docker.errors.APIError, docker.errors.ImageNotFound) as cleanup_error:
+                    except (docker.errors.APIError, docker.errors.ImageNotFound):
                         # Image cleanup failed (already removed)
                         pass
 
@@ -243,7 +243,7 @@ CMD ["python", "main.py"]
                             if self._is_third_party(module):
                                 requirements.add(module)
 
-            except (SyntaxError, ValueError, UnicodeDecodeError) as e:
+            except (SyntaxError, ValueError, UnicodeDecodeError):
                 # Failed to parse file - skip it
                 continue
 

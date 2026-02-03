@@ -5,7 +5,7 @@ Eliminates duplicate Golden Data alignment logic across 3+ agents.
 Provides standardized traceability mapping and coverage calculation.
 """
 
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from caas_framework.utils.logger import get_logger
 

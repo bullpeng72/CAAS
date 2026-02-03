@@ -167,7 +167,6 @@ def load_json(file_path: str):
         SystemExit: If file cannot be loaded
     """
     import json
-    from pathlib import Path
 
     try:
         with open(file_path, "r", encoding="utf-8") as f:

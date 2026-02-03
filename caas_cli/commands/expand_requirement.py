@@ -7,6 +7,7 @@ Expand Requirement Command
 import asyncio
 
 import click
+
 from caas_cli.utils import (
     echo_error,
     echo_info,

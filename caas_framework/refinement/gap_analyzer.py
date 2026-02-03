@@ -689,13 +689,13 @@ class RequirementGapAnalyzer:
                         related_feature_id=gap_data.get("related_feature_id"),
                     )
                     llm_gaps.append(gap)
-                except Exception as e:
+                except Exception:
                     # 개별 갭 파싱 실패 시 스킵
                     continue
 
             return llm_gaps
 
-        except Exception as e:
+        except Exception:
             # LLM 분석 실패 시 빈 리스트 (Rule-based로 대체)
             return []
 

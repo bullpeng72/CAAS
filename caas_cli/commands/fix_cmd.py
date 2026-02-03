@@ -7,6 +7,7 @@ Auto-fix design issues using 3-level strategy
 from pathlib import Path
 
 import click
+
 from caas_cli.utils import (
     echo_error,
     echo_info,
@@ -157,7 +158,9 @@ async def fix(agents, tasks, golden_data, level, max_iterations, output, verbose
         click.echo()
         echo_progress("Step 1/3: Validating design...")
 
-        from caas_framework.models.specifications import ConcretizedRequirement as GoldenData
+        from caas_framework.models.specifications import (
+            ConcretizedRequirement as GoldenData,
+        )
         from caas_framework.validation.golden_validator import GoldenDataValidator
 
         golden = GoldenData(**golden_data_dict)
@@ -236,7 +239,7 @@ async def fix(agents, tasks, golden_data, level, max_iterations, output, verbose
         click.echo()
         click.echo(click.style("Next steps:", bold=True))
         click.echo(f"  1. Review fixed files in {output}/")
-        click.echo(f"  2. Check fix_report.json for details")
+        click.echo("  2. Check fix_report.json for details")
         click.echo(
             f"  3. Re-validate: caas validate --agents {output}/fixed_agents.json --tasks {output}/fixed_tasks.json"
         )
@@ -314,7 +317,7 @@ async def _fix_with_rules(agents_list, tasks_list, golden_data, validation_repor
 
     if verbose:
         click.echo()
-        echo_info(f"Applied template and rule-based fixes")
+        echo_info("Applied template and rule-based fixes")
         echo_info(f"Changes made: {len(result.get('changes', []))}")
 
     return {
@@ -340,7 +343,7 @@ async def _fix_with_templates(agents_list, tasks_list, validation_report, verbos
 
     if verbose:
         click.echo()
-        echo_info(f"Applied template fixes")
+        echo_info("Applied template fixes")
         echo_info(f"Changes made: {len(result.get('changes', []))}")
 
     return {

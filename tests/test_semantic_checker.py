@@ -5,16 +5,17 @@ Tests the semantic contradiction detection functionality.
 """
 
 import pytest
-from caas_framework.validation.semantic_checker import (
-    SemanticConsistencyChecker,
-    Contradiction,
-    ContradictionReport,
-    validate_semantic_consistency
-)
+
 from caas_framework.models.specifications import (
     ConcretizedRequirement,
+    FeatureSpec,
     SystemScope,
-    FeatureSpec
+)
+from caas_framework.validation.semantic_checker import (
+    Contradiction,
+    ContradictionReport,
+    SemanticConsistencyChecker,
+    validate_semantic_consistency,
 )
 
 

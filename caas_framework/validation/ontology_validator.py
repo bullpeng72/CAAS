@@ -10,7 +10,11 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 from pydantic import BaseModel
 
 from caas_framework.knowledge.ontology import OntologyManager
-from caas_framework.models.validation import ValidationIssue, ValidationResult, ValidationSeverity
+from caas_framework.models.validation import (
+    ValidationIssue,
+    ValidationResult,
+    ValidationSeverity,
+)
 
 
 def _safe_get(obj: Union[Dict, BaseModel], key: str, default: Any = None) -> Any:

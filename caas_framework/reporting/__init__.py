@@ -5,12 +5,22 @@ Provides progress reporting and workflow visualization for BMAD framework execut
 """
 
 # Protocol interfaces (UI-independent)
-from caas_framework.reporting.interfaces import NullProgressReporter, PhaseInfo, PhaseResult
-from caas_framework.reporting.interfaces import ProgressReporter as ProgressReporterProtocol
-from caas_framework.reporting.interfaces import VerbosityLevel
+from caas_framework.reporting.interfaces import (
+    NullProgressReporter,
+    PhaseInfo,
+    PhaseResult,
+    VerbosityLevel,
+)
+from caas_framework.reporting.interfaces import (
+    ProgressReporter as ProgressReporterProtocol,
+)
 
 # Concrete implementations
-from caas_framework.reporting.progress_reporter import PhaseProgress, PhaseStatus, ProgressReporter
+from caas_framework.reporting.progress_reporter import (
+    PhaseProgress,
+    PhaseStatus,
+    ProgressReporter,
+)
 
 __all__ = [
     # Protocol interfaces

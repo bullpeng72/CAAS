@@ -110,7 +110,7 @@ class DependencyValidator:
                         DependencyIssue(
                             severity="error",
                             task_id=task_id,
-                            message=f"Circular dependency detected",
+                            message="Circular dependency detected",
                             path=cycle_path,
                         )
                     )
@@ -145,7 +145,7 @@ class DependencyValidator:
                     DependencyIssue(
                         severity="warning",
                         task_id=task_id,
-                        message=f"Orphan task: unreachable from start tasks (broken dependency chain)",
+                        message="Orphan task: unreachable from start tasks (broken dependency chain)",
                     )
                 )
 

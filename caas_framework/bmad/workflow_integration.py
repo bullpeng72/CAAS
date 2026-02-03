@@ -9,7 +9,11 @@ from typing import Any, Dict, Optional
 
 from caas_framework.bmad.engine import BMADEngine, BMADResult
 from caas_framework.session.manager import Session
-from caas_framework.workflow.orchestrator import WorkflowOrchestrator, WorkflowPhase, WorkflowResult
+from caas_framework.workflow.orchestrator import (
+    WorkflowOrchestrator,
+    WorkflowPhase,
+    WorkflowResult,
+)
 from caas_framework.workflow.version_control import GitIntegration
 
 
@@ -103,7 +107,7 @@ class BMADWorkflowEngine:
 
             return bmad_result, workflow_result
 
-        except Exception as e:
+        except Exception:
             # Complete workflow with failure
             workflow_result = await self.orchestrator.complete_workflow(
                 session.session_id, success=False

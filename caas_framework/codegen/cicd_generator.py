@@ -108,7 +108,7 @@ jobs:
         if config.build_docker:
             files[
                 ".github/workflows/docker-build.yml"
-            ] = f"""name: Docker Build
+            ] = """name: Docker Build
 
 on:
   push:
@@ -129,22 +129,22 @@ jobs:
     - name: Log in to Docker Hub
       uses: docker/login-action@v2
       with:
-        username: ${{{{ secrets.DOCKER_USERNAME }}}}
-        password: ${{{{ secrets.DOCKER_PASSWORD }}}}
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
 
     - name: Extract metadata
       id: meta
       uses: docker/metadata-action@v4
       with:
-        images: ${{{{ secrets.DOCKER_USERNAME }}}}/my-app
+        images: ${{ secrets.DOCKER_USERNAME }}/my-app
 
     - name: Build and push
       uses: docker/build-push-action@v4
       with:
         context: .
         push: true
-        tags: ${{{{ steps.meta.outputs.tags }}}}
-        labels: ${{{{ steps.meta.outputs.labels }}}}
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
 """
 
         # Deployment workflow

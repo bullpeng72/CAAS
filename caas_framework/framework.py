@@ -10,8 +10,6 @@ from typing import Any, Dict, List, Optional
 
 # Import plugins module to trigger plugin registration
 import caas_framework.plugins  # noqa: F401
-from caas_framework.utils.logger import get_logger
-
 from caas_framework.bmad.engine import BMADEngine, BMADResult
 from caas_framework.bmad.golden_data import GoldenDataPipeline
 from caas_framework.config.loader import ConfigLoader
@@ -24,6 +22,7 @@ from caas_framework.models.specifications import (
 )
 from caas_framework.plugins.base import PluginRegistry, get_plugin_registry
 from caas_framework.plugins.llm.base import LLMPlugin
+from caas_framework.utils.logger import get_logger
 from caas_framework.validation.orchestrator import (
     ComprehensiveValidationResult,
     ValidationOrchestrator,

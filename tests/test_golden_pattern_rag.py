@@ -4,24 +4,24 @@ Tests for Golden Pattern RAG
 Tests the pattern storage and retrieval functionality.
 """
 
-import pytest
 import json
-import tempfile
 import shutil
-from pathlib import Path
-from unittest.mock import Mock, patch
+import tempfile
+from unittest.mock import patch
 
-from caas_framework.patterns.golden_pattern_rag import (
-    GoldenPatternLibrary,
-    PatternMatch,
-    Feedback,
-    store_successful_pattern,
-    retrieve_patterns
-)
+import pytest
+
 from caas_framework.models.specifications import (
     ConcretizedRequirement,
+    FeatureSpec,
     SystemScope,
-    FeatureSpec
+)
+from caas_framework.patterns.golden_pattern_rag import (
+    Feedback,
+    GoldenPatternLibrary,
+    PatternMatch,
+    retrieve_patterns,
+    store_successful_pattern,
 )
 
 

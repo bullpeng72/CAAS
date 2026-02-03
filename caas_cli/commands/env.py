@@ -7,6 +7,7 @@ Manage .env file configuration for CAAS projects.
 from pathlib import Path
 
 import click
+
 from caas_cli.utils import echo_error, echo_info, echo_success, echo_warning
 
 
@@ -274,7 +275,7 @@ OPENAI_API_KEY=sk-proj-your-key-here
 def _validate_env_file(env_path: Path):
     """Validate .env file"""
     click.echo(
-        f"""
+        """
 ╔══════════════════════════════════════════════════════════════╗
 ║              .env File Validation                            ║
 ╚══════════════════════════════════════════════════════════════╝

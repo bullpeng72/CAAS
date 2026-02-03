@@ -5,6 +5,7 @@ Command-line interface for generating CrewAI agents.
 """
 
 import click
+
 from caas_cli.commands import (  # Phase 1: Core Features; Phase 2: Advanced Features; Phase 3: Management Features
     analyze_gaps,
     codegen_cmd,

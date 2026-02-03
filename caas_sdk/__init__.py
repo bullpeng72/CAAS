@@ -6,7 +6,12 @@ Official Python SDK for CAAS (CrewAI Agent Auto-generation System).
 
 # REST API Client (for remote CAAS API server)
 from caas_sdk.client import CAAS, AsyncCAAS
-from caas_sdk.exceptions import AuthenticationError, CAASError, RateLimitError, ValidationError
+from caas_sdk.exceptions import (
+    AuthenticationError,
+    CAASError,
+    RateLimitError,
+    ValidationError,
+)
 
 # Local Client (for local execution without REST API)
 from caas_sdk.local_client import CAASLocalClient, generate

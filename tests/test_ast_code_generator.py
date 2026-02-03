@@ -4,10 +4,10 @@ Tests for AST-based Code Generator
 Tests the AST code generation module that produces syntax-error-free CrewAI code.
 """
 
-import ast
 import pytest
-from caas_framework.codegen.ast_code_generator import ASTCodeGenerator
+
 from caas_framework.agents.code_generator import CodeGeneratorAgent
+from caas_framework.codegen.ast_code_generator import ASTCodeGenerator
 from caas_framework.models.specifications import AgentSpecModel, TaskSpecModel
 
 

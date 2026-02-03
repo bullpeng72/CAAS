@@ -13,7 +13,12 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from caas_framework.agents.base import AgentPhase, AgentWorkResult, BaseExpertAgent, ValidationIssue
+from caas_framework.agents.base import (
+    AgentPhase,
+    AgentWorkResult,
+    BaseExpertAgent,
+    ValidationIssue,
+)
 from caas_framework.plugins.llm.base import LLMPlugin
 from caas_framework.validation.llm_judge import EvaluationResult, LLMJudge
 
@@ -266,7 +271,7 @@ class ProducerCriticPattern:
                 # PRODUCER: Create or refine output
                 if iteration == 0:
                     # Initial production
-                    self.logger.info(f"📝 Producer creating initial output (iteration 1)...")
+                    self.logger.info("📝 Producer creating initial output (iteration 1)...")
                     work_result = await asyncio.wait_for(
                         producer.work(
                             requirement=requirement,

@@ -7,9 +7,9 @@ Migrated from app/models/schemas.py for framework independence.
 
 import re
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, Field, field_validator
 
 # ==================== Enums ====================
 

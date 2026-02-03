@@ -285,7 +285,7 @@ class SelfAwareAgent:
             # Attempt delegation
             if self.delegate_handler:
                 if verbose:
-                    logger.info(f"   🔄 Delegating task...")
+                    logger.info("   🔄 Delegating task...")
                 result = await self.delegate_handler(
                     task=task,
                     reason=assessment.reasoning,
@@ -349,7 +349,7 @@ class SelfAwareAgent:
             # Attempt delegation
             if self.delegate_handler:
                 if verbose:
-                    logger.info(f"   🔄 Delegating task...")
+                    logger.info("   🔄 Delegating task...")
                 # For sync, delegate_handler should be sync too
                 result = self.delegate_handler(
                     task=task,

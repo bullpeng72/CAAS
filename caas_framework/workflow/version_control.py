@@ -106,7 +106,7 @@ class GitIntegration:
                 timeout=self._get_timeout("git", 5),
             )
             return result.returncode == 0
-        except (subprocess.TimeoutExpired, FileNotFoundError, OSError) as e:
+        except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
             # Git not found or timeout
             return False
 
@@ -124,7 +124,7 @@ class GitIntegration:
                 timeout=self._get_timeout("git", 5),
             )
             return result.returncode == 0
-        except (subprocess.TimeoutExpired, FileNotFoundError, OSError) as e:
+        except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
             # Repository not initialized or not accessible
             return False
 
@@ -172,7 +172,7 @@ class GitIntegration:
 
             return False
 
-        except (subprocess.TimeoutExpired, IOError, OSError) as e:
+        except (subprocess.TimeoutExpired, IOError, OSError):
             # Failed to initialize repository or create .gitignore
             return False
 
@@ -240,7 +240,7 @@ class GitIntegration:
                 staged_files=staged_files,
             )
 
-        except (subprocess.TimeoutExpired, OSError, ValueError) as e:
+        except (subprocess.TimeoutExpired, OSError, ValueError):
             # Failed to get repository status or parse output
             return None
 
@@ -263,7 +263,7 @@ class GitIntegration:
 
             return None
 
-        except (subprocess.TimeoutExpired, OSError) as e:
+        except (subprocess.TimeoutExpired, OSError):
             # Failed to get current commit
             return None
 
@@ -309,7 +309,7 @@ class GitIntegration:
 
             return commits
 
-        except (subprocess.TimeoutExpired, OSError, ValueError) as e:
+        except (subprocess.TimeoutExpired, OSError, ValueError):
             # Failed to get commit history or parse output
             return []
 
@@ -359,7 +359,7 @@ class GitIntegration:
 
             return None
 
-        except (subprocess.TimeoutExpired, OSError) as e:
+        except (subprocess.TimeoutExpired, OSError):
             # Failed to commit file
             return None
 
@@ -401,7 +401,7 @@ class GitIntegration:
 
             return None
 
-        except (subprocess.TimeoutExpired, OSError) as e:
+        except (subprocess.TimeoutExpired, OSError):
             # Failed to commit all changes
             return None
 
@@ -456,7 +456,7 @@ class GitIntegration:
 
             return result.returncode == 0
 
-        except (subprocess.TimeoutExpired, OSError) as e:
+        except (subprocess.TimeoutExpired, OSError):
             # Failed to create branch
             return False
 
@@ -489,7 +489,7 @@ class GitIntegration:
 
             return result.returncode == 0
 
-        except (subprocess.TimeoutExpired, OSError) as e:
+        except (subprocess.TimeoutExpired, OSError):
             # Failed to switch branch
             return False
 
@@ -519,7 +519,7 @@ class GitIntegration:
 
             return branches
 
-        except (subprocess.TimeoutExpired, OSError) as e:
+        except (subprocess.TimeoutExpired, OSError):
             # Failed to list branches
             return []
 
@@ -551,7 +551,7 @@ class GitIntegration:
 
             return result.returncode == 0
 
-        except (subprocess.TimeoutExpired, OSError) as e:
+        except (subprocess.TimeoutExpired, OSError):
             # Failed to rollback to commit
             return False
 
@@ -598,7 +598,7 @@ class GitIntegration:
 
             return None
 
-        except (subprocess.TimeoutExpired, OSError) as e:
+        except (subprocess.TimeoutExpired, OSError):
             # Failed to get diff
             return None
 
@@ -641,7 +641,7 @@ class GitIntegration:
 
             return result.returncode == 0
 
-        except (subprocess.TimeoutExpired, OSError) as e:
+        except (subprocess.TimeoutExpired, OSError):
             # Failed to create tag
             return False
 
@@ -664,7 +664,7 @@ class GitIntegration:
 
             return [tag.strip() for tag in result.stdout.strip().split("\n") if tag.strip()]
 
-        except (subprocess.TimeoutExpired, OSError) as e:
+        except (subprocess.TimeoutExpired, OSError):
             # Failed to list tags
             return []
 
@@ -685,7 +685,7 @@ class GitIntegration:
 
             return result.returncode == 0
 
-        except (subprocess.TimeoutExpired, OSError) as e:
+        except (subprocess.TimeoutExpired, OSError):
             # Failed to add remote
             return False
 
@@ -721,7 +721,7 @@ class GitIntegration:
 
             return result.returncode == 0
 
-        except (subprocess.TimeoutExpired, OSError) as e:
+        except (subprocess.TimeoutExpired, OSError):
             # Failed to push to remote
             return False
 
@@ -751,7 +751,7 @@ class GitIntegration:
 
             return result.returncode == 0
 
-        except (subprocess.TimeoutExpired, OSError) as e:
+        except (subprocess.TimeoutExpired, OSError):
             # Failed to pull from remote
             return False
 

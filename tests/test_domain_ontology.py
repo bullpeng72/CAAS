@@ -6,21 +6,19 @@ Tests the domain knowledge representation and reasoning capabilities.
 
 import pytest
 
+from caas_framework.ontology.api_ontology import API_ONTOLOGY
 from caas_framework.ontology.domain_ontology import (
     Concept,
     DesignPattern,
     DomainOntology,
     OntologyReasoner,
     OntologyRegistry,
-    register_ontology,
     get_ontology,
     get_reasoner,
-    list_available_domains
+    list_available_domains,
 )
-
-from caas_framework.ontology.web_app_ontology import WEB_APP_ONTOLOGY
 from caas_framework.ontology.ecommerce_ontology import ECOMMERCE_ONTOLOGY
-from caas_framework.ontology.api_ontology import API_ONTOLOGY
+from caas_framework.ontology.web_app_ontology import WEB_APP_ONTOLOGY
 
 
 class TestConcept:

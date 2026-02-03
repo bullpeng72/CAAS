@@ -245,7 +245,6 @@ class JsonExtractor:
 
             # Validate return type if specified
             if return_type is not None and not isinstance(result, return_type):
-                import logging
 
                 logger = get_logger()
                 logger.warning(
@@ -255,7 +254,6 @@ class JsonExtractor:
 
             return result
         except json.JSONDecodeError as e:
-            import logging
 
             logger = get_logger()
             logger.error(f"JSON decode error: {e}")

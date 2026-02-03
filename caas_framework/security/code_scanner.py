@@ -377,7 +377,7 @@ class CodeSecurityScanner:
                 subprocess.TimeoutExpired,
                 subprocess.CalledProcessError,
                 json.JSONDecodeError,
-            ) as e:
+            ):
                 # Bandit failed, skip
                 pass
 

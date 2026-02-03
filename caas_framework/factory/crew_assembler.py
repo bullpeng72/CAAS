@@ -12,12 +12,11 @@ from jinja2 import Environment, FileSystemLoader
 from pydantic import BaseModel
 
 PROJECT_ROOT = Path.cwd()
-from caas_framework.utils.logger import get_logger
-
 from caas_framework.factory.agent_factory import AgentFactory
 from caas_framework.factory.task_factory import TaskDefinition, TaskFactory
 from caas_framework.models import DomainType
 from caas_framework.sdd import CrewAISpec
+from caas_framework.utils.logger import get_logger
 
 # Lazy imports to avoid circular dependency
 # from caas_app.codegen.domain_strategy import DomainCodeStrategy

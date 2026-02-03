@@ -5,6 +5,11 @@ Profile system performance, analyze bottlenecks, and generate reports.
 """
 
 import click
+from rich.console import Console
+from rich.panel import Panel
+from rich.table import Table
+from rich.tree import Tree
+
 from caas_cli.utils import (
     echo_error,
     echo_info,
@@ -12,10 +17,6 @@ from caas_cli.utils import (
     echo_warning,
     handle_keyboard_interrupt,
 )
-from rich.console import Console
-from rich.panel import Panel
-from rich.table import Table
-from rich.tree import Tree
 
 console = Console()
 

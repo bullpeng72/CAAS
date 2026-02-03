@@ -12,7 +12,11 @@ Consolidates duplicate feature matching logic from:
 
 from typing import Any, Dict, List, Optional, Set, Union
 
-from caas_framework.models.specifications import ConcretizedRequirement, DataModel, FeatureSpec
+from caas_framework.models.specifications import (
+    ConcretizedRequirement,
+    DataModel,
+    FeatureSpec,
+)
 
 
 class GoldenDataMatcher:

@@ -10,10 +10,9 @@ from typing import List
 
 from pydantic import BaseModel, Field
 
-from caas_framework.utils.logger import get_logger
-
 from caas_framework.bmad.models import AgentMapping, TaskMapping
 from caas_framework.bmad.semantic_mapper import MappingResult
+from caas_framework.utils.logger import get_logger
 
 logger = get_logger(name="caas_framework.bmad.planner")
 

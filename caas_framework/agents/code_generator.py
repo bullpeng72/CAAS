@@ -10,8 +10,6 @@ Expert agent responsible for Phase 5 (Delivery):
 
 from typing import Any, Dict, List, Optional
 
-from caas_framework.utils.logger import get_logger
-
 from caas_framework.agents.base import AgentPhase, BaseExpertAgent, ValidationIssue
 from caas_framework.agents.process_selector import ProcessSelector
 from caas_framework.agents.registry import register_agent
@@ -23,6 +21,7 @@ from caas_framework.models.specifications import (
 )
 from caas_framework.plugins.llm.base import LLMPlugin
 from caas_framework.utils import PromptBuilder, ResponseParser
+from caas_framework.utils.logger import get_logger
 
 
 @register_agent(phase=AgentPhase.DELIVERY)
@@ -161,7 +160,6 @@ class CodeGeneratorAgent(BaseExpertAgent):
         )
 
         # Debug logging
-        import logging
 
         logger = get_logger()
         raw_response = str(response)[:1000]
@@ -214,7 +212,7 @@ class CodeGeneratorAgent(BaseExpertAgent):
         # CRITICAL: Auto-fix common Agent bugs and ensure tools.py exists
         if result_files:
             result_files = self._autofix_generated_code(result_files, agents)
-            logger.info(f"[CodeGenerator] Auto-fix validation complete")
+            logger.info("[CodeGenerator] Auto-fix validation complete")
 
         # CRITICAL: Validate boundaries if specified
         boundaries_violations = []
@@ -244,7 +242,6 @@ class CodeGeneratorAgent(BaseExpertAgent):
         Returns:
             List of violation messages (empty if no violations)
         """
-        import logging
 
         logger = get_logger()
 
@@ -339,7 +336,6 @@ class CodeGeneratorAgent(BaseExpertAgent):
         Returns:
             Fixed files dictionary
         """
-        import logging
         import re
 
         from caas_framework.utils import ObjectAccessor
@@ -411,7 +407,7 @@ class CodeGeneratorAgent(BaseExpertAgent):
                             import_section, import_section + tools_import
                         )
                         fixed_files["agents.py"] = agents_code
-                        logger.info(f"[AutoFix] Added tools import to agents.py")
+                        logger.info("[AutoFix] Added tools import to agents.py")
 
         return fixed_files
 
@@ -595,7 +591,6 @@ CRITICAL REQUIREMENT: You MUST generate code using the CrewAI framework.
             return selected_process.value
 
         except Exception as e:
-            import logging
 
             logger = get_logger()
             logger.warning(f"Process selection failed: {e}, defaulting to sequential")
@@ -781,7 +776,7 @@ if __name__ == "__main__":
             )
 
         # Build the complete file
-        imports_section = f'''"""
+        imports_section = '''"""
 Agent definitions for CrewAI system.
 """
 
@@ -816,7 +811,7 @@ def create_agents():
             if input_requirements:
                 # Inject placeholders into task descriptions
                 tasks = InputDetector.inject_input_placeholders(tasks, input_requirements)
-        except Exception as e:
+        except Exception:
             # If detection fails, continue with original tasks
             pass
 
@@ -1242,7 +1237,7 @@ OPENAI_API_KEY=your_openai_api_key_here
             import logging
 
             logger = get_logger()
-            logger.info(f"[CodeGenerator] Evaluating code quality with LLM Judge...")
+            logger.info("[CodeGenerator] Evaluating code quality with LLM Judge...")
 
             evaluation = await judge.evaluate_code_quality(python_files, context)
 
@@ -1256,7 +1251,6 @@ OPENAI_API_KEY=your_openai_api_key_here
 
         except ImportError:
             # LLM Judge not available
-            import logging
 
             logger = get_logger()
             logger.warning("[CodeGenerator] LLM Judge not available - skipping quality evaluation")
@@ -1264,7 +1258,6 @@ OPENAI_API_KEY=your_openai_api_key_here
 
         except Exception as e:
             # Evaluation failed, log but don't fail code generation
-            import logging
 
             logger = get_logger()
             logger.error(f"[CodeGenerator] Quality evaluation failed: {e}")

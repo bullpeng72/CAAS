@@ -4,8 +4,9 @@ Tests for CICDGenerator
 Tests automated CI/CD configuration generation.
 """
 
+
 import pytest
-from pathlib import Path
+
 from caas_framework.automation import CICDGenerator
 
 

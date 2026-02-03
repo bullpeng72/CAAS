@@ -10,10 +10,10 @@ import json
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, Optional
 
 from caas_framework.agents.base import AgentPhase
-from caas_framework.caching.backends import CacheBackend, CacheEntry
+from caas_framework.caching.backends import CacheBackend
 
 
 @dataclass
@@ -275,8 +275,8 @@ class CacheManager:
         """
         # TODO: Implement pattern-based deletion for backends that support it
         self.logger.warning(
-            f"⚠️ Namespace invalidation not fully implemented. "
-            f"Consider clearing entire cache or using Redis backend."
+            "⚠️ Namespace invalidation not fully implemented. "
+            "Consider clearing entire cache or using Redis backend."
         )
         return 0
 

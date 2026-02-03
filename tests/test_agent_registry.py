@@ -10,22 +10,17 @@ Verifies:
 6. Registry-based DIP implementation
 """
 
-import pytest
-from typing import Any, Dict, List, Optional
+from typing import List
 
-from caas_framework.agents.base import (
-    BaseExpertAgent,
-    AgentPhase,
-    AgentWorkResult
-)
+import pytest
+
+from caas_framework.agents.base import AgentPhase, BaseExpertAgent
 from caas_framework.agents.registry import (
-    AgentRegistry,
+    create_agent,
+    discover_agents,
     get_agent_registry,
     register_agent,
-    create_agent,
-    discover_agents
 )
-from caas_framework.models.validation import ValidationIssue
 
 
 class TestAgentRegistry:
@@ -362,8 +357,8 @@ class TestRealAgentRegistration:
 
     def test_all_bmad_agents_registered(self):
         """Test that all 5 BMAD agents are registered"""
-        import sys
         import importlib
+        import sys
 
         # Force reload of agent modules to trigger re-registration
         registry = get_agent_registry()
@@ -383,13 +378,6 @@ class TestRealAgentRegistration:
                 importlib.import_module(module_name)
 
         # Now import the classes
-        from caas_framework.agents import (
-            RequirementAnalystAgent,
-            SystemArchitectAgent,
-            AgentDesignerAgent,
-            CodeGeneratorAgent,
-            QASpecialistAgent
-        )
 
         # Check all 5 phases are covered
         assert registry.is_registered(AgentPhase.DISCOVERY), "DISCOVERY phase not registered"
@@ -407,8 +395,8 @@ class TestRealAgentRegistration:
 
     def test_discover_agents_function(self):
         """Test that discover_agents imports all agents"""
-        import sys
         import importlib
+        import sys
 
         registry = get_agent_registry()
         registry.clear()  # Clear before discovery
@@ -469,6 +457,7 @@ class TestDependencyInversionPrinciple:
     def test_collaboration_creates_agents_via_factory(self):
         """Test that collaboration uses create_agent factory"""
         import inspect
+
         from caas_framework.agents.collaboration import ExpertAgentCollaboration
 
         source = inspect.getsource(ExpertAgentCollaboration.__init__)

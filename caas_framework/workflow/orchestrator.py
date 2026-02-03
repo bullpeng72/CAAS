@@ -11,7 +11,10 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 
 from caas_framework.session.manager import Session, SessionManager
-from caas_framework.workflow.persistence import FilePersistenceBackend, PersistenceBackend
+from caas_framework.workflow.persistence import (
+    FilePersistenceBackend,
+    PersistenceBackend,
+)
 from caas_framework.workflow.state_manager import Checkpoint, StateManager
 
 

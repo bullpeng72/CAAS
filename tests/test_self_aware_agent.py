@@ -4,16 +4,17 @@ Tests for Self-Aware Agent
 Tests the meta-cognitive capabilities and self-assessment functionality.
 """
 
+from unittest.mock import AsyncMock, Mock
+
 import pytest
-from unittest.mock import Mock, AsyncMock
 
 from caas_framework.agents.self_aware_agent import (
-    CapabilityAssessment,
     AgentCapabilities,
-    RuleBasedAssessment,
+    CapabilityAssessment,
     LLMBasedAssessment,
+    RuleBasedAssessment,
     SelfAwareAgent,
-    create_self_aware_agent
+    create_self_aware_agent,
 )
 
 

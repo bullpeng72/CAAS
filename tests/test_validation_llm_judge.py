@@ -4,19 +4,19 @@ Tests for LLM-as-a-Judge Pattern (Validation)
 Tests the LLM-based quality evaluation system for agent phase outputs.
 """
 
-import pytest
-import asyncio
-from unittest.mock import AsyncMock, MagicMock
 import json
+from unittest.mock import AsyncMock, MagicMock
 
+import pytest
+
+from caas_framework.agents.base import AgentPhase
 from caas_framework.validation.llm_judge import (
-    LLMJudge,
-    EvaluationResult,
     DimensionScore,
     EvaluationDimension,
-    evaluate_with_llm_judge
+    EvaluationResult,
+    LLMJudge,
+    evaluate_with_llm_judge,
 )
-from caas_framework.agents.base import AgentPhase
 
 
 class TestLLMJudgeValidation:

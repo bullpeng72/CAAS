@@ -9,10 +9,9 @@ from typing import Dict, List, Optional
 
 from pydantic import BaseModel
 
-from caas_framework.utils.logger import get_logger
-
 from caas_framework.factory.base_factory import BaseFactory
 from caas_framework.sdd import TaskSpecModel
+from caas_framework.utils.logger import get_logger
 
 logger = get_logger(name="caas_framework.factory.task")
 

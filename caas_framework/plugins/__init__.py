@@ -8,9 +8,11 @@ Provides pluggable architecture for:
 """
 
 # Import plugin modules to trigger registration
-from caas_framework.plugins import graphdb  # noqa: F401
-from caas_framework.plugins import llm  # noqa: F401
-from caas_framework.plugins import vectordb  # noqa: F401
+from caas_framework.plugins import (
+    graphdb,  # noqa: F401
+    llm,  # noqa: F401
+    vectordb,  # noqa: F401
+)
 from caas_framework.plugins.base import Plugin, PluginRegistry
 
 __all__ = ["Plugin", "PluginRegistry"]

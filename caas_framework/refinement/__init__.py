@@ -8,7 +8,12 @@ Requirement Refinement Module
 """
 
 from .expander import AutoFixResult, ExpandedRequirement, RequirementExpander
-from .gap_analyzer import GapAnalysisResult, GapType, RequirementGap, RequirementGapAnalyzer
+from .gap_analyzer import (
+    GapAnalysisResult,
+    GapType,
+    RequirementGap,
+    RequirementGapAnalyzer,
+)
 from .question_generator import (
     InteractiveQuestionGenerator,
     Question,

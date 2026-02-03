@@ -5,11 +5,11 @@ Manage workflow sessions
 """
 
 import click
+
 from caas_cli.utils import (
     echo_error,
     echo_info,
     echo_success,
-    echo_warning,
     get_or_create_session_manager,
     handle_keyboard_interrupt,
     print_table,

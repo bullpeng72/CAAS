@@ -246,7 +246,7 @@ class DistributedPhaseExecutor:
         # Log parallelism analysis
         if self.enable_monitoring:
             analysis = dependency_graph.estimate_parallelism()
-            logger.info(f"Parallelism analysis:")
+            logger.info("Parallelism analysis:")
             logger.info(f"  Max parallelism: {analysis['max_parallelism']}")
             logger.info(f"  Avg parallelism: {analysis['avg_parallelism']:.2f}")
             logger.info(f"  Critical path: {analysis['critical_path_length']} levels")

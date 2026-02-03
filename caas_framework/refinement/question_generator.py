@@ -283,7 +283,7 @@ class InteractiveQuestionGenerator:
 
             return questions
 
-        except Exception as e:
+        except Exception:
             # LLM 질문 생성 실패 시 빈 리스트 (Rule-based로 대체)
             return []
 

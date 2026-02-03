@@ -8,17 +8,17 @@ Verifies:
 4. No code duplication
 """
 
-import os
-import pytest
-from pathlib import Path
 import tempfile
+from pathlib import Path
+
+import pytest
 import yaml
 
 from caas_framework.config import (
-    get_config,
-    reload_config,
     CaaSConfig,
     get_api_key,
+    get_config,
+    reload_config,
 )
 
 
@@ -128,9 +128,9 @@ class TestUnifiedConfig:
     def test_backward_compatibility_aliases(self):
         """Test that backward compatibility aliases work"""
         from caas_framework.config import (
+            FrameworkConfig,
             Settings,
             get_settings,
-            FrameworkConfig,
             load_config,
         )
 
@@ -177,7 +177,6 @@ class TestUnifiedConfig:
             warnings.simplefilter("always")
 
             # This should trigger deprecation warning
-            from caas_framework.config import ConfigLoader
 
             # Check that deprecation warning was issued
             # (might not work if import is cached)
@@ -260,9 +259,8 @@ class TestNoDuplication:
         """Test that imports don't create circular dependencies"""
         # Should be able to import without errors
         from caas_framework.config import (
-            get_config,
             CaaSConfig,
-            reload_config,
+            get_config,
         )
 
         # Should work

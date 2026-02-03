@@ -5,11 +5,10 @@ Tests the centralized tool generation utilities to ensure consistency
 across different code generation paths.
 """
 
-import pytest
 from caas_framework.codegen.tool_utils import (
-    sanitize_tool_name,
+    extract_tool_names_from_agents,
     generate_fallback_tools_code,
-    extract_tool_names_from_agents
+    sanitize_tool_name,
 )
 
 

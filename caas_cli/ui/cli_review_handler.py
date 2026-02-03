@@ -8,12 +8,11 @@ Provides beautiful, interactive review UI using Rich library.
 from typing import Any, Dict, List
 
 from rich.console import Console
-from rich.markdown import Markdown
 from rich.panel import Panel
 from rich.syntax import Syntax
 from rich.table import Table
 
-from caas_framework.api import ReviewHandler, ReviewRequest, ReviewType
+from caas_framework.api import ReviewRequest, ReviewType
 
 
 class CLIReviewHandler:

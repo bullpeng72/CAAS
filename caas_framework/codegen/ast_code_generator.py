@@ -12,11 +12,31 @@ Python AST 모듈을 사용하여 CrewAI 코드를 생성합니다.
 """
 
 import ast
-from ast import Assign, Attribute, Call, Compare, Constant
+from ast import (
+    Assign,
+    Attribute,
+    Call,
+    Compare,
+    Constant,
+    Eq,
+    Expr,
+    FunctionDef,
+    If,
+    Import,
+    ImportFrom,
+    Load,
+    Module,
+    Name,
+    Return,
+    Store,
+    Subscript,
+    alias,
+    arg,
+    arguments,
+    keyword,
+)
 from ast import Dict as AstDict
-from ast import Eq, Expr, FunctionDef, If, Import, ImportFrom
 from ast import List as AstList
-from ast import Load, Module, Name, Return, Store, Subscript, alias, arg, arguments, keyword
 from typing import Any, Dict, List, Optional, Union
 
 

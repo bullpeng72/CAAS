@@ -4,14 +4,13 @@ Test Progress Reporter Integration with BMAD Engine
 Tests that Rich progress reporting works correctly with the BMAD Engine.
 """
 
-import pytest
 import io
-from unittest.mock import Mock, patch
+
 from caas_framework.reporting.progress_reporter import (
+    PhaseProgress,
+    PhaseStatus,
     ProgressReporter,
     VerbosityLevel,
-    PhaseStatus,
-    PhaseProgress
 )
 
 

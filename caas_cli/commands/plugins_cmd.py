@@ -5,11 +5,11 @@ Manage plugins
 """
 
 import click
+
 from caas_cli.utils import (
     echo_error,
     echo_info,
     echo_success,
-    echo_warning,
     handle_keyboard_interrupt,
     print_table,
 )

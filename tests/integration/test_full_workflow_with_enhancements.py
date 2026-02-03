@@ -12,24 +12,31 @@ This test exercises Phase 2 enhancements in an integrated manner:
 Verifies measurable improvements in cost, speed, and quality.
 """
 
-import pytest
 import asyncio
 from datetime import datetime
-from typing import Dict, Any
-from unittest.mock import Mock, AsyncMock, patch
 
-from caas_framework.plugins.llm.multi_model_router import MultiModelRouter, ModelSelectionStrategy, ModelConfig
-from caas_framework.caching.cache_manager import CacheManager
-from caas_framework.caching.backends import InMemoryCacheBackend
-from caas_framework.caching.llm_cache import LLMCacheWrapper
-from caas_framework.performance.profiler import PerformanceProfiler, BottleneckAnalyzer
-from caas_framework.monitoring.metrics_collector import EnhancedMetricsCollector
-from caas_framework.monitoring.cost_tracker import CostTracker
-from caas_framework.monitoring.quality_tracker import QualityTracker
-from caas_framework.monitoring.alert_system import AlertSystem, create_cost_alert_rule, create_quality_alert_rule
-from caas_framework.validation.llm_judge import LLMJudge
-from caas_framework.agents.collaboration import SafeFeedbackLoop
+import pytest
+
 from caas_framework.agents.base import AgentPhase
+from caas_framework.agents.collaboration import SafeFeedbackLoop
+from caas_framework.caching.backends import InMemoryCacheBackend
+from caas_framework.caching.cache_manager import CacheManager
+from caas_framework.caching.llm_cache import LLMCacheWrapper
+from caas_framework.monitoring.alert_system import (
+    AlertSystem,
+    create_cost_alert_rule,
+    create_quality_alert_rule,
+)
+from caas_framework.monitoring.cost_tracker import CostTracker
+from caas_framework.monitoring.metrics_collector import EnhancedMetricsCollector
+from caas_framework.monitoring.quality_tracker import QualityTracker
+from caas_framework.performance.profiler import BottleneckAnalyzer, PerformanceProfiler
+from caas_framework.plugins.llm.multi_model_router import (
+    ModelConfig,
+    ModelSelectionStrategy,
+    MultiModelRouter,
+)
+from caas_framework.validation.llm_judge import LLMJudge
 
 
 class MockLLMPlugin:
@@ -270,7 +277,7 @@ async def test_integrated_enhancements_work_together(enhanced_system):
     cache_stats = cache_manager.get_stats()
     assert cache_stats["hits"] > 0, "Should have cache hits"
 
-    print(f"\n=== Caching Results ===")
+    print("\n=== Caching Results ===")
     print(f"Cache Hits: {cache_stats['hits']}")
     print(f"Cache Misses: {cache_stats['misses']}")
     print(f"Hit Rate: {(cache_stats['hits'] / cache_stats['requests'] * 100):.1f}%")
@@ -279,7 +286,7 @@ async def test_integrated_enhancements_work_together(enhanced_system):
     router_metrics = router.get_metrics_summary()
     assert len(router_metrics) >= 1, "Should have used at least one model"
 
-    print(f"\n=== Multi-Model Routing ===")
+    print("\n=== Multi-Model Routing ===")
     for model_name, stats in router_metrics.items():
         print(f"{model_name}: {stats['total_requests']} requests, "
               f"{stats['success_rate']:.1f}% success")
@@ -288,7 +295,7 @@ async def test_integrated_enhancements_work_together(enhanced_system):
     profiler_summary = profiler.get_summary()
     assert profiler_summary["total_operations"] >= 2, "Should have profiled operations"
 
-    print(f"\n=== Performance Profiling ===")
+    print("\n=== Performance Profiling ===")
     print(f"Total Operations: {profiler_summary['total_operations']}")
     print(f"Total Time: {profiler_summary['total_time_seconds']:.2f}s")
 
@@ -297,7 +304,7 @@ async def test_integrated_enhancements_work_together(enhanced_system):
     assert metrics_summary["llm"]["calls"] > 0, "Should have recorded LLM calls"
     assert metrics_summary["cache"]["hits"] > 0, "Should have recorded cache hits"
 
-    print(f"\n=== Metrics Collection ===")
+    print("\n=== Metrics Collection ===")
     print(f"LLM Calls: {metrics_summary['llm']['calls']}")
     print(f"Total Tokens: {metrics_summary['llm']['tokens']}")
     print(f"Cache Hits: {metrics_summary['cache']['hits']}")
@@ -306,19 +313,19 @@ async def test_integrated_enhancements_work_together(enhanced_system):
     cost_summary = cost_tracker.get_summary()
     assert cost_summary.total_calls > 0, "Should have tracked costs"
 
-    print(f"\n=== Cost Tracking ===")
+    print("\n=== Cost Tracking ===")
     print(f"Total Calls: {cost_summary.total_calls}")
     print(f"Total Tokens: {cost_summary.total_tokens}")
     print(f"Total Cost: ${cost_summary.total_cost_usd:.4f}")
 
     # ==== Overall Verification ====
-    print(f"\n=== Integration Test Results ===")
-    print(f"✅ Multi-model routing active")
+    print("\n=== Integration Test Results ===")
+    print("✅ Multi-model routing active")
     print(f"✅ Caching working (hit rate: {(cache_stats['hits'] / cache_stats['requests'] * 100):.1f}%)")
-    print(f"✅ Performance profiling enabled")
-    print(f"✅ Metrics collection working")
-    print(f"✅ Cost tracking functional")
-    print(f"✅ All enhancements integrated successfully")
+    print("✅ Performance profiling enabled")
+    print("✅ Metrics collection working")
+    print("✅ Cost tracking functional")
+    print("✅ All enhancements integrated successfully")
 
 
 @pytest.mark.asyncio
@@ -353,7 +360,7 @@ async def test_cache_effectiveness(enhanced_system):
     cache_stats = cache_manager.get_stats()
     hit_rate = (cache_stats["hits"] / cache_stats["requests"] * 100) if cache_stats["requests"] > 0 else 0
 
-    print(f"\n=== Cache Effectiveness ===")
+    print("\n=== Cache Effectiveness ===")
     print(f"Total Requests: {cache_stats['requests']}")
     print(f"Cache Hits: {cache_stats['hits']}")
     print(f"Cache Misses: {cache_stats['misses']}")
@@ -385,12 +392,12 @@ async def test_multi_model_phase_based_selection(enhanced_system):
 
         # Verify selection matches expected
         # Note: Actual model used depends on configuration
-        assert selected_model in router.models, f"Should select a configured model"
+        assert selected_model in router.models, "Should select a configured model"
 
     # Get routing metrics
     router_metrics = router.get_metrics_summary()
 
-    print(f"\n=== Multi-Model Routing ===")
+    print("\n=== Multi-Model Routing ===")
     for model_name, stats in router_metrics.items():
         print(f"{model_name}:")
         print(f"  Requests: {stats['total_requests']}")
@@ -419,7 +426,7 @@ async def test_performance_profiling(enhanced_system):
     # Get profiler summary
     summary = profiler.get_summary()
 
-    print(f"\n=== Performance Profiling ===")
+    print("\n=== Performance Profiling ===")
     print(f"Total Operations: {summary['total_operations']}")
     print(f"Total Time: {summary['total_time_seconds']:.2f}s")
 
@@ -427,7 +434,7 @@ async def test_performance_profiling(enhanced_system):
     analyzer = BottleneckAnalyzer(profiler)
     bottlenecks = analyzer.identify_bottlenecks(threshold_percent=5.0)
 
-    print(f"\nBottlenecks:")
+    print("\nBottlenecks:")
     for bottleneck in bottlenecks[:3]:
         print(f"  - {bottleneck['operation']}: {bottleneck['total_time_seconds']:.2f}s "
               f"({bottleneck['percent_of_total']:.1f}%)")
@@ -467,21 +474,21 @@ async def test_comprehensive_monitoring(enhanced_system):
     quality_summary = quality_tracker.get_summary(days=1)
     alert_summary = alert_system.get_alert_summary()
 
-    print(f"\n=== Comprehensive Monitoring ===")
-    print(f"\nMetrics:")
+    print("\n=== Comprehensive Monitoring ===")
+    print("\nMetrics:")
     print(f"  LLM Calls: {metrics_summary['llm']['calls']}")
     print(f"  Total Tokens: {metrics_summary['llm']['tokens']}")
     print(f"  Cache Hit Rate: {metrics_summary['cache']['hit_rate']}")
 
-    print(f"\nCost Tracking:")
+    print("\nCost Tracking:")
     print(f"  Total Calls: {cost_summary.total_calls}")
     print(f"  Total Cost: ${cost_summary.total_cost_usd:.4f}")
 
-    print(f"\nQuality Tracking:")
+    print("\nQuality Tracking:")
     print(f"  Measurements: {quality_summary['measurements']}")
     print(f"  Average Score: {quality_summary['avg_score']:.2f}/10")
 
-    print(f"\nAlert System:")
+    print("\nAlert System:")
     print(f"  Active Rules: {alert_summary['active_rules']}")
     print(f"  Total Alerts: {alert_summary['total_alerts']}")
 

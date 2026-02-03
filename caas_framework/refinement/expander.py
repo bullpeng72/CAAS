@@ -197,7 +197,7 @@ class RequirementExpander:
                 )
                 for m in models_data
             ]
-        except Exception as e:
+        except Exception:
             # LLM 실패 시 기본값
             return [
                 DataModel(

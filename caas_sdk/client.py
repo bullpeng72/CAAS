@@ -7,9 +7,10 @@ Main client for interacting with CAAS API.
 import asyncio
 import time
 from pathlib import Path
-from typing import AsyncIterator, Dict, Iterator, Optional
+from typing import Dict, Optional
 
 import httpx
+
 from caas_sdk.exceptions import (
     APIError,
     AuthenticationError,
@@ -21,7 +22,6 @@ from caas_sdk.exceptions import (
 from caas_sdk.models import (
     GenerationConfig,
     GenerationResult,
-    ProgressUpdate,
     Project,
     ProjectStatus,
 )

@@ -7,9 +7,10 @@ Main engine for production-ready code generation.
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
-from caas_framework.utils.logger import get_logger
-
-from caas_framework.codegen.deployment_generator import DeploymentConfig, DeploymentGenerator
+from caas_framework.codegen.deployment_generator import (
+    DeploymentConfig,
+    DeploymentGenerator,
+)
 from caas_framework.codegen.domain_strategy import CodeGenStrategy, DomainStrategy
 from caas_framework.codegen.frontend_generator import (
     FrontendConfig,
@@ -26,6 +27,7 @@ from caas_framework.models.specifications import (
     TaskSpecModel,
 )
 from caas_framework.plugins.llm.base import LLMPlugin
+from caas_framework.utils.logger import get_logger
 
 
 @dataclass
@@ -163,7 +165,6 @@ class CodeGenerationEngine:
             # 2.5. Run TDD cycle if TDD mode is enabled
             if tdd_mode or self.tdd_mode:
                 if self.tdd_generator and golden_data.features:
-                    import logging
 
                     logger = get_logger()
                     logger.info("🔴 Starting TDD (Test-First) Code Generation...")
@@ -494,7 +495,7 @@ from src.agents import *
             process_type = "Process.sequential"
 
         # Base imports
-        imports = f'''"""
+        imports = '''"""
 Crew Definition
 
 Main crew configuration.
@@ -870,7 +871,7 @@ htmlcov/
         # pyproject.toml
         files[
             "pyproject.toml"
-        ] = f"""
+        ] = """
 [tool.black]
 line-length = 100
 target-version = ['py311']
