@@ -1623,7 +1623,7 @@ class ExpertAgentCollaboration:
                             description=metric.description,
                             threshold=metric.threshold,
                             actual_value=metric.actual_value,
-                            passed=metric.passed,
+                            weight=metric.weight,
                             critical=False,  # Force to non-critical
                             metric_type=metric.metric_type,
                         )
