@@ -22,8 +22,8 @@ setup(
     description="CrewAI Agent Auto-generation System - Command-Line Interface",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    author="CAAS Team",
-    author_email="caas@example.com",
+    author="bullpeng72",
+    author_email="sungwoo.kim@gmail.com",
     url="https://github.com/bullpeng72/CrewAI-Agent-Autogeneration-System",
 
     # Include framework, CLI, SDK, and necessary app components
