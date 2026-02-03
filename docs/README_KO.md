@@ -367,7 +367,7 @@ generated/
 - GitHub Discussions: https://github.com/bullpeng72/CrewAI-Agent-Autogeneration-System/discussions
 
 ### 문의
-- Email: support@caas.dev
+- Email: sungwoo.kim@gmail.com
 
 ---
 
@@ -403,9 +403,9 @@ caas/
 │   └── ...
 ├── caas_cli/           # CLI 인터페이스 (20 명령어)
 ├── caas_sdk/           # Python SDK
-├── app/                # 애플리케이션 레이어 (113 파일)
 ├── data/               # 템플릿, 온톨로지, 예제
-├── tests/              # 테스트 스위트
+├── docs/               # 한국어 문서 (13개)
+├── tests/              # 테스트 스위트 (100+ tests)
 └── examples/           # 사용 예제
 ```
 

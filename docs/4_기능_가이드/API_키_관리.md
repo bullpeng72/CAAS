@@ -13,7 +13,7 @@ CAAS 프레임워크에 CrewAI 도구와 MCP 서버를 위한 API 키 관리 기
 
 ## 🚀 주요 기능
 
-### 1. API 키 요구사항 매핑 (`app/codegen/tool_api_keys.py`)
+### 1. API 키 요구사항 매핑 (`caas_framework/codegen/tool_api_keys.py`)
 
 각 도구가 필요로 하는 API 키 정보를 정의:
 - 환경 변수 이름
@@ -36,7 +36,7 @@ if is_tool_requires_api_key("SerperDevTool"):
         print(f"{req.env_var}: {req.description}")
 ```
 
-### 2. 환경 변수 관리자 (`app/utils/env_manager.py`)
+### 2. 환경 변수 관리자 (`caas_framework/utils/env_manager.py`)
 
 .env 파일을 프로그래밍 방식으로 관리:
 
@@ -233,8 +233,8 @@ tools = create_tools(["SerperDevTool"])
 ## 📚 관련 파일
 
 ### 핵심 파일
-- `app/codegen/tool_api_keys.py` - API 키 요구사항 정의
-- `app/utils/env_manager.py` - 환경 변수 관리 유틸리티
+- `caas_framework/codegen/tool_api_keys.py` - API 키 요구사항 정의
+- `caas_framework/utils/env_manager.py` - 환경 변수 관리 유틸리티
 - `caas_streamlit/pages/9_🔧_Tool_Manager.py` - Streamlit UI
 - `.env.example` - 환경 변수 예제
 

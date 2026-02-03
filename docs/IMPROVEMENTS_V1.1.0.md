@@ -556,4 +556,4 @@ RUN_E2E_TESTS=1 pytest tests/test_e2e_full_workflow.py -v
 **Last Updated**: 2026-02-02
 **Version**: 1.1.0
 **Status**: ✅ Production-Ready
-**Contributors**: Claude Sonnet 4.5, AIDX Team
+**Contributors**: Claude Sonnet 4.5, bullpeng72
