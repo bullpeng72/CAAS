@@ -8,13 +8,14 @@ Different storage backends for caching:
 
 import hashlib
 import json
-import logging
 import pickle
 from abc import ABC, abstractmethod
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, Optional
+
+from caas_framework.utils.logger import get_logger
 
 
 @dataclass
@@ -97,7 +98,7 @@ class InMemoryCacheBackend(CacheBackend):
         self._cache: Dict[str, CacheEntry] = {}
         self._access_order: list = []  # For LRU tracking
         self.max_size = max_size
-        self.logger = logging.getLogger(__name__)
+        self.logger = get_logger()
 
         # Metrics
         self._hits = 0
@@ -218,7 +219,7 @@ class FileCacheBackend(CacheBackend):
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         self.max_size_mb = max_size_mb
         self.use_pickle = use_pickle
-        self.logger = logging.getLogger(__name__)
+        self.logger = get_logger()
 
         # Metrics
         self._hits = 0

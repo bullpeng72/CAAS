@@ -4,13 +4,14 @@ CAAS Base Factory
 팩토리 클래스들의 공통 기능을 제공하는 기본 클래스
 """
 
-import logging
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any, Dict, Generic, Optional, TypeVar
 
 from jinja2 import Environment, FileSystemLoader, Template
 from pydantic import BaseModel
+
+from caas_framework.utils.logger import get_logger
 
 from caas_framework.config import get_settings
 
@@ -20,7 +21,7 @@ PROJECT_ROOT = Path.cwd()
 SpecModel = TypeVar("SpecModel", bound=BaseModel)
 Definition = TypeVar("Definition", bound=BaseModel)
 
-logger = logging.getLogger("caas_framework.factory.base")
+logger = get_logger(name="caas_framework.factory.base")
 
 
 class BaseFactory(ABC, Generic[SpecModel, Definition]):

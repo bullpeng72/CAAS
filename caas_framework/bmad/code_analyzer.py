@@ -5,14 +5,15 @@ Phase 3: Analyze generated code to extract implemented features
 """
 
 import ast
-import logging
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
-logger = logging.getLogger(__name__)
+from caas_framework.utils.logger import get_logger
+
+logger = get_logger()
 
 
 class RequirementType(str, Enum):
@@ -145,7 +146,7 @@ class CodeAnalyzer:
 
     def __init__(self):
         """Initialize code analyzer"""
-        self.logger = logging.getLogger(__name__)
+        self.logger = get_logger()
 
     def analyze_file(self, file_path: str, content: str) -> FileAnalysis:
         """

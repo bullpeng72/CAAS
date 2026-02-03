@@ -5,13 +5,14 @@ Tools for profiling workflow execution and identifying bottlenecks.
 """
 
 import asyncio
-import logging
 import time
 from collections import defaultdict
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Callable, Dict, List, Optional
+
+from caas_framework.utils.logger import get_logger
 
 
 @dataclass
@@ -68,7 +69,7 @@ class PerformanceProfiler:
         self.enabled = enabled
         self.operations: List[ProfiledOperation] = []
         self.current_stack: List[ProfiledOperation] = []
-        self.logger = logging.getLogger(__name__)
+        self.logger = get_logger()
 
     @asynccontextmanager
     async def profile(self, operation_name: str, metadata: Optional[Dict[str, Any]] = None):
@@ -224,7 +225,7 @@ class BottleneckAnalyzer:
             profiler: Performance profiler with collected data
         """
         self.profiler = profiler
-        self.logger = logging.getLogger(__name__)
+        self.logger = get_logger()
 
     def identify_bottlenecks(
         self, threshold_percent: float = 10.0, min_duration_ms: float = 100.0

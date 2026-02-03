@@ -4,9 +4,10 @@ Spec Converter
 RequirementAnalysis를 MultiProjectSpec으로 변환합니다.
 """
 
-import logging
 import re
 from typing import Any, Dict, List, Optional
+
+from caas_framework.utils.logger import get_logger
 
 from caas_framework.knowledge.patterns import get_agent_pattern
 from caas_framework.models import DomainType
@@ -44,7 +45,7 @@ from caas_framework.sdd.multi_spec import (
     UIPage,
 )
 
-logger = logging.getLogger("caas_framework.sdd.spec_converter")
+logger = get_logger(name="caas_framework.sdd.spec_converter")
 
 
 def clean_name(text: str) -> str:

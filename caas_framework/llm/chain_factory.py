@@ -4,13 +4,14 @@ LLM Chain Factory
 Factory classes for creating LangChain chains.
 """
 
-import logging
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Optional, Type
 
 from pydantic import BaseModel
 
-logger = logging.getLogger("caas_framework.llm.chain_factory")
+from caas_framework.utils.logger import get_logger
+
+logger = get_logger(name="caas_framework.llm.chain_factory")
 
 # LangChain optional import
 LANGCHAIN_AVAILABLE = False

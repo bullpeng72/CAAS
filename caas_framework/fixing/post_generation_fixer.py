@@ -4,13 +4,14 @@ Post-Generation Fixer
 Automatically validates and fixes generated code after generation.
 """
 
-import logging
 from typing import Any, Dict, List, Tuple
+
+from caas_framework.utils.logger import get_logger
 
 from caas_framework.fixing.tool_fixer import ToolFixer
 from caas_framework.validation.task_validator import TaskValidator
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 
 class PostGenerationFixer:

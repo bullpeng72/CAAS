@@ -5,10 +5,11 @@ CAAS BMAD Deployment Preparer
 requirements.txt, Dockerfile, docker-compose.yml 등을 생성합니다.
 """
 
-import logging
 from typing import Any, Dict, List
 
-logger = logging.getLogger("caas_framework.bmad.deployer")
+from caas_framework.utils.logger import get_logger
+
+logger = get_logger(name="caas_framework.bmad.deployer")
 
 
 class DeploymentArtifacts:

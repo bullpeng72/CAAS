@@ -6,11 +6,10 @@ Provides a simple, batteries-included interface for Python applications.
 """
 
 import asyncio
-import logging
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 
 class CAASLocalClient:

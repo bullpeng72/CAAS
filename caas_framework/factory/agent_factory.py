@@ -4,16 +4,17 @@ CAAS Agent Factory
 CrewAI 에이전트를 생성하고 관리합니다.
 """
 
-import logging
 from datetime import datetime
 from typing import Dict, List, Optional, Set
 
 from pydantic import BaseModel
 
+from caas_framework.utils.logger import get_logger
+
 from caas_framework.factory.base_factory import BaseFactory
 from caas_framework.sdd import AgentSpecModel
 
-logger = logging.getLogger("caas_framework.factory.agent")
+logger = get_logger(name="caas_framework.factory.agent")
 
 
 class AgentDefinition(BaseModel):

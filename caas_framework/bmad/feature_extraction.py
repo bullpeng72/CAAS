@@ -5,15 +5,16 @@ Phase 0 Enhancement: Complete and comprehensive feature extraction
 from requirements using hierarchical decomposition.
 """
 
-import logging
 from typing import List, Optional
+
+from caas_framework.utils.logger import get_logger
 
 from caas_framework.config.settings import LLMConstants
 from caas_framework.models.specifications import FeatureSpec
 from caas_framework.plugins.llm.base import LLMPlugin
 from caas_framework.utils import PromptBuilder, ResponseParser
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 
 class HierarchicalFeatureExtractor:
@@ -36,7 +37,7 @@ class HierarchicalFeatureExtractor:
             llm_plugin: LLM plugin for feature extraction
         """
         self.llm = llm_plugin
-        self.logger = logging.getLogger(__name__)
+        self.logger = get_logger()
 
     async def extract_complete_features(
         self, requirement: str, domain: Optional[str] = None

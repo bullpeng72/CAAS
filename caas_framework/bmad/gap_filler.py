@@ -4,9 +4,10 @@ Gap Filler
 Phase 3: Automatically generate code for unimplemented features
 """
 
-import logging
 from dataclasses import dataclass, field
 from typing import Dict, List, Tuple
+
+from caas_framework.utils.logger import get_logger
 
 from caas_framework.bmad.code_analyzer import FileAnalysis
 from caas_framework.bmad.completeness_validator import CompletenessReport
@@ -16,7 +17,7 @@ from caas_framework.models.specifications import FeatureSpec
 from caas_framework.plugins.llm.base import LLMPlugin
 from caas_framework.utils import PromptBuilder, ResponseParser
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 
 @dataclass
@@ -67,7 +68,7 @@ class GapFiller:
         """
         self.llm = llm_plugin
         self.semantic_mapper = SemanticMapper(llm_plugin)
-        self.logger = logging.getLogger(__name__)
+        self.logger = get_logger()
 
     async def fill_gaps(
         self,

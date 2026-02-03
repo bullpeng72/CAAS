@@ -15,7 +15,6 @@ Key Features:
 """
 
 import asyncio
-import logging
 import multiprocessing
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 from dataclasses import dataclass, field
@@ -23,8 +22,10 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Set
 
+from caas_framework.utils.logger import get_logger
+
 # Setup logging
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 
 class ExecutionStrategy(Enum):

@@ -5,13 +5,14 @@ Implements agents that can assess their own capabilities and limitations,
 enabling intelligent delegation and help-seeking behavior.
 """
 
-import logging
 from dataclasses import dataclass
 from typing import Any, Callable, List, Optional, Protocol
 
 from pydantic import BaseModel, Field
 
-logger = logging.getLogger(__name__)
+from caas_framework.utils.logger import get_logger
+
+logger = get_logger()
 
 
 class CapabilityAssessment(BaseModel):

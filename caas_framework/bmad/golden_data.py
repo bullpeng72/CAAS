@@ -6,8 +6,9 @@ Converts natural language requirements into structured Golden Data.
 """
 
 import json
-import logging
 from typing import Any, Dict, Optional
+
+from caas_framework.utils.logger import get_logger
 
 from caas_framework.models.specifications import (
     BoundariesSpec,
@@ -37,7 +38,7 @@ class RequirementConcretizer:
             llm_plugin: LLM plugin for text generation
         """
         self.llm = llm_plugin
-        self.logger = logging.getLogger(__name__)
+        self.logger = get_logger()
 
     async def concretize(
         self, requirement: str, domain: Optional[str] = None
@@ -361,7 +362,7 @@ class GoldenDataPipeline:
         if self.use_hierarchical_extraction and self.feature_extractor:
             import logging
 
-            logger = logging.getLogger(__name__)
+            logger = get_logger()
             logger.info("Using hierarchical feature extraction...")
 
             # Extract features using hierarchical approach

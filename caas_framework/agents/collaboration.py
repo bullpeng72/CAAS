@@ -37,6 +37,7 @@ from caas_framework.patterns.producer_critic import (
 from caas_framework.plugins.llm.base import LLMPlugin
 from caas_framework.quality.quality_gates import GateEvaluation, QualityGateSystem
 from caas_framework.reporting import ProgressReporter, ProgressReporterProtocol, VerbosityLevel
+from caas_framework.utils.logger import get_logger
 from caas_framework.validation.llm_judge import EvaluationResult, LLMJudge
 from caas_framework.validation.orchestrator import ValidationOrchestrator
 
@@ -631,14 +632,14 @@ class ExpertAgentCollaboration:
                 llm_plugin=llm_plugin,
                 approval_threshold=7.0,  # Default threshold
                 phase_thresholds=phase_thresholds,  # Phase-specific overrides
-                logger=logging.getLogger(__name__),
+                logger=get_logger(),
             )
 
         # Safe feedback loop (with timeout protection and LLM Judge)
         self.feedback_loop = SafeFeedbackLoop(
             max_retries=max_feedback_loops,
             timeout_per_retry=60,  # 60 seconds per retry
-            logger=logging.getLogger(__name__),
+            logger=get_logger(),
             llm_judge=llm_judge,  # Add LLM Judge for semantic quality evaluation
         )
 
@@ -648,7 +649,7 @@ class ExpertAgentCollaboration:
             self.quality_gate_system = QualityGateSystem(
                 enable_gates=True,
                 strict_mode=False,  # Allow warnings, block only on critical failures
-                logger=logging.getLogger(__name__),
+                logger=get_logger(),
             )
             self.reporter.info("🚪 Quality Gate System enabled")
 
@@ -662,7 +663,7 @@ class ExpertAgentCollaboration:
             self.producer_critic_pattern = ProducerCriticPattern(
                 max_iterations=3,  # Max 3 refinement iterations
                 timeout_per_iteration=120,  # 2 minutes per iteration
-                logger=logging.getLogger(__name__),
+                logger=get_logger(),
             )
 
             # Initialize critic agent with general role
@@ -670,7 +671,7 @@ class ExpertAgentCollaboration:
                 llm_plugin=llm_plugin,
                 role=CriticRole.GENERAL_CRITIC,
                 approval_threshold=7.0,  # Require 7.0/10.0 for approval
-                logger=logging.getLogger(__name__),
+                logger=get_logger(),
             )
 
             self.reporter.info("🔍 Producer-Critic pattern enabled for Design and Delivery phases")

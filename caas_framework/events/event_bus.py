@@ -6,13 +6,14 @@ between system components.
 """
 
 import asyncio
-import logging
 from collections import defaultdict
 from typing import Callable, Dict, List, Optional
 
+from caas_framework.utils.logger import get_logger
+
 from caas_framework.events.events import Event, EventHandler, EventSubscription, PhaseEvent
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 
 class EventBus:

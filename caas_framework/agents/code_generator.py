@@ -10,6 +10,8 @@ Expert agent responsible for Phase 5 (Delivery):
 
 from typing import Any, Dict, List, Optional
 
+from caas_framework.utils.logger import get_logger
+
 from caas_framework.agents.base import AgentPhase, BaseExpertAgent, ValidationIssue
 from caas_framework.agents.process_selector import ProcessSelector
 from caas_framework.agents.registry import register_agent
@@ -161,7 +163,7 @@ class CodeGeneratorAgent(BaseExpertAgent):
         # Debug logging
         import logging
 
-        logger = logging.getLogger(__name__)
+        logger = get_logger()
         raw_response = str(response)[:1000]
         logger.info(f"[CodeGenerator] Raw LLM response (first 1000 chars): {raw_response}")
 
@@ -244,7 +246,7 @@ class CodeGeneratorAgent(BaseExpertAgent):
         """
         import logging
 
-        logger = logging.getLogger(__name__)
+        logger = get_logger()
 
         violations = []
 
@@ -342,7 +344,7 @@ class CodeGeneratorAgent(BaseExpertAgent):
 
         from caas_framework.utils import ObjectAccessor
 
-        logger = logging.getLogger(__name__)
+        logger = get_logger()
         fixed_files = files.copy()
 
         # Fix agents.py if it exists
@@ -595,7 +597,7 @@ CRITICAL REQUIREMENT: You MUST generate code using the CrewAI framework.
         except Exception as e:
             import logging
 
-            logger = logging.getLogger(__name__)
+            logger = get_logger()
             logger.warning(f"Process selection failed: {e}, defaulting to sequential")
             return "sequential"
 
@@ -1239,7 +1241,7 @@ OPENAI_API_KEY=your_openai_api_key_here
             # Evaluate
             import logging
 
-            logger = logging.getLogger(__name__)
+            logger = get_logger()
             logger.info(f"[CodeGenerator] Evaluating code quality with LLM Judge...")
 
             evaluation = await judge.evaluate_code_quality(python_files, context)
@@ -1256,7 +1258,7 @@ OPENAI_API_KEY=your_openai_api_key_here
             # LLM Judge not available
             import logging
 
-            logger = logging.getLogger(__name__)
+            logger = get_logger()
             logger.warning("[CodeGenerator] LLM Judge not available - skipping quality evaluation")
             return None
 
@@ -1264,7 +1266,7 @@ OPENAI_API_KEY=your_openai_api_key_here
             # Evaluation failed, log but don't fail code generation
             import logging
 
-            logger = logging.getLogger(__name__)
+            logger = get_logger()
             logger.error(f"[CodeGenerator] Quality evaluation failed: {e}")
             return None
 

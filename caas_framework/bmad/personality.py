@@ -4,13 +4,14 @@ BMAD Agent Personality Customization
 에이전트 성격 커스터마이징 (BMAD 방법론 확장)
 """
 
-import logging
 from enum import Enum
 from typing import Any, Dict, Optional
 
 from pydantic import BaseModel, Field
 
-logger = logging.getLogger("caas_framework.bmad.personality")
+from caas_framework.utils.logger import get_logger
+
+logger = get_logger(name="caas_framework.bmad.personality")
 
 
 class PersonalityTone(str, Enum):

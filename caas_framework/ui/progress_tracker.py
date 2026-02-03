@@ -5,7 +5,6 @@ Provides visual progress indication for CAAS phase execution.
 Uses rich library for beautiful console output.
 """
 
-import logging
 import time
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
@@ -19,8 +18,9 @@ from rich.table import Table
 from rich.text import Text
 
 from caas_framework.agents.base import AgentPhase
+from caas_framework.utils.logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 
 @dataclass

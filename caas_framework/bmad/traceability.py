@@ -5,14 +5,15 @@ Phase 2: Feature-to-Code Traceability
 Tracks relationships between Features → Tasks → Code to ensure complete implementation.
 """
 
-import logging
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set
 
+from caas_framework.utils.logger import get_logger
+
 from caas_framework.models.specifications import FeatureSpec, TaskSpecModel
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 
 class ImplementationStatus(Enum):
@@ -125,7 +126,7 @@ class TraceabilityMatrix:
 
     def __init__(self):
         """Initialize empty traceability matrix"""
-        self.logger = logging.getLogger(__name__)
+        self.logger = get_logger()
 
         # Core mappings
         self.features: Dict[str, FeatureTrace] = {}

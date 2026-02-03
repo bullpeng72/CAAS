@@ -18,6 +18,7 @@ from typing import Any, AsyncIterator, Dict, List, Optional, Tuple
 
 from caas_framework.agents.base import AgentPhase
 from caas_framework.plugins.llm.base import LLMMessage, LLMPlugin, LLMResponse
+from caas_framework.utils.logger import get_logger
 
 
 class ModelSelectionStrategy(str, Enum):
@@ -81,7 +82,7 @@ class ModelPerformanceTracker:
 
     def __init__(self):
         self.metrics: Dict[str, ModelMetrics] = {}
-        self.logger = logging.getLogger(__name__)
+        self.logger = get_logger()
 
     def record_request(
         self,

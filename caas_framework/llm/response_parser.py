@@ -5,15 +5,16 @@ LLM 응답을 파싱하고 구조화된 데이터로 변환합니다.
 """
 
 import json
-import logging
 import re
 from typing import Any, Callable, Dict, List, Optional, Type, TypeVar
 
 from pydantic import BaseModel, ValidationError
 
+from caas_framework.utils.logger import get_logger
+
 from caas_framework.utils.json_helper import JSONHelper
 
-logger = logging.getLogger("caas_framework.llm.response_parser")
+logger = get_logger(name="caas_framework.llm.response_parser")
 
 T = TypeVar("T", bound=BaseModel)
 

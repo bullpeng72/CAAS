@@ -10,6 +10,8 @@ Expert agent responsible for Phase 3 (Design):
 
 from typing import Any, Dict, List, Optional
 
+from caas_framework.utils.logger import get_logger
+
 from caas_framework.agents.base import AgentPhase, BaseExpertAgent, ValidationIssue
 from caas_framework.agents.executors import GoldenDataEnhancer
 from caas_framework.agents.registry import register_agent
@@ -88,7 +90,7 @@ class AgentDesignerAgent(BaseExpertAgent):
         # Debug logging
         import logging
 
-        logger = logging.getLogger(__name__)
+        logger = get_logger()
 
         # Log raw response
         raw_response = str(response)[:500]

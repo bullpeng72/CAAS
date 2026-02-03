@@ -8,8 +8,10 @@ Consolidates duplicate LLM calling code from across the framework.
 import logging
 from typing import Any, Optional
 
+from caas_framework.utils.logger import get_logger
+
 # Get logger
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 
 class LLMHelper:

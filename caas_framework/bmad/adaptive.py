@@ -4,15 +4,16 @@ BMAD Scale-Adaptive Intelligence
 프로젝트 복잡도에 따라 워크플로우 자동 조정
 """
 
-import logging
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
+from caas_framework.utils.logger import get_logger
+
 from caas_framework.bmad.code_analyzer import AnalysisResult
 
-logger = logging.getLogger("caas_framework.bmad.adaptive")
+logger = get_logger(name="caas_framework.bmad.adaptive")
 
 
 class ProjectScale(str, Enum):

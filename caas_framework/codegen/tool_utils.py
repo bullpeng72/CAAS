@@ -5,10 +5,9 @@ Common utilities for generating tools.py files with fallback stub implementation
 This module centralizes tool generation logic to avoid code duplication.
 """
 
-import logging
 from typing import Dict, Set, Union
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 
 def sanitize_tool_name(name: str) -> str:
@@ -148,15 +147,15 @@ Each tool provides specific capabilities to agents.
         imports = """
 from crewai.tools import BaseTool
 from typing import Any
-import logging
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 """
     else:  # return_type == "str"
         imports = """
 from crewai.tools import BaseTool
 from typing import Type, Any, Optional
 from pydantic import BaseModel, Field
+from caas_framework.utils.logger import get_logger
 """
     code_parts.append(imports)
 

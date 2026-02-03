@@ -7,6 +7,8 @@ Main engine for production-ready code generation.
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
+from caas_framework.utils.logger import get_logger
+
 from caas_framework.codegen.deployment_generator import DeploymentConfig, DeploymentGenerator
 from caas_framework.codegen.domain_strategy import CodeGenStrategy, DomainStrategy
 from caas_framework.codegen.frontend_generator import (
@@ -163,7 +165,7 @@ class CodeGenerationEngine:
                 if self.tdd_generator and golden_data.features:
                     import logging
 
-                    logger = logging.getLogger(__name__)
+                    logger = get_logger()
                     logger.info("🔴 Starting TDD (Test-First) Code Generation...")
 
                     # Run TDD cycle for each feature

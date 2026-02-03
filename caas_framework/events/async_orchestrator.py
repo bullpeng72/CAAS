@@ -6,17 +6,18 @@ performance and scalability.
 """
 
 import asyncio
-import logging
 import time
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
+from caas_framework.utils.logger import get_logger
+
 from caas_framework.events.event_bus import EventBus, get_global_event_bus
 from caas_framework.events.events import PhaseEvent, create_phase_event
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 
 class ExecutionMode(Enum):

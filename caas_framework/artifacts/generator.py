@@ -4,12 +4,13 @@ Artifact Generator
 Generates project artifacts (documents) from BMAD outputs using Jinja2 templates.
 """
 
-import logging
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from jinja2 import Environment, FileSystemLoader, TemplateNotFound
+
+from caas_framework.utils.logger import get_logger
 
 from caas_framework.models.artifact_types import (
     Artifact,
@@ -20,7 +21,7 @@ from caas_framework.models.artifact_types import (
     get_artifact_template_name,
 )
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 
 class ArtifactGenerator:
@@ -39,7 +40,7 @@ class ArtifactGenerator:
             config: Artifact generation configuration
         """
         self.config = config
-        self.logger = logging.getLogger(__name__)
+        self.logger = get_logger()
 
         # Setup Jinja2 environment
         template_dir = Path(__file__).parent.parent.parent / "data" / "templates" / "artifacts"

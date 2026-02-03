@@ -5,10 +5,11 @@ Eliminates duplicate Golden Data alignment logic across 3+ agents.
 Provides standardized traceability mapping and coverage calculation.
 """
 
-import logging
 from typing import Any, Callable, Dict, List, Optional
 
-logger = logging.getLogger(__name__)
+from caas_framework.utils.logger import get_logger
+
+logger = get_logger()
 
 
 class GoldenDataEnhancer:

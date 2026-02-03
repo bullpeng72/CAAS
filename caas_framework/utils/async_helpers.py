@@ -12,9 +12,11 @@ import time
 from functools import wraps
 from typing import Any, Awaitable, Callable, List, Optional, Tuple, TypeVar
 
+from caas_framework.utils.logger import get_logger
+
 T = TypeVar("T")
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 
 class TimeoutManager:

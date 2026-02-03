@@ -5,17 +5,18 @@ Spec-Driven Development 엔진입니다.
 YAML 스펙 파싱, 검증, 생성을 담당합니다.
 """
 
-import logging
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import yaml
 from pydantic import BaseModel, field_validator
 
+from caas_framework.utils.logger import get_logger
+
 from caas_framework.models import AgentSpecModel, LLMConfigSpec, TaskSpecModel
 from caas_framework.utils.security import YAMLSecurityError, safe_yaml_load, validate_project_name
 
-logger = logging.getLogger("caas_framework.sdd.engine")
+logger = get_logger(name="caas_framework.sdd.engine")
 
 
 # =============================================================================

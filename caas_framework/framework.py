@@ -4,13 +4,14 @@ Main CrewAI Framework Class
 Single entry point for all framework functionality.
 """
 
-import logging
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 # Import plugins module to trigger plugin registration
 import caas_framework.plugins  # noqa: F401
+from caas_framework.utils.logger import get_logger
+
 from caas_framework.bmad.engine import BMADEngine, BMADResult
 from caas_framework.bmad.golden_data import GoldenDataPipeline
 from caas_framework.config.loader import ConfigLoader
@@ -28,7 +29,7 @@ from caas_framework.validation.orchestrator import (
     ValidationOrchestrator,
 )
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 
 @dataclass

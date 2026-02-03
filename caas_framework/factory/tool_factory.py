@@ -4,13 +4,14 @@ CAAS Tool Factory
 CrewAI 도구 생성 및 연결을 담당합니다.
 """
 
-import logging
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
-logger = logging.getLogger("caas_framework.factory.tool")
+from caas_framework.utils.logger import get_logger
+
+logger = get_logger(name="caas_framework.factory.tool")
 
 
 class ToolType(str, Enum):

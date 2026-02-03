@@ -5,13 +5,14 @@ Implements the Producer-Critic pattern where a producer agent generates output
 and a critic agent reviews it iteratively until approved or max iterations reached.
 """
 
-import logging
 from dataclasses import dataclass, field
 from typing import Any, List, Protocol, Tuple
 
 from pydantic import BaseModel, Field
 
-logger = logging.getLogger(__name__)
+from caas_framework.utils.logger import get_logger
+
+logger = get_logger()
 
 
 @dataclass

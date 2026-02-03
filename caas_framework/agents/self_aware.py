@@ -5,9 +5,10 @@ Provides self-awareness capabilities for agents to assess their own
 ability to complete tasks and delegate when necessary.
 """
 
-import logging
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional
+
+from caas_framework.utils.logger import get_logger
 
 from caas_framework.agents.capability_assessment import (
     AgentCapability,
@@ -16,7 +17,7 @@ from caas_framework.agents.capability_assessment import (
 )
 from caas_framework.plugins.llm.base import LLMPlugin
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 
 class SelfAwareMixin:

@@ -4,7 +4,6 @@ CAAS Crew Assembler
 CrewAI Crew를 조립하고 실행 코드를 생성합니다.
 """
 
-import logging
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -13,6 +12,8 @@ from jinja2 import Environment, FileSystemLoader
 from pydantic import BaseModel
 
 PROJECT_ROOT = Path.cwd()
+from caas_framework.utils.logger import get_logger
+
 from caas_framework.factory.agent_factory import AgentFactory
 from caas_framework.factory.task_factory import TaskDefinition, TaskFactory
 from caas_framework.models import DomainType
@@ -22,7 +23,7 @@ from caas_framework.sdd import CrewAISpec
 # from caas_app.codegen.domain_strategy import DomainCodeStrategy
 # from caas_app.codegen.crud_entity_extractor import CRUDEntityExtractor
 
-logger = logging.getLogger("caas_framework.factory.crew")
+logger = get_logger(name="caas_framework.factory.crew")
 
 
 class CrewDefinition(BaseModel):

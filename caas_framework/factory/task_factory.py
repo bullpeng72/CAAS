@@ -4,16 +4,17 @@ CAAS Task Factory
 CrewAI 태스크를 생성하고 관리합니다.
 """
 
-import logging
 from datetime import datetime
 from typing import Dict, List, Optional
 
 from pydantic import BaseModel
 
+from caas_framework.utils.logger import get_logger
+
 from caas_framework.factory.base_factory import BaseFactory
 from caas_framework.sdd import TaskSpecModel
 
-logger = logging.getLogger("caas_framework.factory.task")
+logger = get_logger(name="caas_framework.factory.task")
 
 
 class TaskDefinition(BaseModel):

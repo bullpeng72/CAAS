@@ -6,11 +6,12 @@ a CrewAI workflow should use Sequential or Hierarchical process mode
 based on complexity analysis.
 """
 
-import logging
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-logger = logging.getLogger(__name__)
+from caas_framework.utils.logger import get_logger
+
+logger = get_logger()
 
 
 class WorkflowType(str, Enum):

@@ -84,17 +84,41 @@ def setup_logger(
     return logger
 
 
-def get_logger(name: str) -> logging.Logger:
+def get_logger(name: Optional[str] = None) -> logging.Logger:
     """
     Get a logger with the specified name.
 
     Args:
-        name: Logger name (typically module name)
+        name: Logger name (typically module name). If None, auto-detects from caller's module.
 
     Returns:
         logging.Logger: Logger instance
+
+    Example:
+        >>> logger = get_logger()  # Auto-detects module name
+        >>> logger = get_logger("my_module")  # Explicit name
     """
-    return setup_logger(f"caas_framework.{name}")
+    if name is None:
+        # Auto-detect caller's module name
+        try:
+            import inspect
+
+            frame = inspect.stack()[1]
+            module = inspect.getmodule(frame[0])
+
+            if module and hasattr(module, "__name__"):
+                # Use the module name directly (already includes caas_framework prefix)
+                return setup_logger(module.__name__)
+            else:
+                return setup_logger("caas_framework")
+        except (IndexError, AttributeError):
+            return setup_logger("caas_framework")
+
+    # If name is provided, prepend caas_framework prefix if not already present
+    if not name.startswith("caas_framework."):
+        name = f"caas_framework.{name}"
+
+    return setup_logger(name)
 
 
 # Default logger instance (lazy initialization)

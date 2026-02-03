@@ -5,13 +5,14 @@ Eliminates duplicate refinement logic across 4+ agents.
 Provides standardized workflow for LLM-based refinement with validation feedback.
 """
 
-import logging
 from typing import Any, Callable, Dict, List, Optional
+
+from caas_framework.utils.logger import get_logger
 
 from caas_framework.agents.mixins import PromptBuildingMixin
 from caas_framework.models.validation import ValidationIssue
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 
 class RefinementExecutor:

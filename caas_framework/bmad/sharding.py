@@ -4,14 +4,15 @@ BMAD Document Sharding
 대형 요구사항을 여러 조각으로 분할하여 토큰 사용 최적화 (90% 절감)
 """
 
-import logging
 import re
 from enum import Enum
 from typing import List
 
 from pydantic import BaseModel, Field
 
-logger = logging.getLogger("caas_framework.bmad.sharding")
+from caas_framework.utils.logger import get_logger
+
+logger = get_logger(name="caas_framework.bmad.sharding")
 
 
 class ShardingStrategy(str, Enum):

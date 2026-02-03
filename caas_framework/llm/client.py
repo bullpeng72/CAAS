@@ -29,8 +29,9 @@ except ImportError as e:
     )
 
 from caas_framework.config import get_api_key, get_settings
+from caas_framework.utils.logger import get_logger
 
-logger = logging.getLogger("caas_framework.llm.client")
+logger = get_logger(name="caas_framework.llm.client")
 
 
 def mask_secret(secret: str, visible_chars: int = 4) -> str:

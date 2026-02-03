@@ -5,13 +5,12 @@ CAAS BMAD Test Generator
 pytest 기반 테스트를 생성하고 실행합니다.
 """
 
-import logging
 import subprocess
 import tempfile
 from pathlib import Path
 from typing import Any, Dict, List
 
-logger = logging.getLogger("caas_framework.bmad.tester")
+logger = get_logger(name="caas_framework.bmad.tester")
 
 
 class TestResult:
@@ -295,6 +294,7 @@ pytest configuration for the test suite
 """
 
 import pytest
+from caas_framework.utils.logger import get_logger
 
 
 def pytest_configure(config):

@@ -211,7 +211,7 @@ import traceback
 from typing import Optional, Callable, Any
 from functools import wraps
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 
 class ErrorHandler:
@@ -461,7 +461,7 @@ class JSONFormatter(logging.Formatter):
 
         return json.dumps(log_data)
 
-logger = logging.getLogger("{logger_name}")
+logger = get_logger(name="{logger_name}")
 handler = logging.StreamHandler()
 handler.setFormatter(JSONFormatter())
 logger.addHandler(handler)
@@ -471,7 +471,7 @@ logger.setLevel(logging.INFO)
             else:
                 logging_import = f"""import logging
 
-logger = logging.getLogger("{logger_name}")
+logger = get_logger(name="{logger_name}")
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -564,8 +564,9 @@ import time
 from typing import Any, Dict, Optional
 from functools import wraps
 from datetime import datetime
+from caas_framework.utils.logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 
 class StructuredLogger:

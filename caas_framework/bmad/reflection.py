@@ -5,12 +5,13 @@ BMAD Reflection Engine (CORE - Collaboration Optimized Reflection Engine)
 """
 
 import ast
-import logging
 from typing import Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
-logger = logging.getLogger("caas_framework.bmad.reflection")
+from caas_framework.utils.logger import get_logger
+
+logger = get_logger(name="caas_framework.bmad.reflection")
 
 
 class ReflectionFeedback(BaseModel):

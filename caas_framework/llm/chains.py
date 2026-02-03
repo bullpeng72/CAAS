@@ -75,8 +75,9 @@ from caas_framework.models import (
     RequirementAnalysis,
 )
 from caas_framework.models import TaskSpecModel as TaskSpec
+from caas_framework.utils.logger import get_logger
 
-logger = logging.getLogger("caas_framework.llm.chains")
+logger = get_logger(name="caas_framework.llm.chains")
 
 
 # =============================================================================

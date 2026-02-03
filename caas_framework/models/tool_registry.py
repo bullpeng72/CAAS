@@ -5,14 +5,15 @@ Tool Registry
 """
 
 import json
-import logging
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
-logger = logging.getLogger("caas_framework.models.tool_registry")
+from caas_framework.utils.logger import get_logger
+
+logger = get_logger(name="caas_framework.models.tool_registry")
 
 
 class ToolMetadata(BaseModel):

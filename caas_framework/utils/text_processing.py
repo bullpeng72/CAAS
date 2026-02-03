@@ -9,6 +9,8 @@ import json
 import re
 from typing import Any, Dict, List, Optional, Union
 
+from caas_framework.utils.logger import get_logger
+
 
 class ObjectAccessor:
     """Utilities for accessing values from dicts or objects uniformly"""
@@ -245,7 +247,7 @@ class JsonExtractor:
             if return_type is not None and not isinstance(result, return_type):
                 import logging
 
-                logger = logging.getLogger(__name__)
+                logger = get_logger()
                 logger.warning(
                     f"JSON parsed but wrong type: expected {return_type}, got {type(result)}"
                 )
@@ -255,7 +257,7 @@ class JsonExtractor:
         except json.JSONDecodeError as e:
             import logging
 
-            logger = logging.getLogger(__name__)
+            logger = get_logger()
             logger.error(f"JSON decode error: {e}")
 
             # Try to repair common JSON errors

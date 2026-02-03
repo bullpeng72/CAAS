@@ -6,12 +6,13 @@ Checks syntax, imports, and code style.
 """
 
 import ast
-import logging
 import sys
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional
+
+from caas_framework.utils.logger import get_logger
 
 
 class CheckStatus(Enum):
@@ -74,7 +75,7 @@ class QualityCheck:
 
     def __init__(self, name: str):
         self.name = name
-        self.logger = logging.getLogger(__name__)
+        self.logger = get_logger()
 
     def check(self, files: Dict[str, str]) -> CheckResult:
         """
@@ -307,7 +308,7 @@ class CodeQualityPipeline:
         if enable_style:
             self.checks.append(CodeStyleCheck())
 
-        self.logger = logging.getLogger(__name__)
+        self.logger = get_logger()
 
     def verify(self, files: Dict[str, str]) -> QualityReport:
         """

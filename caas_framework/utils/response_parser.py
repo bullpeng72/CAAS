@@ -5,12 +5,13 @@ Unified utilities for parsing and validating LLM responses.
 Consolidates duplicate response parsing patterns across agents and modules.
 """
 
-import logging
 from typing import Any, Callable, Dict, List, Optional
+
+from caas_framework.utils.logger import get_logger
 
 from .text_processing import JsonExtractor
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 
 class ResponseParser:

@@ -5,13 +5,14 @@ Automatically selects the optimal CrewAI Process type (Sequential vs Hierarchica
 based on task dependencies and agent collaboration patterns.
 """
 
-import logging
 from enum import Enum
 from typing import Dict, List, Set
 
+from caas_framework.utils.logger import get_logger
+
 from caas_framework.models.specifications import AgentSpecModel, TaskSpecModel
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 
 class ProcessType(str, Enum):
