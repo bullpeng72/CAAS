@@ -68,6 +68,7 @@ class CollaborationContext:
     agent_task_design: Optional[Any] = None
     code_artifacts: Optional[Any] = None
     qa_report: Optional[Any] = None
+    code_analysis_report: Optional[Any] = None  # v0.4.0: Code Analysis phase output
 
     # Validation results per phase
     validation_results: Dict[AgentPhase, Any] = field(default_factory=dict)
@@ -96,6 +97,7 @@ class CollaborationContext:
             AgentPhase.DESIGN,
             AgentPhase.DELIVERY,
             AgentPhase.QUALITY_ASSURANCE,
+            AgentPhase.CODE_ANALYSIS,  # v0.4.0
         ]
 
         for phase in phase_order:
@@ -110,6 +112,8 @@ class CollaborationContext:
                 outputs[phase] = self.agent_task_design
             elif phase == AgentPhase.DELIVERY and self.code_artifacts:
                 outputs[phase] = self.code_artifacts
+            elif phase == AgentPhase.QUALITY_ASSURANCE and self.qa_report:
+                outputs[phase] = self.qa_report
 
         return outputs
 
@@ -586,7 +590,7 @@ class ExpertAgentCollaboration:
         enable_distributed: bool = False,
         max_workers: Optional[int] = None,
         enable_critic_pattern: bool = False,
-        strict_quality_gates: bool = False,  # ✅ NEW (P1): Enable strict Quality Gate mode
+        strict_quality_gates: bool = True,  # ✅ v0.4.0: Strict Quality Gate mode by default
     ):
         """
         Initialize collaboration orchestrator.
@@ -602,8 +606,8 @@ class ExpertAgentCollaboration:
             enable_distributed: Enable distributed/parallel execution of phases
             max_workers: Max workers for distributed execution (default: CPU count)
             enable_critic_pattern: Enable Producer-Critic pattern for peer review (default: False)
-            strict_quality_gates: If True, halt workflow on Quality Gate failure;
-                                  If False (default), show warnings but continue (v0.2.0 behavior)
+            strict_quality_gates: If True (default in v0.4.0), halt workflow on Quality Gate failure;
+                                  If False, show warnings but continue (v0.2.0-v0.3.0 behavior)
         """
         self.llm = llm_plugin
         self.golden_data = golden_data
@@ -661,6 +665,11 @@ class ExpertAgentCollaboration:
                 llm_plugin=llm_plugin,
                 golden_data=golden_data,
             ),
+            "code_analyst": create_agent(
+                phase=AgentPhase.CODE_ANALYSIS,
+                llm_plugin=llm_plugin,
+                golden_data=golden_data,
+            ),
         }
 
         # Log registry info
@@ -688,6 +697,7 @@ class ExpertAgentCollaboration:
                 AgentPhase.DEVELOPMENT: 7.0,  # Standard threshold
                 AgentPhase.DELIVERY: 8.0,  # Highest threshold (production code)
                 AgentPhase.QUALITY_ASSURANCE: 7.0,  # Standard threshold
+                AgentPhase.CODE_ANALYSIS: 7.5,  # Higher threshold (code quality critical)
             }
 
             llm_judge = LLMJudge(
@@ -1374,35 +1384,110 @@ class ExpertAgentCollaboration:
                     success=False,
                 )
 
-            # Phase 5: Quality Assurance
-            self.reporter.start_phase(
-                phase_name="Phase 5: Quality Assurance",
-                agent_name="QASpecialist",
-                description="Validating and testing generated code",
-            )
-
-            qa_result = await self._execute_phase_with_feedback(
-                agent=self.agents["qa_specialist"],
-                context=context,
-                phase=AgentPhase.QUALITY_ASSURANCE,
-            )
-
-            if qa_result.success:
-                context.qa_report = qa_result.output
-                context.phases_completed.append(AgentPhase.QUALITY_ASSURANCE)
-                context.add_agent_result("qa_specialist", qa_result)
-                self.reporter.complete_phase(
-                    phase_name="Phase 5: Quality Assurance",
-                    duration=qa_result.duration,
-                    success=True,
+            # Phase 5-6: Quality Assurance & Code Analysis (Parallel if enabled)
+            if self.enable_distributed and self.distributed_executor:
+                # ✅ v0.4.0 (P2-4): Execute QA and Code Analysis in parallel
+                self.reporter.info(
+                    "🚀 Executing QA and Code Analysis phases in parallel"
                 )
+
+                # Publish phase started events
+                self.event_bus.publish(
+                    create_phase_event(
+                        PhaseEvent.PHASE_STARTED,
+                        "Quality Assurance",
+                        {"agent": "QASpecialist", "parallel": True},
+                    )
+                )
+                self.event_bus.publish(
+                    create_phase_event(
+                        PhaseEvent.PHASE_STARTED,
+                        "Code Analysis",
+                        {"agent": "CodeAnalyst", "parallel": True},
+                    )
+                )
+
+                (qa_result, code_analysis_result) = await self._execute_parallel_qa_code_analysis(
+                    context=context
+                )
+
+                # Process QA result
+                if qa_result.success:
+                    context.qa_report = qa_result.output
+                    context.phases_completed.append(AgentPhase.QUALITY_ASSURANCE)
+                    context.add_agent_result("qa_specialist", qa_result)
+                else:
+                    errors.extend(qa_result.errors)
+
+                # Process Code Analysis result
+                if code_analysis_result.success:
+                    context.code_analysis_report = code_analysis_result.output
+                    context.phases_completed.append(AgentPhase.CODE_ANALYSIS)
+                    context.add_agent_result("code_analyst", code_analysis_result)
+                else:
+                    errors.extend(code_analysis_result.errors)
+
             else:
-                errors.extend(qa_result.errors)
-                self.reporter.complete_phase(
+                # Sequential execution (original flow)
+                # Phase 5: Quality Assurance
+                self.reporter.start_phase(
                     phase_name="Phase 5: Quality Assurance",
-                    duration=qa_result.duration,
-                    success=False,
+                    agent_name="QASpecialist",
+                    description="Validating and testing generated code",
                 )
+
+                qa_result = await self._execute_phase_with_feedback(
+                    agent=self.agents["qa_specialist"],
+                    context=context,
+                    phase=AgentPhase.QUALITY_ASSURANCE,
+                )
+
+                if qa_result.success:
+                    context.qa_report = qa_result.output
+                    context.phases_completed.append(AgentPhase.QUALITY_ASSURANCE)
+                    context.add_agent_result("qa_specialist", qa_result)
+                    self.reporter.complete_phase(
+                        phase_name="Phase 5: Quality Assurance",
+                        duration=qa_result.duration,
+                        success=True,
+                    )
+                else:
+                    errors.extend(qa_result.errors)
+                    self.reporter.complete_phase(
+                        phase_name="Phase 5: Quality Assurance",
+                        duration=qa_result.duration,
+                        success=False,
+                    )
+
+                # Phase 6: Code Analysis
+                self.reporter.start_phase(
+                    phase_name="Phase 6: Code Analysis",
+                    agent_name="CodeAnalyst",
+                    description="Analyzing code quality and completeness",
+                )
+
+                code_analysis_result = await self._execute_phase_with_feedback(
+                    agent=self.agents["code_analyst"],
+                    context=context,
+                    phase=AgentPhase.CODE_ANALYSIS,
+                )
+
+                if code_analysis_result.success:
+                    context.code_analysis_report = code_analysis_result.output
+                    context.phases_completed.append(AgentPhase.CODE_ANALYSIS)
+                    context.add_agent_result("code_analyst", code_analysis_result)
+                    self.reporter.complete_phase(
+                        phase_name="Phase 6: Code Analysis",
+                        duration=code_analysis_result.duration,
+                        success=True,
+                    )
+                else:
+                    errors.extend(code_analysis_result.errors)
+                    self.reporter.complete_phase(
+                        phase_name="Phase 6: Code Analysis",
+                        duration=code_analysis_result.duration,
+                        success=False,
+                    )
 
         except Exception as e:
             errors.append(f"Collaboration failed: {str(e)}")
@@ -2170,3 +2255,146 @@ class ExpertAgentCollaboration:
         )
 
         return (discovery_result, architecture_result)
+
+    async def _execute_parallel_qa_code_analysis(
+        self, context: CollaborationContext
+    ) -> tuple[AgentWorkResult, AgentWorkResult]:
+        """
+        Execute QA and Code Analysis phases in parallel (v0.4.0 - P2-4).
+
+        These two phases can run in parallel because:
+        - QA (QASpecialist) only needs code_artifacts from Delivery
+        - Code Analysis (CodeAnalyst) only needs code_artifacts from Delivery
+        - They don't depend on each other
+
+        Args:
+            context: Collaboration context with code artifacts
+
+        Returns:
+            Tuple of (qa_result, code_analysis_result)
+        """
+        from caas_framework.workflow.distributed import DependencyGraph
+
+        # Check if distributed executor is available
+        if not self.distributed_executor:
+            # Fall back to sequential execution
+            self.reporter.warning("⚠️ Distributed executor not available, using sequential execution")
+
+            qa_result = await self._execute_phase_with_feedback(
+                agent=self.agents["qa_specialist"],
+                context=context,
+                phase=AgentPhase.QUALITY_ASSURANCE,
+            )
+
+            code_analysis_result = await self._execute_phase_with_feedback(
+                agent=self.agents["code_analyst"],
+                context=context,
+                phase=AgentPhase.CODE_ANALYSIS,
+            )
+            return (qa_result, code_analysis_result)
+
+        self.reporter.info("🚀 Executing QA and Code Analysis in parallel")
+
+        # Define phase functions for distributed execution
+        def execute_qa(phase_input: Any, dep_outputs: Dict[str, Any]) -> AgentWorkResult:
+            """Execute QA phase"""
+            import asyncio
+
+            loop = None
+            try:
+                loop = asyncio.get_event_loop()
+            except RuntimeError:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+
+            try:
+                return loop.run_until_complete(
+                    self._execute_phase_with_feedback(
+                        agent=self.agents["qa_specialist"],
+                        context=context,
+                        phase=AgentPhase.QUALITY_ASSURANCE,
+                    )
+                )
+            finally:
+                # Don't close the loop if it was already running
+                if loop != asyncio.get_event_loop():
+                    loop.close()
+
+        def execute_code_analysis(
+            phase_input: Any, dep_outputs: Dict[str, Any]
+        ) -> AgentWorkResult:
+            """Execute Code Analysis phase"""
+            import asyncio
+
+            loop = None
+            try:
+                loop = asyncio.get_event_loop()
+            except RuntimeError:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+
+            try:
+                return loop.run_until_complete(
+                    self._execute_phase_with_feedback(
+                        agent=self.agents["code_analyst"],
+                        context=context,
+                        phase=AgentPhase.CODE_ANALYSIS,
+                    )
+                )
+            finally:
+                if loop != asyncio.get_event_loop():
+                    loop.close()
+
+        # Create dependency graph (no dependencies - both can run in parallel)
+        dependency_graph = DependencyGraph(
+            phases=["qa", "code_analysis"],
+            dependencies={},  # No dependencies - both can run in parallel
+        )
+
+        # Execute phases in parallel
+        phase_functions = {
+            "qa": execute_qa,
+            "code_analysis": execute_code_analysis,
+        }
+
+        results = await self.distributed_executor.execute_phases(
+            dependency_graph=dependency_graph,
+            phase_functions=phase_functions,
+            phase_inputs={"qa": None, "code_analysis": None},
+        )
+
+        # Extract results
+        if not results["qa"].success:
+            qa_result = AgentWorkResult(
+                success=False,
+                output=None,
+                errors=[results["qa"].error or "QA phase failed"],
+                duration=results["qa"].duration_seconds,
+            )
+        else:
+            qa_result = results["qa"].output
+
+        if not results["code_analysis"].success:
+            code_analysis_result = AgentWorkResult(
+                success=False,
+                output=None,
+                errors=[results["code_analysis"].error or "Code Analysis phase failed"],
+                duration=results["code_analysis"].duration_seconds,
+            )
+        else:
+            code_analysis_result = results["code_analysis"].output
+
+        # Log performance improvement
+        total_sequential_time = qa_result.duration + code_analysis_result.duration
+        actual_time = max(
+            results["qa"].duration_seconds,
+            results["code_analysis"].duration_seconds,
+        )
+        speedup = total_sequential_time / actual_time if actual_time > 0 else 1.0
+
+        self.reporter.success(
+            f"✅ Parallel QA + Code Analysis complete! Speedup: {speedup:.2f}x "
+            f"(Sequential: {total_sequential_time:.1f}s → Parallel: {actual_time:.1f}s)"
+        )
+
+        return (qa_result, code_analysis_result)

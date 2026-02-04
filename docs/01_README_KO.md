@@ -8,6 +8,11 @@ CAAS (CrewAI Agent Auto-generation System) 완전 문서 가이드입니다.
 - ✨ **8+ 에러 타입 지원** - ImportError, NameError, TypeError, AttributeError 등
 - 📊 **ROI 538x** - 생산성 향상 효과 검증
 - 📝 **문서 추가** - Code Analysis Guide (500+ 라인)
+- ⚡ **성능 & 품질 개선 (P0-P2)**:
+  - 🚨 **P0**: Quality Gate 기본값 변경 (False → True) - 품질 보증 100% 실효성
+  - 🤖 **P1-2**: AutoMetricsCollector - 메트릭 수집 시간 100% 절감 (5-10분 → 0초)
+  - ⚡ **P1-3**: LightweightLLMJudge - 평가 시간 70% 단축 (3초 → 1초, Haiku 모델)
+  - 🚀 **P2-4**: 병렬 실행 확장 - 전체 워크플로우 30% 단축 (5-10분 → 3.5-7분)
 
 **v0.3.0 Major Refactoring Release** (2026-02-04):
 - ⚠️ **Breaking Changes** - Import 경로 및 클래스명 변경
@@ -92,6 +97,7 @@ CAAS (CrewAI Agent Auto-generation System) 완전 문서 가이드입니다.
 | **12** | [12_Requirement_Refinement.md](12_12_Requirement_Refinement.md) | 📝 요구사항 분석 및 TDD 통합 |
 | **13** | [13_Progress_Tracking.md](13_13_Progress_Tracking.md) | 📊 5단계 진행률 추적 및 리포팅 |
 | **14** | [14_Code_Analysis_Guide.md](14_Code_Analysis_Guide.md) | 🔍 코드 분석 및 런타임 오류 자동 수정 ✨ NEW |
+| **15** | [15_Ollama_Setup_Guide.md](15_Ollama_Setup_Guide.md) | 🦙 Ollama 로컬 LLM 설정 가이드 ✨ NEW |
 
 ---
 

@@ -121,6 +121,17 @@ for env_path in env_paths:
     type=int,
     help="Number of workers for distributed execution (default: CPU count)",
 )
+@click.option(
+    "--critic-pattern",
+    is_flag=True,
+    help="Enable Producer-Critic peer review pattern for iterative refinement (3 iterations, 7.0 approval threshold)",
+)
+@click.option(
+    "--enable-validation",
+    is_flag=True,
+    default=True,
+    help="Enable multi-layer quality validation (default: enabled). Use --no-validation to disable all validation.",
+)
 @handle_keyboard_interrupt
 def generate(
     requirement,
@@ -138,6 +149,8 @@ def generate(
     verbosity,
     distributed,
     workers,
+    critic_pattern,
+    enable_validation,
 ):
     """
     \b
@@ -408,6 +421,8 @@ def generate(
                     distributed=distributed,
                     max_workers=workers,
                     progress_reporter=progress_tracker,
+                    enable_critic_pattern=critic_pattern,
+                    strict_quality_gates=enable_validation and not no_validation,
                 )
 
             generation_time = time.time() - start_time

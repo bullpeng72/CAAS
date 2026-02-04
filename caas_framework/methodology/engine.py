@@ -127,6 +127,8 @@ class SixPhaseEngine:
         plan_mode: Optional[Any] = None,
         distributed: bool = False,
         max_workers: Optional[int] = None,
+        enable_critic_pattern: bool = False,
+        strict_quality_gates: bool = True,
     ):
         """
         Initialize BMAD Engine.
@@ -142,6 +144,8 @@ class SixPhaseEngine:
             plan_mode: Optional Plan Mode instance for interactive approval gates
             distributed: Enable distributed parallel execution (for large projects)
             max_workers: Maximum number of workers for distributed execution
+            enable_critic_pattern: Enable Producer-Critic peer review pattern (default: False)
+            strict_quality_gates: Enable strict Quality Gate mode - halt on failure (default: True)
         """
         self.llm = llm_plugin
         self.enable_validation = enable_validation
@@ -150,6 +154,8 @@ class SixPhaseEngine:
         self.plan_mode = plan_mode
         self.distributed = distributed
         self.max_workers = max_workers
+        self.enable_critic_pattern = enable_critic_pattern
+        self.strict_quality_gates = strict_quality_gates
 
         # Event-Driven Architecture
         self.event_bus = get_global_event_bus()
@@ -349,6 +355,8 @@ class SixPhaseEngine:
                     event_bus=self.event_bus,  # Pass event bus for event-driven architecture
                     enable_distributed=self.distributed,  # Enable distributed execution if configured
                     max_workers=self.max_workers,  # Pass max workers for parallel execution
+                    enable_critic_pattern=self.enable_critic_pattern,  # Enable Producer-Critic peer review
+                    strict_quality_gates=self.strict_quality_gates,  # Strict Quality Gate mode
                 )
 
                 # Run collaboration

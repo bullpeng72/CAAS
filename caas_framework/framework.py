@@ -236,6 +236,8 @@ class CrewAIFramework:
         distributed: bool = False,
         max_workers: Optional[int] = None,
         progress_reporter: Optional[Any] = None,
+        enable_critic_pattern: bool = False,
+        strict_quality_gates: bool = True,
     ) -> MethodologyResult:
         """
         Generate complete project from natural language requirement
@@ -315,6 +317,8 @@ class CrewAIFramework:
             plan_mode=plan_mode_instance,
             distributed=distributed,
             max_workers=max_workers,
+            enable_critic_pattern=enable_critic_pattern,
+            strict_quality_gates=strict_quality_gates,
         )
 
         # Run BMAD Pipeline with Phase 1-3 enhancements

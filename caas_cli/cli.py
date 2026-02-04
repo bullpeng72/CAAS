@@ -302,13 +302,13 @@ def show_comprehensive_help():
     options_text.append("Enable Plan Mode (3 approval gates)\n", style="dim")
 
     options_text.append("  --critic-pattern     ", style="cyan")
-    options_text.append("Enable Producer-Critic peer review\n", style="dim")
+    options_text.append("Enable Producer-Critic peer review (quality +20-30%)\n", style="dim")
 
     options_text.append("  --enable-validation  ", style="cyan")
-    options_text.append("Enable multi-layer quality validation\n", style="dim")
+    options_text.append("Enable strict Quality Gate mode (default: enabled)\n", style="dim")
 
     options_text.append("  --llm PROVIDER       ", style="cyan")
-    options_text.append("LLM provider (openai/anthropic/google)\n", style="dim")
+    options_text.append("LLM provider (openai/anthropic/ollama)\n", style="dim")
 
     options_text.append("  --model MODEL        ", style="cyan")
     options_text.append("Specific model (gpt-4/claude-3/gemini-pro)\n", style="dim")
