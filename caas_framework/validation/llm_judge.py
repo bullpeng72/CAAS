@@ -115,8 +115,12 @@ class LLMJudge:
         self.approval_threshold = approval_threshold
         self.phase_thresholds = phase_thresholds or {}
         self.use_fast_model = use_fast_model
-        self.fast_model = "claude-3-5-haiku-20241022"
-        self.standard_model = "claude-3-5-sonnet-20241022"
+
+        # FIX: Use llm_plugin's model instead of hardcoded Claude models
+        # This allows LLM Judge to work with OpenAI, Ollama, and other providers
+        self.fast_model = getattr(llm_plugin, 'model', "claude-3-5-haiku-20241022")
+        self.standard_model = getattr(llm_plugin, 'model', "claude-3-5-sonnet-20241022")
+
         self.logger = logger or logging.getLogger(__name__)
 
         # Phase-specific evaluation criteria
