@@ -7,7 +7,7 @@
 자연어 요구사항을 입력받아 프로덕션 레디 멀티 에이전트 시스템 코드를 자동으로 생성하는 통합 패키지입니다.
 
 - **핵심 목표**: 자연어 → Golden Data → Agent/Task 설계 → Production Code 자동 생성
-- **방법론**: BMAD 6-Phase 프로세스 (Concretization → Discovery → Architecture → Design → Development → Delivery)
+- **방법론**: CAAS 6-Phase Methodology (Concretization → Discovery → Architecture → Design → Development → Delivery)
 - **강점**: CrewAI 멀티 에이전트 시스템 98.7% 구현률 달성
 - **아키텍처**: Framework-First (UI-독립적 코어 + 다중 인터페이스)
 - **배포 전략**: 단일 통합 패키지 (CLI 필수 + Framework 라이브러리)
@@ -24,7 +24,7 @@ caas/
 │   │   ├── agent_designer.py
 │   │   ├── qa_specialist.py
 │   │   └── code_generator.py
-│   ├── bmad/                # BMAD 6-Phase Engine
+│   ├── bmad/                # 6-Phase Methodology Engine
 │   │   ├── engine.py        # Phase 오케스트레이터
 │   │   └── golden_data.py   # Phase 0: Concretization
 │   ├── codegen/             # Code Generation
@@ -97,9 +97,9 @@ caas/
         ┌──────────▼──────────────────────────────┐
         │    caas_framework (Core Engine)         │
         │  ┌────────────────────────────────────┐ │
-        │  │   BMAD 6-Phase Workflow           │ │
+        │  │   CAAS 6-Phase Methodology        │ │
         │  │   - Phase 0: Concretization       │ │
-        │  │   - Phase 1-5: BMAD Phases        │ │
+        │  │   - Phase 1-5: Development Phases │ │
         │  └────────────────────────────────────┘ │
         │  ┌────────────────────────────────────┐ │
         │  │   5 Expert Agents Collaboration   │ │
@@ -112,7 +112,7 @@ caas/
         └─────────────────────────────────────────┘
 ```
 
-### 2. BMAD 6-Phase Workflow
+### 2. CAAS 6-Phase Methodology
 
 ```
 Phase 0: Concretization
@@ -207,12 +207,12 @@ class CrewAIFramework:
     """
 ```
 
-### 2. BMADEngine (caas_framework/bmad/engine.py)
+### 2. 6-Phase Engine (caas_framework/bmad/engine.py)
 
 ```python
 class BMADEngine:
     """
-    BMAD 6-Phase 워크플로우 오케스트레이터
+    CAAS 6-Phase Methodology 워크플로우 오케스트레이터
 
     주요 메서드:
     - execute_phase(): 특정 Phase 실행
@@ -384,7 +384,7 @@ logger = logging.getLogger(__name__)
 ```
 tests/
 ├── test_e2e_*.py              # E2E 통합 테스트 (실제 LLM 호출)
-├── test_bmad/                 # BMAD 엔진 유닛 테스트
+├── test_bmad/                 # 6-Phase 엔진 유닛 테스트
 ├── test_codegen/              # 코드 생성 테스트
 ├── test_validation/           # 검증 시스템 테스트
 ├── test_fixing/               # Auto-fixing 테스트
@@ -398,7 +398,7 @@ tests/
 pytest
 
 # 특정 카테고리
-pytest tests/test_bmad/
+pytest tests/test_bmad/  # 6-Phase 엔진 테스트
 
 # 커버리지 포함
 pytest --cov=caas_framework --cov=caas_cli --cov-report=html

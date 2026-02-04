@@ -5,7 +5,7 @@ CAAS (CrewAI Agent Auto-generation System) 완전 문서 가이드입니다.
 **v0.2.0 Production Release** 🎉 (2026-02-03):
 - ✅ **프로덕션 준비 완료** - 종합 테스트 검증 완료
 - ✅ **높은 구현률** - CrewAI 멀티 에이전트: 98.7% ⭐⭐⭐
-- ✅ **안정적인 워크플로우** - 모든 6개 BMAD Phase 100% 완료
+- ✅ **안정적인 워크플로우** - 모든 6개 6-Phase 100% 완료
 - ✅ **우수한 코드 품질** - 평균 품질 점수 8.2/10
 - ✅ **Quality Gate 개선** - 워크플로우 안정성 향상
 - ✅ **CLI 20개 명령어** - 완전한 CLI 인터페이스
@@ -100,7 +100,7 @@ CAAS (CrewAI Agent Auto-generation System) 완전 문서 가이드입니다.
 
 1. **[02_설치_가이드.md](02_설치_가이드.md)** - 개발 환경 설치
 2. **[03_빠른시작_및_초보자_가이드.md](03_빠른시작_및_초보자_가이드.md)** - 워크플로우 체험
-3. **[05_전문가_방법론_가이드.md](05_전문가_방법론_가이드.md)** - BMAD 6-Phase 프로세스
+3. **[05_전문가_방법론_가이드.md](05_전문가_방법론_가이드.md)** - CAAS 6-Phase 프로세스
 4. **[04_CLI_사용_가이드.md](04_CLI_사용_가이드.md)** - CLI 마스터하기
 5. **[06_아키텍처_가이드.md](06_아키텍처_가이드.md)** - 시스템 구조 이해
 
@@ -126,7 +126,7 @@ CAAS (CrewAI Agent Auto-generation System) 완전 문서 가이드입니다.
 **목표**: CAAS 시스템 완전 이해 및 대규모 프로젝트 설계
 
 1. **[06_아키텍처_가이드.md](06_아키텍처_가이드.md)** - 전체 시스템 아키텍처
-2. **[05_전문가_방법론_가이드.md](05_전문가_방법론_가이드.md)** - BMAD 방법론 및 고급 기법
+2. **[05_전문가_방법론_가이드.md](05_전문가_방법론_가이드.md)** - CAAS 6-Phase Methodology 및 고급 기법
 3. **[08_통합_가이드.md](08_통합_가이드.md)** - 생성된 프로젝트 통합 패턴
 4. **[07_배포_가이드.md](07_배포_가이드.md)** - 배포 전략
 
@@ -148,7 +148,7 @@ CAAS (CrewAI Agent Auto-generation System) 완전 문서 가이드입니다.
 **[03_빠른시작_및_초보자_가이드.md](03_빠른시작_및_초보자_가이드.md)** - 실전 검증된 완전 가이드
 - ⚡ **5분 Quick Win**: 90%+ 구현률 달성 방법
 - 📌 **방법 1: 자동화 방식** (한 번의 명령으로 완성)
-- 🔧 **방법 2: 단계별 방식** (BMAD Phase 순차 실행)
+- 🔧 **방법 2: 단계별 방식** (6-Phase 순차 실행)
 - 📊 **실전 테스트 결과** (2026-02-03 검증)
 - 💎 **품질 개선 가이드** (13.9% → 91.2% 달성 전략)
 - 🐛 **문제 해결** (실전 이슈 포함)
@@ -164,7 +164,7 @@ CAAS (CrewAI Agent Auto-generation System) 완전 문서 가이드입니다.
 - CLI 치트시트
 
 **[05_전문가_방법론_가이드.md](05_전문가_방법론_가이드.md)** - 고급 개발 전략
-- BMAD 6-Phase 상세 분석
+- CAAS 6-Phase 상세 분석
 - 5 Expert Agents Collaboration
 - 대규모 프로덕션 시스템 구축 전략
 - CrewAI + Python Logic + UI 통합 패턴
@@ -178,7 +178,7 @@ CAAS (CrewAI Agent Auto-generation System) 완전 문서 가이드입니다.
 **[06_아키텍처_가이드.md](06_아키텍처_가이드.md)** - 시스템 아키텍처
 - Framework-First 아키텍처
 - 모듈 구조 및 계층
-- BMAD 6-Phase 프로세스
+- CAAS 6-Phase 프로세스
 - 데이터 플로우
 - 디자인 패턴
 - 보안 아키텍처
@@ -250,7 +250,7 @@ CAAS (CrewAI Agent Auto-generation System) 완전 문서 가이드입니다.
 
 ## 🎯 핵심 기능
 
-### BMAD 방법론 (6-Phase)
+### CAAS 6-Phase Methodology (6-Phase)
 
 ```
 Phase 1: Concretization (요구사항 구체화)
@@ -362,7 +362,7 @@ generated/
 │   └── test_integration.py
 ├── Dockerfile
 ├── docker-compose.yml
-└── BMAD 산출물 (9개 파일)
+└── 6-Phase 산출물 (9개 파일)
     ├── golden_data.json
     ├── agents.json
     ├── tasks.json
@@ -439,7 +439,7 @@ MIT License - 자세한 내용은 [LICENSE](../LICENSE) 참조
 ```
 caas/
 ├── caas_framework/      # 핵심 프레임워크 (27,840+ 라인)
-│   ├── bmad/           # BMAD 엔진 (6-Phase 구현)
+│   ├── bmad/           # 6-Phase 엔진 (6-Phase 구현)
 │   ├── codegen/        # 코드 생성 (LLM + 템플릿)
 │   ├── validation/     # 6개 Validator
 │   ├── testing/        # TDD 통합

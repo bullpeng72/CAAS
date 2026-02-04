@@ -1,8 +1,10 @@
 """
-BMAD Engine
+CAAS 6-Phase Methodology Engine
 
-Breakthrough Method for Agile AI-driven Development
-6-Phase development engine with expert agent collaboration.
+CAAS's proprietary 6-phase development engine with expert agent collaboration.
+Automates CrewAI multi-agent system generation from requirements to production code.
+
+Note: This is CAAS's独自 methodology, not related to other BMAD frameworks.
 """
 
 from dataclasses import dataclass, field
@@ -41,7 +43,7 @@ from caas_framework.validation.orchestrator import ValidationOrchestrator
 
 
 class BMADPhase(str, Enum):
-    """BMAD 6-Phase"""
+    """CAAS 6-Phase"""
 
     CONCRETIZATION = "concretization"  # Phase 0: Golden Data
     DISCOVERY = "discovery"  # Phase 1: Requirement Analysis

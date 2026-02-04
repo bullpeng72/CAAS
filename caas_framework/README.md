@@ -6,12 +6,12 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
-UI-independent, production-ready multi-agent framework for automated CrewAI project generation with BMAD 6-phase pipeline, ontology-driven design, and Golden Data validation.
+UI-independent, production-ready multi-agent framework for automated CrewAI project generation with CAAS 6-Phase Methodology, ontology-driven design, and Golden Data validation.
 
 ## Features
 
 ### 🚀 Core Capabilities
-- **BMAD 6-Phase Pipeline**: Concretization → Discovery → Architecture → Design → Development → Delivery
+- **CAAS 6-Phase Methodology**: Concretization → Discovery → Architecture → Design → Development → Delivery
 - **Multi-Agent System**: 8 specialized agents (Requirements Analyst, System Architect, Domain Expert, Code Reviewer, etc.)
 - **Ontology-Driven Design**: 24 agent roles, 35 task types, comprehensive tool mappings
 - **Pattern Library**: Neo4j-backed pattern matching with 100+ validated patterns
@@ -129,7 +129,7 @@ caas fix \
 
 ## Architecture
 
-### BMAD 6-Phase Pipeline
+### CAAS 6-Phase Methodology
 
 ```
 ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
@@ -338,8 +338,8 @@ If you use CAAS Framework in your research, please cite:
 ## Acknowledgments
 
 - Built on top of [CrewAI](https://github.com/joaomdmoura/crewAI)
-- Inspired by BMAD methodology
 - Ontology design based on CrewAI best practices
+- CAAS 6-Phase Methodology: proprietary development process
 
 ## Support
 

@@ -12,27 +12,9 @@ from pydantic import BaseModel, Field
 
 from caas_framework.knowledge.ontology import AgentRole, OntologyManager
 from caas_framework.utils.logger import LoggerMixin, get_logger
+from caas_framework.utils.safe_access import safe_get_value as _safe_get
 
 logger = get_logger("knowledge.validator")
-
-
-def _safe_get(obj: Union[Dict, BaseModel], key: str, default: Any = None) -> Any:
-    """
-    사전 또는 Pydantic 모델에서 안전하게 값을 가져옵니다.
-
-    Args:
-        obj: 사전 또는 Pydantic 모델 객체
-        key: 키 또는 속성 이름
-        default: 기본값
-
-    Returns:
-        찾은 값 또는 기본값
-    """
-    if isinstance(obj, dict):
-        return obj.get(key, default)
-    else:
-        # Pydantic 모델
-        return getattr(obj, key, default)
 
 
 class ValidationSeverity(str, Enum):

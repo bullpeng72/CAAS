@@ -47,7 +47,7 @@ caas_framework/
 │   ├── system_architect.py        # Architecture design
 │   └── test_engineer.py           # Test generation agent
 │
-├── bmad/                           # BMAD 6-Phase Pipeline (4 files)
+├── bmad/                           # CAAS 6-Phase Methodology (4 files)
 │   ├── __init__.py
 │   ├── context.py                 # BMADContext data model
 │   ├── engine.py                  # Phase execution engine

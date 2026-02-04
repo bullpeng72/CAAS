@@ -2,7 +2,7 @@
 
 **Production-Ready Multi-Agent System Generator from Natural Language Requirements**
 
-자연어 요구사항을 입력하면 BMAD 6-Phase 방법론과 Expert Agents를 활용하여 프로덕션 레디 코드를 자동으로 생성하는 통합 패키지입니다. CLI 도구와 Python 라이브러리로 모두 사용 가능합니다.
+자연어 요구사항을 입력하면 CAAS 6-Phase Methodology와 Expert Agents를 활용하여 프로덕션 레디 코드를 자동으로 생성하는 통합 패키지입니다. CLI 도구와 Python 라이브러리로 모두 사용 가능합니다.
 
 ![Python](https://img.shields.io/badge/Python-3.11+-blue)
 ![CrewAI](https://img.shields.io/badge/CrewAI-0.65+-green)
@@ -21,7 +21,7 @@
 - **플러그인 기반 확장성**: LLM, Vector DB, Graph DB
 - **세션 관리**: 다중 프로젝트 동시 작업
 
-### 🔄 BMAD 6-Phase Workflow
+### 🔄 CAAS 6-Phase Methodology
 ```
 Phase 0: Concretization     → Golden Data (구조화된 요구사항)
 Phase 1: Discovery          → Requirement Analysis
@@ -79,7 +79,7 @@ Phase 5: Delivery           → Production Code + Tests + Deployment
 
 **핵심 강점**:
 - ✅ **CrewAI 멀티 에이전트 시스템**: 95%+ 구현률 달성
-- ✅ **안정적인 워크플로우**: 모든 6개 BMAD Phase 100% 완료
+- ✅ **안정적인 워크플로우**: 모든 6개 Phase 100% 완료
 - ✅ **높은 코드 품질**: 평균 8.2/10 품질 점수
 - ✅ **빠른 생성 속도**: 평균 3.75분 완료
 
@@ -336,7 +336,7 @@ def generate():
 caas/
 ├── 📁 caas_framework/               # 코어 프레임워크 (UI-독립적)
 │   ├── agents/                      # Expert agents (5개)
-│   ├── bmad/                        # BMAD 6-phase engine
+│   ├── bmad/                        # 6-Phase Methodology engine
 │   ├── codegen/                     # Code generation (도메인 전략 포함)
 │   ├── config/                      # Configuration management
 │   ├── fixing/                      # 3-level auto-fixing
@@ -394,7 +394,7 @@ caas/
 │   │   ├── 설치_가이드.md
 │   │   ├── 빠른_시작_가이드.md
 │   │   └── CLI_사용_가이드.md
-│   ├── 2_개발_방법론/               # BMAD 방법론 및 활용
+│   ├── 2_개발_방법론/               # CAAS 6-Phase Methodology 및 활용
 │   │   ├── 초보자_가이드.md
 │   │   └── 전문가_방법론_가이드.md
 │   ├── 3_시스템_문서/               # 아키텍처 및 배포
@@ -560,7 +560,7 @@ caas generate-code \
 
 ### 🛠️ 개발 방법론
 - 👶 [초보자 가이드](docs/2_개발_방법론/초보자_가이드.md) - 실전 활용 완벽 매뉴얼 ⭐
-- 👨‍💻 [전문가 방법론 가이드](docs/2_개발_방법론/전문가_방법론_가이드.md) - BMAD 6-Phase 프로세스
+- 👨‍💻 [전문가 방법론 가이드](docs/2_개발_방법론/전문가_방법론_가이드.md) - CAAS 6-Phase Methodology
 
 ### 🔧 시스템 문서
 - 🏗️ [아키텍처 가이드](docs/3_시스템_문서/아키텍처_가이드.md) - 시스템 아키텍처
@@ -639,7 +639,7 @@ pytest tests/test_e2e_chatbot.py
 pytest --cov=caas_framework --cov=caas_cli --cov-report=html
 
 # 특정 카테고리
-pytest tests/test_bmad/              # BMAD 엔진
+pytest tests/test_bmad/              # 6-Phase 엔진
 pytest tests/test_codegen/           # 코드 생성
 pytest tests/test_validation/        # 검증 시스템
 ```
@@ -665,7 +665,7 @@ pytest tests/test_validation/        # 검증 시스템
 ### ✅ v0.2.0 완료 (Current - 2026-01-31) 🎉
 **Production-Ready Release**
 
-- [x] **BMAD 6-Phase 완전 구현** - 모든 Phase 100% 완료 검증
+- [x] **CAAS 6-Phase Methodology 완전 구현** - 모든 Phase 100% 완료 검증
 - [x] **Quality Gate 시스템 개선** - 워크플로우 안정성 향상
 - [x] **종합 테스트 완료** - 4가지 유형의 프로젝트 검증
   - CrewAI 멀티 에이전트: 98.7% 구현률 ⭐

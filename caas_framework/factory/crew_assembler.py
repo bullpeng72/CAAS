@@ -18,10 +18,6 @@ from caas_framework.models import DomainType
 from caas_framework.sdd import CrewAISpec
 from caas_framework.utils.logger import get_logger
 
-# Lazy imports to avoid circular dependency
-# from caas_app.codegen.domain_strategy import DomainCodeStrategy
-# from caas_app.codegen.crud_entity_extractor import CRUDEntityExtractor
-
 logger = get_logger(name="caas_framework.factory.crew")
 
 

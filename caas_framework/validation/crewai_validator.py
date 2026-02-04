@@ -11,6 +11,7 @@ from dataclasses import dataclass
 from typing import List, Optional
 
 from caas_framework.models.validation import ValidationIssue, ValidationResult
+from caas_framework.validation.issue_factory import ValidationIssueFactory
 
 
 @dataclass
@@ -81,12 +82,7 @@ class CrewAIValidator:
 
         except SyntaxError as e:
             issues.append(
-                ValidationIssue(
-                    severity="error",
-                    issue_type="syntax_error",
-                    message=f"Syntax error in agents.py: {e}",
-                    line=e.lineno,
-                )
+                ValidationIssueFactory.create_syntax_error(e, context="agents.py")
             )
 
         return ValidationResult(
@@ -124,12 +120,7 @@ class CrewAIValidator:
 
         except SyntaxError as e:
             issues.append(
-                ValidationIssue(
-                    severity="error",
-                    issue_type="syntax_error",
-                    message=f"Syntax error in tasks.py: {e}",
-                    line=e.lineno,
-                )
+                ValidationIssueFactory.create_syntax_error(e, context="tasks.py")
             )
 
         return ValidationResult(
@@ -162,12 +153,7 @@ class CrewAIValidator:
 
         except SyntaxError as e:
             issues.append(
-                ValidationIssue(
-                    severity="error",
-                    issue_type="syntax_error",
-                    message=f"Syntax error in crew.py: {e}",
-                    line=e.lineno,
-                )
+                ValidationIssueFactory.create_syntax_error(e, context="crew.py")
             )
 
         return ValidationResult(
@@ -408,12 +394,10 @@ print("=" * 70)
         missing = self.AGENT_REQUIRED_PARAMS - provided_params
         if missing:
             issues.append(
-                ValidationIssue(
-                    severity="error",
-                    issue_type="missing_parameter",
-                    message=f"Agent '{agent_name}' missing required parameters: {missing}",
-                    line=line,
-                    suggested_fix=f"Add missing parameters: {', '.join(missing)}",
+                ValidationIssueFactory.create_missing_required(
+                    field_name=", ".join(missing),
+                    item_name=agent_name,
+                    suggestion=f"Add: {', '.join(missing)}"
                 )
             )
 
@@ -429,12 +413,12 @@ print("=" * 70)
                 if isinstance(keyword.value, ast.Constant):
                     if not isinstance(keyword.value.value, bool):
                         issues.append(
-                            ValidationIssue(
-                                severity="warning",
-                                issue_type="invalid_parameter_type",
-                                message=f"Agent '{agent_name}': memory should be boolean",
-                                line=line,
-                                suggested_fix="Use True or False for memory parameter",
+                            ValidationIssueFactory.create_invalid_value(
+                                field_name="memory",
+                                actual_value=keyword.value.value,
+                                expected="boolean (True or False)",
+                                item_name=agent_name,
+                                severity="medium"
                             )
                         )
 
@@ -449,12 +433,11 @@ print("=" * 70)
         # tools must be a List
         if not isinstance(tools_node, ast.List):
             issues.append(
-                ValidationIssue(
-                    severity="error",
-                    issue_type="invalid_type",
-                    message=f"Agent '{agent_name}': tools must be a list",
-                    line=line,
-                    suggested_fix="Wrap tools in square brackets: [tool1(), tool2()]",
+                ValidationIssueFactory.create_invalid_value(
+                    field_name="tools",
+                    actual_value=type(tools_node).__name__,
+                    expected="list (e.g., [tool1(), tool2()])",
+                    item_name=agent_name
                 )
             )
             return issues
@@ -502,12 +485,10 @@ print("=" * 70)
         missing = self.TASK_REQUIRED_PARAMS - provided_params
         if missing:
             issues.append(
-                ValidationIssue(
-                    severity="error",
-                    issue_type="missing_parameter",
-                    message=f"Task '{task_name}' missing required parameters: {missing}",
-                    line=line,
-                    suggested_fix=f"Add missing parameters: {', '.join(missing)}",
+                ValidationIssueFactory.create_missing_required(
+                    field_name=", ".join(missing),
+                    item_name=task_name,
+                    suggestion=f"Add: {', '.join(missing)}"
                 )
             )
 
@@ -529,12 +510,11 @@ print("=" * 70)
         # context must be a List
         if not isinstance(context_node, ast.List):
             issues.append(
-                ValidationIssue(
-                    severity="error",
-                    issue_type="invalid_type",
-                    message=f"Task '{task_name}': context must be a list",
-                    line=line,
-                    suggested_fix="Wrap context in square brackets: [task_1, task_2]",
+                ValidationIssueFactory.create_invalid_value(
+                    field_name="context",
+                    actual_value=type(context_node).__name__,
+                    expected="list (e.g., [task_1, task_2])",
+                    item_name=task_name
                 )
             )
             return issues
@@ -581,12 +561,10 @@ print("=" * 70)
         missing = required - provided_params
         if missing:
             issues.append(
-                ValidationIssue(
-                    severity="error",
-                    issue_type="missing_parameter",
-                    message=f"Crew missing required parameters: {missing}",
-                    line=line,
-                    suggested_fix=f"Add: {', '.join(missing)}=[...]",
+                ValidationIssueFactory.create_missing_required(
+                    field_name=", ".join(missing),
+                    item_name="Crew",
+                    suggestion=f"Add: {', '.join(missing)}=[...]"
                 )
             )
 
@@ -598,12 +576,12 @@ print("=" * 70)
                     process_type = keyword.value.attr.lower()
                     if process_type not in self.VALID_PROCESS_TYPES:
                         issues.append(
-                            ValidationIssue(
-                                severity="warning",
-                                issue_type="invalid_process_type",
-                                message=f"Unknown process type: {process_type}",
-                                line=line,
-                                suggested_fix=f"Use one of: {', '.join(self.VALID_PROCESS_TYPES)}",
+                            ValidationIssueFactory.create_invalid_value(
+                                field_name="process",
+                                actual_value=process_type,
+                                expected=f"one of: {', '.join(self.VALID_PROCESS_TYPES)}",
+                                item_name="Crew",
+                                severity="medium"
                             )
                         )
 

@@ -10,6 +10,7 @@ import sys
 from typing import Dict, List
 
 from caas_framework.models.validation import ValidationIssue, ValidationResult
+from caas_framework.validation.issue_factory import ValidationIssueFactory
 
 
 class Python311Validator:

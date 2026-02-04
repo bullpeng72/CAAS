@@ -11,7 +11,7 @@ CAAS CLI는 자연어 요구사항으로부터 멀티 에이전트 시스템을 
 **주요 기능:**
 - 명령줄에서 완전한 CrewAI 프로젝트 생성
 - 직접 프레임워크 사용 (API 서버 불필요)
-- BMAD 6-Phase 워크플로우 실행
+- CAAS 6-Phase 워크플로우 실행
 - 17개 이상의 다양한 도메인 지원
 - 유연한 출력 및 품질 제어
 
@@ -95,7 +95,7 @@ CAAS CLI는 **20개 메인 명령어**와 다수의 서브명령어를 제공합
 - **`caas generate`**: 전체 워크플로우를 실행하여 프로젝트 생성
 - **`caas generate-code`**: 기존 설계 파일로부터 빠르게 코드만 생성
 - **`caas codegen`**: 특정 컴포넌트(agents, tasks 등)만 재생성
-- **`caas generate-phase`**: 특정 BMAD Phase만 실행
+- **`caas generate-phase`**: 특정 6-Phase만 실행
 
 ---
 

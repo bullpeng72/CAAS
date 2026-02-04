@@ -71,7 +71,7 @@ def show_comprehensive_help():
     console.print("🎯 [bold yellow]CORE METHODOLOGIES[/bold yellow]\n")
 
     method_text = Text()
-    method_text.append("1. BMAD (Build-Measure-Analyze-Deploy)\n", style="bold green")
+    method_text.append("1. CAAS 6-Phase Methodology\n", style="bold green")
     method_text.append(
         "   • Phase 0: Requirement Concretization (Golden Data)\n", style="dim"
     )
@@ -523,7 +523,7 @@ def cli(ctx):
     🎯 CORE METHODOLOGIES
     ═══════════════════════════════════════════════════════════════════════
 
-    1. BMAD (Build-Measure-Analyze-Deploy)
+    1. CAAS 6-Phase Methodology
        ├─ Phase 0: Requirement Concretization (Golden Data generation)
        ├─ Phase 1: Discovery (Tool & capability analysis)
        ├─ Phase 2: Architecture (System design)

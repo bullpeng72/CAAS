@@ -408,3 +408,349 @@ class ValidationIssueFactory:
             for issue in issues
             if (hasattr(issue, "issue_type") and issue.issue_type in item_types)
         ]
+
+    # ============================================================================
+    # Builder Methods - Create individual issues with consistent patterns
+    # ============================================================================
+
+    @staticmethod
+    def create_syntax_error(
+        exception: Exception,
+        context: str = "code",
+        severity: str = "error",
+    ) -> ValidationIssue:
+        """
+        Create a ValidationIssue for syntax errors.
+
+        Standardizes syntax error reporting across all validators.
+        Eliminates 42+ duplicate try/except blocks in validators.
+
+        Args:
+            exception: SyntaxError or parsing exception
+            context: Context where error occurred (e.g., "agents.py", "tasks.py")
+            severity: Issue severity (default: "error")
+
+        Returns:
+            ValidationIssue for the syntax error
+
+        Example:
+            try:
+                ast.parse(code)
+            except SyntaxError as e:
+                issue = ValidationIssueFactory.create_syntax_error(e, "agents.py")
+        """
+        line_no = getattr(exception, "lineno", None)
+        return ValidationIssue(
+            severity=severity,
+            issue_type="syntax_error",
+            message=f"Syntax error in {context}: {str(exception)}",
+            line=line_no,
+            field=context,
+        )
+
+    @staticmethod
+    def create_missing_required(
+        field_name: str,
+        item_name: str = "",
+        severity: str = "high",
+        suggestion: str = "",
+    ) -> ValidationIssue:
+        """
+        Create a ValidationIssue for missing required fields/items.
+
+        Args:
+            field_name: Name of the missing field
+            item_name: Optional name of the item with missing field
+            severity: Issue severity (default: "high")
+            suggestion: Optional suggestion for fixing
+
+        Returns:
+            ValidationIssue for the missing required field
+
+        Example:
+            issue = ValidationIssueFactory.create_missing_required(
+                "role", "agent_1", suggestion="Add role='Analyst'"
+            )
+        """
+        item_context = f" in {item_name}" if item_name else ""
+        message = f"Missing required field: {field_name}{item_context}"
+        if suggestion:
+            message += f". Suggestion: {suggestion}"
+
+        return ValidationIssue(
+            severity=severity,
+            issue_type="missing_required",
+            message=message,
+            field=field_name,
+        )
+
+    @staticmethod
+    def create_invalid_value(
+        field_name: str,
+        actual_value: Any,
+        expected: str = "",
+        item_name: str = "",
+        severity: str = "medium",
+    ) -> ValidationIssue:
+        """
+        Create a ValidationIssue for invalid field values.
+
+        Args:
+            field_name: Name of the field with invalid value
+            actual_value: The actual invalid value
+            expected: Description of expected value format
+            item_name: Optional name of the item
+            severity: Issue severity (default: "medium")
+
+        Returns:
+            ValidationIssue for the invalid value
+
+        Example:
+            issue = ValidationIssueFactory.create_invalid_value(
+                "tools", "invalid_tool", expected="valid tool name from registry"
+            )
+        """
+        item_context = f" in {item_name}" if item_name else ""
+        message = f"Invalid value for {field_name}{item_context}: {actual_value}"
+        if expected:
+            message += f". Expected: {expected}"
+
+        return ValidationIssue(
+            severity=severity,
+            issue_type="invalid_value",
+            message=message,
+            field=field_name,
+        )
+
+    @staticmethod
+    def create_deprecated_usage(
+        feature_name: str,
+        alternative: str = "",
+        item_name: str = "",
+        severity: str = "low",
+    ) -> ValidationIssue:
+        """
+        Create a ValidationIssue for deprecated feature usage.
+
+        Args:
+            feature_name: Name of the deprecated feature
+            alternative: Recommended alternative
+            item_name: Optional name of the item using deprecated feature
+            severity: Issue severity (default: "low")
+
+        Returns:
+            ValidationIssue for the deprecated usage
+
+        Example:
+            issue = ValidationIssueFactory.create_deprecated_usage(
+                "Agent(function_calling_llm=...)",
+                alternative="Use llm parameter instead"
+            )
+        """
+        item_context = f" in {item_name}" if item_name else ""
+        message = f"Deprecated feature used{item_context}: {feature_name}"
+        if alternative:
+            message += f". Use {alternative} instead"
+
+        return ValidationIssue(
+            severity=severity,
+            issue_type="deprecated",
+            message=message,
+            field=feature_name,
+        )
+
+    @staticmethod
+    def create_missing_item(
+        item_type: str,
+        item_name: str,
+        severity: str = "medium",
+        context: str = "",
+    ) -> ValidationIssue:
+        """
+        Create a ValidationIssue for missing items (features, tasks, agents, etc.).
+
+        Args:
+            item_type: Type of missing item (e.g., "feature", "task", "agent")
+            item_name: Name of the missing item
+            severity: Issue severity (default: "medium")
+            context: Optional context information
+
+        Returns:
+            ValidationIssue for the missing item
+
+        Example:
+            issue = ValidationIssueFactory.create_missing_item(
+                "feature", "user_authentication", context="required by golden data"
+            )
+        """
+        message = f"Missing {item_type}: {item_name}"
+        if context:
+            message += f" ({context})"
+
+        return ValidationIssue(
+            severity=severity,
+            issue_type=f"missing_{item_type}",
+            message=message,
+            field=f"{item_type}s",
+        )
+
+    @staticmethod
+    def create_extra_item(
+        item_type: str,
+        item_name: str,
+        severity: str = "low",
+        reason: str = "not in requirements",
+    ) -> ValidationIssue:
+        """
+        Create a ValidationIssue for extra/unexpected items.
+
+        Args:
+            item_type: Type of extra item (e.g., "feature", "task", "agent")
+            item_name: Name of the extra item
+            severity: Issue severity (default: "low")
+            reason: Reason why this is extra
+
+        Returns:
+            ValidationIssue for the extra item
+
+        Example:
+            issue = ValidationIssueFactory.create_extra_item(
+                "agent", "unnecessary_agent", reason="not specified in golden data"
+            )
+        """
+        return ValidationIssue(
+            severity=severity,
+            issue_type=f"extra_{item_type}",
+            message=f"Extra {item_type}: {item_name} ({reason})",
+            field=f"{item_type}s",
+        )
+
+    @staticmethod
+    def create_circular_dependency(
+        task1: str,
+        task2: str,
+        severity: str = "high",
+    ) -> ValidationIssue:
+        """
+        Create a ValidationIssue for circular dependencies.
+
+        Args:
+            task1: First task in circular dependency
+            task2: Second task in circular dependency
+            severity: Issue severity (default: "high")
+
+        Returns:
+            ValidationIssue for the circular dependency
+
+        Example:
+            issue = ValidationIssueFactory.create_circular_dependency("task_a", "task_b")
+        """
+        return ValidationIssue(
+            severity=severity,
+            issue_type="circular_dependency",
+            message=f"Circular dependency detected: {task1} ↔ {task2}",
+            field="dependencies",
+        )
+
+    # ============================================================================
+    # Summary and Counting Utilities
+    # ============================================================================
+
+    @staticmethod
+    def create_validation_summary(issues: List[ValidationIssue]) -> Dict[str, Any]:
+        """
+        Generate standardized validation summary from issues.
+
+        Consolidates 15+ duplicate summary generation patterns across validators.
+
+        Args:
+            issues: List of ValidationIssue objects
+
+        Returns:
+            Dictionary with summary statistics
+
+        Example:
+            summary = ValidationIssueFactory.create_validation_summary(issues)
+            is_valid = summary["is_valid"]
+            error_count = summary["errors"]
+        """
+        by_severity = {"error": 0, "warning": 0, "info": 0, "low": 0, "medium": 0, "high": 0}
+        auto_fixable = 0
+
+        for issue in issues:
+            severity = getattr(issue, "severity", "info")
+            # Normalize severity names
+            if severity in by_severity:
+                by_severity[severity] += 1
+
+            if getattr(issue, "auto_fix_available", False):
+                auto_fixable += 1
+
+        return {
+            "total": len(issues),
+            "errors": by_severity["error"] + by_severity["high"],
+            "warnings": by_severity["warning"] + by_severity["medium"],
+            "info": by_severity["info"] + by_severity["low"],
+            "auto_fixable": auto_fixable,
+            "is_valid": (by_severity["error"] + by_severity["high"]) == 0,
+            "by_severity": by_severity,
+        }
+
+    @staticmethod
+    def count_errors(issues: List[ValidationIssue]) -> int:
+        """
+        Count error-level issues.
+
+        Args:
+            issues: List of ValidationIssue objects
+
+        Returns:
+            Number of error/high severity issues
+
+        Example:
+            if ValidationIssueFactory.count_errors(issues) > 0:
+                print("Validation failed")
+        """
+        return len([
+            i for i in issues
+            if getattr(i, "severity", "") in ("error", "high")
+        ])
+
+    @staticmethod
+    def count_warnings(issues: List[ValidationIssue]) -> int:
+        """
+        Count warning-level issues.
+
+        Args:
+            issues: List of ValidationIssue objects
+
+        Returns:
+            Number of warning/medium severity issues
+
+        Example:
+            warnings = ValidationIssueFactory.count_warnings(issues)
+        """
+        return len([
+            i for i in issues
+            if getattr(i, "severity", "") in ("warning", "medium")
+        ])
+
+    @staticmethod
+    def count_by_severity(issues: List[ValidationIssue], severity: str) -> int:
+        """
+        Count issues by specific severity level.
+
+        Args:
+            issues: List of ValidationIssue objects
+            severity: Severity level to count
+
+        Returns:
+            Number of issues with that severity
+
+        Example:
+            high_issues = ValidationIssueFactory.count_by_severity(issues, "high")
+        """
+        return len([
+            i for i in issues
+            if getattr(i, "severity", "") == severity
+        ])

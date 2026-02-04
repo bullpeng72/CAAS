@@ -1,7 +1,7 @@
 """
 CAAS Framework BMAD Module
 
-Breakthrough Method for Agile AI-driven Development
+CAAS 6-Phase Methodology
 6-Phase AI-driven development engine with Golden Data validation.
 """
 

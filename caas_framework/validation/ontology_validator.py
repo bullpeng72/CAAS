@@ -16,6 +16,8 @@ from caas_framework.models.validation import (
     ValidationSeverity,
 )
 from caas_framework.utils.safe_access import safe_get_value as _safe_get
+from caas_framework.validation.agent_matcher import AgentMatcher
+from caas_framework.validation.issue_factory import ValidationIssueFactory
 
 
 class OntologyValidator:
@@ -68,20 +70,9 @@ class OntologyValidator:
         # 4. Validate task dependencies
         issues.extend(self._validate_task_dependencies(tasks))
 
-        # Generate summary
-        summary = {
-            "total": len(issues),
-            "errors": len(
-                [i for i in issues if i.severity == ValidationSeverity.ERROR]
-            ),
-            "warnings": len(
-                [i for i in issues if i.severity == ValidationSeverity.WARNING]
-            ),
-            "info": len([i for i in issues if i.severity == ValidationSeverity.INFO]),
-            "auto_fixable": len([i for i in issues if i.auto_fix_available]),
-        }
-
-        is_valid = summary["errors"] == 0
+        # Generate summary using factory method
+        summary = ValidationIssueFactory.create_validation_summary(issues)
+        is_valid = summary["is_valid"]
 
         return ValidationResult(is_valid=is_valid, issues=issues, summary=summary)
 
@@ -292,19 +283,12 @@ class OntologyValidator:
                         _safe_get(task, "description", "")
                     )
 
-                    suitable_agent = None
                     suitable_roles = self.ontology.get_suitable_roles(task_type)
 
-                    for role in suitable_roles:
-                        for agent in agents:
-                            agent_role = self.ontology.infer_role_from_description(
-                                f"{_safe_get(agent, 'role', '')} {_safe_get(agent, 'goal', '')}"
-                            )
-                            if agent_role == role:
-                                suitable_agent = agent
-                                break
-                        if suitable_agent:
-                            break
+                    # Use AgentMatcher to find suitable agent
+                    suitable_agent = AgentMatcher.find_suitable_agent_by_role(
+                        agents, suitable_roles, self.ontology
+                    )
 
                     if not suitable_agent:
                         suitable_agent = agents[0]
@@ -356,18 +340,10 @@ class OntologyValidator:
                 suitable_roles = self.ontology.get_suitable_roles(task_type)
 
                 if suitable_roles:
-                    # Find the best suitable agent
-                    best_agent = None
-                    for role in suitable_roles:
-                        for agent in agents:
-                            agent_role = self.ontology.infer_role_from_description(
-                                f"{_safe_get(agent, 'role', '')} {_safe_get(agent, 'goal', '')}"
-                            )
-                            if agent_role == role:
-                                best_agent = agent
-                                break
-                        if best_agent:
-                            break
+                    # Use AgentMatcher to find the best suitable agent
+                    best_agent = AgentMatcher.find_suitable_agent_by_role(
+                        agents, suitable_roles, self.ontology
+                    )
 
                     # Create clear error message with agent names
                     assigned_agent_name = _safe_get(
