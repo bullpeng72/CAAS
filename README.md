@@ -44,7 +44,7 @@ Phase 5: Delivery           → Production Code + Tests + Deployment
 - **Level 2**: Rule-based (중간, 패턴 매칭)
 - **Level 3**: LLM-based (느림, 지능적) ⭐
 
-### 🛡️ tools.py 3-Layer Defense (v0.2.1) ✨
+### 🛡️ tools.py 3-Layer Defense ✨
 **항상 실행 가능한 tools.py 생성 보장**:
 1. **Validation**: 한국어 도구명 자동 번역 (40+ 번역 쌍)
 2. **LLM Generation**: BaseTool 상속, 에러 핸들링 포함
@@ -52,7 +52,7 @@ Phase 5: Delivery           → Production Code + Tests + Deployment
 
 **개선 효과**: 완전성 검증 0% → 60%+ 향상
 
-### 📝 Automatic Artifact Generation (v0.2.0 기본 활성화) ✨
+### 📝 Automatic Artifact Generation ✨
 **10가지 개발 산출물 자동 생성 (한국어 지원)**:
 - 프로젝트 기획서 (PROJECT_PROPOSAL)
 - 요구사항 명세서 (REQUIREMENTS_SPEC)
@@ -67,7 +67,7 @@ Phase 5: Delivery           → Production Code + Tests + Deployment
 
 **특징**: Jinja2 템플릿 기반, Phase별 자동 생성, Markdown/HTML/PDF 지원
 
-### 📊 Production-Ready Performance (v0.2.0) ⭐
+### 📊 Production-Ready Performance ⭐
 **종합 테스트 검증 완료 (2026-01-31)**:
 
 | 메트릭 | CrewAI 멀티 에이전트 | 데이터 분석 모듈 | 평균 |
@@ -94,7 +94,7 @@ Phase 5: Delivery           → Production Code + Tests + Deployment
 - ⚠️ Frontend UI 코드 (HTML/CSS/JavaScript): 미지원
 - ℹ️ 대신 비즈니스 로직을 처리하는 CrewAI 에이전트 생성
 
-### 🎯 CLI Features (v0.2.0)
+### 🎯 CLI Features
 **20개 명령어 제공**:
 
 #### 🔧 Setup & Configuration (3)
@@ -336,7 +336,7 @@ def generate():
 caas/
 ├── 📁 caas_framework/               # 코어 프레임워크 (UI-독립적)
 │   ├── agents/                      # Expert agents (5개)
-│   ├── bmad/                        # 6-Phase Methodology engine
+│   ├── methodology/                 # CAAS 6-Phase Methodology engine (v0.3.0+)
 │   ├── codegen/                     # Code generation (도메인 전략 포함)
 │   ├── config/                      # Configuration management
 │   ├── fixing/                      # 3-level auto-fixing
@@ -771,7 +771,7 @@ find . -type f -name "*.py" -exec sed -i '' 's/BMADPhase/Phase/g' {} \;
 
 ## ⚠️ 알려진 제한사항 및 해결 방법
 
-### Quality Gate 임시 우회 (v0.2.0)
+### Quality Gate 임시 우회
 **현재 상태**: Quality Gate 시스템이 일부 Phase에서 임시로 우회되어 있습니다.
 
 **배경**:
@@ -789,7 +789,7 @@ find . -type f -name "*.py" -exec sed -i '' 's/BMADPhase/Phase/g' {} \;
 - ⚠️ Phase 간 자동 품질 검증이 일시적으로 비활성화됨
 
 **향후 계획**:
-- v0.3.0에서 Quality Gate 근본 원인 수정 예정
+- v0.4.0에서 Quality Gate 근본 원인 수정 예정
 - Quality Gate 재활성화 후 더욱 강력한 품질 보장
 
 ### 웹 프레임워크 생성 제한
@@ -880,4 +880,4 @@ MIT License - 자세한 내용은 [LICENSE](LICENSE) 파일 참조
 
 **Made with ❤️ by bullpeng72**
 
-**v0.2.0 Production Release** 🎉 | [Documentation](docs/README_KO.md) | Framework-First Architecture ✅ | 98.7% Implementation Rate for CrewAI Agents ⭐ | Last Updated: 2026-02-03
+**v0.3.0 Major Refactoring Release** 🎉 | [Documentation](docs/README_KO.md) | Framework-First Architecture ✅ | 98.7% Implementation Rate for CrewAI Agents ⭐ | Last Updated: 2026-02-04
