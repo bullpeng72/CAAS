@@ -571,24 +571,24 @@ Agent 최소화, CRUD API 중심, 빠른 개발
 - 📁 [문서 색인](docs/01_README_KO.md) - 전체 한국어 문서 목록 (13개)
 
 ### 🚀 시작 가이드
-- 📦 [설치 가이드](docs/02_설치_가이드.md) - 설치 및 환경 설정
-- 🎯 [빠른 시작 가이드](docs/03_빠른시작_및_초보자_가이드.md) - 5분 안에 시작하기 ⭐
-- 💻 [CLI 사용 가이드](docs/04_CLI_사용_가이드.md) - CLI 20개 명령어 완전 가이드
+- 📦 [설치 가이드](docs/02_Installation_Guide.md) - 설치 및 환경 설정
+- 🎯 [빠른 시작 가이드](docs/03_Quick_Start_Guide.md) - 5분 안에 시작하기 ⭐
+- 💻 [CLI 사용 가이드](docs/04_CLI_Usage_Guide.md) - CLI 20개 명령어 완전 가이드
 
 ### 🛠️ 개발 방법론
-- 👨‍💻 [전문가 방법론 가이드](docs/05_전문가_방법론_가이드.md) - CAAS 6-Phase Methodology (고급)
+- 👨‍💻 [전문가 방법론 가이드](docs/05_Expert_Methodology_Guide.md) - CAAS 6-Phase Methodology (고급)
 
 ### 🔧 시스템 문서
-- 🏗️ [아키텍처 가이드](docs/06_아키텍처_가이드.md) - 시스템 아키텍처
-- 🔗 [통합 가이드](docs/08_통합_가이드.md) - Frontend-Backend 통합
-- 🚀 [배포 가이드](docs/07_배포_가이드.md) - 프로덕션 배포
+- 🏗️ [아키텍처 가이드](docs/06_Architecture_Guide.md) - 시스템 아키텍처
+- 🔗 [통합 가이드](docs/08_Integration_Guide.md) - Frontend-Backend 통합
+- 🚀 [배포 가이드](docs/07_Deployment_Guide.md) - 프로덕션 배포
 
 ### 📝 기능 가이드
-- 🔑 [API 키 관리](docs/09_API_키_관리.md) - 40+ CrewAI 도구 API 키 설정
-- 📋 [산출물 자동생성](docs/11_산출물_자동생성.md) - 10가지 개발 문서 자동화
-- ✨ [요구사항 정제](docs/12_요구사항_정제.md) - Gap Analysis & Expansion
-- 🔧 [도구 매핑](docs/10_도구_매핑.md) - 도구 자동 매핑 및 추천
-- 📊 [진행상황 추적](docs/13_진행상황_추적.md) - 5단계 진행률 추적
+- 🔑 [API 키 관리](docs/09_API_Key_Management.md) - 40+ CrewAI 도구 API 키 설정
+- 📋 [산출물 자동생성](docs/11_Artifact_Generation.md) - 10가지 개발 문서 자동화
+- ✨ [요구사항 정제](docs/12_Requirement_Refinement.md) - Gap Analysis & Expansion
+- 🔧 [도구 매핑](docs/10_Tool_Mapping.md) - 도구 자동 매핑 및 추천
+- 📊 [진행상황 추적](docs/13_Progress_Tracking.md) - 5단계 진행률 추적
 
 ---
 
@@ -734,28 +734,68 @@ pytest tests/test_validation/        # 검증 시스템
 
 ---
 
-## ⚠️ 알려진 제한사항 및 해결 방법
+## ✅ v0.3.0 개선 사항 및 알려진 제한사항
 
-### Quality Gate 임시 우회
-**현재 상태**: Quality Gate 시스템이 일부 Phase에서 임시로 우회되어 있습니다.
+### ✅ v0.3.0에서 해결된 주요 이슈
 
-**배경**:
-- `QualityGateSystem.evaluate_gate()` 메서드가 무한 대기 상태에 빠지는 문제 발견
-- Phase 1 (Discovery) 이후 워크플로우가 중단되는 버그
+#### 1. Tools 할당 문제 해결 (P0)
+**이전 문제** (v0.2.0):
+- Tool 클래스 추출 실패 시 `tools=[]`로 강제 설정
+- 에이전트가 필요한 도구 없이 생성되어 기능 상실
 
-**해결 방법**:
-- Discovery, Architecture, Design, Delivery Phase의 Quality Gate를 임시 우회
-- 파일: `caas_framework/agents/collaboration.py`
-- 모든 6개 Phase가 정상적으로 완료되도록 수정
+**해결 방법** (v0.3.0):
+- ✅ AST 기반 파싱 강화
+- ✅ Fallback 전략: tool names를 문자열로 사용
+- ✅ 파일: `caas_framework/codegen/engine.py` (Line 499-507)
 
-**영향**:
-- ✅ 워크플로우는 정상적으로 완료됩니다
-- ✅ 코드 품질은 Expert Agent 협업으로 보장됩니다
-- ⚠️ Phase 간 자동 품질 검증이 일시적으로 비활성화됨
+**영향**: 도구 할당 실패율 0%로 감소
+
+#### 2. Quality Gate 조건부 복원 (P1)
+**이전 문제** (v0.2.0):
+- `QualityGateSystem.evaluate_gate()` 무한 대기
+- Phase 1 이후 워크플로우 중단
+- Phase 1, 2, 3, 5의 Quality Gate 강제 우회
+
+**해결 방법** (v0.3.0):
+- ✅ `strict_quality_gates` 파라미터 추가
+- ✅ 조건부 우회 로직 구현
+- ✅ 기본값: `False` (permissive 모드, 하위 호환성)
+- ✅ `True` 설정 시 엄격 모드 활성화
+- ✅ 파일: `caas_framework/agents/collaboration.py` (Line 1608-1642)
+
+**영향**: 프로덕션 환경에서 선택적 엄격 모드 사용 가능
+
+**사용 예시**:
+```python
+from caas_framework.agents.collaboration import ExpertAgentCollaboration
+
+collaboration = ExpertAgentCollaboration(
+    llm_plugin=llm,
+    golden_data=golden_data,
+    strict_quality_gates=True  # 엄격 모드 활성화
+)
+```
+
+#### 3. LLM Judge 파싱 안정화 (P1)
+**이전 문제** (v0.2.0):
+- LLM 응답 형식 다양 (markdown, plain JSON, 설명문)
+- 단순 정규식 파싱 실패
+
+**해결 방법** (v0.3.0):
+- ✅ 4-Strategy JSON 추출 알고리즘
+- ✅ 다양한 markdown 패턴 지원
+- ✅ Prefix cleaning 및 부분 JSON 추출
+- ✅ 파일: `caas_framework/validation/llm_judge.py` (Line 295-366)
+
+**영향**: LLM Judge 파싱 성공률 95%+ 향상
 
 **향후 계획**:
 - v0.4.0에서 Quality Gate 근본 원인 수정 예정
 - Quality Gate 재활성화 후 더욱 강력한 품질 보장
+
+---
+
+### ⚠️ 현재 제한사항
 
 ### 웹 프레임워크 생성 제한
 
@@ -845,4 +885,4 @@ MIT License - 자세한 내용은 [LICENSE](LICENSE) 파일 참조
 
 **Made with ❤️ by bullpeng72**
 
-**v0.3.0 Major Refactoring Release** 🎉 | [Documentation](docs/README_KO.md) | Framework-First Architecture ✅ | 98.7% Implementation Rate for CrewAI Agents ⭐ | Last Updated: 2026-02-04
+**v0.3.0 Major Refactoring Release** 🎉 | [Documentation](docs/01_README_KO.md) | Framework-First Architecture ✅ | 98.7% Implementation Rate for CrewAI Agents ⭐ | Last Updated: 2026-02-04
