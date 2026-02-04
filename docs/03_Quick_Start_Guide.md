@@ -688,7 +688,7 @@ Security: No issues
 
 **생성된 파일**:
 - main.py
-- agents.py (5개 에이전트)
+- agents.py (3-6개 에이전트, 프로젝트에 따라 다름)
 - tasks.py (17개 태스크)
 - tools.py (3개 도구)
 - requirements.txt

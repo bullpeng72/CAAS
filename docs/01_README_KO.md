@@ -27,7 +27,7 @@ CAAS (CrewAI Agent Auto-generation System) 완전 문서 가이드입니다.
 - ✅ **안정적인 워크플로우** - 모든 6개 6-Phase 100% 완료
 - ✅ **우수한 코드 품질** - 평균 품질 점수 8.2/10
 - ✅ **Quality Gate 개선** - 워크플로우 안정성 향상
-- ✅ **CLI 20개 명령어** - 완전한 CLI 인터페이스
+- ✅ **CLI 29개 명령어** - 완전한 CLI 인터페이스 (v0.4.0: 20→22→29개로 확장)
 - ✅ **라이브러리 사용 가능** - Streamlit, FastAPI, React, VSCode Extension 등
 - ✅ **통합 패키지** - `pip install caas` (CLI + Framework)
 - ✅ **tools.py 3-Layer Defense** - 항상 실행 가능한 도구 생성
@@ -76,7 +76,7 @@ CAAS (CrewAI Agent Auto-generation System) 완전 문서 가이드입니다.
 
 | 번호 | 문서 | 설명 |
 |------|------|------|
-| **04** | [04_CLI_Usage_Guide.md](04_04_CLI_Usage_Guide.md) | 💻 CLI 20개 명령어 완전 레퍼런스 |
+| **04** | [04_CLI_Usage_Guide.md](04_CLI_Usage_Guide.md) | 💻 CLI 29개 명령어 완전 레퍼런스 |
 | **05** | [05_Expert_Methodology_Guide.md](05_05_Expert_Methodology_Guide.md) | 🎓 대규모 프로덕션 시스템 구축 전략 (고급) |
 
 ### 3️⃣ 시스템 문서 (System Documentation)
@@ -293,12 +293,13 @@ Phase 6: Quality Assurance (품질 검증)
   → 6개 Validator 실행
 ```
 
-**Expert Agent Collaboration** (5명의 전문가):
-- Requirements Analyst
-- System Architect
-- Design Specialist
-- Development Engineer
-- Quality Assurance Expert
+**Expert Agent Collaboration** (6명의 전문가) ✨ v0.4.0:
+- Requirements Analyst - 요구사항 분석 및 Golden Data 생성
+- System Architect - 시스템 아키텍처 설계
+- Design Specialist - Agent/Task 설계 및 최적화
+- Development Engineer - 프로덕션 코드 생성
+- Quality Assurance Expert - 검증 및 완전성 체크
+- Code Analysis Agent - 런타임 오류 수정 및 추적성 검증 ✨ NEW
 
 ### 코드 생성 전략
 

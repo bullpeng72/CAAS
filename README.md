@@ -420,7 +420,7 @@ caas/
 │   ├── 01_README_KO.md              # 한국어 문서 색인
 │   ├── 02_Installation_Guide.md    # 설치 및 환경 설정
 │   ├── 03_Quick_Start_Guide.md     # 5분 빠른 시작 + 완전 가이드
-│   ├── 04_CLI_Usage_Guide.md       # CLI 22개 명령어 레퍼런스
+│   ├── 04_CLI_Usage_Guide.md       # CLI 29개 명령어 레퍼런스
 │   ├── 05_Expert_Methodology_Guide.md  # CAAS 6-Phase Methodology (고급)
 │   ├── 06_Architecture_Guide.md    # 시스템 아키텍처 및 설계
 │   ├── 07_Deployment_Guide.md      # 프로덕션 배포 및 운영
@@ -603,7 +603,7 @@ Agent 최소화, CRUD API 중심, 빠른 개발
 ### 🚀 시작 가이드
 - 📦 [설치 가이드](docs/02_Installation_Guide.md) - 설치 및 환경 설정
 - 🎯 [빠른 시작 가이드](docs/03_Quick_Start_Guide.md) - 5분 안에 시작하기 ⭐
-- 💻 [CLI 사용 가이드](docs/04_CLI_Usage_Guide.md) - CLI 22개 명령어 완전 가이드
+- 💻 [CLI 사용 가이드](docs/04_CLI_Usage_Guide.md) - CLI 29개 명령어 완전 가이드
 
 ### 🛠️ 개발 방법론
 - 👨‍💻 [전문가 방법론 가이드](docs/05_Expert_Methodology_Guide.md) - CAAS 6-Phase Methodology (고급)
@@ -785,7 +785,7 @@ pytest tests/test_validation/        # 검증 시스템
   - 데이터 분석 모듈: 98.3% 구현률 ⭐
   - REST API: 52.6% 구현률
   - 웹 애플리케이션: 제한적 지원
-- [x] **CLI 20개 명령어 구현** - 완전한 CLI 인터페이스 (v0.4.0에서 22개로 확장)
+- [x] **CLI 29개 명령어 구현** - 완전한 CLI 인터페이스 (v0.2.0: 20개 → v0.3.0: 22개 → v0.4.0: 29개)
 - [x] **tools.py 3-Layer Defense** - 항상 실행 가능한 도구 생성
 - [x] **Semantic Mapper Bilingual Support** - 40+ 한국어↔영어 번역 쌍
 - [x] **산출물 자동 생성** - 10개 타입 개발 문서 자동 생성

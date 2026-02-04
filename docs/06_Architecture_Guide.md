@@ -99,7 +99,7 @@ CAAS는 자연어 요구사항을 입력받아 **CrewAI 기반 멀티에이전�
 ```
 caas/
 ├── caas_framework/      # 핵심 프레임워크
-│   ├── agents/          # Expert Agents (5명)
+│   ├── agents/          # Expert Agents (6명)
 │   ├── methodology/     # CAAS 6-Phase 엔진 (v0.3.0+)
 │   ├── codegen/         # 코드 생성
 │   ├── config/          # 설정 관리
@@ -156,7 +156,7 @@ caas/
 - **주요 기능**: 6가지 검증기(Ontology, Golden Data, Dependency 등) 및 3단계 자동 수정(Template, Rule, LLM).
 
 #### 1.4 Expert Agents (`agents/`)
-- **역할**: 5명의 전문가(요구사항 분석가, 아키텍트, 설계자, 개발자, QA)가 협업하여 고품질 산출물 생성.
+- **역할**: 6명의 전문가(요구사항 분석가, 아키텍트, 설계자, 개발자, QA, 코드 분석가)가 협업하여 고품질 산출물 생성.
 
 #### 1.5 Refinement (`refinement/`)
 - **역할**: 불완전한 요구사항을 구체화.

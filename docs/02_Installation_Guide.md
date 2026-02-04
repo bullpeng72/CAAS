@@ -374,7 +374,7 @@ caas_framework/     - 핵심 프레임워크 (UI 독립적)
     ├── knowledge/  - 온톨로지 & 지식 그래프
     └── ...
 
-caas_cli/           - CLI 인터페이스 (20개 명령어)
+caas_cli/           - CLI 인터페이스 (29개 명령어)
 caas_sdk/           - Python SDK
 data/               - 템플릿, 온톨로지, 예제
 docs/               - 한국어 문서 (13개)
