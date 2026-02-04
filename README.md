@@ -390,18 +390,18 @@ caas/
 │
 ├── 📁 docs/                         # Documentation (한국어 중심, 13개)
 │   ├── 01_README_KO.md              # 한국어 문서 색인
-│   ├── 02_설치_가이드.md            # 설치 및 환경 설정
-│   ├── 03_빠른시작_및_초보자_가이드.md  # 5분 빠른 시작 + 완전 가이드
-│   ├── 04_CLI_사용_가이드.md        # CLI 20개 명령어 레퍼런스
-│   ├── 05_전문가_방법론_가이드.md   # CAAS 6-Phase Methodology (고급)
-│   ├── 06_아키텍처_가이드.md        # 시스템 아키텍처 및 설계
-│   ├── 07_배포_가이드.md            # 프로덕션 배포 및 운영
-│   ├── 08_통합_가이드.md            # Frontend-Backend 통합
-│   ├── 09_API_키_관리.md            # 40+ CrewAI 도구 API 키
-│   ├── 10_도구_매핑.md              # 도구 자동 매핑 시스템
-│   ├── 11_산출물_자동생성.md        # 10가지 개발 문서 자동화
-│   ├── 12_요구사항_정제.md          # 요구사항 분석 및 TDD
-│   └── 13_진행상황_추적.md          # 5단계 진행률 추적
+│   ├── 02_설치_가이드.md               # 설치 및 환경 설정
+│   ├── 03_빠른시작_및_초보자_가이드.md    # 5분 빠른 시작 + 완전 가이드
+│   ├── 04_CLI_사용_가이드.md           # CLI 20개 명령어 레퍼런스
+│   ├── 05_전문가_방법론_가이드.md        # CAAS 6-Phase Methodology (고급)
+│   ├── 06_아키텍처_가이드.md            # 시스템 아키텍처 및 설계
+│   ├── 07_배포_가이드.md               # 프로덕션 배포 및 운영
+│   ├── 08_통합_가이드.md               # Frontend-Backend 통합
+│   ├── 09_API_키_관리.md              # 40+ CrewAI 도구 API 키
+│   ├── 10_도구_매핑.md                 # 도구 자동 매핑 시스템
+│   ├── 11_산출물_자동생성.md            # 10가지 개발 문서 자동화
+│   ├── 12_요구사항_정제.md             # 요구사항 분석 및 TDD
+│   └── 13_진행상황_추적.md             # 5단계 진행률 추적
 │
 ├── 📁 examples/                     # Examples
 ├── 📁 tests/                        # Test suite (100+ tests)
@@ -685,11 +685,12 @@ pytest tests/test_validation/        # 검증 시스템
   - 디렉토리: `caas_framework/bmad/` → `caas_framework/methodology/`
   - 클래스: `BMADEngine` → `SixPhaseEngine`, `BMADPhase` → `Phase`
   - Import: `from caas_framework.bmad` → `from caas_framework.methodology`
-- [x] **문서 전면 개편** - 22개 파일, 118회 BMAD 언급 제거
-- [x] **명확한 정체성 확립** - 원본 BMAD와 차별화 명시
+- [x] **도메인 확장** - 8개 → 13개 도메인 지원
+  - AGENT_BASED (5개): conversational_ai, customer_support, content_creation, report_generation, education
+  - HYBRID (4개): workflow_automation, data_analysis, document_processing, api_integration
+  - CRUD_BASED (4개): task_management, dashboard, knowledge_base, e_commerce
+- [x] **문서 전면 개편** - 22개 파일, 118회 BMAD 언급 제거, 명확한 정체성 확립
 - [x] **검증 완료** - 전문가 방법론 가이드 실전 검증 (⭐⭐⭐⭐⭐ 5/5)
-
-⚠️ **Breaking Changes**: Import 경로 및 클래스명 변경. [마이그레이션 가이드](#마이그레이션-가이드-v030) 참조
 
 ### ✅ v0.2.0 완료 (2026-01-31)
 **Production-Ready Release**
@@ -717,9 +718,9 @@ pytest tests/test_validation/        # 검증 시스템
 
 - [ ] Quality Gate 근본 원인 수정 (현재 임시 우회)
 - [ ] 성능 최적화 (캐싱, 병렬 처리)
-- [ ] 추가 도메인 전략 (8개 → 12개)
 - [ ] Multi-LLM 지원 확대 (Gemini, Mistral)
 - [ ] 에러 복구 메커니즘 강화
+- [ ] 도메인별 최적화 개선
 
 ### 📅 v1.0.0 목표 (2026-Q3)
 **Advanced Features**
@@ -730,58 +731,6 @@ pytest tests/test_validation/        # 검증 시스템
 - [ ] VS Code Extension
 - [ ] CI/CD 파이프라인 자동 생성
 - [ ] 클라우드 배포 자동화 (AWS, GCP, Azure)
-
----
-
-## 🔄 마이그레이션 가이드 (v0.3.0)
-
-### Breaking Changes
-
-v0.3.0에서 코드베이스가 전면 리팩토링되었습니다. 기존 코드를 사용 중이라면 다음과 같이 업데이트하세요.
-
-#### 1. Import 경로 변경
-
-**Before (v0.2.0)**:
-```python
-from caas_framework.bmad.engine import BMADEngine, BMADPhase
-from caas_framework.bmad.golden_data import GoldenDataPipeline
-```
-
-**After (v0.3.0)**:
-```python
-from caas_framework.methodology.engine import SixPhaseEngine, Phase
-from caas_framework.methodology.golden_data import GoldenDataPipeline
-```
-
-#### 2. 클래스명 변경
-
-| v0.2.0 | v0.3.0 |
-|--------|--------|
-| `BMADEngine` | `SixPhaseEngine` |
-| `BMADPhase` | `Phase` |
-| `BMADContext` | `MethodologyContext` |
-| `BMADResult` | `MethodologyResult` |
-
-**Before**:
-```python
-engine = BMADEngine(llm_plugin=llm)
-result = await engine.execute_phase(BMADPhase.DISCOVERY, ...)
-```
-
-**After**:
-```python
-engine = SixPhaseEngine(llm_plugin=llm)
-result = await engine.execute_phase(Phase.DISCOVERY, ...)
-```
-
-#### 3. 자동 변환 스크립트
-
-```bash
-# 프로젝트 디렉토리에서 실행
-find . -type f -name "*.py" -exec sed -i '' 's/from caas_framework\.bmad/from caas_framework.methodology/g' {} \;
-find . -type f -name "*.py" -exec sed -i '' 's/BMADEngine/SixPhaseEngine/g' {} \;
-find . -type f -name "*.py" -exec sed -i '' 's/BMADPhase/Phase/g' {} \;
-```
 
 ---
 
