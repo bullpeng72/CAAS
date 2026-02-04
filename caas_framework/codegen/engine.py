@@ -400,19 +400,58 @@ class CodeGenerationEngine:
         """
         Extract tool class names from generated tools.py code.
 
+        ✅ IMPROVED (P0): Use AST parsing for more reliable extraction
+
         Args:
             tools_code: Generated tools.py content
 
         Returns:
             List of tool class names
         """
+        import ast
         import re
 
-        # Find all class definitions that inherit from BaseTool
-        pattern = r"class\s+([A-Z][a-zA-Z0-9]*)\s*\(.*BaseTool.*\):"
-        matches = re.findall(pattern, tools_code)
+        tool_classes = []
 
-        return matches
+        # Method 1: AST parsing (most reliable)
+        try:
+            tree = ast.parse(tools_code)
+            for node in ast.walk(tree):
+                if isinstance(node, ast.ClassDef):
+                    # Check if any base class contains "Tool"
+                    for base in node.bases:
+                        base_str = ast.unparse(base) if hasattr(ast, 'unparse') else str(base)
+                        if "Tool" in base_str:
+                            tool_classes.append(node.name)
+                            break
+        except SyntaxError as e:
+            self.reporter.warning(f"⚠️  AST parsing failed: {e}, falling back to regex")
+
+        # Method 2: Fallback to improved regex patterns
+        if not tool_classes:
+            patterns = [
+                r"class\s+([A-Z][a-zA-Z0-9_]*)\s*\([^)]*Tool[^)]*\):",  # PascalCase + Tool
+                r"class\s+([a-z_]+)\s*\([^)]*Tool[^)]*\):",  # snake_case + Tool
+                r"def\s+([a-z_]+)\s*\([^)]*\)\s*->.*Tool:",  # Function returning Tool
+            ]
+            for pattern in patterns:
+                matches = re.findall(pattern, tools_code, re.MULTILINE)
+                tool_classes.extend(matches)
+
+        # Remove duplicates while preserving order
+        seen = set()
+        unique_classes = []
+        for cls in tool_classes:
+            if cls not in seen:
+                seen.add(cls)
+                unique_classes.append(cls)
+
+        if unique_classes:
+            self.reporter.info(f"✅ Extracted {len(unique_classes)} tool classes: {unique_classes}")
+        else:
+            self.reporter.warning("⚠️  No tool classes found in tools.py")
+
+        return unique_classes
 
     def _generate_agents_file(
         self,
@@ -457,11 +496,16 @@ from typing import List
                 tools_list = ", ".join([f"{tool}()" for tool in generated_tool_classes])
                 tools_str = f"[{tools_list}]"
             elif agent.tools:
-                # Fallback: if no generated classes, don't use tools
-                # Abstract tool names (like "키보드", "마우스") are not valid Tool classes
-                # Better to have no tools than invalid code
-                tools_str = "[]"
-                # Note: Tool generation failed, agent will work without tools
+                # ✅ FIX (P0): Use tool names as fallback instead of removing them
+                # If class extraction failed but tool names exist, try to use them as-is
+                # This allows LLM-generated tool functions to work even if regex failed
+                tools_list = ", ".join([f"{tool}()" for tool in agent.tools])
+                tools_str = f"[{tools_list}]"
+                self.reporter.warning(
+                    f"⚠️  Agent '{agent.id}' using tool names as strings "
+                    f"(class extraction failed): {agent.tools}"
+                )
+                # Note: If tools are invalid, runtime error will occur (but better than silently removing)
             else:
                 tools_str = "[]"
 

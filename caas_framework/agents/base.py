@@ -28,6 +28,7 @@ class AgentPhase(str, Enum):
     DEVELOPMENT = "development"
     DELIVERY = "delivery"
     QUALITY_ASSURANCE = "quality_assurance"
+    CODE_ANALYSIS = "code_analysis"  # NEW in v0.4.0 - Post-generation code analysis
 
 
 @dataclass

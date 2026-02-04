@@ -2,7 +2,7 @@
 
 ## 프로젝트 개요
 
-**CAAS (CrewAI Agent Auto-generation System)** v0.3.0
+**CAAS (CrewAI Agent Auto-generation System)** v0.4.0
 
 자연어 요구사항을 입력받아 프로덕션 레디 멀티 에이전트 시스템 코드를 자동으로 생성하는 통합 패키지입니다.
 
@@ -18,13 +18,14 @@
 ```
 caas/
 ├── caas_framework/          # 🎯 코어 프레임워크 (UI-독립적)
-│   ├── agents/              # 5개 Expert Agents (Requirement Analyst, System Architect, Agent Designer, QA, Code Generator)
+│   ├── agents/              # 6개 Expert Agents (Requirement Analyst, System Architect, Agent Designer, QA, Code Generator, Code Analysis)
 │   │   ├── collaboration.py # 에이전트 협업 오케스트레이터 (Quality Gate 포함)
 │   │   ├── requirement_analyst.py
 │   │   ├── system_architect.py
 │   │   ├── agent_designer.py
 │   │   ├── qa_specialist.py
-│   │   └── code_generator.py
+│   │   ├── code_generator.py
+│   │   └── code_analysis_agent.py  # NEW in v0.4.0: 런타임 오류 수정 및 추적성 검증
 │   ├── methodology/         # CAAS 6-Phase Methodology Engine (v0.3.0+)
 │   │   ├── engine.py        # Phase 오케스트레이터 (SixPhaseEngine)
 │   │   └── golden_data.py   # Phase 0: Concretization
@@ -52,7 +53,7 @@ caas/
 │   ├── refinement/          # Requirement Refinement (Gap Analysis, Expand)
 │   └── models/              # Pydantic Models (specifications.py)
 │
-├── caas_cli/                # CLI Interface (20 commands)
+├── caas_cli/                # CLI Interface (22 commands)
 │   ├── cli.py               # Click-based CLI 진입점
 │   └── commands/            # CLI 명령어 구현
 │
@@ -63,7 +64,7 @@ caas/
 │   ├── templates/           # Jinja2 코드 템플릿
 │   └── golden_examples/     # Golden Data 예시
 │
-├── docs/                    # 한국어 문서 (13개)
+├── docs/                    # 한국어 + 영어 문서 (14개)
 │   ├── 1_시작하기/
 │   ├── 2_개발_방법론/
 │   ├── 3_시스템_문서/
@@ -103,7 +104,7 @@ caas/
         │  │   - Phase 1-5: Development Phases │ │
         │  └────────────────────────────────────┘ │
         │  ┌────────────────────────────────────┐ │
-        │  │   5 Expert Agents Collaboration   │ │
+        │  │   6 Expert Agents Collaboration   │ │
         │  │   - Quality Gate System           │ │
         │  └────────────────────────────────────┘ │
         │  ┌────────────────────────────────────┐ │
@@ -137,14 +138,14 @@ Phase 5: Delivery
 
 **중요**: Quality Gate 시스템이 일부 Phase에서 임시 우회됨 (무한 대기 문제 해결). v0.4.0에서 근본 수정 예정.
 
-### 3. 5 Expert Agents Collaboration
+### 3. 6 Expert Agents Collaboration
 
 ```python
 # caas_framework/agents/collaboration.py
 
 class ExpertAgentCollaboration:
     """
-    5개 전문가 에이전트 협업 관리
+    6개 전문가 에이전트 협업 관리
 
     Agents:
     1. Requirement Analyst - 요구사항 분석 및 Golden Data 생성
@@ -152,6 +153,7 @@ class ExpertAgentCollaboration:
     3. Agent Designer - CrewAI Agent/Task 설계 및 최적화
     4. QA Specialist - 검증 및 완전성 체크
     5. Code Generator - 프로덕션 코드 생성
+    6. Code Analysis Agent - 런타임 오류 수정 및 추적성 검증 (NEW in v0.4.0)
     """
 ```
 
@@ -640,6 +642,10 @@ caas generate "요구사항" --output ./project
 caas validate --validator all --agents agents.json --tasks tasks.json
 caas fix --level 3 --agents agents.json --tasks tasks.json
 
+# 코드 분석 & 품질 보증 (NEW in v0.4.0)
+caas analyze-completeness --project ./project --golden-data golden.json --detailed
+caas fix-runtime-error --project ./project --error-log error.log --apply --backup
+
 # 프로젝트 관리
 caas list
 caas status <id>
@@ -770,6 +776,27 @@ async def handle_request(request_json):
 
 ## 변경 이력
 
+### 2026-02-04: v0.4.0 Code Analysis Agent 추가 ✅
+- **6th Expert Agent 추가: CodeAnalysisAgent**
+  - Phase: CODE_ANALYSIS (post-generation quality assurance)
+  - 런타임 오류 자동 분석 및 수정 기능
+  - Golden Data 추적성 검증 (Traceability Analysis)
+  - 비즈니스 규칙 검증 (Business Rule Verification)
+- **새로운 CLI 명령어 (2개)**
+  - `caas analyze-completeness`: 구현 완전성 분석 (Golden Data vs 실제 구현)
+  - `caas fix-runtime-error`: 런타임 오류 자동 수정 (8+ 에러 타입 지원)
+- **새로운 데이터 모델 (10개)**
+  - RuntimeErrorInfo, CodeFix, RuntimeErrorFix
+  - ImplementationAnalysisResult, TraceabilityResult
+  - BusinessRuleViolation, CodeAnalysisReport
+  - ErrorCategory, ErrorSeverity enums
+- **테스트 강화**
+  - 46개 새로운 테스트 추가 (22 unit, 19 integration, 5 E2E)
+  - 100% 테스트 통과율
+- **문서 추가**
+  - docs/14_Code_Analysis_Guide.md (500+ 라인, 영문)
+  - ROI 분석 포함 (538x 생산성 향상)
+
 ### 2026-02-04: v0.3.0 코드베이스 리팩토링 완료 ✅
 - **BMAD → CAAS 6-Phase Methodology 전환 완료**
 - 디렉토리 변경: `caas_framework/bmad/` → `caas_framework/methodology/`
@@ -797,7 +824,7 @@ async def handle_request(request_json):
 ---
 
 **Last Updated**: 2026-02-04
-**Version**: 0.3.0
+**Version**: 0.4.0
 **Package Name**: caas (통합 패키지)
 **Repository**: https://github.com/bullpeng72/CAAS.git
 **Branch**: CAAS

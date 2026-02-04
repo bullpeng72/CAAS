@@ -3,6 +3,7 @@ CLI Commands
 """
 
 from caas_cli.commands import (  # Phase 1: Core Features; Phase 2: Advanced Features; Phase 2 Enhancement: Monitoring & Performance; Phase 3: Management Features; Phase 4: Production Ready
+    analyze_completeness,
     analyze_gaps,
     auto_deploy_cmd,
     cache_cmd,
@@ -13,6 +14,7 @@ from caas_cli.commands import (  # Phase 1: Core Features; Phase 2: Advanced Fea
     examples,
     expand_requirement,
     fix_cmd,
+    fix_runtime_error,
     generate,
     generate_code_cmd,
     generate_phase,
@@ -63,4 +65,6 @@ __all__ = [
     "plugins_cmd",
     # Phase 4
     "auto_deploy_cmd",
+    "analyze_completeness",
+    "fix_runtime_error",
 ]

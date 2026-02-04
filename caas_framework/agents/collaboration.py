@@ -586,6 +586,7 @@ class ExpertAgentCollaboration:
         enable_distributed: bool = False,
         max_workers: Optional[int] = None,
         enable_critic_pattern: bool = False,
+        strict_quality_gates: bool = False,  # ✅ NEW (P1): Enable strict Quality Gate mode
     ):
         """
         Initialize collaboration orchestrator.
@@ -601,12 +602,15 @@ class ExpertAgentCollaboration:
             enable_distributed: Enable distributed/parallel execution of phases
             max_workers: Max workers for distributed execution (default: CPU count)
             enable_critic_pattern: Enable Producer-Critic pattern for peer review (default: False)
+            strict_quality_gates: If True, halt workflow on Quality Gate failure;
+                                  If False (default), show warnings but continue (v0.2.0 behavior)
         """
         self.llm = llm_plugin
         self.golden_data = golden_data
         self.max_feedback_loops = max_feedback_loops
         self.enable_validation = enable_validation
         self.plan_mode = plan_mode
+        self.strict_quality_gates = strict_quality_gates  # ✅ NEW (P1): Store strict mode flag
 
         # Event-Driven Architecture
         self.event_bus = event_bus or get_global_event_bus()
@@ -1603,43 +1607,54 @@ class ExpertAgentCollaboration:
                 timeout=30.0,
             )
 
-            # ✅ CRITICAL FIX: Always allow workflow to continue, even if gate fails
-            # Convert blocking gate failures to warnings
+            # ✅ IMPROVED (P1): Conditional Quality Gate bypass based on strict_quality_gates flag
             if not gate_evaluation.can_proceed:
-                self.reporter.warning(
-                    f"⚠️ Quality gate found issues for {phase.name} "
-                    f"({len(gate_evaluation.failed_metrics)} failures), but allowing workflow to continue"
-                )
-                # Create new permissive evaluation with modified metrics
-                # Mark all critical metrics as non-critical so can_proceed=True
-                modified_metrics = []
-                for metric in gate_evaluation.metrics:
-                    # Create new metric with critical=False
-                    from caas_framework.quality.quality_gates import QualityMetric
-
-                    modified_metrics.append(
-                        QualityMetric(
-                            name=metric.name,
-                            description=metric.description,
-                            threshold=metric.threshold,
-                            actual_value=metric.actual_value,
-                            weight=metric.weight,
-                            critical=False,  # Force to non-critical
-                            metric_type=metric.metric_type,
-                        )
+                if self.strict_quality_gates:
+                    # Strict mode: Actually halt the workflow
+                    self.reporter.error(
+                        f"❌ Quality gate FAILED for {phase.name} "
+                        f"({len(gate_evaluation.failed_metrics)} critical failures). "
+                        f"Workflow halted in strict mode."
                     )
+                    # Return original evaluation (can_proceed=False will halt workflow)
+                    return gate_evaluation
+                else:
+                    # Permissive mode (v0.2.0 behavior): Warning only, continue workflow
+                    self.reporter.warning(
+                        f"⚠️ Quality gate found issues for {phase.name} "
+                        f"({len(gate_evaluation.failed_metrics)} failures), "
+                        f"but allowing workflow to continue (permissive mode)"
+                    )
+                    # Create new permissive evaluation with modified metrics
+                    # Mark all critical metrics as non-critical so can_proceed=True
+                    modified_metrics = []
+                    for metric in gate_evaluation.metrics:
+                        # Create new metric with critical=False
+                        from caas_framework.quality.quality_gates import QualityMetric
 
-                return GateEvaluation(
-                    phase=phase,
-                    status=GateStatus.WARNING,
-                    metrics=modified_metrics,  # Use modified metrics
-                    passed_metrics=gate_evaluation.passed_metrics,
-                    failed_metrics=gate_evaluation.failed_metrics,
-                    warnings=gate_evaluation.warnings
-                    + ["Quality gate failed but workflow allowed to continue"],
-                    recommendations=gate_evaluation.recommendations,
-                    overall_score=gate_evaluation.overall_score,
-                )
+                        modified_metrics.append(
+                            QualityMetric(
+                                name=metric.name,
+                                description=metric.description,
+                                threshold=metric.threshold,
+                                actual_value=metric.actual_value,
+                                weight=metric.weight,
+                                critical=False,  # Force to non-critical
+                                metric_type=metric.metric_type,
+                            )
+                        )
+
+                    return GateEvaluation(
+                        phase=phase,
+                        status=GateStatus.WARNING,
+                        metrics=modified_metrics,  # Use modified metrics
+                        passed_metrics=gate_evaluation.passed_metrics,
+                        failed_metrics=gate_evaluation.failed_metrics,
+                        warnings=gate_evaluation.warnings
+                        + ["Quality gate failed but workflow allowed to continue (permissive mode)"],
+                        recommendations=gate_evaluation.recommendations,
+                        overall_score=gate_evaluation.overall_score,
+                    )
             else:
                 self.reporter.success(
                     f"✅ Quality gate passed for {phase.name} "

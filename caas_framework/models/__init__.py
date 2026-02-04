@@ -30,6 +30,18 @@ from caas_framework.models.artifact_types import (
     ArtifactMetadata,
     ArtifactType,
 )
+from caas_framework.models.code_analysis import (
+    BusinessRuleViolation,
+    CodeAnalysisReport,
+    CodeFix,
+    ErrorCategory,
+    ErrorSeverity,
+    ImplementationAnalysisResult,
+    ImplementationGap,
+    RuntimeErrorFix,
+    RuntimeErrorInfo,
+    TraceabilityResult,
+)
 from caas_framework.models.domain_types import (
     DomainClassification,
     DomainType,
@@ -112,4 +124,15 @@ __all__ = [
     "ComponentSpec",
     "DataFlow",
     "TechnologyStack",
+    # Code analysis models (v0.4.0)
+    "CodeAnalysisReport",
+    "RuntimeErrorInfo",
+    "RuntimeErrorFix",
+    "CodeFix",
+    "ErrorCategory",
+    "ErrorSeverity",
+    "BusinessRuleViolation",
+    "ImplementationGap",
+    "TraceabilityResult",
+    "ImplementationAnalysisResult",
 ]

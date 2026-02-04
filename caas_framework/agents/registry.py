@@ -266,6 +266,7 @@ def discover_agents() -> AgentRegistry:
         # Import all agent modules to trigger registration
         from caas_framework.agents import (  # noqa: F401
             agent_designer,
+            code_analysis_agent,
             code_generator,
             qa_specialist,
             requirement_analyst,

@@ -7,7 +7,7 @@
 ![Python](https://img.shields.io/badge/Python-3.11+-blue)
 ![CrewAI](https://img.shields.io/badge/CrewAI-0.65+-green)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
-![Version](https://img.shields.io/badge/Version-0.3.0-orange)
+![Version](https://img.shields.io/badge/Version-0.4.0-orange)
 ![Status](https://img.shields.io/badge/Status-Stable-brightgreen)
 
 ---
@@ -32,12 +32,13 @@ Phase 5: Delivery           → Production Code + Tests + Deployment
 ```
 
 ### 🤖 Expert Agent Collaboration
-5개 전문가 에이전트가 협업하여 설계와 코드를 생성:
+6개 전문가 에이전트가 협업하여 설계와 코드를 생성:
 - **Requirement Analyst**: 요구사항 분석 및 Golden Data 생성
 - **System Architect**: 시스템 아키텍처 설계
 - **Agent Designer**: Agent/Task 설계 및 최적화
 - **QA Engineer**: 검증 및 완전성 체크
 - **Code Generator**: 프로덕션 코드 생성
+- **Code Analysis Agent**: 런타임 오류 수정 및 추적성 검증 ✨ NEW in v0.4.0
 
 ### ✅ 3-Level Auto-Fixing System
 - **Level 1**: Template-based (빠름, 결정론적)
@@ -205,7 +206,22 @@ caas fix \
   --golden-data ./design/golden_data.json \
   --level 3
 
-# 7️⃣ 프로젝트 관리
+# 7️⃣ 코드 분석 & 품질 보증 ✨ NEW in v0.4.0
+# 구현 완전성 분석 (Golden Data vs 실제 코드)
+caas analyze-completeness \
+  --project ./my-project \
+  --golden-data ./design/golden_data.json \
+  --detailed \
+  --output analysis_report.json
+
+# 런타임 오류 자동 수정
+caas fix-runtime-error \
+  --project ./my-project \
+  --error-log error.log \
+  --apply \
+  --backup
+
+# 8️⃣ 프로젝트 관리
 caas list                    # 프로젝트 목록
 caas status <project-id>     # 상태 확인
 caas download <project-id> ./output  # 다운로드
@@ -678,7 +694,22 @@ pytest tests/test_validation/        # 검증 시스템
 
 ## 🗺️ 로드맵
 
-### ✅ v0.3.0 완료 (Current - 2026-02-04) 🎉
+### ✅ v0.4.0 완료 (Current - 2026-02-04) 🎉
+**Code Analysis & Quality Assurance Release**
+
+- [x] **6th Expert Agent: CodeAnalysisAgent** - 런타임 오류 자동 수정 및 추적성 검증
+  - Phase: CODE_ANALYSIS (post-generation quality assurance)
+  - 8+ 에러 타입 지원 (ImportError, NameError, TypeError, AttributeError 등)
+  - Golden Data 추적성 분석 (Traceability Analysis)
+  - 비즈니스 규칙 검증 (Business Rule Verification)
+- [x] **새로운 CLI 명령어 2개**
+  - `caas analyze-completeness`: 구현 완전성 분석
+  - `caas fix-runtime-error`: 런타임 오류 자동 수정
+- [x] **새로운 데이터 모델 10개** - RuntimeErrorInfo, CodeFix, RuntimeErrorFix 등
+- [x] **테스트 강화** - 46개 신규 테스트 추가 (22 unit, 19 integration, 5 E2E)
+- [x] **문서 추가** - docs/14_Code_Analysis_Guide.md (500+ 라인, ROI 538x 분석 포함)
+
+### ✅ v0.3.0 완료 (2026-02-04)
 **Major Refactoring Release**
 
 - [x] **코드베이스 리팩토링** - BMAD → CAAS 6-Phase Methodology 완전 전환
@@ -713,7 +744,7 @@ pytest tests/test_validation/        # 검증 시스템
 - [x] **Session & Workflow 관리**
 - [x] **Plugin 시스템**
 
-### 🚧 v0.4.0 계획 (2026-Q2)
+### 🚧 v0.5.0 계획 (2026-Q2)
 **Performance & Stability**
 
 - [ ] Quality Gate 근본 원인 수정 (현재 임시 우회)
@@ -721,6 +752,7 @@ pytest tests/test_validation/        # 검증 시스템
 - [ ] Multi-LLM 지원 확대 (Gemini, Mistral)
 - [ ] 에러 복구 메커니즘 강화
 - [ ] 도메인별 최적화 개선
+- [ ] Code Analysis Agent 고도화 (더 많은 에러 타입, AI 기반 수정 전략)
 
 ### 📅 v1.0.0 목표 (2026-Q3)
 **Advanced Features**

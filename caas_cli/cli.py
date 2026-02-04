@@ -11,6 +11,7 @@ from rich.panel import Panel
 from rich.text import Text
 
 from caas_cli.commands import (  # Phase 1: Core Features; Phase 2: Advanced Features; Phase 2 Enhancement: Monitoring & Performance; Phase 3: Management Features; Phase 4: Production Ready
+    analyze_completeness,
     analyze_gaps,
     auto_deploy_cmd,
     cache_cmd,
@@ -21,6 +22,7 @@ from caas_cli.commands import (  # Phase 1: Core Features; Phase 2: Advanced Fea
     examples,
     expand_requirement,
     fix_cmd,
+    fix_runtime_error,
     generate,
     generate_code_cmd,
     generate_phase,
@@ -220,6 +222,15 @@ def show_comprehensive_help():
         "  [green]examples[/green]         Browse 11 curated examples (web, API, data, ML)\n"
     )
 
+    # Code Analysis & Quality Assurance (NEW in v0.4.0)
+    console.print("[bold cyan]🔍 CODE ANALYSIS & QUALITY ASSURANCE (v0.4.0)[/bold cyan]")
+    console.print(
+        "  [green]analyze-completeness[/green] Analyze implementation vs Golden Data"
+    )
+    console.print(
+        "  [green]fix-runtime-error[/green]    Auto-fix Python runtime errors\n"
+    )
+
     # Advanced Features
     console.print("[bold cyan]🧪 ADVANCED FEATURES[/bold cyan]")
     console.print("  [green]generate-phase[/green]   Generate specific BMAD phase")
@@ -338,7 +349,7 @@ def show_comprehensive_help():
         "  • Delivery: 0 syntax errors, 0 import failures\n\n", style="dim"
     )
 
-    deep_dive.append("Multi-Agent Collaboration\n", style="bold green")
+    deep_dive.append("Multi-Agent Collaboration (6 Agents)\n", style="bold green")
     deep_dive.append(
         "  1. RequirementAnalyst: Analyzes & concretizes requirements\n", style="dim"
     )
@@ -349,6 +360,9 @@ def show_comprehensive_help():
     )
     deep_dive.append(
         "  5. QASpecialist: Validates quality at each phase\n", style="dim"
+    )
+    deep_dive.append(
+        "  6. CodeAnalyst: Analyzes completeness & fixes errors (v0.4.0)\n", style="dim"
     )
 
     console.print(
@@ -436,6 +450,18 @@ def show_brief_help():
 
     brief_text.append("\n")
 
+    # Code Analysis (v0.4.0)
+    brief_text.append("Code Analysis (v0.4.0):\n", style="bold yellow")
+    analysis_commands = [
+        ("analyze-completeness", "Analyze implementation completeness"),
+        ("fix-runtime-error", "Auto-fix Python runtime errors"),
+    ]
+    for cmd, desc in analysis_commands:
+        brief_text.append(f"  {cmd:<20} ", style="cyan")
+        brief_text.append(f"{desc}\n", style="dim")
+
+    brief_text.append("\n")
+
     # Advanced Features
     brief_text.append("Advanced Features:\n", style="bold yellow")
     advanced_commands = [
@@ -506,7 +532,7 @@ def show_brief_help():
 
 
 @click.group(cls=CustomGroup, invoke_without_command=True)
-@click.version_option(version="0.3.0")
+@click.version_option(version="0.4.0")
 @click.pass_context
 def cli(ctx):
     """CAAS - CrewAI Agent Auto-generation System
@@ -624,6 +650,21 @@ def cli(ctx):
                          • LLM-powered issue resolution
                          • Validation feedback loop
                          • Automated refinement
+
+    🔍 CODE ANALYSIS & QUALITY ASSURANCE (v0.4.0)
+       analyze-completeness  Analyze implementation completeness
+                         • Feature coverage analysis
+                         • Golden Data traceability matrix
+                         • Business rule verification
+                         • Implementation gap detection
+                         • Actionable recommendations
+
+       fix-runtime-error Auto-fix Python runtime errors
+                         • Parse error logs automatically
+                         • LLM-powered root cause analysis
+                         • Generate code fixes with explanations
+                         • Preview or apply fixes
+                         • Support 8+ error types (Import, Name, Type, etc.)
 
     ⚙️ SETUP & CONFIGURATION
        init              Initialize CAAS configuration
@@ -796,12 +837,13 @@ def cli(ctx):
       • Delivery: 0 syntax errors, 0 import failures
 
     Multi-Agent Collaboration
-      CAAS uses 5 specialized expert agents:
+      CAAS uses 6 specialized expert agents:
       1. RequirementAnalyst: Analyzes & concretizes requirements
       2. SystemArchitect: Designs system architecture
       3. AgentDesigner: Designs CrewAI agents & tasks
       4. CodeGenerator: Generates production-ready code
       5. QASpecialist: Validates quality at each phase
+      6. CodeAnalyst: Analyzes completeness & fixes errors (v0.4.0)
 
     Feedback Loops
       • Safe Feedback Loop: Golden Data validation (max 3 retries, 60s timeout)
@@ -870,6 +912,10 @@ cli.add_command(plugins_cmd.plugins)
 
 # Phase 4: Production Ready
 cli.add_command(auto_deploy_cmd.auto_deploy)
+
+# Code Analysis & Quality Assurance (v0.4.0)
+cli.add_command(analyze_completeness.analyze_completeness, name="analyze-completeness")
+cli.add_command(fix_runtime_error.fix_runtime_error, name="fix-runtime-error")
 
 
 def main():

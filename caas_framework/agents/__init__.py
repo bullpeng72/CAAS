@@ -19,6 +19,7 @@ from caas_framework.agents.capability_assessment import (
     get_capability_registry,
     register_agent_capability,
 )
+from caas_framework.agents.code_analysis_agent import CodeAnalysisAgent
 from caas_framework.agents.code_generator import CodeGeneratorAgent
 from caas_framework.agents.qa_specialist import QASpecialistAgent
 
@@ -52,6 +53,7 @@ __all__ = [
     "AgentDesignerAgent",
     "CodeGeneratorAgent",
     "QASpecialistAgent",
+    "CodeAnalysisAgent",  # NEW in v0.4.0
     # Self-aware agents
     "SelfAwareMixin",
     "SelfAwareAgent",

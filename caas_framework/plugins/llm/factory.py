@@ -60,8 +60,9 @@ def create_llm_plugin(
         raise NotImplementedError("Anthropic plugin not yet implemented")
 
     elif provider == LLMProvider.OLLAMA:
-        # Future: Ollama plugin
-        raise NotImplementedError("Ollama plugin not yet implemented")
+        from caas_framework.plugins.llm.ollama import OllamaPlugin
+
+        return OllamaPlugin(name=f"ollama-{model}", config=config)
 
     elif provider == LLMProvider.AZURE_OPENAI:
         # Future: Azure OpenAI plugin

@@ -295,7 +295,11 @@ Evaluate now:"""
     def _parse_evaluation_response(
         self, response: str, phase: AgentPhase, criteria: List[Dict[str, str]]
     ) -> EvaluationResult:
-        """Parse LLM evaluation response into EvaluationResult"""
+        """
+        Parse LLM evaluation response into EvaluationResult
+
+        ✅ IMPROVED (P1): Multi-strategy JSON extraction with fallback
+        """
 
         import json
         import re
@@ -306,22 +310,60 @@ Evaluate now:"""
                 self.logger.warning("LLM returned empty response for evaluation")
                 raise ValueError("Empty response from LLM")
 
-            # Extract JSON from response (handle markdown code blocks)
-            json_match = re.search(
-                r"```(?:json)?\s*(\{.*?\})\s*```", response, re.DOTALL
-            )
-            if json_match:
-                json_str = json_match.group(1)
-            else:
-                # Try to find raw JSON
-                json_str = response.strip()
+            # ✅ Strategy 1: Extract JSON from markdown code blocks (multiple patterns)
+            json_patterns = [
+                r"```(?:json)?\s*(\{.*?\})\s*```",  # Standard markdown
+                r"```\s*(\{.*?\})\s*```",  # Without json tag
+                r"(?:json)?\s*(\{.*?\})",  # Without backticks
+            ]
 
-                # Check if json_str is empty after stripping
-                if not json_str:
-                    self.logger.warning("No JSON content found in LLM response")
-                    raise ValueError("No JSON content in response")
+            json_str = None
+            for pattern in json_patterns:
+                json_match = re.search(pattern, response, re.DOTALL)
+                if json_match:
+                    json_str = json_match.group(1)
+                    break
 
-            data = json.loads(json_str)
+            # ✅ Strategy 2: Try raw response if no match
+            if not json_str:
+                # Remove common prefixes
+                cleaned = response.strip()
+                for prefix in ["Here is the evaluation:", "Evaluation:", "Response:"]:
+                    if cleaned.startswith(prefix):
+                        cleaned = cleaned[len(prefix):].strip()
+                json_str = cleaned
+
+            # Check if json_str is empty after extraction
+            if not json_str:
+                self.logger.warning("No JSON content found in LLM response")
+                raise ValueError("No JSON content in response")
+
+            # ✅ Strategy 3: Parse JSON with error handling
+            try:
+                data = json.loads(json_str)
+            except json.JSONDecodeError as e:
+                self.logger.warning(f"JSON parsing failed: {e}, trying to extract partial JSON")
+                # ✅ Strategy 4: Try to find and extract the first valid JSON object
+                brace_count = 0
+                start_idx = None
+                for i, char in enumerate(json_str):
+                    if char == '{':
+                        if start_idx is None:
+                            start_idx = i
+                        brace_count += 1
+                    elif char == '}':
+                        brace_count -= 1
+                        if brace_count == 0 and start_idx is not None:
+                            # Found complete JSON object
+                            try:
+                                data = json.loads(json_str[start_idx:i+1])
+                                break
+                            except json.JSONDecodeError:
+                                # Continue searching
+                                start_idx = None
+                else:
+                    # No valid JSON found
+                    raise ValueError(f"Could not extract valid JSON from response: {e}")
 
             # Parse dimension scores
             dimension_scores = []

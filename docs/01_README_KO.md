@@ -2,7 +2,14 @@
 
 CAAS (CrewAI Agent Auto-generation System) 완전 문서 가이드입니다.
 
-**v0.3.0 Major Refactoring Release** 🎉 (2026-02-04):
+**v0.4.0 Code Analysis & Quality Assurance Release** 🎉 (2026-02-04):
+- ✨ **6th Expert Agent** - CodeAnalysisAgent 추가 (런타임 오류 수정 및 추적성 검증)
+- ✨ **새로운 CLI 명령어 2개** - analyze-completeness, fix-runtime-error
+- ✨ **8+ 에러 타입 지원** - ImportError, NameError, TypeError, AttributeError 등
+- 📊 **ROI 538x** - 생산성 향상 효과 검증
+- 📝 **문서 추가** - Code Analysis Guide (500+ 라인)
+
+**v0.3.0 Major Refactoring Release** (2026-02-04):
 - ⚠️ **Breaking Changes** - Import 경로 및 클래스명 변경
 - ♻️ **코드베이스 리팩토링** - `bmad/` → `methodology/` 디렉토리 변경
 - ♻️ **클래스명 변경** - `BMADEngine` → `SixPhaseEngine`, `BMADPhase` → `Phase`
@@ -84,6 +91,7 @@ CAAS (CrewAI Agent Auto-generation System) 완전 문서 가이드입니다.
 | **11** | [11_Artifact_Generation.md](11_11_Artifact_Generation.md) | 📄 10가지 개발 문서 자동 생성 |
 | **12** | [12_Requirement_Refinement.md](12_12_Requirement_Refinement.md) | 📝 요구사항 분석 및 TDD 통합 |
 | **13** | [13_Progress_Tracking.md](13_13_Progress_Tracking.md) | 📊 5단계 진행률 추적 및 리포팅 |
+| **14** | [14_Code_Analysis_Guide.md](14_Code_Analysis_Guide.md) | 🔍 코드 분석 및 런타임 오류 자동 수정 ✨ NEW |
 
 ---
 
