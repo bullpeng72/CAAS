@@ -506,7 +506,7 @@ def show_brief_help():
 
 
 @click.group(cls=CustomGroup, invoke_without_command=True)
-@click.version_option(version="0.2.0")
+@click.version_option(version="0.3.0")
 @click.pass_context
 def cli(ctx):
     """CAAS - CrewAI Agent Auto-generation System

@@ -7,7 +7,7 @@
 ![Python](https://img.shields.io/badge/Python-3.11+-blue)
 ![CrewAI](https://img.shields.io/badge/CrewAI-0.65+-green)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
-![Version](https://img.shields.io/badge/Version-0.2.0-orange)
+![Version](https://img.shields.io/badge/Version-0.3.0-orange)
 ![Status](https://img.shields.io/badge/Status-Stable-brightgreen)
 
 ---
