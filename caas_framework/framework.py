@@ -76,8 +76,8 @@ class CrewAIFramework:
 
     def __init__(
         self,
-        llm_provider: str = "openai",
-        graph_backend: str = "embedded",
+        llm_provider: Optional[str] = None,  # Let config determine provider
+        graph_backend: Optional[str] = None,  # Let config determine backend
         vectordb_backend: Optional[str] = None,
         config: Optional[FrameworkConfig] = None,
         config_file: Optional[str] = None,
@@ -187,8 +187,15 @@ class CrewAIFramework:
             "api_base": self.config.llm.api_base,
         }
 
+        # Convert enum to string for plugin registry
+        provider_name = (
+            self.config.llm.provider.value
+            if hasattr(self.config.llm.provider, "value")
+            else self.config.llm.provider
+        )
+
         self._llm_plugin = await self.registry.initialize_plugin(
-            name=self.config.llm.provider, plugin_type="llm", config=llm_config
+            name=provider_name, plugin_type="llm", config=llm_config
         )
 
         # 2. Initialize graph backend

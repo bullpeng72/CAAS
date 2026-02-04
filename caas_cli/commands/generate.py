@@ -385,7 +385,8 @@ def generate(
         async def run_generation():
             echo_progress("Initializing framework...")
 
-            framework = CrewAIFramework(llm_provider="openai", config=config)
+            # Let framework use config's LLM provider (from .env or config file)
+            framework = CrewAIFramework(config=config)
 
             await framework.initialize()
             echo_success("Framework initialized")

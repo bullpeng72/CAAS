@@ -16,6 +16,7 @@ Multi-Model Support:
 
 # Import plugin implementations to trigger registration
 from caas_framework.plugins.llm import openai  # noqa: F401
+from caas_framework.plugins.llm import ollama  # noqa: F401
 from caas_framework.plugins.llm.base import LLMPlugin
 from caas_framework.plugins.llm.factory import (
     create_cost_optimized_setup,
