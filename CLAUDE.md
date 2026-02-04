@@ -2,13 +2,14 @@
 
 ## 프로젝트 개요
 
-**CAAS (CrewAI Agent Auto-generation System)** v0.2.0
+**CAAS (CrewAI Agent Auto-generation System)** v0.3.0
 
 자연어 요구사항을 입력받아 프로덕션 레디 멀티 에이전트 시스템 코드를 자동으로 생성하는 통합 패키지입니다.
 
 - **핵심 목표**: 자연어 → Golden Data → Agent/Task 설계 → Production Code 자동 생성
 - **방법론**: CAAS 6-Phase Methodology (Concretization → Discovery → Architecture → Design → Development → Delivery)
 - **강점**: CrewAI 멀티 에이전트 시스템 98.7% 구현률 달성
+- **도메인**: 13개 도메인 지원 (AGENT_BASED 5개, HYBRID 4개, CRUD_BASED 4개)
 - **아키텍처**: Framework-First (UI-독립적 코어 + 다중 인터페이스)
 - **배포 전략**: 단일 통합 패키지 (CLI 필수 + Framework 라이브러리)
 
@@ -24,8 +25,8 @@ caas/
 │   │   ├── agent_designer.py
 │   │   ├── qa_specialist.py
 │   │   └── code_generator.py
-│   ├── bmad/                # 6-Phase Methodology Engine
-│   │   ├── engine.py        # Phase 오케스트레이터
+│   ├── methodology/         # CAAS 6-Phase Methodology Engine (v0.3.0+)
+│   │   ├── engine.py        # Phase 오케스트레이터 (SixPhaseEngine)
 │   │   └── golden_data.py   # Phase 0: Concretization
 │   ├── codegen/             # Code Generation
 │   │   ├── generators/      # 도메인별 코드 생성기
@@ -134,7 +135,7 @@ Phase 5: Delivery
   └─> Production Code (main.py, agents.py, tasks.py, tools.py, tests, deployment)
 ```
 
-**중요**: Quality Gate 시스템이 v0.2.0에서 일부 Phase에서 임시 우회됨 (무한 대기 문제 해결). v0.3.0에서 근본 수정 예정.
+**중요**: Quality Gate 시스템이 일부 Phase에서 임시 우회됨 (무한 대기 문제 해결). v0.4.0에서 근본 수정 예정.
 
 ### 3. 5 Expert Agents Collaboration
 
@@ -467,18 +468,28 @@ from caas_framework.knowledge.graph_client import GraphClient
 
 ### 4. 지원되는 도메인
 
+**13개 도메인 지원 (v0.3.0+)**:
+
 | 도메인 | 전략 | 구현률 |
 |--------|------|--------|
+| **AGENT_BASED (5개)** |
 | CONVERSATIONAL_AI | AGENT_BASED | 98.7% ⭐ |
-| CONTENT_CREATION | AGENT_BASED | 98.7% ⭐ |
-| DATA_ANALYSIS | HYBRID | 98.3% ⭐ |
-| WORKFLOW_AUTOMATION | HYBRID | 높음 |
-| TASK_MANAGEMENT | CRUD_BASED | 중간 |
-| E_COMMERCE | CRUD_BASED | 중간 |
-| PROJECT_MANAGEMENT | CRUD_BASED | 중간 |
 | CUSTOMER_SUPPORT | AGENT_BASED | 높음 |
+| CONTENT_CREATION | AGENT_BASED | 98.7% ⭐ |
+| REPORT_GENERATION | AGENT_BASED | 높음 |
+| EDUCATION | AGENT_BASED | 중간 |
+| **HYBRID (4개)** |
+| WORKFLOW_AUTOMATION | HYBRID | 높음 |
+| DATA_ANALYSIS | HYBRID | 98.3% ⭐ |
+| DOCUMENT_PROCESSING | HYBRID | 높음 |
+| API_INTEGRATION | HYBRID | 중간 |
+| **CRUD_BASED (4개)** |
+| TASK_MANAGEMENT | CRUD_BASED | 중간 |
+| DASHBOARD | CRUD_BASED | 중간 |
+| KNOWLEDGE_BASE | CRUD_BASED | 중간 |
+| E_COMMERCE | CRUD_BASED | 중간 |
 
-**추천**: CrewAI 멀티 에이전트 시스템, 데이터 분석 워크플로우
+**추천**: CrewAI 멀티 에이전트 시스템 (98.7%), 데이터 분석 워크플로우 (98.3%)
 
 ### 5. 환경 변수 설정
 
@@ -592,7 +603,7 @@ caas download <id> ./output
 ### 설치 방법
 
 ```bash
-# PyPI에서 설치 (v0.2.0+)
+# PyPI에서 설치 (v0.3.0+)
 pip install caas
 ```
 
@@ -684,13 +695,13 @@ async def handle_request(request_json):
 **A**: Framework-First 아키텍처로 리팩토링 완료 (2026-02-02). 모든 기능이 `caas_framework/`로 통합되어 UI-독립성 확보. 5개 핵심 파일(tool_generator, crud_entity_extractor, domain_strategy, matcher, mcp_client)이 마이그레이션되었습니다.
 
 ### Q: Quality Gate가 왜 우회되었나요?
-**A**: v0.2.0에서 무한 대기 버그 발견. 임시 우회로 워크플로우 정상화. v0.3.0에서 근본 수정 예정.
+**A**: 무한 대기 버그 발견으로 임시 우회. 워크플로우는 정상 동작. v0.4.0에서 근본 수정 예정.
 
 ### Q: 라이브러리로 사용할 수 있나요?
 **A**: ✅ 가능. `pip install caas` 후 `from caas_framework import CrewAIFramework`로 import하여 Streamlit, FastAPI, React, VSCode Extension 등 다양한 UI 개발에 사용 가능.
 
 ### Q: 어떤 도메인이 가장 잘 지원되나요?
-**A**: CrewAI 멀티 에이전트 시스템 (98.7% 구현률), 데이터 분석 워크플로우 (98.3% 구현률).
+**A**: 13개 도메인 지원. 최우수: CrewAI 멀티 에이전트 시스템 (98.7% 구현률), 데이터 분석 워크플로우 (98.3% 구현률). AGENT_BASED 5개, HYBRID 4개, CRUD_BASED 4개 도메인 완전 구현.
 
 ### Q: 테스트 커버리지는 어떻게 되나요?
 **A**: 100+ 테스트 존재. E2E 테스트로 실제 사용 시나리오 검증.
