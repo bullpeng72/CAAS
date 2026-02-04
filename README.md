@@ -151,7 +151,7 @@ pip install caas
 
 ```bash
 # 1. 저장소 클론
-git clone https://github.com/bullpeng72/CrewAI-Agent-Autogeneration-System.git
+git clone https://github.com/bullpeng72/CAAS.git
 cd caas
 
 # 2. 가상 환경 설정
@@ -796,9 +796,9 @@ MIT License - 자세한 내용은 [LICENSE](LICENSE) 파일 참조
 
 ## 📞 문의
 
-- GitHub Issues: [Issues](https://github.com/bullpeng72/CrewAI-Agent-Autogeneration-System/issues)
+- GitHub Issues: [Issues](https://github.com/bullpeng72/CAAS/issues)
 - Email: sungwoo.kim@gmail.com
-- Documentation: [GitHub Docs](https://github.com/bullpeng72/CrewAI-Agent-Autogeneration-System#readme)
+- Documentation: [GitHub Docs](https://github.com/bullpeng72/CAAS#readme)
 
 ---
 

@@ -29,7 +29,7 @@ CAAS CLI는 자연어 요구사항으로부터 멀티 에이전트 시스템을 
 
 ```bash
 # 리포지토리 클론
-git clone https://github.com/bullpeng72/CrewAI-Agent-Autogeneration-System.git
+git clone https://github.com/bullpeng72/CAAS.git
 cd caas
 
 # 가상환경 생성 및 활성화
@@ -269,6 +269,6 @@ caas generate --help
 
 ## 지원
 
-- **GitHub Issues**: https://github.com/bullpeng72/CrewAI-Agent-Autogeneration-System/issues
+- **GitHub Issues**: https://github.com/bullpeng72/CAAS/issues
 - **문서**: `docs/README_KO.md`
 - **예제**: `tests/test_e2e_` 디렉토리 확인

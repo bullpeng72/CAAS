@@ -360,8 +360,8 @@ logger = logging.getLogger(__name__)
 
 ### Git 브랜치 전략
 
-현재 브랜치: `refactor/fundamental-redesign`
-- 메인 브랜치: (설정 필요)
+현재 브랜치: `CAAS`
+- 메인 브랜치: `master`
 - Feature 브랜치: `feature/새기능명`
 - Bugfix 브랜치: `fix/버그명`
 
@@ -719,7 +719,9 @@ async def handle_request(request_json):
 **Last Updated**: 2026-02-03
 **Version**: 0.2.0
 **Package Name**: caas (통합 패키지)
-**Branch**: refactor/fundamental-redesign
+**Repository**: https://github.com/bullpeng72/CAAS.git
+**Branch**: CAAS
+**Main Branch**: master
 **Status**: Production-Ready ✅
 **Deployment Strategy**: Single Unified Package (CLI + Framework Library)
 

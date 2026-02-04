@@ -10,24 +10,7 @@ from typing import Any, Dict, List, Optional, Set, Tuple, Union
 from pydantic import BaseModel
 
 from caas_framework.models.validation import DependencyIssue
-
-
-def _safe_get(obj: Union[Dict, BaseModel], key: str, default: Any = None) -> Any:
-    """
-    Safely get value from dict or Pydantic model.
-
-    Args:
-        obj: Dict or Pydantic model object
-        key: Key or attribute name
-        default: Default value
-
-    Returns:
-        Found value or default
-    """
-    if isinstance(obj, dict):
-        return obj.get(key, default)
-    else:
-        return getattr(obj, key, default)
+from caas_framework.utils.safe_access import safe_get_value as _safe_get
 
 
 class DependencyValidator:
