@@ -699,6 +699,15 @@ async def handle_request(request_json):
 
 ## 변경 이력
 
+### 2026-02-04: v0.3.0 코드베이스 리팩토링 완료 ✅
+- **BMAD → CAAS 6-Phase Methodology 전환 완료**
+- 디렉토리 변경: `caas_framework/bmad/` → `caas_framework/methodology/`
+- 클래스 변경: `BMADEngine` → `SixPhaseEngine`, `BMADPhase` → `Phase`
+- Import 경로 업데이트: 36개 Python 파일
+- 문서 전면 개편: 22개 파일, 118회 BMAD 언급 제거
+- 검증 완료: Python import 테스트 통과
+- Breaking Changes: Import 경로 및 클래스명 변경 (마이그레이션 가이드 제공)
+
 ### 2026-02-03: 패키지 이름 변경 및 배포 전략 확정 ✅
 - 패키지 이름: `caas-cli` → `caas` (통합 패키지 명확화)
 - 패키지 설명: CLI Interface → Complete Package (Framework + CLI)
@@ -716,8 +725,8 @@ async def handle_request(request_json):
 
 ---
 
-**Last Updated**: 2026-02-03
-**Version**: 0.2.0
+**Last Updated**: 2026-02-04
+**Version**: 0.3.0
 **Package Name**: caas (통합 패키지)
 **Repository**: https://github.com/bullpeng72/CAAS.git
 **Branch**: CAAS

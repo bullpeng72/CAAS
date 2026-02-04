@@ -662,7 +662,20 @@ pytest tests/test_validation/        # 검증 시스템
 
 ## 🗺️ 로드맵
 
-### ✅ v0.2.0 완료 (Current - 2026-01-31) 🎉
+### ✅ v0.3.0 완료 (Current - 2026-02-04) 🎉
+**Major Refactoring Release**
+
+- [x] **코드베이스 리팩토링** - BMAD → CAAS 6-Phase Methodology 완전 전환
+  - 디렉토리: `caas_framework/bmad/` → `caas_framework/methodology/`
+  - 클래스: `BMADEngine` → `SixPhaseEngine`, `BMADPhase` → `Phase`
+  - Import: `from caas_framework.bmad` → `from caas_framework.methodology`
+- [x] **문서 전면 개편** - 22개 파일, 118회 BMAD 언급 제거
+- [x] **명확한 정체성 확립** - 원본 BMAD와 차별화 명시
+- [x] **검증 완료** - 전문가 방법론 가이드 실전 검증 (⭐⭐⭐⭐⭐ 5/5)
+
+⚠️ **Breaking Changes**: Import 경로 및 클래스명 변경. [마이그레이션 가이드](#마이그레이션-가이드-v030) 참조
+
+### ✅ v0.2.0 완료 (2026-01-31)
 **Production-Ready Release**
 
 - [x] **CAAS 6-Phase Methodology 완전 구현** - 모든 Phase 100% 완료 검증
@@ -683,7 +696,7 @@ pytest tests/test_validation/        # 검증 시스템
 - [x] **Session & Workflow 관리**
 - [x] **Plugin 시스템**
 
-### 🚧 v0.3.0 계획 (2026-Q2)
+### 🚧 v0.4.0 계획 (2026-Q2)
 **Performance & Stability**
 
 - [ ] Quality Gate 근본 원인 수정 (현재 임시 우회)
@@ -701,6 +714,58 @@ pytest tests/test_validation/        # 검증 시스템
 - [ ] VS Code Extension
 - [ ] CI/CD 파이프라인 자동 생성
 - [ ] 클라우드 배포 자동화 (AWS, GCP, Azure)
+
+---
+
+## 🔄 마이그레이션 가이드 (v0.3.0)
+
+### Breaking Changes
+
+v0.3.0에서 코드베이스가 전면 리팩토링되었습니다. 기존 코드를 사용 중이라면 다음과 같이 업데이트하세요.
+
+#### 1. Import 경로 변경
+
+**Before (v0.2.0)**:
+```python
+from caas_framework.bmad.engine import BMADEngine, BMADPhase
+from caas_framework.bmad.golden_data import GoldenDataPipeline
+```
+
+**After (v0.3.0)**:
+```python
+from caas_framework.methodology.engine import SixPhaseEngine, Phase
+from caas_framework.methodology.golden_data import GoldenDataPipeline
+```
+
+#### 2. 클래스명 변경
+
+| v0.2.0 | v0.3.0 |
+|--------|--------|
+| `BMADEngine` | `SixPhaseEngine` |
+| `BMADPhase` | `Phase` |
+| `BMADContext` | `MethodologyContext` |
+| `BMADResult` | `MethodologyResult` |
+
+**Before**:
+```python
+engine = BMADEngine(llm_plugin=llm)
+result = await engine.execute_phase(BMADPhase.DISCOVERY, ...)
+```
+
+**After**:
+```python
+engine = SixPhaseEngine(llm_plugin=llm)
+result = await engine.execute_phase(Phase.DISCOVERY, ...)
+```
+
+#### 3. 자동 변환 스크립트
+
+```bash
+# 프로젝트 디렉토리에서 실행
+find . -type f -name "*.py" -exec sed -i '' 's/from caas_framework\.bmad/from caas_framework.methodology/g' {} \;
+find . -type f -name "*.py" -exec sed -i '' 's/BMADEngine/SixPhaseEngine/g' {} \;
+find . -type f -name "*.py" -exec sed -i '' 's/BMADPhase/Phase/g' {} \;
+```
 
 ---
 

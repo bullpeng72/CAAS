@@ -2,7 +2,14 @@
 
 CAAS (CrewAI Agent Auto-generation System) 완전 문서 가이드입니다.
 
-**v0.2.0 Production Release** 🎉 (2026-02-03):
+**v0.3.0 Major Refactoring Release** 🎉 (2026-02-04):
+- ⚠️ **Breaking Changes** - Import 경로 및 클래스명 변경
+- ♻️ **코드베이스 리팩토링** - `bmad/` → `methodology/` 디렉토리 변경
+- ♻️ **클래스명 변경** - `BMADEngine` → `SixPhaseEngine`, `BMADPhase` → `Phase`
+- 📝 **문서 업데이트** - CAAS 6-Phase Methodology 명확화
+- 🔄 **마이그레이션 가이드** - [v0.3.0 마이그레이션 가이드](#-v030-마이그레이션-가이드) 참조
+
+**v0.2.0 Production Release** (2026-02-03):
 - ✅ **프로덕션 준비 완료** - 종합 테스트 검증 완료
 - ✅ **높은 구현률** - CrewAI 멀티 에이전트: 98.7% ⭐⭐⭐
 - ✅ **안정적인 워크플로우** - 모든 6개 6-Phase 100% 완료
@@ -413,12 +420,65 @@ MIT License - 자세한 내용은 [LICENSE](../LICENSE) 참조
 
 ## 🔄 문서 업데이트 이력
 
+- **2026-02-04**: v0.3.0 마이그레이션 가이드 추가, 코드베이스 리팩토링 (bmad → methodology)
 - **2026-02-04**: 문서 구조 개편 (14개 → 13개 통합, 학습 순서 번호 부여)
 - **2026-02-03**: 초보자 가이드 v4.0.0 업데이트 (실전 테스트 결과 반영)
 - **2026-01-31**: v0.2.0 프로덕션 릴리스, 종합 테스트 결과 추가, 성능 검증 완료
 - **2026-01-28**: tools.py 생성 개선, 완전성 검증 개선, 한국어 지원 강화
 - **2025-12**: BMAD 6단계 프로세스 안정화
 - **2025-11**: 초기 문서 작성
+
+---
+
+## 🔄 v0.3.0 마이그레이션 가이드
+
+### Breaking Changes
+
+v0.3.0에서 코드베이스가 전면 리팩토링되었습니다. 기존 v0.2.0 코드를 사용 중이라면 다음과 같이 업데이트하세요.
+
+#### 1. Import 경로 변경
+
+**Before (v0.2.0)**:
+```python
+from caas_framework.bmad.engine import BMADEngine, BMADPhase
+from caas_framework.bmad.golden_data import GoldenDataPipeline
+```
+
+**After (v0.3.0)**:
+```python
+from caas_framework.methodology.engine import SixPhaseEngine, Phase
+from caas_framework.methodology.golden_data import GoldenDataPipeline
+```
+
+#### 2. 클래스명 변경
+
+| v0.2.0 | v0.3.0 |
+|--------|--------|
+| `BMADEngine` | `SixPhaseEngine` |
+| `BMADPhase` | `Phase` |
+| `BMADContext` | `MethodologyContext` |
+| `BMADResult` | `MethodologyResult` |
+
+**Before**:
+```python
+engine = BMADEngine(llm_plugin=llm)
+result = await engine.execute_phase(BMADPhase.DISCOVERY, ...)
+```
+
+**After**:
+```python
+engine = SixPhaseEngine(llm_plugin=llm)
+result = await engine.execute_phase(Phase.DISCOVERY, ...)
+```
+
+#### 3. 자동 변환 스크립트
+
+```bash
+# 프로젝트 디렉토리에서 실행
+find . -type f -name "*.py" -exec sed -i '' 's/from caas_framework\.bmad/from caas_framework.methodology/g' {} \;
+find . -type f -name "*.py" -exec sed -i '' 's/BMADEngine/SixPhaseEngine/g' {} \;
+find . -type f -name "*.py" -exec sed -i '' 's/BMADPhase/Phase/g' {} \;
+```
 
 ---
 
@@ -439,7 +499,7 @@ MIT License - 자세한 내용은 [LICENSE](../LICENSE) 참조
 ```
 caas/
 ├── caas_framework/      # 핵심 프레임워크 (27,840+ 라인)
-│   ├── bmad/           # 6-Phase 엔진 (6-Phase 구현)
+│   ├── methodology/    # CAAS 6-Phase 엔진 (v0.3.0+)
 │   ├── codegen/        # 코드 생성 (LLM + 템플릿)
 │   ├── validation/     # 6개 Validator
 │   ├── testing/        # TDD 통합
