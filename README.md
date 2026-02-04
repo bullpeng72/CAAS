@@ -388,25 +388,20 @@ caas/
 │   ├── templates/                   # Code templates (Jinja2)
 │   └── golden_examples/             # Golden data examples
 │
-├── 📁 docs/                         # Documentation (한국어 중심)
-│   ├── README_KO.md                 # 한국어 문서 색인
-│   ├── 1_시작하기/                  # 설치 및 시작 가이드
-│   │   ├── 설치_가이드.md
-│   │   ├── 빠른_시작_가이드.md
-│   │   └── CLI_사용_가이드.md
-│   ├── 2_개발_방법론/               # CAAS 6-Phase Methodology 및 활용
-│   │   ├── 초보자_가이드.md
-│   │   └── 전문가_방법론_가이드.md
-│   ├── 3_시스템_문서/               # 아키텍처 및 배포
-│   │   ├── 아키텍처_가이드.md
-│   │   ├── 통합_가이드.md
-│   │   └── 배포_가이드.md
-│   └── 4_기능_가이드/               # 기능별 상세 가이드
-│       ├── API_키_관리.md
-│       ├── 산출물_자동생성.md
-│       ├── 요구사항_정제.md
-│       ├── 도구_매핑.md
-│       └── 진행상황_추적.md
+├── 📁 docs/                         # Documentation (한국어 중심, 13개)
+│   ├── 01_README_KO.md              # 한국어 문서 색인
+│   ├── 02_설치_가이드.md            # 설치 및 환경 설정
+│   ├── 03_빠른시작_및_초보자_가이드.md  # 5분 빠른 시작 + 완전 가이드
+│   ├── 04_CLI_사용_가이드.md        # CLI 20개 명령어 레퍼런스
+│   ├── 05_전문가_방법론_가이드.md   # CAAS 6-Phase Methodology (고급)
+│   ├── 06_아키텍처_가이드.md        # 시스템 아키텍처 및 설계
+│   ├── 07_배포_가이드.md            # 프로덕션 배포 및 운영
+│   ├── 08_통합_가이드.md            # Frontend-Backend 통합
+│   ├── 09_API_키_관리.md            # 40+ CrewAI 도구 API 키
+│   ├── 10_도구_매핑.md              # 도구 자동 매핑 시스템
+│   ├── 11_산출물_자동생성.md        # 10가지 개발 문서 자동화
+│   ├── 12_요구사항_정제.md          # 요구사항 분석 및 TDD
+│   └── 13_진행상황_추적.md          # 5단계 진행률 추적
 │
 ├── 📁 examples/                     # Examples
 ├── 📁 tests/                        # Test suite (100+ tests)
@@ -528,51 +523,72 @@ caas generate-code \
 
 ---
 
-## 🎯 지원 도메인 (8개)
+## 🎯 지원 도메인 (13개)
 
-| 도메인 | 전략 | 생성 코드 | 특징 |
-|--------|------|----------|-----|
-| **TASK_MANAGEMENT** | CRUD_BASED | FastAPI + SQLAlchemy + Streamlit | 할일, 작업 관리 |
-| **E_COMMERCE** | CRUD_BASED | FastAPI + SQLAlchemy + Streamlit | 전자상거래 |
-| **PROJECT_MANAGEMENT** | CRUD_BASED | FastAPI + SQLAlchemy + Streamlit | 프로젝트 관리 |
-| **CONVERSATIONAL_AI** | AGENT_BASED | CrewAI Agents + Chat UI | 대화형 AI |
-| **CUSTOMER_SUPPORT** | AGENT_BASED | CrewAI Agents + Support UI | 고객 지원 |
-| **CONTENT_CREATION** | AGENT_BASED | CrewAI Agents + Content UI | 콘텐츠 생성 |
-| **WORKFLOW_AUTOMATION** | HYBRID | CrewAI + FastAPI + Database | 워크플로우 자동화 |
-| **DATA_ANALYSIS** | HYBRID | CrewAI + FastAPI + Database | 데이터 분석 |
+**13개 도메인이 완전히 구현되어 agent/tool 자동 선택에 영향을 줍니다.**
+
+### AGENT_BASED (5개)
+CrewAI 멀티 에이전트 중심, 복잡한 협업 로직 처리
+
+| 도메인 | 특징 | 생성 코드 |
+|--------|------|----------|
+| **CONVERSATIONAL_AI** | 대화형 AI 시스템 | CrewAI Agents + Chat UI |
+| **CUSTOMER_SUPPORT** | 고객 지원 자동화 | CrewAI Agents + Support UI |
+| **CONTENT_CREATION** | 콘텐츠 생성 및 편집 | CrewAI Agents + Content UI |
+| **REPORT_GENERATION** | 리포트 자동 생성 | CrewAI Agents + Report UI |
+| **EDUCATION** | 교육 및 학습 시스템 | CrewAI Agents + Learning UI |
+
+### HYBRID (4개)
+Agent + CRUD 결합, 최고의 유연성
+
+| 도메인 | 특징 | 생성 코드 |
+|--------|------|----------|
+| **WORKFLOW_AUTOMATION** | 워크플로우 자동화 | CrewAI + FastAPI + Database |
+| **DATA_ANALYSIS** | 데이터 수집/분석 | CrewAI + FastAPI + Database |
+| **DOCUMENT_PROCESSING** | 문서 처리 및 변환 | CrewAI + FastAPI + Database |
+| **API_INTEGRATION** | 외부 API 통합 | CrewAI + FastAPI + Database |
+
+### CRUD_BASED (4개)
+Agent 최소화, CRUD API 중심, 빠른 개발
+
+| 도메인 | 특징 | 생성 코드 |
+|--------|------|----------|
+| **TASK_MANAGEMENT** | 할일, 작업 관리 | FastAPI + SQLAlchemy + Streamlit |
+| **DASHBOARD** | 대시보드 및 모니터링 | FastAPI + SQLAlchemy + Streamlit |
+| **KNOWLEDGE_BASE** | 지식 관리 시스템 | FastAPI + SQLAlchemy + Streamlit |
+| **E_COMMERCE** | 전자상거래 | FastAPI + SQLAlchemy + Streamlit |
 
 ### 전략 설명
-- **CRUD_BASED**: Agent 최소화, CRUD API 중심 (빠른 개발)
-- **AGENT_BASED**: 멀티 에이전트 시스템 (복잡한 로직)
-- **HYBRID**: Agent + CRUD 결합 (최고의 유연성)
+- **AGENT_BASED**: 멀티 에이전트 협업 중심 (AI 기반 복잡한 의사결정)
+- **HYBRID**: Agent + 데이터 처리 결합 (유연성 + 성능)
+- **CRUD_BASED**: 전통적인 CRUD 중심 (빠른 프로토타이핑)
 
 ---
 
 ## 📚 문서
 
 ### 📖 한국어 문서 (권장)
-- 📁 [문서 색인](docs/README_KO.md) - 전체 한국어 문서 목록
+- 📁 [문서 색인](docs/01_README_KO.md) - 전체 한국어 문서 목록 (13개)
 
 ### 🚀 시작 가이드
-- 📦 [설치 가이드](docs/1_시작하기/설치_가이드.md) - 설치 및 환경 설정
-- 🎯 [빠른 시작 가이드](docs/1_시작하기/빠른_시작_가이드.md) - 5분 안에 시작하기
-- 💻 [CLI 사용 가이드](docs/1_시작하기/CLI_사용_가이드.md) - CLI 완전 가이드
+- 📦 [설치 가이드](docs/02_설치_가이드.md) - 설치 및 환경 설정
+- 🎯 [빠른 시작 가이드](docs/03_빠른시작_및_초보자_가이드.md) - 5분 안에 시작하기 ⭐
+- 💻 [CLI 사용 가이드](docs/04_CLI_사용_가이드.md) - CLI 20개 명령어 완전 가이드
 
 ### 🛠️ 개발 방법론
-- 👶 [초보자 가이드](docs/2_개발_방법론/초보자_가이드.md) - 실전 활용 완벽 매뉴얼 ⭐
-- 👨‍💻 [전문가 방법론 가이드](docs/2_개발_방법론/전문가_방법론_가이드.md) - CAAS 6-Phase Methodology
+- 👨‍💻 [전문가 방법론 가이드](docs/05_전문가_방법론_가이드.md) - CAAS 6-Phase Methodology (고급)
 
 ### 🔧 시스템 문서
-- 🏗️ [아키텍처 가이드](docs/3_시스템_문서/아키텍처_가이드.md) - 시스템 아키텍처
-- 🔗 [통합 가이드](docs/3_시스템_문서/통합_가이드.md) - Frontend-Backend 통합
-- 🚀 [배포 가이드](docs/3_시스템_문서/배포_가이드.md) - 프로덕션 배포
+- 🏗️ [아키텍처 가이드](docs/06_아키텍처_가이드.md) - 시스템 아키텍처
+- 🔗 [통합 가이드](docs/08_통합_가이드.md) - Frontend-Backend 통합
+- 🚀 [배포 가이드](docs/07_배포_가이드.md) - 프로덕션 배포
 
 ### 📝 기능 가이드
-- 🔑 [API 키 관리](docs/4_기능_가이드/API_키_관리.md) - API 키 설정
-- 📋 [산출물 자동생성](docs/4_기능_가이드/산출물_자동생성.md) - 개발 문서 자동화
-- ✨ [요구사항 정제](docs/4_기능_가이드/요구사항_정제.md) - Gap Analysis & Expansion
-- 🔧 [도구 매핑](docs/4_기능_가이드/도구_매핑.md) - CrewAI Tools 번역
-- 📊 [진행상황 추적](docs/4_기능_가이드/진행상황_추적.md) - Progress Tracking
+- 🔑 [API 키 관리](docs/09_API_키_관리.md) - 40+ CrewAI 도구 API 키 설정
+- 📋 [산출물 자동생성](docs/11_산출물_자동생성.md) - 10가지 개발 문서 자동화
+- ✨ [요구사항 정제](docs/12_요구사항_정제.md) - Gap Analysis & Expansion
+- 🔧 [도구 매핑](docs/10_도구_매핑.md) - 도구 자동 매핑 및 추천
+- 📊 [진행상황 추적](docs/13_진행상황_추적.md) - 5단계 진행률 추적
 
 ---
 
