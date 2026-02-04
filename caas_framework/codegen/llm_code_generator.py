@@ -639,8 +639,8 @@ from typing import Any
         This is now a thin wrapper around the centralized tool generation utility.
 
         Call Path (Legacy Mode):
-            BMADEngine.run() [use_expert_agents=False]
-              → BMADEngine._phase_5_delivery()
+            SixPhaseEngine.run() [use_expert_agents=False]
+              → SixPhaseEngine._phase_5_delivery()
               → CodeGenerationEngine.generate()
               → LLMCodeGenerator.generate_custom_tools()
               → (on LLM failure) LLMCodeGenerator._generate_fallback_tools() ← YOU ARE HERE

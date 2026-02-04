@@ -85,7 +85,7 @@ def generate_fallback_tools_code(
         This function is called by both code generation paths:
 
         Path 1 - Expert Agent Collaboration (DEFAULT, use_expert_agents=True):
-            BMADEngine.run()
+            SixPhaseEngine.run()
               → ExpertAgentCollaboration.collaborate()
               → CodeGeneratorAgent._do_work()
               → CodeGeneratorAgent._generate_tools_file_fallback()
@@ -97,8 +97,8 @@ def generate_fallback_tools_code(
               - Output: files["tools.py"]
 
         Path 2 - Legacy LLM Generation (use_expert_agents=False):
-            BMADEngine.run()
-              → BMADEngine._phase_5_delivery()
+            SixPhaseEngine.run()
+              → SixPhaseEngine._phase_5_delivery()
               → CodeGenerationEngine.generate()
               → LLMCodeGenerator.generate_custom_tools()
               → LLMCodeGenerator._generate_fallback_tools()

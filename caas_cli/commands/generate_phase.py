@@ -244,9 +244,9 @@ async def _execute_phase_0(framework, requirement, domain, output_path, verbose)
     """Phase 0: Concretization"""
     echo_progress("Generating Golden Data from requirement...")
 
-    from caas_framework.bmad.engine import BMADEngine
+    from caas_framework.methodology.engine import SixPhaseEngine
 
-    engine = BMADEngine(
+    engine = SixPhaseEngine(
         llm_plugin=framework.llm_plugin,
         enable_validation=True,
         enable_auto_fix=True,
@@ -276,14 +276,14 @@ async def _execute_phase_1(framework, input_dir, output_path, verbose):
     # Load golden data
     golden_data_dict = load_json(Path(input_dir) / "golden_data.json")
 
-    from caas_framework.bmad.engine import BMADEngine
+    from caas_framework.methodology.engine import SixPhaseEngine
     from caas_framework.models.specifications import (
         ConcretizedRequirement as GoldenData,
     )
 
     golden_data = GoldenData(**golden_data_dict)
 
-    engine = BMADEngine(
+    engine = SixPhaseEngine(
         llm_plugin=framework.llm_plugin,
         enable_validation=True,
         enable_auto_fix=True,
@@ -320,14 +320,14 @@ async def _execute_phase_2(framework, input_dir, workflow_type, output_path, ver
     golden_data_dict = load_json(input_path / "golden_data.json")
     analysis = load_json(input_path / "requirement_analysis.json")
 
-    from caas_framework.bmad.engine import BMADEngine
+    from caas_framework.methodology.engine import SixPhaseEngine
     from caas_framework.models.specifications import (
         ConcretizedRequirement as GoldenData,
     )
 
     golden_data = GoldenData(**golden_data_dict)
 
-    engine = BMADEngine(
+    engine = SixPhaseEngine(
         llm_plugin=framework.llm_plugin,
         enable_validation=True,
         enable_auto_fix=True,
@@ -374,14 +374,14 @@ async def _execute_phase_3(framework, input_dir, output_path, verbose):
     except FileNotFoundError:
         pass
 
-    from caas_framework.bmad.engine import BMADEngine
+    from caas_framework.methodology.engine import SixPhaseEngine
     from caas_framework.models.specifications import (
         ConcretizedRequirement as GoldenData,
     )
 
     golden_data = GoldenData(**golden_data_dict)
 
-    engine = BMADEngine(
+    engine = SixPhaseEngine(
         llm_plugin=framework.llm_plugin,
         enable_validation=True,
         enable_auto_fix=True,
@@ -422,7 +422,7 @@ async def _execute_phase_4(framework, input_dir, output_path, verbose):
     tasks_data = load_json(input_path / "tasks.json")
     golden_data_dict = load_json(input_path / "golden_data.json")
 
-    from caas_framework.bmad.engine import BMADEngine
+    from caas_framework.methodology.engine import SixPhaseEngine
     from caas_framework.models.specifications import AgentSpecModel, TaskSpecModel
     from caas_framework.models.specifications import (
         ConcretizedRequirement as GoldenData,
@@ -433,7 +433,7 @@ async def _execute_phase_4(framework, input_dir, output_path, verbose):
     tasks = [TaskSpecModel(**t) for t in tasks_data]
     golden_data = GoldenData(**golden_data_dict)
 
-    engine = BMADEngine(
+    engine = SixPhaseEngine(
         llm_plugin=framework.llm_plugin,
         enable_validation=True,
         enable_auto_fix=True,
@@ -489,14 +489,14 @@ async def _execute_phase_5(
 
     golden_data_dict = load_json(golden_data_path)
 
-    from caas_framework.bmad.engine import BMADEngine
+    from caas_framework.methodology.engine import SixPhaseEngine
     from caas_framework.models.specifications import (
         ConcretizedRequirement as GoldenData,
     )
 
     golden_data = GoldenData(**golden_data_dict)
 
-    engine = BMADEngine(
+    engine = SixPhaseEngine(
         llm_plugin=framework.llm_plugin,
         enable_validation=True,
         enable_auto_fix=True,

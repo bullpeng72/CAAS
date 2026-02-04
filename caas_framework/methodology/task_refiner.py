@@ -11,11 +11,11 @@ Task Description Refiner
 
 from typing import List, Optional
 
-from caas_framework.bmad.models import TaskMapping
+from caas_framework.methodology.models import TaskMapping
 from caas_framework.models.domain_types import DomainType
 from caas_framework.utils.logger import get_logger
 
-logger = get_logger(name="caas_framework.bmad.task_refiner")
+logger = get_logger(name="caas_framework.methodology.task_refiner")
 
 
 class TaskRefiner:

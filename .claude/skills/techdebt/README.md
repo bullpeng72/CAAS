@@ -60,7 +60,7 @@ Get overview of tech debt to include in sprint backlog.
 
 ### Before Major Refactor
 ```
-/techdebt caas_framework/bmad/ --with-fixes
+/techdebt caas_framework/methodology/ --with-fixes
 ```
 Analyze module before refactoring to identify issues.
 

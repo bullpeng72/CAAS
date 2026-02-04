@@ -342,7 +342,7 @@ class SimpleProgressReporter:
     Simple progress reporter compatible with ProgressReporterProtocol.
 
     This is a lightweight adapter that wraps CLIProgressTracker
-    and implements the protocol expected by BMADEngine.
+    and implements the protocol expected by SixPhaseEngine.
     """
 
     def __init__(self, tracker: Optional[CLIProgressTracker] = None):

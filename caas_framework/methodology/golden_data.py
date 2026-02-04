@@ -352,7 +352,7 @@ class GoldenDataPipeline:
 
         # Initialize hierarchical feature extractor if enabled
         if use_hierarchical_extraction:
-            from caas_framework.bmad.feature_extraction import (
+            from caas_framework.methodology.feature_extraction import (
                 HierarchicalFeatureExtractor,
             )
 

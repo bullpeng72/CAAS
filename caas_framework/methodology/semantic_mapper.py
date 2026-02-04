@@ -7,7 +7,7 @@ Phase 3: Use LLM to semantically map code to features
 from dataclasses import dataclass, field
 from typing import Dict, List, Tuple
 
-from caas_framework.bmad.code_analyzer import FileAnalysis
+from caas_framework.methodology.code_analyzer import FileAnalysis
 from caas_framework.config.settings import LLMConstants
 from caas_framework.models.specifications import FeatureSpec
 from caas_framework.plugins.llm.base import LLMPlugin

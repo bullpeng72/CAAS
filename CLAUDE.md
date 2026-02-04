@@ -207,10 +207,10 @@ class CrewAIFramework:
     """
 ```
 
-### 2. 6-Phase Engine (caas_framework/bmad/engine.py)
+### 2. 6-Phase Engine (caas_framework/methodology/engine.py)
 
 ```python
-class BMADEngine:
+class SixPhaseEngine:
     """
     CAAS 6-Phase Methodology 워크플로우 오케스트레이터
 
@@ -384,7 +384,7 @@ logger = logging.getLogger(__name__)
 ```
 tests/
 ├── test_e2e_*.py              # E2E 통합 테스트 (실제 LLM 호출)
-├── test_bmad/                 # 6-Phase 엔진 유닛 테스트
+├── test_methodology/                 # 6-Phase 엔진 유닛 테스트
 ├── test_codegen/              # 코드 생성 테스트
 ├── test_validation/           # 검증 시스템 테스트
 ├── test_fixing/               # Auto-fixing 테스트
@@ -398,7 +398,7 @@ tests/
 pytest
 
 # 특정 카테고리
-pytest tests/test_bmad/  # 6-Phase 엔진 테스트
+pytest tests/test_methodology/  # 6-Phase 엔진 테스트
 
 # 커버리지 포함
 pytest --cov=caas_framework --cov=caas_cli --cov-report=html

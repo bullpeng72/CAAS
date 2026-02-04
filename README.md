@@ -639,7 +639,7 @@ pytest tests/test_e2e_chatbot.py
 pytest --cov=caas_framework --cov=caas_cli --cov-report=html
 
 # 특정 카테고리
-pytest tests/test_bmad/              # 6-Phase 엔진
+pytest tests/test_methodology/              # 6-Phase 엔진
 pytest tests/test_codegen/           # 코드 생성
 pytest tests/test_validation/        # 검증 시스템
 ```

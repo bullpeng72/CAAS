@@ -15,7 +15,7 @@ Multiple files in the codebase have grown to massive sizes (40-80KB), indicating
 **Top 5 offenders:**
 1. `caas_framework/agents/collaboration.py` - **80KB**
 2. `caas_framework/llm/chains.py` - **59KB**
-3. `caas_framework/bmad/engine.py` - **56KB**
+3. `caas_framework/methodology/engine.py` - **56KB**
 4. `caas_framework/agents/code_generator.py` - **47KB**
 5. `caas_framework/factory/crew_assembler.py` - **40KB**
 
@@ -51,7 +51,7 @@ caas_framework/llm/chains/
 
 #### 3. `bmad/engine.py` (56KB) → Extract phase handlers:
 ```
-caas_framework/bmad/
+caas_framework/methodology/
 ├── engine.py                # Core orchestration only (~500 lines)
 ├── phases/
 │   ├── __init__.py

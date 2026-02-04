@@ -489,7 +489,7 @@ CAAS_FRONTEND_PORT_END=8699      # Frontend port range end
 
 ```python
 # Had to import from app layer
-from app.core.bmad import BMADEngine  # ❌ Requires FastAPI app
+from app.core.bmad import SixPhaseEngine  # ❌ Requires FastAPI app
 from app.utils.logger import get_logger  # ❌ Requires app layer
 ```
 

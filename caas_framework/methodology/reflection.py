@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field
 
 from caas_framework.utils.logger import get_logger
 
-logger = get_logger(name="caas_framework.bmad.reflection")
+logger = get_logger(name="caas_framework.methodology.reflection")
 
 
 class ReflectionFeedback(BaseModel):

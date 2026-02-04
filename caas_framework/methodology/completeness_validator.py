@@ -7,13 +7,13 @@ Phase 3: Validate that all features are implemented in generated code
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional
 
-from caas_framework.bmad.code_analyzer import CodeAnalyzer
-from caas_framework.bmad.semantic_mapper import (
+from caas_framework.methodology.code_analyzer import CodeAnalyzer
+from caas_framework.methodology.semantic_mapper import (
     FeatureImplementation,
     MappingResult,
     SemanticMapper,
 )
-from caas_framework.bmad.traceability import ImplementationStatus, TraceabilityMatrix
+from caas_framework.methodology.traceability import ImplementationStatus, TraceabilityMatrix
 from caas_framework.models.specifications import FeatureSpec
 from caas_framework.plugins.llm.base import LLMPlugin
 from caas_framework.utils.logger import get_logger

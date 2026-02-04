@@ -23,7 +23,7 @@ assignees: ''
 ### Priority Areas (Critical Paths)
 
 **Phase 1: Core Workflows (40 hours)**
-1. **BMAD Engine** (`caas_framework/bmad/engine.py`) - 56KB, 0 dedicated tests
+1. **BMAD Engine** (`caas_framework/methodology/engine.py`) - 56KB, 0 dedicated tests
 2. **Code Generators** (`caas_framework/codegen/`) - High risk
 3. **Validators** (`caas_framework/validation/`) - Quality assurance
 

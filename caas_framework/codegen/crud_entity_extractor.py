@@ -9,8 +9,8 @@ from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel
 
-from caas_framework.bmad.code_analyzer import AnalysisResult
-from caas_framework.bmad.models import TaskMapping
+from caas_framework.methodology.code_analyzer import AnalysisResult
+from caas_framework.methodology.models import TaskMapping
 from caas_framework.utils.logger import LoggerMixin, get_logger
 
 logger = get_logger("codegen.crud_extractor")

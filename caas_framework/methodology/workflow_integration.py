@@ -7,7 +7,7 @@ checkpoints, and resumption capabilities.
 
 from typing import Any, Dict, Optional
 
-from caas_framework.bmad.engine import BMADEngine, BMADResult
+from caas_framework.methodology.engine import SixPhaseEngine, MethodologyResult
 from caas_framework.session.manager import Session
 from caas_framework.workflow.orchestrator import (
     WorkflowOrchestrator,
@@ -31,7 +31,7 @@ class BMADWorkflowEngine:
 
     def __init__(
         self,
-        bmad_engine: BMADEngine,
+        bmad_engine: SixPhaseEngine,
         enable_checkpoints: bool = True,
         enable_git: bool = False,
         git_auto_commit: bool = False,
@@ -66,7 +66,7 @@ class BMADWorkflowEngine:
         requirement: str,
         session_name: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
-    ) -> tuple[BMADResult, WorkflowResult]:
+    ) -> tuple[MethodologyResult, WorkflowResult]:
         """
         Run BMAD with workflow management.
 
@@ -76,7 +76,7 @@ class BMADWorkflowEngine:
             metadata: Additional metadata
 
         Returns:
-            tuple[BMADResult, WorkflowResult]: BMAD result and workflow result
+            tuple[MethodologyResult, WorkflowResult]: BMAD result and workflow result
         """
         # Create workflow session
         workflow_id = f"bmad_{requirement[:30]}"
@@ -120,7 +120,7 @@ class BMADWorkflowEngine:
 
     async def _execute_bmad_with_tracking(
         self, session: Session, requirement: str
-    ) -> BMADResult:
+    ) -> MethodologyResult:
         """Execute BMAD with phase tracking"""
 
         # Phase 0: Concretization
@@ -209,7 +209,7 @@ class BMADWorkflowEngine:
         final_state = self.orchestrator.state_manager.get_state(session.session_id)
 
         # Build BMAD result
-        bmad_result = BMADResult(
+        bmad_result = MethodologyResult(
             success=True,
             golden_data=final_state.get("golden_data"),
             agents=final_state.get("agents", []),

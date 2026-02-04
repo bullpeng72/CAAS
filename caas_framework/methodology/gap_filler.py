@@ -7,9 +7,9 @@ Phase 3: Automatically generate code for unimplemented features
 from dataclasses import dataclass, field
 from typing import Dict, List, Tuple
 
-from caas_framework.bmad.code_analyzer import FileAnalysis
-from caas_framework.bmad.completeness_validator import CompletenessReport
-from caas_framework.bmad.semantic_mapper import SemanticMapper
+from caas_framework.methodology.code_analyzer import FileAnalysis
+from caas_framework.methodology.completeness_validator import CompletenessReport
+from caas_framework.methodology.semantic_mapper import SemanticMapper
 from caas_framework.config.settings import LLMConstants
 from caas_framework.models.specifications import FeatureSpec
 from caas_framework.plugins.llm.base import LLMPlugin

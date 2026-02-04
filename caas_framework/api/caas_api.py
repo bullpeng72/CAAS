@@ -339,7 +339,7 @@ class CAAS_API:
         """
         logger.info("Auto-generating Golden Data...")
 
-        from caas_framework.bmad.golden_data_pipeline import GoldenDataPipeline
+        from caas_framework.methodology.golden_data_pipeline import GoldenDataPipeline
 
         pipeline = GoldenDataPipeline(self.llm)
         golden_data = await pipeline.execute(requirement)

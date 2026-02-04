@@ -10,8 +10,8 @@ from typing import Any, Dict, List, Optional
 
 # Import plugins module to trigger plugin registration
 import caas_framework.plugins  # noqa: F401
-from caas_framework.bmad.engine import BMADEngine, BMADResult
-from caas_framework.bmad.golden_data import GoldenDataPipeline
+from caas_framework.methodology.engine import SixPhaseEngine, MethodologyResult
+from caas_framework.methodology.golden_data import GoldenDataPipeline
 from caas_framework.config.loader import ConfigLoader
 from caas_framework.config.settings import FrameworkConfig
 from caas_framework.fixing.auto_fixer import AutoFixer, FixResult
@@ -122,7 +122,7 @@ class CrewAIFramework:
         self._llm_plugin: Optional[LLMPlugin] = None
         self._graph_client = None
         self._vector_client = None
-        self._bmad_engine: Optional[BMADEngine] = None
+        self._bmad_engine: Optional[SixPhaseEngine] = None
         self._golden_pipeline: Optional[GoldenDataPipeline] = None
         self._validator: Optional[ValidationOrchestrator] = None
         self._auto_fixer: Optional[AutoFixer] = None
@@ -209,7 +209,7 @@ class CrewAIFramework:
         self._vector_db = None
 
         # 4. Initialize BMAD engine
-        self._bmad_engine = BMADEngine(
+        self._bmad_engine = SixPhaseEngine(
             llm_plugin=self._llm_plugin,
             enable_validation=self.config.validation.auto_fix,
             enable_auto_fix=self.config.validation.auto_fix,
@@ -236,7 +236,7 @@ class CrewAIFramework:
         distributed: bool = False,
         max_workers: Optional[int] = None,
         progress_reporter: Optional[Any] = None,
-    ) -> BMADResult:
+    ) -> MethodologyResult:
         """
         Generate complete project from natural language requirement
 
@@ -256,7 +256,7 @@ class CrewAIFramework:
             progress_reporter: Custom progress reporter (optional, uses default if None)
 
         Returns:
-            BMADResult with all artifacts
+            MethodologyResult with all artifacts
 
         Process:
             1. Phase 0: Golden Data Generation (if not provided)
@@ -304,7 +304,7 @@ class CrewAIFramework:
             plan_mode_instance = PlanMode(auto_approve=False)
 
         # Create customized BMAD engine for this specific request
-        bmad_engine = BMADEngine(
+        bmad_engine = SixPhaseEngine(
             llm_plugin=self._llm_plugin,
             enable_validation=self.config.validation.enabled,
             enable_auto_fix=self.config.validation.auto_fix,

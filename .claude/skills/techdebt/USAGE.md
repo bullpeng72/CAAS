@@ -153,7 +153,7 @@ ls -lt .claude/techdebt-reports/ | head -5
 
 ```bash
 # Check specific module you're working on
-/techdebt caas_framework/bmad/
+/techdebt caas_framework/methodology/
 
 # Quick duplicate check
 /techdebt --duplicates-only

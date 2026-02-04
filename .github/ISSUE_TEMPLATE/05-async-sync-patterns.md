@@ -58,7 +58,7 @@ Categorize:
 ```python
 # caas_framework/llm/        - ASYNC-FIRST (network I/O)
 # caas_framework/validation/ - SYNC (pure computation)
-# caas_framework/bmad/       - ASYNC-FIRST (orchestration)
+# caas_framework/methodology/       - ASYNC-FIRST (orchestration)
 # caas_framework/codegen/    - SYNC (file generation)
 ```
 
@@ -84,7 +84,7 @@ async def async_to_sync(async_func, *args, **kwargs):
 
 ## Async-First Modules
 - `caas_framework/llm/` - Network I/O to LLM APIs
-- `caas_framework/bmad/` - Orchestration with I/O
+- `caas_framework/methodology/` - Orchestration with I/O
 - `caas_framework/agents/` - Agent execution (may call LLM)
 
 ## Sync Modules

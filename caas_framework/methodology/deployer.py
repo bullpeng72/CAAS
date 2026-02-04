@@ -9,7 +9,7 @@ from typing import Any, Dict, List
 
 from caas_framework.utils.logger import get_logger
 
-logger = get_logger(name="caas_framework.bmad.deployer")
+logger = get_logger(name="caas_framework.methodology.deployer")
 
 
 class DeploymentArtifacts:

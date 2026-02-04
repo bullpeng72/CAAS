@@ -1083,7 +1083,7 @@ OPENAI_API_KEY=your_openai_api_key_here
         This is now a thin wrapper around the centralized tool generation utility.
 
         Call Path (Expert Agent Mode - DEFAULT):
-            BMADEngine.run() [use_expert_agents=True]
+            SixPhaseEngine.run() [use_expert_agents=True]
               → ExpertAgentCollaboration.collaborate()
               → CodeGeneratorAgent._do_work() (Phase 5: Delivery)
               → CodeGeneratorAgent._generate_tools_file_fallback() ← YOU ARE HERE

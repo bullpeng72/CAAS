@@ -15,13 +15,13 @@ from typing import Any, Dict, List, Optional
 
 from caas_framework.agents.collaboration import ExpertAgentCollaboration
 from caas_framework.automation import BootstrapResult, ProjectBootstrapper
-from caas_framework.bmad.completeness_validator import (
+from caas_framework.methodology.completeness_validator import (
     CompletenessReport,
     CompletenessValidator,
 )
-from caas_framework.bmad.gap_filler import GapFiller, GapFillingResult
-from caas_framework.bmad.golden_data import GoldenDataPipeline
-from caas_framework.bmad.traceability import TraceabilityMatrix
+from caas_framework.methodology.gap_filler import GapFiller, GapFillingResult
+from caas_framework.methodology.golden_data import GoldenDataPipeline
+from caas_framework.methodology.traceability import TraceabilityMatrix
 from caas_framework.codegen.engine import CodeGenerationEngine
 from caas_framework.config.settings import LLMConstants
 from caas_framework.events import Event, PhaseEvent, get_global_event_bus
@@ -42,7 +42,7 @@ from caas_framework.utils.workflow_selector import get_workflow_recommendation
 from caas_framework.validation.orchestrator import ValidationOrchestrator
 
 
-class BMADPhase(str, Enum):
+class Phase(str, Enum):
     """CAAS 6-Phase"""
 
     CONCRETIZATION = "concretization"  # Phase 0: Golden Data
@@ -54,7 +54,7 @@ class BMADPhase(str, Enum):
 
 
 @dataclass
-class BMADResult:
+class MethodologyResult:
     """BMAD execution result"""
 
     # Phase 0: Golden Data
@@ -93,7 +93,7 @@ class BMADResult:
     validation_reports: List[Dict[str, Any]] = field(default_factory=list)
 
     # Metadata
-    phases_completed: List[BMADPhase] = field(default_factory=list)
+    phases_completed: List[Phase] = field(default_factory=list)
     total_duration: float = 0.0
     success: bool = True
     errors: List[str] = field(default_factory=list)
@@ -102,7 +102,7 @@ class BMADResult:
     bootstrap_result: Optional[BootstrapResult] = None
 
 
-class BMADEngine:
+class SixPhaseEngine:
     """
     BMAD Engine
 
@@ -230,7 +230,7 @@ class BMADEngine:
         bootstrap_project: bool = False,
         project_name: Optional[str] = None,
         bootstrap_dir: Optional[Path] = None,
-    ) -> BMADResult:
+    ) -> MethodologyResult:
         """
         Run complete BMAD pipeline.
 
@@ -248,13 +248,13 @@ class BMADEngine:
             bootstrap_dir: Directory to create project in (default: current directory)
 
         Returns:
-            BMADResult with all artifacts and optional bootstrap result
+            MethodologyResult with all artifacts and optional bootstrap result
 
         Code Generation Path Selection:
             The BMAD Engine supports two code generation paths:
 
             1. Expert Agent Collaboration (use_expert_agents=True, DEFAULT):
-               BMADEngine.run()
+               SixPhaseEngine.run()
                  → ExpertAgentCollaboration.collaborate()
                  → CodeGeneratorAgent._do_work() (Phase 5: Delivery)
                  → CodeGeneratorAgent._generate_tools_file_fallback()
@@ -262,8 +262,8 @@ class BMADEngine:
                  Files generated: files["tools.py"]
 
             2. Legacy LLM-based Generation (use_expert_agents=False):
-               BMADEngine.run()
-                 → BMADEngine._phase_5_delivery()
+               SixPhaseEngine.run()
+                 → SixPhaseEngine._phase_5_delivery()
                  → CodeGenerationEngine.generate()
                  → LLMCodeGenerator.generate_custom_tools()
                  → (on LLM failure) LLMCodeGenerator._generate_fallback_tools()
@@ -274,7 +274,7 @@ class BMADEngine:
             for consistent stub tool generation when LLM-based generation is not used.
         """
         start_time = datetime.now()
-        result = BMADResult()
+        result = MethodologyResult()
 
         # Initialize traceability matrix (Phase 2 enhancement)
         traceability = TraceabilityMatrix() if enable_traceability else None
@@ -295,7 +295,7 @@ class BMADEngine:
                     "use_expert_agents": self.use_expert_agents,
                     "enable_validation": self.enable_validation,
                 },
-                source="BMADEngine",
+                source="SixPhaseEngine",
             )
         )
 
@@ -320,7 +320,7 @@ class BMADEngine:
                 duration=(datetime.now() - start_time).total_seconds(),
                 success=True,
             )
-            result.phases_completed.append(BMADPhase.CONCRETIZATION)
+            result.phases_completed.append(Phase.CONCRETIZATION)
 
             # Generate artifacts for Phase 0
             await self._generate_artifact(
@@ -410,7 +410,7 @@ class BMADEngine:
                                     )
 
                     # Convert to BMAD phases
-                    result.phases_completed = [BMADPhase.CONCRETIZATION] + [
+                    result.phases_completed = [Phase.CONCRETIZATION] + [
                         self._agent_phase_to_bmad_phase(p) for p in ctx.phases_completed
                     ]
 
@@ -502,7 +502,7 @@ class BMADEngine:
                     duration=(datetime.now() - phase_start).total_seconds(),
                     success=True,
                 )
-                result.phases_completed.append(BMADPhase.DISCOVERY)
+                result.phases_completed.append(Phase.DISCOVERY)
 
                 # Generate artifacts for Phase 1
                 await self._generate_artifact("REQUIREMENTS_SPEC", result, "Phase 1", requirement)
@@ -522,7 +522,7 @@ class BMADEngine:
                     duration=(datetime.now() - phase_start).total_seconds(),
                     success=True,
                 )
-                result.phases_completed.append(BMADPhase.ARCHITECTURE)
+                result.phases_completed.append(Phase.ARCHITECTURE)
 
                 # Generate artifacts for Phase 2
                 await self._generate_artifact("ARCHITECTURE_DESIGN", result, "Phase 2", requirement)
@@ -650,7 +650,7 @@ class BMADEngine:
                     duration=(datetime.now() - phase_start).total_seconds(),
                     success=True,
                 )
-                result.phases_completed.append(BMADPhase.DESIGN)
+                result.phases_completed.append(Phase.DESIGN)
 
                 # Generate artifacts for Phase 3
                 await self._generate_artifact("AGENT_DESIGN", result, "Phase 3", requirement)
@@ -671,7 +671,7 @@ class BMADEngine:
                     duration=(datetime.now() - phase_start).total_seconds(),
                     success=True,
                 )
-                result.phases_completed.append(BMADPhase.DEVELOPMENT)
+                result.phases_completed.append(Phase.DEVELOPMENT)
 
                 # Phase 5: Delivery (Code Generation)
                 phase_start = datetime.now()
@@ -705,7 +705,7 @@ class BMADEngine:
                     duration=(datetime.now() - phase_start).total_seconds(),
                     success=True,
                 )
-                result.phases_completed.append(BMADPhase.DELIVERY)
+                result.phases_completed.append(Phase.DELIVERY)
 
                 # Generate artifacts for Phase 5
                 await self._generate_artifact("CODE_REVIEW", result, "Phase 5", requirement)
@@ -983,19 +983,19 @@ JSON으로 반환하세요 (모든 텍스트 필드는 한국어로)."""
 
         return gen_result.files
 
-    def _agent_phase_to_bmad_phase(self, agent_phase) -> BMADPhase:
-        """Convert AgentPhase to BMADPhase."""
+    def _agent_phase_to_bmad_phase(self, agent_phase) -> Phase:
+        """Convert AgentPhase to Phase."""
         from caas_framework.agents.base import AgentPhase
 
         mapping = {
-            AgentPhase.DISCOVERY: BMADPhase.DISCOVERY,
-            AgentPhase.ARCHITECTURE: BMADPhase.ARCHITECTURE,
-            AgentPhase.DESIGN: BMADPhase.DESIGN,
-            AgentPhase.DELIVERY: BMADPhase.DELIVERY,
-            AgentPhase.QUALITY_ASSURANCE: BMADPhase.DELIVERY,  # Map QA to Delivery
+            AgentPhase.DISCOVERY: Phase.DISCOVERY,
+            AgentPhase.ARCHITECTURE: Phase.ARCHITECTURE,
+            AgentPhase.DESIGN: Phase.DESIGN,
+            AgentPhase.DELIVERY: Phase.DELIVERY,
+            AgentPhase.QUALITY_ASSURANCE: Phase.DELIVERY,  # Map QA to Delivery
         }
 
-        return mapping.get(agent_phase, BMADPhase.DELIVERY)
+        return mapping.get(agent_phase, Phase.DELIVERY)
 
     def _map_tasks_to_features(
         self, tasks: List[TaskSpecModel], features: List[Any]
@@ -1093,7 +1093,7 @@ JSON으로 반환하세요 (모든 텍스트 필드는 한국어로)."""
 
     async def _run_completeness_validation(
         self,
-        result: BMADResult,
+        result: MethodologyResult,
         traceability: Optional[TraceabilityMatrix],
         enable_gap_filling: bool,
     ) -> None:
@@ -1134,7 +1134,7 @@ JSON으로 반환하세요 (모든 텍스트 필드는 한국어로)."""
             gap_filler = GapFiller(self.llm)
 
             # Need code analyses for gap filling
-            from caas_framework.bmad.code_analyzer import CodeAnalyzer
+            from caas_framework.methodology.code_analyzer import CodeAnalyzer
 
             code_analyzer = CodeAnalyzer()
             code_analyses = code_analyzer.analyze_code_base(result.generated_code)
@@ -1176,7 +1176,7 @@ JSON으로 반환하세요 (모든 텍스트 필드는 한국어로)."""
                     f"⚠️  Gap filling had {len(gap_result.errors)} errors"
                 )
 
-    async def _run_quality_validation(self, result: BMADResult) -> None:
+    async def _run_quality_validation(self, result: MethodologyResult) -> None:
         """
         Run quality validation on generated code (syntax, imports, Python 3.11 compatibility)
 
@@ -1248,7 +1248,7 @@ JSON으로 반환하세요 (모든 텍스트 필드는 한국어로)."""
                 {"type": "python311_compatibility", "error": str(e), "is_valid": False}
             )
 
-    async def _run_security_scan(self, result: BMADResult) -> None:
+    async def _run_security_scan(self, result: MethodologyResult) -> None:
         """
         Run security scanning on generated code (vulnerabilities, secrets, best practices)
 
@@ -1324,7 +1324,7 @@ JSON으로 반환하세요 (모든 텍스트 필드는 한국어로)."""
             }
 
     async def _generate_artifact(
-        self, artifact_type: str, result: BMADResult, phase: str, requirement: str = ""
+        self, artifact_type: str, result: MethodologyResult, phase: str, requirement: str = ""
     ) -> None:
         """
         Generate artifact if artifact generator is enabled
