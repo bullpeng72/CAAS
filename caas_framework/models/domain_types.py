@@ -10,6 +10,11 @@ from typing import Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
+from caas_framework.utils.logger import get_logger
+
+logger = get_logger(__name__)
+
+
 
 class DomainType(str, Enum):
     """요구사항의 실제 도메인 타입"""
@@ -173,7 +178,7 @@ def load_domain_keywords() -> Dict[DomainType, List[str]]:
 
     except Exception as e:
         # Fallback on error
-        print(f"Warning: Failed to load domain keywords: {e}")
+        logger.error(f"Warning: Failed to load domain keywords: {e}")
         _DOMAIN_KEYWORDS_CACHE = {}
         return {}
 

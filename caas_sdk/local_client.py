@@ -28,10 +28,9 @@ class CAASLocalClient:
         client = CAASLocalClient(api_key="sk-...")
         result = client.generate("Create a blog system")
 
-        print(f"Generated {len(result['files'])} files")
+        logger.info(f"Generated {len(result['files'])} files")
         for filename in result['files']:
-            print(f"  - {filename}")
-
+            logger.info(f"  - {filename}")
         # Advanced usage with configuration
         client = CAASLocalClient(
             api_key="sk-...",
@@ -142,11 +141,11 @@ class CAASLocalClient:
             result = client.generate("Create a blog system with user auth")
 
             if result['success']:
-                print(f"Generated {len(result['files'])} files")
+                logger.info(f"Generated {len(result['files'])} files")
                 for filename, content in result['files'].items():
-                    print(f"  {filename}: {len(content)} bytes")
+                    logger.info(f"  {filename}: {len(content)} bytes")
             else:
-                print(f"Generation failed: {result['errors']}")
+                logger.error(f"Generation failed: {result['errors']}")
         """
         logger.info(f"Generating code for: {requirement[:100]}...")
 
@@ -212,7 +211,7 @@ class CAASLocalClient:
                 workflow_type="sequential"
             )
 
-            print(result['files']['main.py'])
+            logger.info(result['files']['main.py'])
         """
         logger.info(
             f"Generating code from design: {len(agents)} agents, {len(tasks)} tasks"
@@ -235,8 +234,7 @@ class CAASLocalClient:
 
         Examples:
             def on_phase_start(event):
-                print(f"Starting phase: {event.phase}")
-
+                logger.info(f"Starting phase: {event.phase}")
             client = CAASLocalClient(api_key="sk-...")
             client.subscribe_event("phase_start", on_phase_start)
 
@@ -372,7 +370,7 @@ def generate(
             api_key="sk-..."
         )
 
-        print(result['files'].keys())
+        logger.info(result['files'].keys())
     """
     with CAASLocalClient(api_key=api_key, config=config) as client:
         return client.generate(requirement)

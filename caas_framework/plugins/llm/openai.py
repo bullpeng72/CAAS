@@ -9,26 +9,29 @@ Supports:
 """
 
 import os
-from typing import Any, AsyncIterator, Dict, List, Optional
+from typing import Any, AsyncIterator, Dict
 
-from caas_framework.plugins.llm.base import LLMMessage, LLMPlugin, LLMResponse
+from caas_framework.plugins.llm.base import LLMPlugin
 
 
 class OpenAIPlugin(LLMPlugin):
-    """OpenAI LLM provider"""
+    """
+    OpenAI LLM provider.
+
+    Uses the base LLMPlugin implementation for all common logic.
+    Only implements provider-specific initialization and API calls.
+    """
 
     def __init__(self, name: str, config: Dict[str, Any]):
         super().__init__(name=name, config=config)
 
-        # OpenAI specific
+        # OpenAI specific configuration
         self.api_key = config.get("api_key") or os.getenv("OPENAI_API_KEY")
         self.api_base = config.get("api_base")
         self.organization = config.get("organization")
 
-        self._client = None
-
     async def initialize(self) -> None:
-        """Initialize OpenAI client"""
+        """Initialize OpenAI client."""
         try:
             from openai import AsyncOpenAI
 
@@ -38,107 +41,38 @@ class OpenAIPlugin(LLMPlugin):
                 organization=self.organization,
             )
             self._initialized = True
+            self.logger.debug(f"OpenAI client initialized (model: {self.model})")
 
         except ImportError:
             raise ImportError(
                 "OpenAI package not installed. " "Install with: pip install openai"
             )
 
-    async def ainvoke(
-        self,
-        messages: List[LLMMessage],
-        temperature: Optional[float] = None,
-        max_tokens: Optional[int] = None,
-        response_format: Optional[str] = None,
-        **kwargs,
-    ) -> LLMResponse:
-        """Async OpenAI call"""
-        if not self._initialized:
-            await self.initialize()
+    async def _call_api(self, request_params: Dict[str, Any]) -> Any:
+        """
+        OpenAI-specific API call implementation.
 
-        # Convert messages (handle both dict and object formats)
-        openai_messages = []
-        for msg in messages:
-            if isinstance(msg, dict):
-                openai_messages.append(msg)
-            else:
-                openai_messages.append({"role": msg.role, "content": msg.content})
+        Args:
+            request_params: Request parameters from base class
 
-        # Build request
-        request_params = {
-            "model": self.model,
-            "messages": openai_messages,
-            "temperature": temperature or self.temperature,
-        }
+        Returns:
+            OpenAI completion response
+        """
+        return await self._client.chat.completions.create(**request_params)
 
-        if max_tokens or self.max_tokens:
-            request_params["max_tokens"] = max_tokens or self.max_tokens
+    async def _stream_api(self, request_params: Dict[str, Any]) -> AsyncIterator[Any]:
+        """
+        OpenAI-specific streaming API call implementation.
 
-        if response_format == "json":
-            request_params["response_format"] = {"type": "json_object"}
+        Args:
+            request_params: Request parameters from base class
 
-        # Add extra kwargs
-        request_params.update(kwargs)
-
-        # Call OpenAI
-        response = await self._client.chat.completions.create(**request_params)
-
-        return LLMResponse(
-            content=response.choices[0].message.content,
-            model=response.model,
-            usage={
-                "prompt_tokens": response.usage.prompt_tokens,
-                "completion_tokens": response.usage.completion_tokens,
-                "total_tokens": response.usage.total_tokens,
-            },
-            finish_reason=response.choices[0].finish_reason,
-        )
-
-    async def stream(
-        self,
-        messages: List[LLMMessage],
-        temperature: Optional[float] = None,
-        max_tokens: Optional[int] = None,
-        **kwargs,
-    ) -> AsyncIterator[str]:
-        """Streaming OpenAI call"""
-        if not self._initialized:
-            await self.initialize()
-
-        # Convert messages (handle both dict and object formats)
-        openai_messages = []
-        for msg in messages:
-            if isinstance(msg, dict):
-                openai_messages.append(msg)
-            else:
-                openai_messages.append({"role": msg.role, "content": msg.content})
-
-        # Build request
-        request_params = {
-            "model": self.model,
-            "messages": openai_messages,
-            "temperature": temperature or self.temperature,
-            "stream": True,
-        }
-
-        if max_tokens or self.max_tokens:
-            request_params["max_tokens"] = max_tokens or self.max_tokens
-
-        request_params.update(kwargs)
-
-        # Stream
+        Yields:
+            OpenAI streaming response chunks
+        """
         stream = await self._client.chat.completions.create(**request_params)
-
         async for chunk in stream:
-            if chunk.choices[0].delta.content:
-                yield chunk.choices[0].delta.content
-
-    async def close(self) -> None:
-        """Close OpenAI client"""
-        if self._client:
-            await self._client.close()
-            self._client = None
-            self._initialized = False
+            yield chunk
 
 
 # Register plugin

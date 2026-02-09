@@ -25,6 +25,11 @@ import yaml
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field, SecretStr
 
+from caas_framework.utils.logger import get_logger
+
+logger = get_logger(__name__)
+
+
 # ============================================================================
 # Helper Functions
 # ============================================================================
@@ -408,8 +413,7 @@ class UnifiedConfigLoader:
                     data = yaml.safe_load(f) or {}
                     self._merge_dict(self._config_data, data)
             except Exception as e:
-                print(f"Warning: Failed to load {yaml_file}: {e}")
-
+                logger.error(f"Warning: Failed to load {yaml_file}: {e}")
     def _merge_yaml(self, yaml_path: Path):
         """Load and merge YAML file into config"""
         try:
@@ -417,8 +421,7 @@ class UnifiedConfigLoader:
                 data = yaml.safe_load(f) or {}
                 self._merge_dict(self._config_data, data)
         except Exception as e:
-            print(f"Warning: Failed to load {yaml_path}: {e}")
-
+            logger.error(f"Warning: Failed to load {yaml_path}: {e}")
     @staticmethod
     def _merge_dict(base: Dict, update: Dict):
         """Deep merge update dict into base dict"""
@@ -505,8 +508,8 @@ class UnifiedConfigLoader:
         # LLM
         if os.getenv("LLM_PROVIDER"):
             llm_dict["provider"] = os.getenv("LLM_PROVIDER")
-        if os.getenv("LLM_MODEL") or os.getenv("DEFAULT_LLM_MODEL"):
-            llm_dict["model"] = os.getenv("LLM_MODEL") or os.getenv("DEFAULT_LLM_MODEL")
+        if os.getenv("LLM_MODEL"):
+            llm_dict["model"] = os.getenv("LLM_MODEL")
         if os.getenv("OPENAI_API_KEY"):
             llm_dict["openai_api_key"] = os.getenv("OPENAI_API_KEY")
         if os.getenv("ANTHROPIC_API_KEY"):

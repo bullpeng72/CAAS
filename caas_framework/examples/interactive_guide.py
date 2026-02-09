@@ -7,6 +7,11 @@ Provides interactive guidance for users to write better requirements.
 from typing import List, Optional
 
 from caas_framework.examples.requirement_examples import (
+
+from caas_framework.utils.logger import get_logger
+
+logger = get_logger(__name__)
+
     REQUIREMENT_EXAMPLES,
     Complexity,
     Domain,
@@ -60,13 +65,12 @@ class InteractiveGuide:
             )
             self.console.print(welcome)
         else:
-            print("\n" + "=" * 70)
-            print("📝 Requirement Examples & Templates")
-            print("=" * 70)
-            print("Get inspired by example requirements across different domains.")
-            print("Learn how to write clear, comprehensive project specifications.")
-            print("=" * 70 + "\n")
-
+            logger.info("\n" + "=" * 70)
+            logger.info("📝 Requirement Examples & Templates")
+            logger.info("=" * 70)
+            logger.info("Get inspired by example requirements across different domains.")
+            logger.info("Learn how to write clear, comprehensive project specifications.")
+            logger.info("=" * 70 + "\n")
     def browse_by_domain(self) -> Optional[RequirementExample]:
         """
         Browse examples by domain
@@ -93,16 +97,15 @@ class InteractiveGuide:
             self.console.print(table)
 
         else:
-            print("\nAvailable Domains:")
-            print("-" * 50)
+            logger.info("\nAvailable Domains:")
+            logger.info("-" * 50)
             domains = list(Domain)
             for i, domain in enumerate(domains, 1):
                 examples = get_examples_by_domain(domain)
                 print(
                     f"{i}. {domain.value.replace('_', ' ').title()} ({len(examples)} examples)"
                 )
-            print("-" * 50)
-
+            logger.info("-" * 50)
         # Get user selection
         choice = input("\nSelect domain (number) or press Enter to skip: ").strip()
 
@@ -124,7 +127,7 @@ class InteractiveGuide:
         examples = get_examples_by_domain(domain)
 
         if not examples:
-            print(f"No examples found for {domain.value}")
+            logger.info(f"No examples found for {domain.value}")
             return None
 
         if self.use_rich:
@@ -145,14 +148,13 @@ class InteractiveGuide:
 
             self.console.print(table)
         else:
-            print(f"\n{domain.value.replace('_', ' ').title()} Examples:")
-            print("-" * 70)
+            logger.info(f"\n{domain.value.replace('_', ' ').title()} Examples:")
+            logger.info("-" * 70)
             for i, ex in enumerate(examples, 1):
                 print(
                     f"{i}. {ex.title} [{ex.complexity.value}] - {len(ex.key_features)} features"
                 )
-            print("-" * 70)
-
+            logger.info("-" * 70)
         # Get user selection
         choice = input(
             "\nSelect example (number) to view details or press Enter to skip: "
@@ -200,13 +202,12 @@ class InteractiveGuide:
 
             self.console.print(table)
         else:
-            print("\nComplexity Levels:")
-            print("-" * 70)
-            print("1. Simple - Quick projects, learning, prototypes")
-            print("2. Moderate - Production apps with moderate features")
-            print("3. Complex - Enterprise systems, critical applications")
-            print("-" * 70)
-
+            logger.info("\nComplexity Levels:")
+            logger.info("-" * 70)
+            logger.info("1. Simple - Quick projects, learning, prototypes")
+            logger.info("2. Moderate - Production apps with moderate features")
+            logger.info("3. Complex - Enterprise systems, critical applications")
+            logger.info("-" * 70)
         choice = input("\nSelect complexity (number) or press Enter to skip: ").strip()
 
         if not choice:
@@ -231,7 +232,7 @@ class InteractiveGuide:
         examples = get_examples_by_complexity(complexity)
 
         if not examples:
-            print(f"No examples found for {complexity.value}")
+            logger.info(f"No examples found for {complexity.value}")
             return None
 
         if self.use_rich:
@@ -249,12 +250,11 @@ class InteractiveGuide:
 
             self.console.print(table)
         else:
-            print(f"\n{complexity.value.title()} Examples:")
-            print("-" * 70)
+            logger.info(f"\n{complexity.value.title()} Examples:")
+            logger.info("-" * 70)
             for i, ex in enumerate(examples, 1):
-                print(f"{i}. {ex.title} ({ex.domain.value})")
-            print("-" * 70)
-
+                logger.info(f"{i}. {ex.title} ({ex.domain.value})")
+            logger.info("-" * 70)
         choice = input(
             "\nSelect example (number) to view details or press Enter to skip: "
         ).strip()
@@ -292,7 +292,7 @@ class InteractiveGuide:
         results = search_examples(keyword)
 
         if not results:
-            print(f"No examples found for '{keyword}'")
+            logger.info(f"No examples found for '{keyword}'")
             return None
 
         if self.use_rich:
@@ -316,12 +316,11 @@ class InteractiveGuide:
 
             self.console.print(table)
         else:
-            print(f"\nSearch results for '{keyword}': ({len(results)} found)")
-            print("-" * 70)
+            logger.info(f"\nSearch results for '{keyword}': ({len(results)} found)")
+            logger.info("-" * 70)
             for i, ex in enumerate(results, 1):
-                print(f"{i}. {ex.title} [{ex.domain.value}] ({ex.complexity.value})")
-            print("-" * 70)
-
+                logger.info(f"{i}. {ex.title} [{ex.domain.value}] ({ex.complexity.value})")
+            logger.info("-" * 70)
         choice = input(
             "\nSelect example (number) to view details or press Enter to skip: "
         ).strip()
@@ -371,24 +370,23 @@ class InteractiveGuide:
             self.console.print(f"\n[bold]Tags:[/bold] {', '.join(example.tags)}")
 
         else:
-            print("\n" + "=" * 70)
-            print(f"# {example.title}")
-            print("=" * 70)
-            print(f"Domain: {example.domain.value.replace('_', ' ').title()}")
-            print(f"Complexity: {example.complexity.value.title()}")
-            print("\nDescription:")
-            print(example.description)
-            print("\n" + "-" * 70)
-            print("Example Requirement:")
-            print("-" * 70)
-            print(example.requirement_text)
-            print("-" * 70)
-            print("\nKey Features:")
+            logger.info("\n" + "=" * 70)
+            logger.info(f"# {example.title}")
+            logger.info("=" * 70)
+            logger.info(f"Domain: {example.domain.value.replace('_', ' ').title()}")
+            logger.info(f"Complexity: {example.complexity.value.title()}")
+            logger.info("\nDescription:")
+            logger.info(example.description)
+            logger.info("\n" + "-" * 70)
+            logger.info("Example Requirement:")
+            logger.info("-" * 70)
+            logger.info(example.requirement_text)
+            logger.info("-" * 70)
+            logger.info("\nKey Features:")
             for feature in example.key_features:
-                print(f"  - {feature}")
-            print(f"\nTags: {', '.join(example.tags)}")
-            print("=" * 70)
-
+                logger.info(f"  - {feature}")
+            logger.info(f"\nTags: {', '.join(example.tags)}")
+            logger.info("=" * 70)
     def get_suggestions(
         self, user_input: str, limit: int = 3
     ) -> List[RequirementExample]:
@@ -415,13 +413,12 @@ class InteractiveGuide:
                 self.console.print()
 
         elif suggestions:
-            print("\n💡 Suggested Examples:")
-            print("-" * 70)
+            logger.info("\n💡 Suggested Examples:")
+            logger.info("-" * 70)
             for i, ex in enumerate(suggestions, 1):
-                print(f"{i}. {ex.title} ({ex.complexity.value})")
-                print(f"   {ex.description[:100]}...")
-            print("-" * 70)
-
+                logger.info(f"{i}. {ex.title} ({ex.complexity.value})")
+                logger.info(f"   {ex.description[:100]}...")
+            logger.info("-" * 70)
         return suggestions
 
     def run_interactive_mode(self):
@@ -437,13 +434,12 @@ class InteractiveGuide:
                 self.console.print("4. View random example")
                 self.console.print("5. Exit")
             else:
-                print("\nWhat would you like to do?")
-                print("1. Browse examples by domain")
-                print("2. Browse examples by complexity")
-                print("3. Search by keyword")
-                print("4. View random example")
-                print("5. Exit")
-
+                logger.info("\nWhat would you like to do?")
+                logger.info("1. Browse examples by domain")
+                logger.info("2. Browse examples by complexity")
+                logger.info("3. Search by keyword")
+                logger.info("4. View random example")
+                logger.info("5. Exit")
             choice = input("\nYour choice: ").strip()
 
             if choice == "1":
@@ -473,13 +469,11 @@ class InteractiveGuide:
                         "\n[bold green]Thanks for using CAAS! 👋[/bold green]\n"
                     )
                 else:
-                    print("\nThanks for using CAAS! 👋\n")
+                    logger.info("\nThanks for using CAAS! 👋\n")
                 break
 
             else:
-                print("Invalid choice. Please try again.")
-
-
+                logger.info("Invalid choice. Please try again.")
 def show_quick_suggestions(user_input: str):
     """
     Show quick suggestions based on user input (non-interactive)

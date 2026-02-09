@@ -9,17 +9,10 @@ Primary interface:
     >>> config.llm.model
     'gpt-4o-mini'
 
-This module REPLACES:
-- app/utils/config.py (deprecated)
-- caas_framework/config/loader.py (now deprecated)
-- caas_framework/config/settings.py (now deprecated)
-
 All new code should use:
     from caas_framework.config import get_config
 """
 
-# OLD imports (DEPRECATED - kept for backward compatibility only)
-# These will be removed in version 3.0
 import warnings
 
 # Import from unified module (NEW - Single Source of Truth)
@@ -37,17 +30,9 @@ from caas_framework.config.unified import (  # Main config class; Primary entry 
 
 try:
     from caas_framework.config.loader import ConfigLoader as _OldConfigLoader
-
-    # Issue deprecation warning when old loader is imported
-    warnings.warn(
-        "ConfigLoader from caas_framework.config.loader is deprecated. "
-        "Use 'from caas_framework.config import get_config' instead.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
     ConfigLoader = _OldConfigLoader
 except ImportError:
-    # Old loader might be removed, use unified
+    # Fallback if loader is not available
     ConfigLoader = type(
         "ConfigLoader",
         (),
@@ -65,13 +50,13 @@ __all__ = [
     # Helpers
     "get_api_key",
     "set_subprocess_env",
-    # BACKWARD COMPATIBILITY (deprecated in v2.0, will be removed in v3.0)
+    # Additional exports
     "Settings",
     "get_settings",
     "FrameworkConfig",
     "load_config",
-    "ConfigLoader",  # OLD - use get_config() instead
+    "ConfigLoader"
 ]
 
 # Version
-__version__ = "2.0.0"
+__version__ = "0.4.1"

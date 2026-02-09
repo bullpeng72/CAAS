@@ -7,6 +7,11 @@ testing, deployment, and continuous integration.
 
 from pathlib import Path
 
+from caas_framework.utils.logger import get_logger
+
+logger = get_logger(__name__)
+
+
 
 class CICDGenerator:
     """Automatic CI/CD pipeline configuration generator"""
@@ -47,8 +52,7 @@ class CICDGenerator:
         ci_workflow_path.write_text(workflow_content)
 
         if verbose:
-            print(f"✅ GitHub Actions CI workflow generated: {ci_workflow_path}")
-
+            logger.info(f"✅ GitHub Actions CI workflow generated: {ci_workflow_path}")
         return ci_workflow_path
 
     def _build_ci_workflow(
@@ -175,9 +179,8 @@ services:
         docker_compose_path.write_text(docker_compose_content)
 
         if verbose:
-            print(f"✅ Dockerfile generated: {dockerfile_path}")
-            print(f"✅ docker-compose.yml generated: {docker_compose_path}")
-
+            logger.info(f"✅ Dockerfile generated: {dockerfile_path}")
+            logger.info(f"✅ docker-compose.yml generated: {docker_compose_path}")
         return dockerfile_path, docker_compose_path
 
     def generate_all(

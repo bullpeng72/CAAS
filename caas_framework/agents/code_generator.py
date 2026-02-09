@@ -11,9 +11,20 @@ Expert agent responsible for Phase 5 (Delivery):
 from typing import Any, Dict, List, Optional
 
 from caas_framework.agents.base import AgentPhase, BaseExpertAgent, ValidationIssue
+from caas_framework.agents.code_gen_helpers import (
+    CodeAutoFix,
+    CodeValidation,
+    StaticFileGenerators,
+)
 from caas_framework.agents.process_selector import ProcessSelector
 from caas_framework.agents.registry import register_agent
+from caas_framework.agents.utils import AgentErrorHandler, AgentOutputParser
 from caas_framework.config.settings import LLMConstants
+from caas_framework.exceptions import (
+    AgentExecutionError,
+    CodeGenerationError,
+    TemplateRenderingError,
+)
 from caas_framework.models.specifications import (
     AgentSpecModel,
     ConcretizedRequirement,
@@ -22,6 +33,8 @@ from caas_framework.models.specifications import (
 from caas_framework.plugins.llm.base import LLMPlugin
 from caas_framework.utils import PromptBuilder, ResponseParser
 from caas_framework.utils.logger import get_logger
+
+logger = get_logger()
 
 
 @register_agent(phase=AgentPhase.DELIVERY)
@@ -162,27 +175,29 @@ class CodeGeneratorAgent(BaseExpertAgent):
             agents, tasks, architecture, analysis, requirement
         )
 
-        # Call LLM
-        response = await self.llm.ainvoke(
-            messages=[{"role": "user", "content": prompt}],
-            response_format=LLMConstants.RESPONSE_FORMAT_JSON,
-            temperature=LLMConstants.TEMPERATURE_PRECISE,
-            max_tokens=4000,
+        # Call LLM with retry logic from base class
+        response = await self._execute_with_retry(
+            lambda: self.llm.ainvoke(
+                messages=[{"role": "user", "content": prompt}],
+                response_format=LLMConstants.RESPONSE_FORMAT_JSON,
+                temperature=LLMConstants.TEMPERATURE_PRECISE,
+                max_tokens=4000,
+            ),
+            operation="code generation",
         )
 
         # Debug logging
-
-        logger = get_logger()
         raw_response = str(response)[:1000]
         logger.info(
             f"[CodeGenerator] Raw LLM response (first 1000 chars): {raw_response}"
         )
 
-        # Parse response
-        code_structure = ResponseParser.parse_structured_response(
+        # Parse response using helper
+        code_structure = await AgentOutputParser.parse_llm_json(
             response,
             expected_fields=["files"],
             fallback_factory=lambda: self._create_fallback_code(agents, tasks),
+            agent_name=self.agent_name,
         )
 
         logger.info(
@@ -213,7 +228,7 @@ class CodeGeneratorAgent(BaseExpertAgent):
 
         # CRITICAL: Validate generated code contains CrewAI imports
         if result_files:
-            has_crewai = self._validate_crewai_code(result_files)
+            has_crewai = CodeValidation.validate_crewai_code(result_files)
             if not has_crewai:
                 logger.error(
                     "[CodeGenerator] Generated code does NOT contain CrewAI imports!"
@@ -236,7 +251,7 @@ class CodeGeneratorAgent(BaseExpertAgent):
         # CRITICAL: Validate boundaries if specified
         boundaries_violations = []
         if self.golden_data and self.golden_data.boundaries:
-            violations = self._validate_boundaries(
+            violations = CodeValidation.validate_boundaries(
                 result_files, self.golden_data.boundaries
             )
             if violations:
@@ -254,100 +269,6 @@ class CodeGeneratorAgent(BaseExpertAgent):
 
         return result
 
-    def _validate_boundaries(self, files: Dict[str, str], boundaries) -> List[str]:
-        """
-        Validate generated code against security boundaries.
-
-        Args:
-            files: Dictionary of filename -> code content
-            boundaries: BoundariesSpec from golden_data
-
-        Returns:
-            List of violation messages (empty if no violations)
-        """
-
-        logger = get_logger()
-
-        violations = []
-
-        # Never allowed patterns to check
-        never_patterns = boundaries.never_allowed if boundaries.never_allowed else []
-        ask_first_patterns = boundaries.ask_first if boundaries.ask_first else []
-
-        for filename, content in files.items():
-            if not filename.endswith(".py"):
-                continue
-
-            # Check for dangerous patterns in code
-            content_lower = content.lower()
-
-            for pattern in never_patterns:
-                pattern_lower = pattern.lower()
-
-                # Check for common dangerous patterns
-                if "sudo" in pattern_lower and "sudo" in content_lower:
-                    violations.append(
-                        f"NEVER_ALLOWED: {filename} contains 'sudo' command"
-                    )
-
-                if "system" in pattern_lower and "os.system" in content_lower:
-                    violations.append(f"NEVER_ALLOWED: {filename} uses os.system()")
-
-                if "security" in pattern_lower and "disable" in pattern_lower:
-                    if "disable" in content_lower and "security" in content_lower:
-                        violations.append(
-                            f"NEVER_ALLOWED: {filename} may disable security features"
-                        )
-
-            for pattern in ask_first_patterns:
-                pattern_lower = pattern.lower()
-
-                # Check for operations that should ask first
-                if "api" in pattern_lower and "requests" in content_lower:
-                    logger.warning(
-                        f"ASK_FIRST: {filename} makes API calls (review recommended)"
-                    )
-
-                if "delete" in pattern_lower and (
-                    "os.remove" in content_lower or "shutil.rmtree" in content_lower
-                ):
-                    logger.warning(
-                        f"ASK_FIRST: {filename} deletes files (review recommended)"
-                    )
-
-        return violations
-
-    def _validate_crewai_code(self, files: Dict[str, str]) -> bool:
-        """
-        Validate that generated code uses CrewAI framework.
-
-        Args:
-            files: Dictionary of filename -> content
-
-        Returns:
-            True if code contains CrewAI imports, False otherwise
-        """
-        # Check main files for CrewAI imports
-        main_file = files.get("main.py", "")
-        agents_file = files.get("agents.py", "")
-        tasks_file = files.get("tasks.py", "")
-
-        # Look for CrewAI imports
-        crewai_indicators = [
-            "from crewai import",
-            "import crewai",
-            "from crewai.agent import",
-            "from crewai.task import",
-            "from crewai.crew import",
-        ]
-
-        combined_content = main_file + agents_file + tasks_file
-
-        for indicator in crewai_indicators:
-            if indicator in combined_content:
-                return True
-
-        return False
 
     def _autofix_generated_code(
         self, files: Dict[str, str], agents: List[Any]
@@ -355,10 +276,7 @@ class CodeGeneratorAgent(BaseExpertAgent):
         """
         Auto-fix common bugs in LLM-generated code.
 
-        Fixes:
-        1. Remove 'id=' parameter from Agent() calls (causes ValidationError)
-        2. Convert tools=['string'] to tools=[] (causes ValidationError)
-        3. Generate tools.py if missing but agents have tools
+        Uses CodeAutoFix helper to eliminate duplication.
 
         Args:
             files: Dictionary of filename -> content
@@ -371,55 +289,13 @@ class CodeGeneratorAgent(BaseExpertAgent):
 
         from caas_framework.utils import ObjectAccessor
 
-        logger = get_logger()
         fixed_files = files.copy()
 
-        # Fix agents.py if it exists
+        # Fix agents.py using helper
         if "agents.py" in fixed_files:
-            agents_code = fixed_files["agents.py"]
-            original_code = agents_code
+            fixed_files["agents.py"] = CodeAutoFix.fix_agent_code(fixed_files["agents.py"])
 
-            # Fix #1: Remove id='...' parameter from Agent() calls
-            # Pattern: id='anything', or id="anything",
-            agents_code = re.sub(
-                r"\bid\s*=\s*['\"][^'\"]*['\"],?\s*\n", "", agents_code
-            )
-
-            # Fix #2: Convert tools=['str1', 'str2'] to tools=[]
-            # Pattern: tools=['...', '...'] or tools=["...", "..."]
-            # This is tricky because we need to detect string lists vs variable lists
-            def fix_tools_param(match):
-                tools_value = match.group(1)
-                # Check if it contains quoted strings
-                if "'" in tools_value or '"' in tools_value:
-                    # It's a string list - replace with empty list
-                    logger.warning(
-                        f"[AutoFix] Converting invalid tools={tools_value} to tools=[]"
-                    )
-                    return "tools=[]"
-                else:
-                    # It's a variable list - keep it
-                    return match.group(0)
-
-            agents_code = re.sub(
-                r"tools\s*=\s*\[([^\]]*)\]", fix_tools_param, agents_code
-            )
-
-            # Fix #3: Remove extra parameters not supported by CrewAI Agent
-            # Common issues: memory=, max_iter=, etc.
-            unsupported_params = ["memory", "max_iter", "max_execution_time"]
-            for param in unsupported_params:
-                agents_code = re.sub(
-                    rf"\b{param}\s*=\s*[^,\n]+,?\s*\n", "", agents_code
-                )
-
-            if agents_code != original_code:
-                logger.info(
-                    "[AutoFix] Fixed agents.py (removed id, invalid tools, unsupported params)"
-                )
-                fixed_files["agents.py"] = agents_code
-
-        # Fix #4: Ensure tools.py exists if agents have tools
+        # Ensure tools.py exists if agents have tools
         agents_data = ObjectAccessor.to_dict_list(agents)
         all_tools = set()
         for agent in agents_data:
@@ -433,124 +309,24 @@ class CodeGeneratorAgent(BaseExpertAgent):
             tools_py = self._generate_tools_file_fallback(all_tools)
             fixed_files["tools.py"] = tools_py
 
-            # Also need to add tools import to agents.py if missing
+            # Add tools import to agents.py using helper
             if "agents.py" in fixed_files:
-                agents_code = fixed_files["agents.py"]
-                if "from tools import" not in agents_code:
-                    # Find the import section and add tools import
-                    import_match = re.search(
-                        r"(from crewai import Agent.*?\n)", agents_code
-                    )
-                    if import_match:
-                        import_section = import_match.group(1)
-                        tools_import = (
-                            f"from tools import {', '.join(sorted(all_tools))}\n"
-                        )
-                        agents_code = agents_code.replace(
-                            import_section, import_section + tools_import
-                        )
-                        fixed_files["agents.py"] = agents_code
-                        logger.info("[AutoFix] Added tools import to agents.py")
+                fixed_files["agents.py"] = CodeAutoFix.ensure_tools_import(
+                    fixed_files["agents.py"], all_tools
+                )
 
-        # Fix #5: Add manager_llm for hierarchical process
+        # Fix main.py for hierarchical process using helper
         if "main.py" in fixed_files:
-            main_code = fixed_files["main.py"]
-            original_main = main_code
+            fixed_files["main.py"] = CodeAutoFix.add_manager_llm(
+                fixed_files["main.py"], is_main_py=True
+            )
 
-            # Check if using Process.hierarchical without manager_llm
-            if (
-                "Process.hierarchical" in main_code
-                and "manager_llm" not in main_code
-            ):
-                # Add langchain_openai import
-                if "from langchain_openai import ChatOpenAI" not in main_code:
-                    # Find crewai import and add after it
-                    import_match = re.search(
-                        r"(from crewai import .*?\n)", main_code
-                    )
-                    if import_match:
-                        import_line = import_match.group(1)
-                        main_code = main_code.replace(
-                            import_line,
-                            import_line + "from langchain_openai import ChatOpenAI\n",
-                        )
-
-                # Add manager_llm initialization before Crew creation
-                crew_match = re.search(
-                    r"(\s+)(crew\s*=\s*Crew\()", main_code, re.MULTILINE
+        # Fix crew.py if it exists
+        for crew_file in ["crew.py", "src/crew.py"]:
+            if crew_file in fixed_files:
+                fixed_files[crew_file] = CodeAutoFix.add_manager_llm(
+                    fixed_files[crew_file], is_main_py=False
                 )
-                if crew_match:
-                    indent = crew_match.group(1)
-                    crew_start = crew_match.group(2)
-                    manager_llm_code = f"""{indent}# Manager LLM for hierarchical process
-{indent}manager_llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.1)
-
-{indent}"""
-                    main_code = main_code.replace(
-                        indent + crew_start, manager_llm_code + crew_start
-                    )
-
-                # Add manager_llm parameter to Crew
-                # Find Process.hierarchical and add manager_llm parameter
-                main_code = re.sub(
-                    r"(process=Process\.hierarchical),(\s*)",
-                    r"\1,\2manager_llm=manager_llm,\2",
-                    main_code,
-                )
-
-                if main_code != original_main:
-                    logger.info(
-                        "[AutoFix] Added manager_llm for hierarchical process in main.py"
-                    )
-                    fixed_files["main.py"] = main_code
-
-        # Same fix for crew.py if it exists
-        if "crew.py" in fixed_files or "src/crew.py" in fixed_files:
-            crew_file = "crew.py" if "crew.py" in fixed_files else "src/crew.py"
-            crew_code = fixed_files[crew_file]
-            original_crew = crew_code
-
-            if (
-                "Process.hierarchical" in crew_code
-                and "manager_llm" not in crew_code
-            ):
-                # Add langchain_openai import
-                if "from langchain_openai import ChatOpenAI" not in crew_code:
-                    import_match = re.search(
-                        r"(from crewai import .*?\n)", crew_code
-                    )
-                    if import_match:
-                        import_line = import_match.group(1)
-                        crew_code = crew_code.replace(
-                            import_line,
-                            import_line + "from langchain_openai import ChatOpenAI\n",
-                        )
-
-                # Add manager_llm initialization
-                crew_match = re.search(
-                    r"(^|\n)(crew\s*=\s*Crew\()", crew_code, re.MULTILINE
-                )
-                if crew_match:
-                    manager_llm_code = """# Manager LLM for hierarchical process
-manager_llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.1)
-
-"""
-                    crew_code = crew_code.replace(
-                        crew_match.group(2), manager_llm_code + crew_match.group(2)
-                    )
-
-                # Add manager_llm parameter
-                crew_code = re.sub(
-                    r"(process=Process\.hierarchical),(\s*)",
-                    r"\1,\2manager_llm=manager_llm,\2",
-                    crew_code,
-                )
-
-                if crew_code != original_crew:
-                    logger.info(
-                        f"[AutoFix] Added manager_llm for hierarchical process in {crew_file}"
-                    )
-                    fixed_files[crew_file] = crew_code
 
         return fixed_files
 
@@ -672,10 +448,13 @@ CRITICAL REQUIREMENT: You MUST generate code using the CrewAI framework.
         agents_py = self._generate_agents_file_ast(agents_data)
         tasks_py = self._generate_tasks_file_ast(tasks_data)
 
-        # Non-Python files remain as simple strings
-        requirements_txt = self._generate_requirements_file()
-        readme_md = self._generate_readme_file()
-        env_example = self._generate_env_file()
+        # Non-Python files using StaticFileGenerators
+        requirements_txt = StaticFileGenerators.generate_requirements()
+        readme_md = StaticFileGenerators.generate_readme(
+            project_name=self.golden_data.project_name if self.golden_data else "CrewAI Project",
+            features=self.golden_data.features if self.golden_data else []
+        )
+        env_example = StaticFileGenerators.generate_env_example()
 
         # Build files dict
         files_dict = {
@@ -740,7 +519,10 @@ CRITICAL REQUIREMENT: You MUST generate code using the CrewAI framework.
         except Exception as e:
             logger = get_logger()
             logger.warning(f"Process selection failed: {e}, defaulting to sequential")
-            return "sequential"
+            raise AgentExecutionError(
+                "Failed to select process type for agents",
+                details={"error": str(e), "agent_count": len(agents), "task_count": len(tasks)}
+            ) from e
 
     def _generate_main_file(self, agents: List[Dict], tasks: List[Dict]) -> str:
         """Generate main.py file with automatic input collection."""
@@ -770,7 +552,9 @@ CRITICAL REQUIREMENT: You MUST generate code using the CrewAI framework.
                 )
             else:
                 input_collection_code = ""
-        except Exception:
+        except Exception as e:
+            logger = get_logger()
+            logger.warning(f"Input detection failed: {e}, disabling input collection")
             needs_input = False
             input_collection_code = ""
 
@@ -801,11 +585,10 @@ def main():
 
     # Create agents
     agents = create_agents()
-    print(f"Created {{len(agents)}} agents")
-
+    logger.info(f"Created {{len(agents)}} agents")
     # Create tasks
     tasks = create_tasks(agents)
-    print(f"Created {{len(tasks)}} tasks")
+    logger.info(f"Created {{len(tasks)}} tasks")
 {input_collection_code}
     # Create crew
     crew = Crew(
@@ -816,14 +599,13 @@ def main():
     )
 
     # Execute
-    print("\\nStarting crew execution...")
+    logger.info("\\nStarting crew execution...")
     {kickoff_call}
 
-    print("\\n" + "="*50)
-    print("RESULT:")
-    print("="*50)
-    print(result)
-
+    logger.info("\\n" + "="*50)
+    logger.info("RESULT:")
+    logger.info("="*50)
+    logger.info(result)
     return result
 
 
@@ -961,9 +743,10 @@ def create_agents():
                 tasks = InputDetector.inject_input_placeholders(
                     tasks, input_requirements
                 )
-        except Exception:
+        except Exception as e:
             # If detection fails, continue with original tasks
-            pass
+            logger = get_logger()
+            logger.warning(f"Input placeholder injection failed: {e}, using original tasks")
 
         tasks_code = []
         for task in tasks:
@@ -998,83 +781,6 @@ def create_tasks(agents):
     return tasks
 '''
 
-    def _generate_requirements_file(self) -> str:
-        """Generate requirements.txt file."""
-        return """# CrewAI Dependencies
-crewai>=0.65.0,<1.0.0
-crewai-tools>=0.12.0
-python-dotenv>=1.0.0
-langchain>=0.2.0
-"""
-
-    def _generate_readme_file(self) -> str:
-        """Generate README.md file."""
-        project_name = (
-            self.golden_data.project_name if self.golden_data else "CrewAI Project"
-        )
-        features = (
-            self.golden_data.features
-            if self.golden_data and self.golden_data.features
-            else []
-        )
-
-        features_list = (
-            "\\n".join([f"- {f.name}: {f.description}" for f in features[:5]])
-            if features
-            else "- Task execution"
-        )
-
-        return f"""# {project_name}
-
-Auto-generated CrewAI multi-agent system.
-
-## Features
-
-{features_list}
-
-## Setup
-
-1. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
-
-2. Set up environment variables:
-```bash
-cp .env.example .env
-# Edit .env and add your API keys
-```
-
-3. Run the application:
-```bash
-python main.py
-```
-
-## Project Structure
-
-- `main.py` - Main execution script
-- `agents.py` - Agent definitions
-- `tasks.py` - Task definitions
-- `requirements.txt` - Python dependencies
-- `.env.example` - Environment variables template
-
-## Generated by CAAS Framework
-
-This project was automatically generated using the CrewAI Agent Auto-generation System (CAAS).
-"""
-
-    def _generate_env_file(self) -> str:
-        """Generate .env.example file."""
-        return """# OpenAI API Key (required)
-OPENAI_API_KEY=your_openai_api_key_here
-
-# Optional: Other LLM providers
-# ANTHROPIC_API_KEY=your_anthropic_key
-# GOOGLE_API_KEY=your_google_key
-
-# Optional: Custom settings
-# CREW_VERBOSE=True
-"""
 
     def _generate_tools_file_fallback(self, tools: set) -> str:
         """
@@ -1140,8 +846,9 @@ OPENAI_API_KEY=your_openai_api_key_here
                 input_collection_code = InputDetector.generate_input_collection_code(
                     input_requirements
                 )
-        except Exception:
-            pass
+        except Exception as e:
+            logger = get_logger()
+            logger.warning(f"Input placeholder injection failed for AST generation: {e}")
 
         # Create AST generator
         ast_gen = ASTCodeGenerator(use_black=True)
@@ -1323,8 +1030,9 @@ OPENAI_API_KEY=your_openai_api_key_here
                 tasks = InputDetector.inject_input_placeholders(
                     tasks, input_requirements
                 )
-        except Exception:
-            pass
+        except Exception as e:
+            logger = get_logger()
+            logger.warning(f"Input placeholder injection failed for AST tasks generation: {e}")
 
         # Create AST generator
         ast_gen = ASTCodeGenerator(use_black=True)
@@ -1426,9 +1134,8 @@ OPENAI_API_KEY=your_openai_api_key_here
 
             return evaluation
 
-        except ImportError:
+        except ImportError as e:
             # LLM Judge not available
-
             logger = get_logger()
             logger.warning(
                 "[CodeGenerator] LLM Judge not available - skipping quality evaluation"
@@ -1437,10 +1144,12 @@ OPENAI_API_KEY=your_openai_api_key_here
 
         except Exception as e:
             # Evaluation failed, log but don't fail code generation
-
             logger = get_logger()
             logger.error(f"[CodeGenerator] Quality evaluation failed: {e}")
-            return None
+            raise CodeGenerationError(
+                "Code quality evaluation failed",
+                details={"error": str(e), "file_count": len(code_files)}
+            ) from e
 
     async def _refine_implementation(
         self,
@@ -1452,81 +1161,31 @@ OPENAI_API_KEY=your_openai_api_key_here
         """
         Refine generated code based on validation feedback.
 
-        Uses LLM to fix specific issues in the generated code.
+        Uses RefinementExecutor for standardized refinement workflow.
         """
-        if not issues:
-            return output
+        from caas_framework.agents.executors import RefinementExecutor
 
-        # Group issues by severity
-        critical_issues = [i for i in issues if i.severity == "critical"]
-        high_issues = [i for i in issues if i.severity == "high"]
-
-        # Focus on critical and high issues
-        focus_issues = critical_issues + high_issues
-
-        if not focus_issues:
-            return output
-
-        # Build refinement prompt
-        issues_summary = "\n".join(
-            [
-                f"- [{issue.severity.upper()}] {issue.issue_type}: {issue.message}"
-                for issue in focus_issues[:10]  # Limit to 10 most important issues
-            ]
+        executor = RefinementExecutor.create_for_agent(
+            agent=self,
+            agent_role="Expert Code Generator",
+            output_type="generated code files",
         )
 
-        prompt = (
-            PromptBuilder("refine code generation based on validation feedback")
-            .add_task("You are refining code to fix validation issues.")
-            .add_input(current_iteration=f"{iteration}/3", issues_found=issues_summary)
-            .add_output_format(
-                {
-                    "fixes_applied": ["list of fixes"],
-                    "suggested_changes": {"file_path": "changes description"},
-                    "remaining_issues": ["issues that cannot be automatically fixed"],
-                },
-                "Provide a JSON object with:",
-            )
-            .add_guidelines(
-                [
-                    "Review each issue carefully",
-                    "Propose concrete fixes",
-                    "Ensure fixes don't break existing functionality",
-                    "Provide specific code changes or suggestions",
-                ]
-            )
-            .build()
+        refined_output = await executor.refine_output(
+            output=output,
+            issues=issues,
+            iteration=iteration,
+            guidelines=[
+                "Fix CrewAI framework compatibility issues",
+                "Ensure all generated files are syntactically correct",
+                "Maintain consistency with agent/task specifications",
+                "Preserve working code while fixing issues",
+                "Add missing imports and dependencies",
+            ],
         )
 
-        # Get LLM response
-        from caas_framework.plugins.llm.base import LLMMessage
+        # Preserve metadata
+        refined_output["iteration"] = iteration
+        refined_output["issues_addressed"] = len(issues)
 
-        response = await self.llm.ainvoke(
-            messages=[LLMMessage(role="user", content=prompt)],
-            temperature=LLMConstants.TEMPERATURE_PRECISE,
-            max_tokens=1500,
-        )
-
-        # Parse response
-        try:
-            import json
-
-            refinement_plan = ResponseParser.parse_structured_response(
-                response,
-                expected_fields=["improvements", "changes"],
-                fallback_factory=lambda: {},
-            )
-
-            # Add refinement info to output
-            output["refinement"] = refinement_plan
-            output["iteration"] = iteration
-            output["issues_addressed"] = len(focus_issues)
-
-        except json.JSONDecodeError:
-            # If parsing fails, just add raw response
-            output["refinement"] = {
-                "raw_response": response.content,
-                "iteration": iteration,
-            }
-
-        return output
+        return refined_output

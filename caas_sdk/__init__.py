@@ -17,7 +17,7 @@ from caas_sdk.exceptions import (
 from caas_sdk.local_client import CAASLocalClient, generate
 from caas_sdk.models import GenerationConfig, GenerationResult, Project, ProjectStatus
 
-__version__ = "0.4.0"
+__version__ = "0.4.1"
 __all__ = [
     # REST API Clients
     "CAAS",

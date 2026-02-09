@@ -31,7 +31,7 @@ from caas_cli.commands import (  # Phase 1: Core Features; Phase 2: Advanced Fea
 
 
 @click.group()
-@click.version_option(version="0.3.0")
+@click.version_option(version="0.4.1")
 @click.pass_context
 def cli(ctx):
     """

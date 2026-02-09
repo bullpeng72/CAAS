@@ -105,101 +105,81 @@ class SystemArchitectAgent(BaseExpertAgent):
         self, requirement: str, req_analysis: Optional[Dict[str, Any]], context: str
     ) -> str:
         """Build LLM prompt for architecture design."""
-
-        builder = (
-            PromptBuilder(
-                "design a comprehensive system architecture for the following requirement"
-            )
-            .add_task("You are an expert System Architect.")
-            .add_input(requirement=requirement)
-        )
-
-        # Add golden data if available
-        if self.golden_data:
-            builder.add_golden_data(
-                self.golden_data,
-                fields=["domain", "data_models", "ui_components", "deployment_target"],
-            )
-
-        # Add requirements analysis from previous phase
-        if req_analysis:
-            builder.add_previous_outputs(
-                {"requirement_analysis": req_analysis}, phases=["requirement_analysis"]
-            )
-
-        # Add context if provided
-        if context:
-            builder.add_context("Additional Context", context)
-
-        # Add output format
-        builder.add_output_format(
-            {
-                "components": [
+        # Use base class template method
+        output_format = {
+            "components": [
+                {
+                    "id": "component_id",
+                    "name": "Component Name",
+                    "type": "backend|frontend|database|service|api",
+                    "responsibility": "What this component does",
+                    "interfaces": ["interface1", "interface2"],
+                    "dependencies": ["component_id1", "component_id2"],
+                }
+            ],
+            "data_flow": {
+                "flows": [
                     {
-                        "id": "component_id",
-                        "name": "Component Name",
-                        "type": "backend|frontend|database|service|api",
-                        "responsibility": "What this component does",
-                        "interfaces": ["interface1", "interface2"],
-                        "dependencies": ["component_id1", "component_id2"],
+                        "from": "component_id",
+                        "to": "component_id",
+                        "data": "what data flows",
+                        "protocol": "REST|gRPC|WebSocket|etc",
                     }
-                ],
-                "data_flow": {
-                    "flows": [
-                        {
-                            "from": "component_id",
-                            "to": "component_id",
-                            "data": "what data flows",
-                            "protocol": "REST|gRPC|WebSocket|etc",
-                        }
-                    ]
-                },
-                "integration_points": [
-                    {
-                        "name": "Integration name",
-                        "type": "external_api|database|service",
-                        "purpose": "why this integration",
-                        "protocol": "REST|GraphQL|etc",
-                    }
-                ],
-                "technology_stack": {
-                    "backend": ["framework", "language"],
-                    "frontend": ["framework", "library"],
-                    "database": ["database_type"],
-                    "infrastructure": ["docker", "kubernetes"],
-                    "tools": ["tool1", "tool2"],
-                },
-                "architecture_patterns": [
-                    "Microservices",
-                    "Event-driven",
-                    "CQRS",
-                    "etc",
-                ],
-                "deployment_architecture": {
-                    "environment": "cloud|on-premise|hybrid",
-                    "containers": ["container1", "container2"],
-                    "services": ["service1", "service2"],
-                    "scaling_strategy": "horizontal|vertical|auto",
-                },
-                "security_architecture": {
-                    "authentication": "strategy",
-                    "authorization": "strategy",
-                    "data_protection": ["encryption", "etc"],
-                },
+                ]
             },
-            "Design system architecture in JSON format:",
-        )
+            "integration_points": [
+                {
+                    "name": "Integration name",
+                    "type": "external_api|database|service",
+                    "purpose": "why this integration",
+                    "protocol": "REST|GraphQL|etc",
+                }
+            ],
+            "technology_stack": {
+                "backend": ["framework", "language"],
+                "frontend": ["framework", "library"],
+                "database": ["database_type"],
+                "infrastructure": ["docker", "kubernetes"],
+                "tools": ["tool1", "tool2"],
+            },
+            "architecture_patterns": [
+                "Microservices",
+                "Event-driven",
+                "CQRS",
+                "etc",
+            ],
+            "deployment_architecture": {
+                "environment": "cloud|on-premise|hybrid",
+                "containers": ["container1", "container2"],
+                "services": ["service1", "service2"],
+                "scaling_strategy": "horizontal|vertical|auto",
+            },
+            "security_architecture": {
+                "authentication": "strategy",
+                "authorization": "strategy",
+                "data_protection": ["encryption", "etc"],
+            },
+        }
 
-        builder.add_guidelines(
-            [
-                "Support all functional and non-functional requirements",
-                "Align with Golden Data structure",
-                "Be scalable and maintainable",
-                "Follow best practices and patterns",
-            ]
-        )
+        guidelines = [
+            "Support all functional and non-functional requirements",
+            "Align with Golden Data structure",
+            "Be scalable and maintainable",
+            "Follow best practices and patterns",
+        ]
 
-        return builder.build()
+        # Prepare previous outputs
+        previous_outputs = {}
+        if req_analysis:
+            previous_outputs["requirement_analysis"] = req_analysis
+
+        return self._build_standard_prompt(
+            requirement=requirement,
+            output_format=output_format,
+            guidelines=guidelines,
+            context={"additional_context": context} if context else None,
+            previous_outputs=previous_outputs,
+        )
 
     def _create_fallback_architecture(self) -> Dict[str, Any]:
         """Create basic architecture when LLM fails."""

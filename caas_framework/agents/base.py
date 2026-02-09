@@ -495,3 +495,129 @@ class BaseExpertAgent(ABC):
                 merged[key] = value
 
         return merged
+
+    # ==================== Enhanced Template Methods (v0.4.0+) ====================
+
+    def _build_standard_prompt(
+        self,
+        requirement: Optional[str],
+        output_format: Dict[str, Any],
+        guidelines: List[str],
+        context: Optional[Dict[str, Any]] = None,
+        previous_outputs: Optional[Dict[str, Any]] = None,
+    ) -> str:
+        """
+        Build standard analysis prompt using AgentPromptTemplates.
+
+        Template method to reduce prompt building duplication across agents.
+
+        Args:
+            requirement: User requirement
+            output_format: Expected output schema
+            guidelines: List of guidelines
+            context: Optional additional context
+            previous_outputs: Optional previous phase outputs
+
+        Returns:
+            Complete prompt string
+
+        Example:
+            >>> prompt = self._build_standard_prompt(
+            ...     requirement="Build a todo app",
+            ...     output_format={"agents": [], "tasks": []},
+            ...     guidelines=["Ensure all features are covered"]
+            ... )
+        """
+        from caas_framework.agents.utils import AgentPromptTemplates
+
+        return AgentPromptTemplates.build_analysis_prompt(
+            requirement=requirement or "",
+            agent_role=self.agent_role,
+            golden_data=self.golden_data,
+            context=context,
+            previous_outputs=previous_outputs,
+            output_format=output_format,
+            guidelines=guidelines,
+        )
+
+    async def _parse_llm_json_safe(
+        self,
+        response: str,
+        expected_fields: List[str],
+        fallback_factory: Callable[[], Dict[str, Any]],
+    ) -> Dict[str, Any]:
+        """
+        Safely parse LLM JSON response with fallback.
+
+        Template method to consolidate parsing logic.
+
+        Args:
+            response: Raw LLM response
+            expected_fields: Required fields
+            fallback_factory: Fallback factory
+
+        Returns:
+            Parsed JSON dict
+        """
+        from caas_framework.agents.utils import AgentOutputParser
+
+        return await AgentOutputParser.parse_llm_json(
+            response=response,
+            expected_fields=expected_fields,
+            fallback_factory=fallback_factory,
+            agent_name=self.agent_name,
+        )
+
+    async def _execute_with_retry(
+        self,
+        func: Callable,
+        operation: str = "operation",
+        max_retries: int = 3,
+    ) -> Any:
+        """
+        Execute function with automatic retry.
+
+        Template method for error handling with retry logic.
+
+        Args:
+            func: Async function to execute
+            operation: Operation description for logging
+            max_retries: Maximum retry attempts
+
+        Returns:
+            Function result
+
+        Raises:
+            Exception if all retries fail
+        """
+        from caas_framework.agents.utils import AgentErrorHandler
+
+        return await AgentErrorHandler.with_retry(
+            func=func,
+            max_retries=max_retries,
+            agent_name=self.agent_name,
+            operation=operation,
+        )
+
+    def _log_error(
+        self,
+        operation: str,
+        error: Exception,
+    ) -> None:
+        """
+        Log error with consistent format.
+
+        Template method for standardized error logging.
+
+        Args:
+            operation: Operation that failed
+            error: Exception object
+        """
+        from caas_framework.agents.utils import AgentErrorHandler
+
+        AgentErrorHandler.log_agent_error(
+            agent_name=self.agent_name,
+            phase=self.phase.value,
+            operation=operation,
+            error=error,
+        )

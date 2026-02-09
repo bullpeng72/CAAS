@@ -101,90 +101,65 @@ class QASpecialistAgent(BaseExpertAgent):
         context: str,
     ) -> str:
         """Build LLM prompt for QA analysis."""
-
-        builder = (
-            PromptBuilder("perform comprehensive QA on the project artifacts")
-            .add_task("You are an expert Quality Assurance Specialist.")
-            .add_input(requirement=requirement)
-        )
-
-        # Add golden data if available
-        if self.golden_data:
-            builder.add_golden_data(
-                self.golden_data,
-                fields=["domain", "features", "data_models", "ui_components"],
-            )
-            builder.add_context(
-                "Quality Baseline",
-                "All outputs must align with these Golden Data specifications.",
-            )
-
-        # Add previous phase outputs
-        if previous_outputs:
-            builder.add_previous_outputs(previous_outputs)
-
-        # Add context if provided
-        if context:
-            builder.add_context("Additional Context", context)
-
-        # Add output format
-        builder.add_output_format(
-            {
-                "qa_report": {
-                    "overall_quality": "excellent|good|fair|poor",
-                    "phase_assessments": {
-                        "discovery": {"score": "0-10", "issues": [], "strengths": []},
-                        "architecture": {
-                            "score": "0-10",
-                            "issues": [],
-                            "strengths": [],
-                        },
-                        "design": {"score": "0-10", "issues": [], "strengths": []},
-                        "delivery": {"score": "0-10", "issues": [], "strengths": []},
+        # Use base class template method
+        output_format = {
+            "qa_report": {
+                "overall_quality": "excellent|good|fair|poor",
+                "phase_assessments": {
+                    "discovery": {"score": "0-10", "issues": [], "strengths": []},
+                    "architecture": {
+                        "score": "0-10",
+                        "issues": [],
+                        "strengths": [],
                     },
+                    "design": {"score": "0-10", "issues": [], "strengths": []},
+                    "delivery": {"score": "0-10", "issues": [], "strengths": []},
                 },
-                "compliance_check": {
-                    "golden_data_alignment": "0-100",
-                    "requirement_coverage": "0-100",
-                    "completeness": "0-100",
-                    "non_compliant_items": [],
-                },
-                "test_results": {
-                    "unit_tests": "pass|fail|not_run",
-                    "integration_tests": "pass|fail|not_run",
-                    "e2e_tests": "pass|fail|not_run",
-                    "test_coverage": "0-100",
-                },
-                "security_assessment": {
-                    "vulnerabilities": [],
-                    "security_score": "0-10",
-                    "recommendations": [],
-                },
-                "performance_assessment": {
-                    "scalability": "0-10",
-                    "efficiency": "0-10",
-                    "bottlenecks": [],
-                },
-                "recommendations": [
-                    "Specific recommendation 1",
-                    "Specific recommendation 2",
-                ],
-                "readiness_score": "0-100",
-                "production_ready": "true|false",
             },
-            "Provide comprehensive QA report in JSON format:",
-        )
+            "compliance_check": {
+                "golden_data_alignment": "0-100",
+                "requirement_coverage": "0-100",
+                "completeness": "0-100",
+                "non_compliant_items": [],
+            },
+            "test_results": {
+                "unit_tests": "pass|fail|not_run",
+                "integration_tests": "pass|fail|not_run",
+                "e2e_tests": "pass|fail|not_run",
+                "test_coverage": "0-100",
+            },
+            "security_assessment": {
+                "vulnerabilities": [],
+                "security_score": "0-10",
+                "recommendations": [],
+            },
+            "performance_assessment": {
+                "scalability": "0-10",
+                "efficiency": "0-10",
+                "bottlenecks": [],
+            },
+            "recommendations": [
+                "Specific recommendation 1",
+                "Specific recommendation 2",
+            ],
+            "readiness_score": "0-100",
+            "production_ready": "true|false",
+        }
 
-        builder.add_guidelines(
-            [
-                "Be thorough and critical",
-                "Identify all issues and provide actionable recommendations",
-                "Validate alignment with Golden Data specifications",
-                "Assess production readiness objectively",
-            ]
-        )
+        guidelines = [
+            "Be thorough and critical",
+            "Identify all issues and provide actionable recommendations",
+            "Validate alignment with Golden Data specifications",
+            "Assess production readiness objectively",
+        ]
 
-        return builder.build()
+        return self._build_standard_prompt(
+            requirement=requirement,
+            output_format=output_format,
+            guidelines=guidelines,
+            context={"additional_context": context} if context else None,
+            previous_outputs=previous_outputs,
+        )
 
     def _create_fallback_qa_report(self) -> Dict[str, Any]:
         """Create basic QA report when LLM fails."""

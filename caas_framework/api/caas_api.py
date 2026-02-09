@@ -273,8 +273,7 @@ class CAAS_API:
 
         Examples:
             def on_phase_start(event):
-                print(f"Phase started: {event.phase}")
-
+                logger.info(f"Phase started: {event.phase}")
             api.subscribe_event("phase_start", on_phase_start)
         """
         if event_type not in self._event_subscriptions:

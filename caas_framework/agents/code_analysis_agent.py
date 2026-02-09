@@ -19,6 +19,7 @@ from typing import Any, Dict, List, Optional
 from caas_framework.agents.base import AgentPhase, BaseExpertAgent
 from caas_framework.agents.executors import RefinementExecutor
 from caas_framework.agents.registry import register_agent
+from caas_framework.agents.utils import AgentErrorHandler, AgentOutputParser
 from caas_framework.models.validation import ValidationIssue
 from caas_framework.models.code_analysis import (
     BusinessRuleViolation,
@@ -373,10 +374,14 @@ class CodeAnalysisAgent(BaseExpertAgent):
             prompt = self._build_business_rule_prompt(feature, project_files)
 
             try:
-                response = await self.llm.generate(
-                    prompt=prompt,
-                    temperature=0.3,
-                    max_tokens=2000,
+                # Use retry logic from base class
+                response = await self._execute_with_retry(
+                    lambda: self.llm.generate(
+                        prompt=prompt,
+                        temperature=0.3,
+                        max_tokens=2000,
+                    ),
+                    operation=f"business rule analysis for {feature.name}",
                 )
 
                 # Parse violations from response
@@ -384,7 +389,12 @@ class CodeAnalysisAgent(BaseExpertAgent):
                 violations.extend(feature_violations)
 
             except Exception as e:
-                logger.error(f"Error analyzing business rules for {feature.name}: {e}")
+                AgentErrorHandler.log_agent_error(
+                    self.agent_name,
+                    "CODE_ANALYSIS",
+                    f"business rule analysis for {feature.name}",
+                    e,
+                )
 
         return violations
 
@@ -466,14 +476,23 @@ class CodeAnalysisAgent(BaseExpertAgent):
         prompt = self._build_error_analysis_prompt(error_info)
 
         try:
-            response = await self.llm.generate(
-                prompt=prompt,
-                temperature=0.3,
-                max_tokens=1000,
+            # Use retry logic from base class
+            response = await self._execute_with_retry(
+                lambda: self.llm.generate(
+                    prompt=prompt,
+                    temperature=0.3,
+                    max_tokens=1000,
+                ),
+                operation="error root cause analysis",
             )
             return response.strip()
         except Exception as e:
-            logger.error(f"Error analyzing root cause: {e}")
+            AgentErrorHandler.log_agent_error(
+                self.agent_name,
+                "CODE_ANALYSIS",
+                "error root cause analysis",
+                e,
+            )
             return f"Could not analyze root cause: {str(e)}"
 
     async def _generate_error_fixes(
@@ -483,10 +502,14 @@ class CodeAnalysisAgent(BaseExpertAgent):
         prompt = self._build_fix_generation_prompt(error_info, root_cause)
 
         try:
-            response = await self.llm.generate(
-                prompt=prompt,
-                temperature=0.2,
-                max_tokens=2000,
+            # Use retry logic from base class
+            response = await self._execute_with_retry(
+                lambda: self.llm.generate(
+                    prompt=prompt,
+                    temperature=0.2,
+                    max_tokens=2000,
+                ),
+                operation="error fix generation",
             )
 
             # Parse fixes from response
@@ -494,7 +517,12 @@ class CodeAnalysisAgent(BaseExpertAgent):
             return fixes
 
         except Exception as e:
-            logger.error(f"Error generating fixes: {e}")
+            AgentErrorHandler.log_agent_error(
+                self.agent_name,
+                "CODE_ANALYSIS",
+                "error fix generation",
+                e,
+            )
             return []
 
     def _extract_keywords(self, *texts: str) -> List[str]:

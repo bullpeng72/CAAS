@@ -17,18 +17,23 @@ Installation:
 """
 
 import os
-from typing import Any, AsyncIterator, Dict, List, Optional
+from typing import Any, AsyncIterator, Dict
 
-from caas_framework.plugins.llm.base import LLMMessage, LLMPlugin, LLMResponse
+from caas_framework.plugins.llm.base import LLMPlugin
 
 
 class OllamaPlugin(LLMPlugin):
-    """Ollama LLM provider for local execution"""
+    """
+    Ollama LLM provider for local execution.
+
+    Uses the base LLMPlugin implementation for all common logic.
+    Only implements provider-specific initialization and API calls.
+    """
 
     def __init__(self, name: str, config: Dict[str, Any]):
         super().__init__(name=name, config=config)
 
-        # Ollama specific
+        # Ollama specific configuration
         self.api_base = config.get("api_base") or os.getenv(
             "OLLAMA_API_BASE", "http://localhost:11434/v1"
         )
@@ -36,10 +41,8 @@ class OllamaPlugin(LLMPlugin):
         # Ollama doesn't require API key but we accept it for compatibility
         self.api_key = config.get("api_key") or os.getenv("OLLAMA_API_KEY", "ollama")
 
-        self._client = None
-
     async def initialize(self) -> None:
-        """Initialize Ollama client"""
+        """Initialize Ollama client."""
         try:
             from openai import AsyncOpenAI
 
@@ -49,6 +52,9 @@ class OllamaPlugin(LLMPlugin):
                 base_url=self.api_base,
             )
             self._initialized = True
+            self.logger.debug(
+                f"Ollama client initialized (model: {self.model}, base: {self.api_base})"
+            )
 
         except ImportError:
             raise ImportError(
@@ -57,139 +63,75 @@ class OllamaPlugin(LLMPlugin):
                 "Install with: pip install openai"
             )
 
-    async def ainvoke(
+    def _build_request_params(
         self,
-        messages: List[LLMMessage],
-        temperature: Optional[float] = None,
-        max_tokens: Optional[int] = None,
-        response_format: Optional[str] = None,
+        messages: list[dict[str, str]],
+        temperature: float | None = None,
+        max_tokens: int | None = None,
+        response_format: str | None = None,
+        stream: bool = False,
         **kwargs,
-    ) -> LLMResponse:
-        """Async Ollama call"""
-        if not self._initialized:
-            await self.initialize()
+    ) -> dict[str, Any]:
+        """
+        Build Ollama-specific request parameters.
 
-        # Convert messages (handle both dict and object formats)
-        ollama_messages = []
-        for msg in messages:
-            if isinstance(msg, dict):
-                ollama_messages.append(msg)
-            else:
-                ollama_messages.append({"role": msg.role, "content": msg.content})
+        Ollama uses "format" instead of "response_format" for JSON mode.
 
-        # Build request
-        request_params = {
-            "model": self.model,
-            "messages": ollama_messages,
-            "temperature": temperature or self.temperature,
-        }
+        Args:
+            messages: Converted messages
+            temperature: Temperature override
+            max_tokens: Max tokens override
+            response_format: Response format ("json" or None)
+            stream: Enable streaming
+            **kwargs: Additional parameters
 
-        if max_tokens or self.max_tokens:
-            request_params["max_tokens"] = max_tokens or self.max_tokens
+        Returns:
+            Dictionary of request parameters
+        """
+        # Use base implementation
+        params = super()._build_request_params(
+            messages=messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            response_format=None,  # Don't use base JSON format
+            stream=stream,
+            **kwargs,
+        )
 
-        # Note: Ollama may not support all OpenAI features like JSON mode
-        # JSON mode support depends on the specific model
+        # Ollama uses "format" instead of "response_format"
         if response_format == "json":
-            # Some Ollama models support format parameter
-            request_params["format"] = "json"
+            # Remove OpenAI-style response_format if it exists
+            params.pop("response_format", None)
+            # Add Ollama-style format parameter
+            params["format"] = "json"
 
-        # Add extra kwargs
-        request_params.update(kwargs)
+        return params
 
-        try:
-            # Call Ollama via OpenAI-compatible API
-            response = await self._client.chat.completions.create(**request_params)
+    async def _call_api(self, request_params: Dict[str, Any]) -> Any:
+        """
+        Ollama-specific API call implementation.
 
-            # Ollama response format is OpenAI-compatible
-            return LLMResponse(
-                content=response.choices[0].message.content,
-                model=response.model,
-                usage={
-                    "prompt_tokens": getattr(response.usage, "prompt_tokens", 0),
-                    "completion_tokens": getattr(
-                        response.usage, "completion_tokens", 0
-                    ),
-                    "total_tokens": getattr(response.usage, "total_tokens", 0),
-                },
-                finish_reason=response.choices[0].finish_reason,
-            )
+        Args:
+            request_params: Request parameters from base class
 
-        except Exception as e:
-            # Provide helpful error message for common Ollama issues
-            error_msg = str(e)
-            if "Connection refused" in error_msg or "Failed to connect" in error_msg:
-                raise RuntimeError(
-                    "Failed to connect to Ollama server. "
-                    "Please ensure:\n"
-                    "1. Ollama is installed: https://ollama.ai/download\n"
-                    f"2. Ollama server is running at {self.api_base}\n"
-                    f"3. Model '{self.model}' is pulled: ollama pull {self.model}"
-                ) from e
-            elif "model" in error_msg.lower() and "not found" in error_msg.lower():
-                raise RuntimeError(
-                    f"Model '{self.model}' not found. "
-                    f"Pull it with: ollama pull {self.model}\n"
-                    f"Or list available models: ollama list"
-                ) from e
-            else:
-                raise
+        Returns:
+            Ollama completion response (OpenAI-compatible)
+        """
+        return await self._client.chat.completions.create(**request_params)
 
-    async def stream(
-        self,
-        messages: List[LLMMessage],
-        temperature: Optional[float] = None,
-        max_tokens: Optional[int] = None,
-        **kwargs,
-    ) -> AsyncIterator[str]:
-        """Streaming Ollama call"""
-        if not self._initialized:
-            await self.initialize()
+    async def _stream_api(self, request_params: Dict[str, Any]) -> AsyncIterator[Any]:
+        """
+        Ollama-specific streaming API call implementation.
 
-        # Convert messages (handle both dict and object formats)
-        ollama_messages = []
-        for msg in messages:
-            if isinstance(msg, dict):
-                ollama_messages.append(msg)
-            else:
-                ollama_messages.append({"role": msg.role, "content": msg.content})
+        Args:
+            request_params: Request parameters from base class
 
-        # Build request
-        request_params = {
-            "model": self.model,
-            "messages": ollama_messages,
-            "temperature": temperature or self.temperature,
-            "stream": True,
-        }
-
-        if max_tokens or self.max_tokens:
-            request_params["max_tokens"] = max_tokens or self.max_tokens
-
-        request_params.update(kwargs)
-
-        try:
-            # Stream
-            stream = await self._client.chat.completions.create(**request_params)
-
-            async for chunk in stream:
-                if chunk.choices[0].delta.content:
-                    yield chunk.choices[0].delta.content
-
-        except Exception as e:
-            error_msg = str(e)
-            if "Connection refused" in error_msg:
-                raise RuntimeError(
-                    f"Failed to connect to Ollama server at {self.api_base}. "
-                    "Please ensure Ollama is running."
-                ) from e
-            else:
-                raise
-
-    async def close(self) -> None:
-        """Close Ollama client"""
-        if self._client:
-            await self._client.close()
-            self._client = None
-            self._initialized = False
+        Yields:
+            Ollama streaming response chunks (OpenAI-compatible)
+        """
+        stream = await self._client.chat.completions.create(**request_params)
+        async for chunk in stream:
+            yield chunk
 
 
 # Register plugin

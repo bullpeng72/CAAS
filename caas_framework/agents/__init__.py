@@ -37,6 +37,19 @@ from caas_framework.agents.requirement_analyst import RequirementAnalystAgent
 from caas_framework.agents.self_aware import SelfAwareAgent, SelfAwareMixin
 from caas_framework.agents.system_architect import SystemArchitectAgent
 
+# NEW (v0.4.0): Utility modules for reducing agent duplication
+from caas_framework.agents.utils import (
+    AgentErrorHandler,
+    AgentOutputParser,
+    AgentPromptTemplates,
+    AgentValidators,
+)
+from caas_framework.agents.code_gen_helpers import (
+    CodeAutoFix,
+    CodeValidation,
+    StaticFileGenerators,
+)
+
 __all__ = [
     # Base classes
     "BaseExpertAgent",
@@ -64,4 +77,12 @@ __all__ = [
     "CapabilityRegistry",
     "get_capability_registry",
     "register_agent_capability",
+    # Utilities (NEW v0.4.0 - for reducing duplication)
+    "AgentPromptTemplates",
+    "AgentOutputParser",
+    "AgentErrorHandler",
+    "AgentValidators",
+    "CodeValidation",
+    "CodeAutoFix",
+    "StaticFileGenerators",
 ]

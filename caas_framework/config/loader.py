@@ -27,6 +27,9 @@ from caas_framework.config.settings import (
     VectorDBConfig,
     WorkflowConfig,
 )
+from caas_framework.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class ConfigLoader:
@@ -103,7 +106,7 @@ class ConfigLoader:
                 with open(self.config_path, "r", encoding="utf-8") as f:
                     self._config_data = yaml.safe_load(f) or {}
             except Exception as e:
-                print(f"Warning: Failed to load config file {self.config_path}: {e}")
+                logger.error(f"Warning: Failed to load config file {self.config_path}: {e}")
                 self._config_data = {}
 
     def _get_with_priority(
@@ -346,7 +349,7 @@ class ConfigLoader:
                 )
             return True
         except Exception as e:
-            print(f"Error saving config: {e}")
+            logger.error(f"Error saving config: {e}")
             return False
 
 

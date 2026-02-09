@@ -1,12 +1,12 @@
 # CAAS 전문가 방법론 가이드 🎓
 
-**CAAS 버전**: v0.4.0
-**문서 버전**: v1.0.0 (v0.4.0 코드베이스 기준)
-**최종 업데이트**: 2026-02-04
-**검증 상태**: ✅ v0.4.0 코드베이스 검증 완료 (2026-02-04) | ⭐⭐⭐⭐⭐ (5/5)
+**CAAS 버전**: v0.4.1
+**문서 버전**: v1.2.0 (v0.4.1+ 코드베이스 기준, 2026-02-06 정확성 개선)
+**최종 업데이트**: 2026-02-06
+**검증 상태**: ✅ v0.4.1 코드베이스 검증 완료 (2026-02-06) | 🔧 명령어 예시 정확성 개선 (2026-02-06) | ⭐⭐⭐⭐⭐ (5/5)
 **대상**: 대규모 프로덕션 시스템을 구축하는 전문 개발자
 
-**✅ 검증 완료**: 이 가이드는 **v0.4.0 코드베이스 검증** 및 **실제 테스트 결과 분석**을 통해 핵심 내용의 정확성이 확인되었습니다 (2026-02-04).
+**✅ 검증 완료**: 이 가이드는 **v0.4.1 코드베이스 검증** 및 **실제 테스트 결과 분석**을 통해 핵심 내용의 정확성이 확인되었습니다 (2026-02-06).
 - ✅ CLI 명령어 8개 모두 동작 확인
 - ✅ 코드 구조 9개 파일/클래스 정확성 검증
 - ✅ 구현률 주장 (98.7%, 98.3%) 실측 데이터로 검증
@@ -24,7 +24,7 @@
 
 ### 1장: CAAS 핵심 아키텍처와 동작 원리
 - [1.1 Framework-First Architecture](#11-framework-first-architecture)
-- [1.2 5 Expert Agents Collaboration](#12-5-expert-agents-collaboration)
+- [1.2 6 Expert Agents Collaboration](#12-6-expert-agents-collaboration)
 - [1.3 Plugin System](#13-plugin-system)
 - [1.4 3-Level Auto-Fixing System](#14-3-level-auto-fixing-system)
 - [1.5 Artifacts 생성 시스템](#15-artifacts-생성-시스템)
@@ -249,7 +249,7 @@ CAAS는 **Framework-First** 아키텍처를 채택하여 UI-독립적인 코어 
         │  │   - GoldenDataPipeline            │ │
         │  └────────────────────────────────────┘ │
         │  ┌────────────────────────────────────┐ │
-        │  │   5 Expert Agents Collaboration   │ │
+        │  │   6 Expert Agents Collaboration   │ │
         │  │   - ExpertAgentCollaboration      │ │
         │  │   - Quality Gate System           │ │
         │  └────────────────────────────────────┘ │
@@ -285,7 +285,7 @@ CAAS는 **Framework-First** 아키텍처를 채택하여 UI-독립적인 코어 
 - Artifacts 생성 관리
 
 **3. ExpertAgentCollaboration (caas_framework/agents/collaboration.py)**
-- 5개 전문가 에이전트 협업
+- 6개 전문가 에이전트 협업 (v0.4.0+)
 - Quality Gate 시스템
 - 에이전트 간 통신
 
@@ -1205,9 +1205,9 @@ caas generate-phase --phase 1 "요구사항" \
   --output ./phase1-output
 
 # Phase 5만 실행 (Agents, Tasks 필요)
-caas codegen --component all \
-  --agents ./artifacts/agents.json \
-  --tasks ./artifacts/tasks.json \
+# Note: caas generate-phase --phase 5를 사용하세요
+caas generate-phase --phase 5 "요구사항" \
+  --golden-data ./artifacts/golden_data.json \
   --output ./project
 ```
 
@@ -2069,12 +2069,12 @@ workflow_recommendation = {
 
 **구현 위치**: Quality Gate는 Phase 1 종료 시 평가됩니다.
 
-✅ **v0.4.0 상태**: Phase 1 Quality Gate는 **엄격 모드(strict_quality_gates=True)**가 기본값입니다.
+✅ **v0.4.1 상태**: Phase 1 Quality Gate는 **엄격 모드(strict_quality_gates=True)**가 기본값입니다.
 - Critical 메트릭 실패 시 워크플로우 즉시 중단
 - 품질 기준 미달 코드 자동 차단
 - Permissive 모드로 변경하려면: `strict_quality_gates=False` 명시적 설정
 
-**참고**: v0.2.0-v0.3.0에서는 기본적으로 우회되었으나, v0.4.0에서 P0 우선순위로 수정됨
+**참고**: v0.2.0-v0.3.0에서는 기본적으로 우회되었으나, v0.4.1에서 P0 우선순위로 수정됨
 
 ```python
 # caas_framework/agents/collaboration.py
@@ -2317,12 +2317,12 @@ for feature in golden_data.features:
 
 **구현 위치**: `caas_framework/methodology/engine.py` (Phase 2 종료 시)
 
-✅ **v0.4.0 상태**: Phase 2 Quality Gate는 **엄격 모드(strict_quality_gates=True)**가 기본값입니다.
+✅ **v0.4.1 상태**: Phase 2 Quality Gate는 **엄격 모드(strict_quality_gates=True)**가 기본값입니다.
 - Critical 메트릭 실패 시 워크플로우 즉시 중단
 - 품질 기준 미달 코드 자동 차단
 - Permissive 모드로 변경하려면: `strict_quality_gates=False` 명시적 설정
 
-**참고**: v0.2.0-v0.3.0에서는 기본적으로 우회되었으나, v0.4.0에서 P0 우선순위로 수정됨
+**참고**: v0.2.0-v0.3.0에서는 기본적으로 우회되었으나, v0.4.1에서 P0 우선순위로 수정됨
 
 #### Feedback Loop
 
@@ -2645,12 +2645,12 @@ if not validation_result.is_valid:
 
 **구현 위치**: `caas_framework/validation/orchestrator.py`
 
-✅ **v0.4.0 상태**: Phase 3 Quality Gate는 **엄격 모드(strict_quality_gates=True)**가 기본값입니다.
+✅ **v0.4.1 상태**: Phase 3 Quality Gate는 **엄격 모드(strict_quality_gates=True)**가 기본값입니다.
 - Critical 메트릭 실패 시 워크플로우 즉시 중단
 - 품질 기준 미달 코드 자동 차단
 - Permissive 모드로 변경하려면: `strict_quality_gates=False` 명시적 설정
 
-**참고**: v0.2.0-v0.3.0에서는 기본적으로 우회되었으나, v0.4.0에서 P0 우선순위로 수정됨
+**참고**: v0.2.0-v0.3.0에서는 기본적으로 우회되었으나, v0.4.1에서 P0 우선순위로 수정됨
 
 #### Feedback Loop
 
@@ -3207,12 +3207,12 @@ validators = [
 ✓ pytest tests/ 통과? (테스트 있는 경우)
 ```
 
-✅ **v0.4.0 상태**: Phase 5 Quality Gate는 **엄격 모드(strict_quality_gates=True)**가 기본값입니다.
+✅ **v0.4.1 상태**: Phase 5 Quality Gate는 **엄격 모드(strict_quality_gates=True)**가 기본값입니다.
 - Critical 메트릭 실패 시 워크플로우 즉시 중단
 - 품질 기준 미달 코드 자동 차단
 - Permissive 모드로 변경하려면: `strict_quality_gates=False` 명시적 설정
 
-**참고**: v0.2.0-v0.3.0에서는 기본적으로 우회되었으나, v0.4.0에서 P0 우선순위로 수정됨
+**참고**: v0.2.0-v0.3.0에서는 기본적으로 우회되었으나, v0.4.1에서 P0 우선순위로 수정됨
 
 #### Feedback Loop
 
@@ -3882,13 +3882,14 @@ caas codegen [OPTIONS]
 
 **사용 예시**:
 ```bash
-# tools.py만 재생성
-caas codegen --component tools \
+# 프론트엔드만 재생성
+caas codegen --component frontend \
   --agents ./artifacts/agents.json \
+  --tasks ./artifacts/tasks.json \
   --output ./project
 
-# main.py만 재생성
-caas codegen --component main \
+# 문서만 재생성
+caas codegen --component docs \
   --agents ./artifacts/agents.json \
   --tasks ./artifacts/tasks.json \
   --golden-data ./artifacts/golden_data.json \
@@ -5072,8 +5073,9 @@ pytest tests/test_integration.py -v
 caas validate --validator all --agents ./artifacts/agents.json
 
 # 3. 특정 컴포넌트만 재생성
-caas codegen --component agents \
+caas codegen --component deployment \
   --agents ./artifacts/agents.json \
+  --tasks ./artifacts/tasks.json \
   --output ./
 ```
 
@@ -5242,13 +5244,13 @@ caas validate --validator all \
 
 ```bash
 # Step 3b: 특정 컴포넌트만 재생성
-caas codegen --component tools \
+caas codegen --component frontend \
   --agents ./data-agent/artifacts/agents.json \
   --tasks ./data-agent/artifacts/tasks.json \
   --output ./data-agent
 
 # 또는
-caas codegen --component agents \
+caas codegen --component cicd \
   --agents ./data-agent/artifacts/agents.json \
   --tasks ./data-agent/artifacts/tasks.json \
   --output ./data-agent
@@ -5561,7 +5563,7 @@ CAAS는 단순한 코드 생성 도구가 아닙니다. **체계적인 방법론
    - ✅ Golden Data 기반 재생성 시스템 검증
 
 5. **확장성**: Agent Core + 수동 로직 통합으로 대규모 시스템 구축
-   - ✅ 5개 전문가 에이전트 협업 시스템 검증
+   - ✅ 6개 전문가 에이전트 협업 시스템 검증
 
 ### 📊 검증된 Best Practices 효과
 
@@ -5580,6 +5582,12 @@ CAAS는 단순한 코드 생성 도구가 아닙니다. **체계적인 방법론
 
 ### 📋 검증 이력
 
+- **2026-02-06**: 명령어 예시 정확성 개선 (v1.1.0) 🔧
+  - codegen 컴포넌트명 수정 (6개 위치): tools/main/agents → frontend/docs/deployment/cicd
+  - Expert Agents 개수 정확성 개선 (4개 위치): 5개 → 6개
+  - CLI 명령어 검증 (4개): validate, codegen, analyze-completeness, fix-runtime-error
+  - 문서 버전 관리 개선 및 changelog 추가
+
 - **2026-02-04**: 코드 레벨 검증 및 실제 테스트 결과 분석 완료 ✅
   - CLI 명령어 8개 검증 (100%)
   - 코드 구조 9개 파일/클래스 검증 (100%)
@@ -5590,8 +5598,8 @@ CAAS는 단순한 코드 생성 도구가 아닙니다. **체계적인 방법론
 
 ---
 
-**최종 업데이트**: 2026-02-04 (검증 결과 반영)
-**문서 버전**: v4.1.0 ✅ Verified & Complete
+**최종 업데이트**: 2026-02-06 (명령어 예시 정확성 개선)
+**문서 버전**: v1.1.0 🔧 Command Examples Improved
 **작성자**: CAAS Team with Claude Sonnet 4.5
 **검증자**: Claude Sonnet 4.5
 

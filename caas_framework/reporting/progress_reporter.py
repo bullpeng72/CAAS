@@ -1,7 +1,7 @@
 """
 Progress Reporter
 
-Real-time progress reporting for BMAD 6-Phase workflow execution.
+Real-time progress reporting for CAAS 6-Phase Methodology workflow execution.
 Provides configurable verbosity levels and rich console output.
 """
 
@@ -12,6 +12,11 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 
 from caas_framework.reporting.interfaces import VerbosityLevel
+
+from caas_framework.utils.logger import get_logger
+
+logger = get_logger(__name__)
+
 
 try:
     from rich.console import Console
@@ -71,7 +76,7 @@ class PhaseProgress:
 
 class ProgressReporter:
     """
-    Progress Reporter for BMAD Workflow
+    Progress Reporter for CAAS 6-Phase Methodology
 
     Provides real-time progress reporting with configurable verbosity levels.
     Supports both Rich (colorful) and plain console output.
@@ -114,7 +119,7 @@ class ProgressReporter:
         self.workflow_start_time: Optional[float] = None
         self.phases: Dict[str, PhaseProgress] = {}
         self.current_phase: Optional[str] = None
-        self.total_phases: int = 6  # BMAD has 6 phases
+        self.total_phases: int = 6  # CAAS 6-Phase Methodology
 
     # ===========================================
     # Workflow-level reporting
@@ -126,7 +131,7 @@ class ProgressReporter:
 
         Args:
             workflow_name: Name of the workflow
-            total_phases: Total number of phases (default: 6 for BMAD)
+            total_phases: Total number of phases (default: 6 for CAAS 6-Phase Methodology)
         """
         self.workflow_name = workflow_name
         self.workflow_start_time = time.time()
@@ -141,11 +146,10 @@ class ProgressReporter:
             self.console.print()
         else:
             header = "=" * 70
-            print(header, file=self.file)
-            print(f"{workflow_name}", file=self.file)
-            print(header, file=self.file)
-            print(file=self.file)
-
+            logger.info(header)
+            logger.info(f"{workflow_name}")
+            logger.info(header)
+            logger.info(file=self.file)
     def end_workflow(
         self, success: bool, duration: float, summary: Optional[Dict[str, Any]] = None
     ) -> None:
@@ -241,10 +245,9 @@ class ProgressReporter:
 
         else:
             # Plain text output
-            print("\n" + "=" * 70, file=self.file)
-            print("Workflow Summary", file=self.file)
-            print("=" * 70, file=self.file)
-
+            logger.info("\n" + "=" * 70)
+            logger.info("Workflow Summary")
+            logger.info("=" * 70)
             for phase_name, phase in self.phases.items():
                 duration_str = f"{phase.duration:.2f}s" if phase.duration else "N/A"
                 print(
@@ -252,16 +255,15 @@ class ProgressReporter:
                     file=self.file,
                 )
 
-            print("=" * 70, file=self.file)
+            logger.info("=" * 70)
             icon = "✅" if success else "❌"
             status = "Completed Successfully" if success else "Failed"
-            print(f"{icon} {status} (Duration: {duration:.2f}s)", file=self.file)
+            logger.info(f"{icon} {status} (Duration: {duration:.2f}s)")
             print(
                 f"Phases: {completed}/{len(self.phases)}, Errors: {total_errors}, Warnings: {total_warnings}",
                 file=self.file,
             )
-            print("=" * 70, file=self.file)
-
+            logger.info("=" * 70)
     # ===========================================
     # Phase-level reporting
     # ===========================================
@@ -301,14 +303,13 @@ class ProgressReporter:
                 self.console.print(f"  [dim]{description}[/dim]")
             self.console.print()
         else:
-            print("\n" + "=" * 60, file=self.file)
-            print(f"{phase_name}", file=self.file)
+            logger.info("\n" + "=" * 60)
+            logger.info(f"{phase_name}")
             if agent_name:
-                print(f"  Agent: {agent_name}", file=self.file)
+                logger.info(f"  Agent: {agent_name}")
             if description:
-                print(f"  {description}", file=self.file)
-            print("=" * 60, file=self.file)
-
+                logger.info(f"  {description}")
+            logger.info("=" * 60)
     def complete_phase(
         self,
         phase_name: str,
@@ -366,8 +367,7 @@ class ProgressReporter:
             message = f"  {icon} Phase completed in {actual_duration:.2f}s"
             if validation_score is not None:
                 message += f" | Validation: {validation_score:.1%}"
-            print(message, file=self.file)
-
+            logger.info(message)
     def skip_phase(self, phase_name: str, reason: str):
         """
         Skip a phase
@@ -385,8 +385,7 @@ class ProgressReporter:
             if self.use_rich:
                 self.console.print(f"  [dim]⏭️  Skipped: {reason}[/dim]")
             else:
-                print(f"  ⏭️ Skipped: {reason}", file=self.file)
-
+                logger.info(f"  ⏭️ Skipped: {reason}")
     # ===========================================
     # Agent-level reporting
     # ===========================================
@@ -405,8 +404,7 @@ class ProgressReporter:
         if self.use_rich:
             self.console.print(f"  [cyan][{agent_name}][/cyan] {message}")
         else:
-            print(f"  [{agent_name}] {message}", file=self.file)
-
+            logger.info(f"  [{agent_name}] {message}")
     def agent_completed(self, agent_name: str, duration: float, iterations: int = 1):
         """
         Report agent completion
@@ -455,13 +453,12 @@ class ProgressReporter:
                 else:
                     self.console.print(f"    [dim]{key}: {value}[/dim]")
         else:
-            print(f"  [{agent_name}] Output:", file=self.file)
+            logger.info(f"  [{agent_name}] Output:")
             for key, value in output.items():
                 if isinstance(value, (list, dict)):
-                    print(f"    {key}: {len(value)} items", file=self.file)
+                    logger.info(f"    {key}: {len(value)} items")
                 else:
-                    print(f"    {key}: {value}", file=self.file)
-
+                    logger.info(f"    {key}: {value}")
     # ===========================================
     # Validation & Feedback reporting
     # ===========================================
@@ -483,7 +480,7 @@ class ProgressReporter:
             )
         else:
             print(
-                f"  [{validator_name}] Validating {item_count} items...", file=self.file
+                f"  [{validator_name}] Validating {item_count} items..."
             )
 
     def validation_result(
@@ -522,8 +519,7 @@ class ProgressReporter:
                 f"  [{color}][{validator_name}] {icon} {message}[/{color}]"
             )
         else:
-            print(f"  [{validator_name}] {icon} {message}", file=self.file)
-
+            logger.info(f"  [{validator_name}] {icon} {message}")
     def feedback_iteration(
         self, agent_name: str, iteration: int, max_iterations: int, issues_count: int
     ):
@@ -570,8 +566,7 @@ class ProgressReporter:
         if self.use_rich:
             self.console.print(f"  [bold red]❌ Error:[/bold red] {message}")
         else:
-            print(f"  ❌ Error: {message}", file=self.file)
-
+            logger.error(f"  ❌ Error: {message}")
     def warning(self, message: str, phase: Optional[str] = None):
         """
         Report a warning
@@ -588,8 +583,7 @@ class ProgressReporter:
             if self.use_rich:
                 self.console.print(f"  [yellow]⚠️  Warning:[/yellow] {message}")
             else:
-                print(f"  ⚠️ Warning: {message}", file=self.file)
-
+                logger.warning(f"  ⚠️ Warning: {message}")
     def info(self, message: str):
         """
         Report an informational message
@@ -601,8 +595,7 @@ class ProgressReporter:
             if self.use_rich:
                 self.console.print(f"  [dim]ℹ️  {message}[/dim]")
             else:
-                print(f"  ℹ️ {message}", file=self.file)
-
+                logger.info(f"  ℹ️ {message}")
     def debug(self, message: str):
         """
         Report a debug message
@@ -614,8 +607,7 @@ class ProgressReporter:
             if self.use_rich:
                 self.console.print(f"  [dim cyan]🐛 DEBUG: {message}[/dim cyan]")
             else:
-                print(f"  🐛 DEBUG: {message}", file=self.file)
-
+                logger.debug(f"  🐛 DEBUG: {message}")
     # ===========================================
     # Protocol-compatible methods
     # ===========================================
@@ -639,7 +631,7 @@ class ProgressReporter:
                 if self.use_rich:
                     self.console.print(f"  [green]✅ {message}[/green]")
                 else:
-                    print(f"  ✅ {message}", file=self.file)
+                    logger.info(f"  ✅ {message}")
         else:  # info
             self.info(message)
 
@@ -659,8 +651,7 @@ class ProgressReporter:
             if self.use_rich:
                 self.console.print(f"  [dim]•[/dim] {message}{progress_str}")
             else:
-                print(f"  • {message}{progress_str}", file=self.file)
-
+                logger.info(f"  • {message}{progress_str}")
     def log_validation(
         self, phase_name: str, passed: bool, issues: Optional[List[str]] = None
     ) -> None:
@@ -679,22 +670,20 @@ class ProgressReporter:
                         f"  [green]✓ Validation passed for {phase_name}[/green]"
                     )
                 else:
-                    print(f"  ✓ Validation passed for {phase_name}", file=self.file)
+                    logger.info(f"  ✓ Validation passed for {phase_name}")
             else:
                 if self.use_rich:
                     self.console.print(
                         f"  [red]✗ Validation failed for {phase_name}[/red]"
                     )
                 else:
-                    print(f"  ✗ Validation failed for {phase_name}", file=self.file)
-
+                    logger.error(f"  ✗ Validation failed for {phase_name}")
                 if issues:
                     for issue in issues[:5]:  # Show first 5
                         if self.use_rich:
                             self.console.print(f"    [dim]• {issue}[/dim]")
                         else:
-                            print(f"    • {issue}", file=self.file)
-
+                            logger.info(f"    • {issue}")
     def log_feedback_iteration(
         self, phase_name: str, iteration: int, total_iterations: int
     ) -> None:

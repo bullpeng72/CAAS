@@ -331,29 +331,26 @@ from crew import run_crew
 
 def main():
     """Main entry point."""
-    print("=" * 60)
-    print("  {spec.project.name}")
-    print("  {spec.project.description}")
-    print("=" * 60)
-    print()
-
+    logger.info("=" * 60)
+    logger.info("  {spec.project.name}")
+    logger.info("  {spec.project.description}")
+    logger.info("=" * 60)
+    logger.info()
     # Get user input if needed
     inputs = {{}}
     # Add any required inputs here
     # Example: inputs["topic"] = input("Enter topic: ")
 
     # Run the crew
-    print("Starting crew execution...")
-    print("-" * 40)
-
+    logger.info("Starting crew execution...")
+    logger.info("-" * 40)
     result = run_crew(inputs=inputs)
 
-    print("-" * 40)
-    print("Execution completed!")
-    print()
-    print("Result:")
-    print(result)
-
+    logger.info("-" * 40)
+    logger.info("Execution completed!")
+    logger.info()
+    logger.info("Result:")
+    logger.info(result)
     return result
 
 

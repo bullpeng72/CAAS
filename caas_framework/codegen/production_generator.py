@@ -15,6 +15,7 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Optional
 
 from caas_framework.codegen.cicd_generator import CICDConfig, CICDGenerator
+from caas_framework.exceptions import CodeGenerationError, TemplateRenderingError
 from caas_framework.codegen.doc_generator import (
     DocumentationConfig,
     DocumentationGenerator,
@@ -258,6 +259,14 @@ class ProductionCodeGenerator:
         except Exception as e:
             result.success = False
             result.errors.append(f"Generation failed: {str(e)}")
+            raise CodeGenerationError(
+                "Production code generation failed",
+                details={
+                    "project_name": golden_data.project_name,
+                    "deployment_target": deployment_target,
+                    "error": str(e)
+                }
+            ) from e
 
         return result
 
@@ -277,8 +286,11 @@ class ProductionCodeGenerator:
                     content = self.error_injector.inject(content)
 
                     files[path] = content
-                except Exception:
-                    pass  # Keep original if injection fails
+                except Exception as e:
+                    # Keep original if injection fails
+                    from caas_framework.utils.logger import get_logger
+                    logger = get_logger()
+                    logger.warning(f"Enhanced error handling injection failed for {path}: {e}")
 
         # Add error handling utilities
         if self.config.enable_circuit_breaker:
@@ -298,8 +310,10 @@ class ProductionCodeGenerator:
                         content, logger_name=path.replace("/", ".").replace(".py", "")
                     )
                     files[path] = content
-                except Exception:
-                    pass
+                except Exception as e:
+                    from caas_framework.utils.logger import get_logger
+                    logger = get_logger()
+                    logger.warning(f"Structured logging injection failed for {path}: {e}")
 
         # Add logging utilities
         files[

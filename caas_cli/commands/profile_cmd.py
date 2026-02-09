@@ -95,8 +95,20 @@ def run(requirement, output, report, enable_memory_profiling):
       $ caas profile run "Build a blog" --report profile.json
     """
     try:
+        from pathlib import Path
+
+        from dotenv import load_dotenv
+
+        from caas_framework.config.loader import ConfigLoader
         from caas_framework.framework import CrewAIFramework
         from caas_framework.performance import get_profiler
+
+        # Load .env file
+        env_paths = [Path.cwd() / ".env", Path(__file__).parent.parent.parent / ".env"]
+        for env_path in env_paths:
+            if env_path.exists():
+                load_dotenv(env_path)
+                break
 
         echo_info("Starting generation with profiling enabled...")
         console.print()
@@ -109,8 +121,12 @@ def run(requirement, output, report, enable_memory_profiling):
         profiler.start("full_generation")
 
         try:
-            # Run generation
-            framework = CrewAIFramework()
+            # Load config from .env
+            config_loader = ConfigLoader()
+            config = config_loader.load()
+
+            # Run generation with config
+            framework = CrewAIFramework(config=config)
             result = framework.generate_from_requirement(
                 requirement=requirement, output_dir=output or "./output"
             )

@@ -16,6 +16,11 @@ from enum import Enum
 from pathlib import Path
 from typing import Dict, List, Optional
 
+from caas_framework.utils.logger import get_logger
+
+logger = get_logger(__name__)
+
+
 
 class Severity(str, Enum):
     """Security issue severity levels"""
@@ -448,10 +453,10 @@ def scan_generated_code(
         }
 
         report = scan_generated_code(files)
-        print(f"Safe: {report.is_safe}")
-        print(f"Issues: {report.total_issues}")
+        logger.info(f"Safe: {report.is_safe}")
+        logger.info(f"Issues: {report.total_issues}")
         for issue in report.issues:
-            print(f"  - {issue.severity}: {issue.issue_text}")
+            logger.info(f"  - {issue.severity}: {issue.issue_text}")
         ```
     """
     scanner = CodeSecurityScanner(use_bandit=use_bandit, use_secret_detection=True)

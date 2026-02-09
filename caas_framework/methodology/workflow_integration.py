@@ -7,6 +7,7 @@ checkpoints, and resumption capabilities.
 
 from typing import Any, Dict, Optional
 
+from caas_framework.exceptions import WorkflowError, PhaseExecutionError
 from caas_framework.methodology.engine import SixPhaseEngine, MethodologyResult
 from caas_framework.session.manager import Session
 from caas_framework.workflow.orchestrator import (
@@ -110,13 +111,16 @@ class BMADWorkflowEngine:
 
             return bmad_result, workflow_result
 
-        except Exception:
+        except Exception as e:
             # Complete workflow with failure
             workflow_result = await self.orchestrator.complete_workflow(
                 session.session_id, success=False
             )
 
-            raise
+            raise WorkflowError(
+                "BMAD workflow execution failed",
+                details={"requirement": requirement, "session_id": session.session_id, "error": str(e)}
+            ) from e
 
     async def _execute_bmad_with_tracking(
         self, session: Session, requirement: str

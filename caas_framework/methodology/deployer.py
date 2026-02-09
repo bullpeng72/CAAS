@@ -256,8 +256,8 @@ OPENAI_API_KEY=your_openai_api_key_here
 # ANTHROPIC_API_KEY=your_anthropic_api_key_here
 
 # LLM Configuration
-DEFAULT_LLM_PROVIDER=openai
-DEFAULT_LLM_MODEL=gpt-4-turbo-preview
+LLM_PROVIDER=openai
+LLM_MODEL=gpt-4-turbo-preview
 
 # Optional: Neo4j Configuration (if using knowledge graph)
 # NEO4J_URI=bolt://localhost:7687
@@ -379,8 +379,8 @@ docker-compose down
 Ensure all required environment variables are set in production:
 
 - `OPENAI_API_KEY`: OpenAI API key (required)
-- `DEFAULT_LLM_PROVIDER`: LLM provider (default: openai)
-- `DEFAULT_LLM_MODEL`: Model name (default: gpt-4-turbo-preview)
+- `LLM_PROVIDER`: LLM provider (default: openai)
+- `LLM_MODEL`: Model name (default: gpt-4-turbo-preview)
 - `LOG_LEVEL`: Logging level (default: INFO)
 
 ### Security Considerations

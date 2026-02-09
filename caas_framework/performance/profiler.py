@@ -176,10 +176,9 @@ class PerformanceProfiler:
         Args:
             min_duration_ms: Only show operations taking longer than this
         """
-        print("\n" + "=" * 80)
-        print("PERFORMANCE PROFILE REPORT")
-        print("=" * 80)
-
+        logger.info("\n" + "=" * 80)
+        logger.info("PERFORMANCE PROFILE REPORT")
+        logger.info("=" * 80)
         stats = self.get_operation_stats()
 
         # Sort by total time descending
@@ -190,8 +189,7 @@ class PerformanceProfiler:
         print(
             f"\n{'Operation':<40} {'Count':>8} {'Total (ms)':>12} {'Avg (ms)':>12} {'Success Rate':>12}"
         )
-        print("-" * 80)
-
+        logger.info("-" * 80)
         for name, s in sorted_stats:
             if s["total_time_ms"] < min_duration_ms:
                 continue
@@ -206,10 +204,9 @@ class PerformanceProfiler:
                 f"{success_rate:>11.1f}%"
             )
 
-        print("-" * 80)
-        print(f"{'TOTAL':<40} {'':<8} {self.get_total_time():>12.2f}")
-        print("=" * 80 + "\n")
-
+        logger.info("-" * 80)
+        logger.info(f"{'TOTAL':<40} {'':<8} {self.get_total_time():>12.2f}")
+        logger.info("=" * 80 + "\n")
     def clear(self):
         """Clear all profiling data"""
         self.operations.clear()
@@ -338,28 +335,25 @@ class BottleneckAnalyzer:
         """Print bottleneck analysis report"""
         bottlenecks = self.identify_bottlenecks()
 
-        print("\n" + "=" * 80)
-        print("BOTTLENECK ANALYSIS")
-        print("=" * 80)
-
+        logger.info("\n" + "=" * 80)
+        logger.info("BOTTLENECK ANALYSIS")
+        logger.info("=" * 80)
         if not bottlenecks:
-            print("\n✅ No significant bottlenecks detected!\n")
+            logger.info("\n✅ No significant bottlenecks detected!\n")
             return
 
         for i, b in enumerate(bottlenecks, 1):
-            print(f"\n🔴 Bottleneck #{i}: {b['operation']}")
+            logger.info(f"\n🔴 Bottleneck #{i}: {b['operation']}")
             print(
                 f"   Time: {b['total_time_ms']:.2f}ms ({b['percentage_of_total']:.1f}% of total)"
             )
             print(
                 f"   Calls: {b['call_count']} (avg: {b['avg_time_ms']:.2f}ms per call)"
             )
-            print("   Recommendations:")
+            logger.info("   Recommendations:")
             for rec in b["recommendations"]:
-                print(f"   - {rec}")
-
-        print("\n" + "=" * 80 + "\n")
-
+                logger.info(f"   - {rec}")
+        logger.info("\n" + "=" * 80 + "\n")
     def get_optimization_summary(self) -> Dict[str, Any]:
         """
         Get optimization summary with key metrics.

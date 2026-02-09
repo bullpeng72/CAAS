@@ -10,6 +10,11 @@ from enum import Enum
 # Type checking imports
 from typing import TYPE_CHECKING, Any, Dict
 
+from caas_framework.utils.logger import get_logger
+
+logger = get_logger(__name__)
+
+
 if TYPE_CHECKING:
     pass
 
@@ -54,17 +59,15 @@ class PlanMode:
         if self.auto_approve:
             return ApprovalDecision.APPROVE
 
-        print("\n" + "=" * 70)
-        print("PHASE 0 COMPLETE: Requirements Concretization")
-        print("=" * 70)
-
+        logger.info("\n" + "=" * 70)
+        logger.info("PHASE 0 COMPLETE: Requirements Concretization")
+        logger.info("=" * 70)
         # Display project info
-        print(f"\n📋 Project: {concretized.project_name}")
-        print(f"📝 Description: {concretized.description}")
-
+        logger.info(f"\n📋 Project: {concretized.project_name}")
+        logger.info(f"📝 Description: {concretized.description}")
         # Display features
         if concretized.features:
-            print(f"\n✨ Features ({len(concretized.features)}):")
+            logger.info(f"\n✨ Features ({len(concretized.features)}):")
             for i, feature in enumerate(concretized.features[:10], 1):  # Limit to 10
                 priority_emoji = (
                     "🔴"
@@ -73,19 +76,17 @@ class PlanMode:
                     if feature.priority == "medium"
                     else "⚪"
                 )
-                print(f"  {i}. [{priority_emoji} {feature.priority}] {feature.name}")
+                logger.info(f"  {i}. [{priority_emoji} {feature.priority}] {feature.name}")
                 if len(feature.description) <= 80:
-                    print(f"     {feature.description}")
-
+                    logger.info(f"     {feature.description}")
         # Display data models
         if concretized.data_models:
-            print(f"\n💾 Data Models ({len(concretized.data_models)}):")
+            logger.info(f"\n💾 Data Models ({len(concretized.data_models)}):")
             for i, model in enumerate(concretized.data_models[:5], 1):
-                print(f"  {i}. {model.entity_name}: {len(model.attributes)} attributes")
-
+                logger.info(f"  {i}. {model.entity_name}: {len(model.attributes)} attributes")
         # Display boundaries if available
         if hasattr(concretized, "boundaries") and concretized.boundaries:
-            print("\n🔒 Security Boundaries:")
+            logger.info("\n🔒 Security Boundaries:")
             if concretized.boundaries.never_allowed:
                 print(
                     f"  ❌ Never Allowed: {len(concretized.boundaries.never_allowed)} restrictions"
@@ -96,7 +97,7 @@ class PlanMode:
                 )
 
         # Get approval
-        print("\n" + "=" * 70)
+        logger.info("\n" + "=" * 70)
         choice = input("Review this specification? (approve/edit/reject): ").lower()
 
         if choice in ["a", "approve", "yes", "y"]:
@@ -119,43 +120,40 @@ class PlanMode:
         if self.auto_approve:
             return ApprovalDecision.APPROVE
 
-        print("\n" + "=" * 70)
-        print("PHASE 3 COMPLETE: Agent & Task Design")
-        print("=" * 70)
-
+        logger.info("\n" + "=" * 70)
+        logger.info("PHASE 3 COMPLETE: Agent & Task Design")
+        logger.info("=" * 70)
         agents = design.get("agents", [])
         tasks = design.get("tasks", [])
 
         # Display agents
         if agents:
-            print(f"\n🤖 Agents ({len(agents)}):")
+            logger.info(f"\n🤖 Agents ({len(agents)}):")
             for i, agent in enumerate(agents, 1):
                 agent_id = agent.get("id", f"agent_{i}")
                 role = agent.get("role", "Unknown")
                 goal = agent.get("goal", "")
                 tools = agent.get("tools", [])
 
-                print(f"  {i}. {agent_id}")
-                print(f"     Role: {role}")
+                logger.info(f"  {i}. {agent_id}")
+                logger.info(f"     Role: {role}")
                 if len(goal) <= 80:
-                    print(f"     Goal: {goal}")
+                    logger.info(f"     Goal: {goal}")
                 if tools:
-                    print(f"     Tools: {', '.join(tools[:5])}")
-
+                    logger.info(f"     Tools: {', '.join(tools[:5])}")
         # Display tasks
         if tasks:
-            print(f"\n📋 Tasks ({len(tasks)}):")
+            logger.info(f"\n📋 Tasks ({len(tasks)}):")
             for i, task in enumerate(tasks, 1):
                 task_id = task.get("id", f"task_{i}")
                 desc = task.get("description", "")
                 agent_id = task.get("agent", "")
 
-                print(f"  {i}. {task_id} (assigned to: {agent_id})")
+                logger.info(f"  {i}. {task_id} (assigned to: {agent_id})")
                 if len(desc) <= 80:
-                    print(f"     {desc}")
-
+                    logger.info(f"     {desc}")
         # Get approval
-        print("\n" + "=" * 70)
+        logger.info("\n" + "=" * 70)
         choice = input(
             "Proceed to code generation? (approve/reject/redesign): "
         ).lower()
@@ -180,29 +178,26 @@ class PlanMode:
         if self.auto_approve:
             return ApprovalDecision.APPROVE
 
-        print("\n" + "=" * 70)
-        print("CODE GENERATION COMPLETE")
-        print("=" * 70)
-
+        logger.info("\n" + "=" * 70)
+        logger.info("CODE GENERATION COMPLETE")
+        logger.info("=" * 70)
         # Display file list
-        print(f"\n📄 Generated Files ({len(generated_code)}):")
+        logger.info(f"\n📄 Generated Files ({len(generated_code)}):")
         for i, (filename, content) in enumerate(generated_code.items(), 1):
             lines = content.count("\n") + 1
             size_kb = len(content) / 1024
-            print(f"  {i}. {filename} ({lines} lines, {size_kb:.1f} KB)")
-
+            logger.info(f"  {i}. {filename} ({lines} lines, {size_kb:.1f} KB)")
         # Show preview of main.py
         if "main.py" in generated_code:
-            print("\n📝 Preview of main.py:")
-            print("-" * 70)
+            logger.info("\n📝 Preview of main.py:")
+            logger.info("-" * 70)
             preview_lines = generated_code["main.py"].split("\n")[:30]
-            print("\n".join(preview_lines))
+            logger.info("\n".join(preview_lines))
             if len(generated_code["main.py"].split("\n")) > 30:
-                print("... (truncated)")
-            print("-" * 70)
-
+                logger.info("... (truncated)")
+            logger.info("-" * 70)
         # Get approval
-        print("\n" + "=" * 70)
+        logger.info("\n" + "=" * 70)
         choice = input("Save generated code? (yes/no): ").lower()
 
         if choice in ["y", "yes", "approve"]:
@@ -218,17 +213,15 @@ class PlanMode:
             before: Original content
             after: Modified content
         """
-        print("\n📊 Changes:")
-        print("-" * 70)
-
+        logger.info("\n📊 Changes:")
+        logger.info("-" * 70)
         # Simple line-by-line diff
         before_lines = before.split("\n")
         after_lines = after.split("\n")
 
         for i, (b_line, a_line) in enumerate(zip(before_lines, after_lines), 1):
             if b_line != a_line:
-                print(f"Line {i}:")
-                print(f"  - {b_line}")
-                print(f"  + {a_line}")
-
-        print("-" * 70)
+                logger.info(f"Line {i}:")
+                logger.info(f"  - {b_line}")
+                logger.info(f"  + {a_line}")
+        logger.info("-" * 70)

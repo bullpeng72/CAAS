@@ -128,7 +128,6 @@ def get_crewai_to_tool_name() -> Dict[str, str]:
 
 
 # Module-level variables that get populated on first import
-# These provide backward compatibility with existing code
 def _initialize_mappings():
     """Initialize module-level mapping variables on first import"""
     global TOOL_NAME_TO_CREWAI, CREWAI_TO_TOOL_NAME

@@ -180,17 +180,20 @@ class CrewAIValidator:
 
         test_script = f"""
 import sys
+
+from caas_framework.utils.logger import get_logger
+
+logger = get_logger(__name__)
+
 sys.path.insert(0, '{temp_dir}')
 
-print("=" * 70)
-print("CrewAI Runtime Validation")
-print("=" * 70)
-
+logger.info("=" * 70)
+logger.info("CrewAI Runtime Validation")
+logger.info("=" * 70)
 # Test 1: Import and validate agents
 try:
     from src import agents
-    print("\\n[1/4] ✓ Agents module imported")
-
+    logger.info("\\n[1/4] ✓ Agents module imported")
     # Find all agent variables
     agent_vars = [
         (name, getattr(agents, name))
@@ -198,8 +201,7 @@ try:
         if name.startswith('agent_') and not name.startswith('__')
     ]
 
-    print(f"      Found {{len(agent_vars)}} agents")
-
+    logger.info(f"      Found {{len(agent_vars)}} agents")
     # Validate each agent
     for name, agent in agent_vars:
         assert hasattr(agent, 'role'), f"{{name}}: missing 'role'"
@@ -210,10 +212,9 @@ try:
         # Validate tools is a list
         assert isinstance(agent.tools, list), f"{{name}}: tools must be a list"
 
-        print(f"      ✓ {{name}}: role='{{agent.role}}', {{len(agent.tools)}} tools")
-
+        logger.info(f"      ✓ {{name}}: role='{{agent.role}}', {{len(agent.tools)}} tools")
 except Exception as e:
-    print(f"\\n[1/4] ✗ Agent validation failed: {{e}}")
+    logger.error(f"\\n[1/4] ✗ Agent validation failed: {{e}}")
     import traceback
     traceback.print_exc()
     sys.exit(1)
@@ -221,8 +222,7 @@ except Exception as e:
 # Test 2: Import and validate tasks
 try:
     from src import tasks
-    print("\\n[2/4] ✓ Tasks module imported")
-
+    logger.info("\\n[2/4] ✓ Tasks module imported")
     # Find all task variables
     task_vars = [
         (name, getattr(tasks, name))
@@ -230,8 +230,7 @@ try:
         if name.startswith('task_') and not name.startswith('__')
     ]
 
-    print(f"      Found {{len(task_vars)}} tasks")
-
+    logger.info(f"      Found {{len(task_vars)}} tasks")
     # Validate each task
     for name, task in task_vars:
         assert hasattr(task, 'description'), f"{{name}}: missing 'description'"
@@ -242,10 +241,9 @@ try:
         # Validate context is a list
         assert isinstance(task.context, list), f"{{name}}: context must be a list"
 
-        print(f"      ✓ {{name}}: agent={{task.agent.role if hasattr(task.agent, 'role') else 'unknown'}}, {{len(task.context)}} dependencies")
-
+        logger.info(f"      ✓ {{name}}: agent={{task.agent.role if hasattr(task.agent, 'role') else 'unknown'}}, {{len(task.context)}} dependencies")
 except Exception as e:
-    print(f"\\n[2/4] ✗ Task validation failed: {{e}}")
+    logger.error(f"\\n[2/4] ✗ Task validation failed: {{e}}")
     import traceback
     traceback.print_exc()
     sys.exit(1)
@@ -253,8 +251,7 @@ except Exception as e:
 # Test 3: Import and validate crew
 try:
     from src.crew import crew
-    print("\\n[3/4] ✓ Crew module imported")
-
+    logger.info("\\n[3/4] ✓ Crew module imported")
     # Validate crew
     assert hasattr(crew, 'agents'), "Crew missing 'agents'"
     assert hasattr(crew, 'tasks'), "Crew missing 'tasks'"
@@ -263,45 +260,40 @@ try:
     assert len(crew.agents) > 0, "Crew has no agents"
     assert len(crew.tasks) > 0, "Crew has no tasks"
 
-    print(f"      ✓ Crew: {{len(crew.agents)}} agents, {{len(crew.tasks)}} tasks")
-    print(f"      ✓ Process: {{crew.process}}")
-
+    logger.info(f"      ✓ Crew: {{len(crew.agents)}} agents, {{len(crew.tasks)}} tasks")
+    logger.info(f"      ✓ Process: {{crew.process}}")
 except Exception as e:
-    print(f"\\n[3/4] ✗ Crew validation failed: {{e}}")
+    logger.error(f"\\n[3/4] ✗ Crew validation failed: {{e}}")
     import traceback
     traceback.print_exc()
     sys.exit(1)
 
 # Test 4: Validate crew configuration
 try:
-    print("\\n[4/4] Validating crew configuration...")
-
+    logger.info("\\n[4/4] Validating crew configuration...")
     # Check if process type is valid
     valid_processes = ['sequential', 'hierarchical', 'parallel']
     process_str = str(crew.process).split('.')[-1].lower()
 
     if process_str not in valid_processes:
-        print(f"      ⚠️  Warning: Unknown process type '{{process_str}}'")
-
+        logger.warning(f"      ⚠️  Warning: Unknown process type '{{process_str}}'")
     # Check agent-task assignment
     crew_agents_set = set(crew.agents)
     task_agents_set = set(task.agent for task in crew.tasks)
 
     unassigned_agents = crew_agents_set - task_agents_set
     if unassigned_agents:
-        print(f"      ⚠️  Warning: {{len(unassigned_agents)}} agents have no tasks")
-
-    print("      ✓ Crew configuration valid")
-
+        logger.warning(f"      ⚠️  Warning: {{len(unassigned_agents)}} agents have no tasks")
+    logger.info("      ✓ Crew configuration valid")
 except Exception as e:
-    print(f"\\n[4/4] ✗ Configuration validation failed: {{e}}")
+    logger.error(f"\\n[4/4] ✗ Configuration validation failed: {{e}}")
     import traceback
     traceback.print_exc()
     sys.exit(1)
 
-print("\\n" + "=" * 70)
-print("✅ All CrewAI runtime validations passed!")
-print("=" * 70)
+logger.info("\\n" + "=" * 70)
+logger.info("✅ All CrewAI runtime validations passed!")
+logger.info("=" * 70)
 """
 
         try:

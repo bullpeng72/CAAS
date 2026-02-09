@@ -3,8 +3,8 @@
 
 CAAS v0.4.0의 새로운 Code Analysis Agent를 활용한 코드 품질 보증 가이드입니다.
 
-**버전**: v0.4.0
-**최종 업데이트**: 2026-02-04
+**버전**: v0.4.1
+**최종 업데이트**: 2026-02-06
 
 ---
 
@@ -588,6 +588,6 @@ caas analyze-completeness -p ./project -g golden_data.json
 
 ---
 
-**Last Updated**: 2026-02-04
-**Version**: v0.4.0
+**Last Updated**: 2026-02-06
+**Version**: v0.4.1
 ```

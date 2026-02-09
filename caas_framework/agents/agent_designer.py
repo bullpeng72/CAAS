@@ -11,8 +11,9 @@ Expert agent responsible for Phase 3 (Design):
 from typing import Any, Dict, List, Optional
 
 from caas_framework.agents.base import AgentPhase, BaseExpertAgent, ValidationIssue
-from caas_framework.agents.executors import GoldenDataEnhancer
+from caas_framework.agents.executors import GoldenDataEnhancer, RefinementExecutor
 from caas_framework.agents.registry import register_agent
+from caas_framework.agents.utils import AgentErrorHandler, AgentOutputParser
 from caas_framework.config.settings import LLMConstants
 from caas_framework.models.specifications import (
     AgentSpecModel,
@@ -90,21 +91,23 @@ class AgentDesignerAgent(BaseExpertAgent):
             requirement, req_analysis, architecture, context_summary
         )
 
-        response = await self.llm.ainvoke(
-            messages=[{"role": "user", "content": prompt}],
-            response_format=LLMConstants.RESPONSE_FORMAT_JSON,
-            temperature=LLMConstants.TEMPERATURE_BALANCED,
+        # Call LLM with retry logic from base class
+        response = await self._execute_with_retry(
+            lambda: self.llm.ainvoke(
+                messages=[{"role": "user", "content": prompt}],
+                response_format=LLMConstants.RESPONSE_FORMAT_JSON,
+                temperature=LLMConstants.TEMPERATURE_BALANCED,
+            ),
+            operation="agent/task design",
         )
 
         # Debug logging
-
         logger = get_logger()
-
-        # Log raw response
         raw_response = str(response)[:500]
-        logger.info(f"Raw LLM response (first 500 chars): {raw_response}")
+        logger.info(f"[{self.agent_name}] Raw LLM response (first 500 chars): {raw_response}")
 
-        design = ResponseParser.parse_structured_response(
+        # Parse response using helper
+        design = await AgentOutputParser.parse_llm_json(
             response,
             expected_fields=[
                 "agents",
@@ -113,6 +116,7 @@ class AgentDesignerAgent(BaseExpertAgent):
                 "agent_collaboration_pattern",
             ],
             fallback_factory=self._create_fallback_design,
+            agent_name=self.agent_name,
         )
 
         logger.info(
@@ -575,31 +579,21 @@ class AgentDesignerAgent(BaseExpertAgent):
         context: Optional[Dict[str, Any]],
         iteration: int,
     ) -> Dict[str, Any]:
-        """Refine agent/task design based on validation feedback."""
+        """
+        Refine agent/task design based on validation feedback.
 
-        issues_summary = self._format_validation_issues(issues)
-
-        # Convert agents/tasks to dict for prompt using ObjectAccessor
-        agents_dict = ObjectAccessor.to_dict_list(output.get("agents", []))
-        tasks_dict = ObjectAccessor.to_dict_list(output.get("tasks", []))
-
-        # Prepare current output with serialized agents/tasks
-        current_output = {"agents": agents_dict, "tasks": tasks_dict}
-
-        # Prepare Golden Data context if available
-        golden_data_info = None
-        if self.golden_data:
-            features = self.golden_data.features if self.golden_data.features else []
-            golden_data_info = {"features": [f"{f.id}: {f.name}" for f in features]}
-
-        # Build refinement prompt using PromptBuilder
-        prompt = PromptBuilder.build_refinement_prompt(
+        Uses RefinementExecutor for standardized refinement workflow.
+        """
+        executor = RefinementExecutor.create_for_agent(
+            agent=self,
             agent_role="CrewAI Multi-Agent System Designer",
-            output_type="design",
-            current_output=current_output,
-            issues_summary=issues_summary,
-            golden_data=golden_data_info,
-            golden_data_context="Golden Data Features",
+            output_type="agent/task design",
+        )
+
+        refined_output = await executor.refine_output(
+            output=output,
+            issues=issues,
+            iteration=iteration,
             guidelines=[
                 "Fix ontology violations (role/task type mismatches)",
                 "Ensure all tasks have assigned agents",
@@ -607,46 +601,27 @@ class AgentDesignerAgent(BaseExpertAgent):
                 "Verify tool selections are valid",
                 "Ensure Golden Data feature coverage",
             ],
-            iteration=iteration,
         )
 
-        response = await self.llm.ainvoke(
-            messages=[{"role": "user", "content": prompt}],
-            response_format=LLMConstants.RESPONSE_FORMAT_JSON,
-            temperature=LLMConstants.TEMPERATURE_BALANCED,
-        )
-
+        # Convert agents/tasks back to Pydantic models
         try:
-            refined = ResponseParser.parse_structured_response(
-                response,
-                expected_fields=[
-                    "agents",
-                    "tasks",
-                    "workflow_type",
-                    "agent_collaboration_pattern",
-                ],
-                fallback_factory=lambda: output,
-            )
-
-            # Normalize IDs before converting to models
             from caas_framework.utils import TextNormalizer
 
-            refined_agents = refined.get("agents", agents_dict)
-            refined_tasks = refined.get("tasks", tasks_dict)
+            agents_dict = ObjectAccessor.to_dict_list(refined_output.get("agents", []))
+            tasks_dict = ObjectAccessor.to_dict_list(refined_output.get("tasks", []))
 
-            TextNormalizer.normalize_agent_task_ids(refined_agents, refined_tasks)
+            TextNormalizer.normalize_agent_task_ids(agents_dict, tasks_dict)
 
-            # Convert back to models
-            agents = [AgentSpecModel(**agent) for agent in refined_agents]
-            tasks = [TaskSpecModel(**task) for task in refined_tasks]
+            agents = [AgentSpecModel(**agent) for agent in agents_dict]
+            tasks = [TaskSpecModel(**task) for task in tasks_dict]
 
             result = {
                 "agents": agents,
                 "tasks": tasks,
-                "workflow_type": refined.get(
+                "workflow_type": refined_output.get(
                     "workflow_type", output.get("workflow_type", "sequential")
                 ),
-                "agent_collaboration_pattern": refined.get(
+                "agent_collaboration_pattern": refined_output.get(
                     "agent_collaboration_pattern",
                     output.get("agent_collaboration_pattern", "hierarchical"),
                 ),
@@ -659,6 +634,6 @@ class AgentDesignerAgent(BaseExpertAgent):
 
             return result
 
-        except (KeyError, TypeError, ValueError):
-            # Failed to validate refinement response (parsing already handled by ResponseParser)
+        except (KeyError, TypeError, ValueError) as e:
+            logger.warning(f"[{self.agent_name}] Refinement failed: {e}, returning original output")
             return output

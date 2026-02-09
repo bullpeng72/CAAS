@@ -258,7 +258,7 @@ class OperationTimer:
         with OperationTimer("Phase execution") as timer:
             await some_operation()
 
-        print(f"Duration: {timer.duration}s")
+        logger.info(f"Duration: {timer.duration}s")
     """
 
     def __init__(

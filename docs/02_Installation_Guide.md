@@ -368,17 +368,23 @@ CAAS는 모듈식 아키텍처를 가지고 있습니다:
 
 ```
 caas_framework/     - 핵심 프레임워크 (UI 독립적)
-    ├── agents/     - 5개 전문 에이전트
+    ├── agents/     - 6개 전문 에이전트 (v0.4.0+)
+    │   ├── utils.py           - 공통 유틸리티 (v0.4.1+)
+    │   └── code_gen_helpers.py - 코드 생성 헬퍼 (v0.4.1+)
     ├── methodology/ - CAAS 6-Phase 엔진 (v0.3.0+)
     ├── codegen/    - 코드 생성
     ├── knowledge/  - 온톨로지 & 지식 그래프
+    ├── plugins/
+    │   └── llm/
+    │       └── utils.py       - LLM 공통 유틸리티 (v0.4.1+)
+    ├── exceptions.py - 커스텀 예외 체계 (v0.4.1+)
     └── ...
 
 caas_cli/           - CLI 인터페이스 (29개 명령어)
 caas_sdk/           - Python SDK
 data/               - 템플릿, 온톨로지, 예제
-docs/               - 한국어 문서 (13개)
-tests/              - 테스트 스위트 (100+ tests)
+docs/               - 한국어 문서 (15개)
+tests/              - 테스트 스위트 (160 tests, v0.4.1+)
 ```
 
 **핵심 설계**:

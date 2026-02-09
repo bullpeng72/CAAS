@@ -14,6 +14,11 @@ from typing import Dict, Optional
 
 from caas_framework.automation.cicd_generator import CICDGenerator
 
+from caas_framework.utils.logger import get_logger
+
+logger = get_logger(__name__)
+
+
 
 @dataclass
 class TestResult:
@@ -72,15 +77,13 @@ class ProjectBootstrapper:
         project_dir = base_dir / project_name
 
         if verbose:
-            print(f"\n{'=' * 70}")
-            print(f"🚀 Bootstrapping Project: {project_name}")
-            print(f"{'=' * 70}\n")
-
+            logger.info(f"\n{'=' * 70}")
+            logger.info(f"🚀 Bootstrapping Project: {project_name}")
+            logger.info(f"{'=' * 70}\n")
         # 1. Create project directory
         project_dir.mkdir(exist_ok=True)
         if verbose:
-            print(f"📁 Created project directory: {project_dir}")
-
+            logger.info(f"📁 Created project directory: {project_dir}")
         # 2. Write all generated files
         files_written = self._write_files(project_dir, generated_files, verbose)
 
@@ -139,11 +142,9 @@ class ProjectBootstrapper:
             files_written += 1
 
             if verbose:
-                print(f"  ✅ {filename}")
-
+                logger.info(f"  ✅ {filename}")
         if verbose:
-            print(f"\n📝 Saved {files_written} files")
-
+            logger.info(f"\n📝 Saved {files_written} files")
         return files_written
 
     def _init_git(self, project_dir: Path, verbose: bool) -> bool:
@@ -204,13 +205,12 @@ Thumbs.db
             )
 
             if verbose:
-                print("✅ Git initialized with first commit")
-
+                logger.info("✅ Git initialized with first commit")
             return True
 
         except (subprocess.CalledProcessError, FileNotFoundError) as e:
             if verbose:
-                print(f"⚠️  Git initialization failed: {e}")
+                logger.error(f"⚠️  Git initialization failed: {e}")
             return False
 
     def _create_venv(self, project_dir: Path, verbose: bool):
@@ -224,19 +224,17 @@ Thumbs.db
             )
 
             if verbose:
-                print("✅ Virtual environment created")
-
+                logger.info("✅ Virtual environment created")
         except subprocess.CalledProcessError as e:
             if verbose:
-                print(f"⚠️  Virtual environment creation failed: {e}")
-
+                logger.error(f"⚠️  Virtual environment creation failed: {e}")
     def _install_dependencies(self, project_dir: Path, verbose: bool) -> bool:
         """Install dependencies from requirements.txt"""
         requirements_path = project_dir / "requirements.txt"
 
         if not requirements_path.exists():
             if verbose:
-                print("⚠️  No requirements.txt found, skipping dependency installation")
+                logger.warning("⚠️  No requirements.txt found, skipping dependency installation")
             return False
 
         try:
@@ -248,7 +246,7 @@ Thumbs.db
 
             if not venv_python.exists():
                 if verbose:
-                    print("⚠️  Virtual environment python not found")
+                    logger.warning("⚠️  Virtual environment python not found")
                 return False
 
             # Upgrade pip
@@ -268,13 +266,12 @@ Thumbs.db
             )
 
             if verbose:
-                print("✅ Dependencies installed from requirements.txt")
-
+                logger.info("✅ Dependencies installed from requirements.txt")
             return True
 
         except subprocess.CalledProcessError as e:
             if verbose:
-                print(f"⚠️  Dependency installation failed: {e}")
+                logger.error(f"⚠️  Dependency installation failed: {e}")
             return False
 
     def _run_tests(self, project_dir: Path, verbose: bool) -> Optional[TestResult]:
@@ -300,15 +297,14 @@ Thumbs.db
 
             if verbose:
                 if test_result.passed:
-                    print("✅ All tests passed")
+                    logger.info("✅ All tests passed")
                 else:
-                    print("⚠️  Some tests failed")
-
+                    logger.error("⚠️  Some tests failed")
             return test_result
 
         except (subprocess.CalledProcessError, FileNotFoundError):
             if verbose:
-                print("⚠️  pytest not found, skipping tests")
+                logger.warning("⚠️  pytest not found, skipping tests")
             return None
 
     def _generate_readme(self, project_dir: Path, files: Dict[str, str], verbose: bool):
@@ -397,8 +393,7 @@ OPENAI_API_KEY=your_api_key_here
         readme_path.write_text(readme_content)
 
         if verbose:
-            print("✅ README.md generated")
-
+            logger.info("✅ README.md generated")
     def _print_completion(self, project_dir: Path, project_name: str):
         """Print completion message with next steps"""
         activate_cmd = (
@@ -407,16 +402,15 @@ OPENAI_API_KEY=your_api_key_here
             else "source venv/bin/activate"
         )
 
-        print(f"\n{'=' * 70}")
-        print("✅ PROJECT READY!")
-        print(f"{'=' * 70}")
-        print(f"Location: {project_dir}")
-        print("\nTo start:")
-        print(f"  cd {project_name}")
-        print(f"  {activate_cmd}")
-        print("  python main.py")
-        print(f"{'=' * 70}\n")
-
+        logger.info(f"\n{'=' * 70}")
+        logger.info("✅ PROJECT READY!")
+        logger.info(f"{'=' * 70}")
+        logger.info(f"Location: {project_dir}")
+        logger.info("\nTo start:")
+        logger.info(f"  cd {project_name}")
+        logger.info(f"  {activate_cmd}")
+        logger.info("  python main.py")
+        logger.info(f"{'=' * 70}\n")
     def _generate_cicd(self, project_dir: Path, include_docker: bool, verbose: bool):
         """Generate CI/CD configuration"""
         cicd_generator = CICDGenerator()

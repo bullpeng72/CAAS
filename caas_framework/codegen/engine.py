@@ -11,7 +11,8 @@ from caas_framework.codegen.deployment_generator import (
     DeploymentConfig,
     DeploymentGenerator,
 )
-from caas_framework.codegen.domain_strategy import CodeGenStrategy, DomainStrategy
+from caas_framework.codegen.domain_strategy import CodeGenStrategy, DomainCodeStrategy
+from caas_framework.exceptions import CodeGenerationError, TemplateRenderingError
 from caas_framework.codegen.frontend_generator import (
     FrontendConfig,
     FrontendFramework,
@@ -151,7 +152,7 @@ class CodeGenerationEngine:
 
         try:
             # 1. Determine domain strategy
-            strategy_config = DomainStrategy.get_strategy_config(golden_data.domain)
+            strategy_config = DomainCodeStrategy.get_strategy_config(golden_data.domain)
 
             # 2. Generate core files
             core_files = await self._generate_core_files(
@@ -325,6 +326,15 @@ class CodeGenerationEngine:
         except Exception as e:
             result.success = False
             result.errors.append(str(e))
+            raise CodeGenerationError(
+                "Code generation failed",
+                details={
+                    "project_name": golden_data.project_name,
+                    "agent_count": len(agents),
+                    "task_count": len(tasks),
+                    "error": str(e)
+                }
+            ) from e
 
         return result
 
@@ -662,19 +672,17 @@ from src.database import init_db
 
 def main():
     """Main function"""
-    print("=" * 70)
-    print(f"{{'{project_name}'.replace('_', ' ').title()}} - Application")
-    print("=" * 70)
-
+    logger.info("=" * 70)
+    logger.info(f"{{'{project_name}'.replace('_', ' ').title()}} - Application")
+    logger.info("=" * 70)
     # Initialize database
-    print("\\nInitializing database...\\n")
+    logger.info("\\nInitializing database...\\n")
     init_db()
 
     # Start API server
-    print("\\nStarting API server on http://localhost:8000\\n")
-    print("API Documentation: http://localhost:8000/docs")
-    print("=" * 70)
-
+    logger.info("\\nStarting API server on http://localhost:8000\\n")
+    logger.info("API Documentation: http://localhost:8000/docs")
+    logger.info("=" * 70)
     uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")
 
 
@@ -694,21 +702,18 @@ from src.crew import kickoff
 
 def main():
     """Main function"""
-    print("=" * 70)
-    print(f"{{'{project_name}'.replace('_', ' ').title()}} - CrewAI Application")
-    print("=" * 70)
-
+    logger.info("=" * 70)
+    logger.info(f"{{'{project_name}'.replace('_', ' ').title()}} - CrewAI Application")
+    logger.info("=" * 70)
     # Execute crew
-    print("\\nStarting crew execution...\\n")
+    logger.info("\\nStarting crew execution...\\n")
     result = kickoff()
 
     # Display results
-    print("\\n" + "=" * 70)
-    print("Execution Complete!")
-    print("=" * 70)
-    print(f"\\nResult:\\n{{result}}")
-
-
+    logger.info("\\n" + "=" * 70)
+    logger.info("Execution Complete!")
+    logger.info("=" * 70)
+    logger.info(f"\\nResult:\\n{{result}}")
 if __name__ == "__main__":
     main()
 '''
@@ -903,9 +908,10 @@ MIT
             if path.endswith(".py") and not path.startswith("tests/"):
                 try:
                     files[path] = self.error_injector.inject(content)
-                except Exception:
+                except Exception as e:
                     # If injection fails, keep original
-                    pass
+                    logger = get_logger()
+                    logger.warning(f"Error handling injection failed for {path}: {e}")
 
     def _inject_logging(self, files: Dict[str, str]) -> None:
         """Inject logging into Python files"""
@@ -918,9 +924,10 @@ MIT
                     files[path] = self.logging_injector.inject(
                         content, logger_name=path.replace("/", ".").replace(".py", "")
                     )
-                except Exception:
+                except Exception as e:
                     # If injection fails, keep original
-                    pass
+                    logger = get_logger()
+                    logger.warning(f"Logging injection failed for {path}: {e}")
 
     def _generate_additional_files(
         self, golden_data: ConcretizedRequirement, strategy_config: Any

@@ -330,7 +330,3 @@ class DomainCodeStrategy:
             )
         else:
             return "이 도메인은 Agent가 핵심 로직을 수행합니다."
-
-
-# Backward compatibility alias
-DomainStrategy = DomainCodeStrategy

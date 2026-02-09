@@ -10,7 +10,13 @@ from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
+from caas_framework.exceptions import ValidationError
 from caas_framework.models.specifications import ConcretizedRequirement
+
+from caas_framework.utils.logger import get_logger
+
+logger = get_logger(__name__)
+
 
 
 @dataclass
@@ -345,8 +351,9 @@ If no contradictions found, return empty array.
 
             return contradictions
 
-        except Exception:
+        except Exception as e:
             # If LLM check fails, just return empty list
+            logger.warning(f"LLM consistency check failed: {e}, skipping LLM-based validation")
             return []
 
     def generate_report(
@@ -392,37 +399,31 @@ If no contradictions found, return empty array.
             verbose: Whether to print detailed information
         """
         if not contradictions:
-            print("\n✅ No semantic contradictions found!")
+            logger.info("\n✅ No semantic contradictions found!")
             return
 
-        print("\n" + "=" * 70)
-        print("⚠️  SEMANTIC CONSISTENCY REPORT")
-        print("=" * 70)
-        print(f"\nFound {len(contradictions)} contradiction(s):\n")
-
+        logger.info("\n" + "=" * 70)
+        logger.warning("⚠️  SEMANTIC CONSISTENCY REPORT")
+        logger.info("=" * 70)
+        logger.info(f"\nFound {len(contradictions)} contradiction(s):\n")
         for i, c in enumerate(contradictions, 1):
             severity_icon = {"warning": "⚠️ ", "error": "❌", "critical": "🔴"}.get(
                 c.severity, "•"
             )
 
-            print(f"{i}. {severity_icon} {c.severity.upper()}")
-            print(f"   Conflict: '{c.concept_a}' ↔ '{c.concept_b}'")
-            print(f"   Reason: {c.reason}")
-
+            logger.info(f"{i}. {severity_icon} {c.severity.upper()}")
+            logger.info(f"   Conflict: '{c.concept_a}' ↔ '{c.concept_b}'")
+            logger.info(f"   Reason: {c.reason}")
             if verbose and c.location:
-                print(f"   Location: {c.location}")
-
-            print()
-
+                logger.info(f"   Location: {c.location}")
+            logger.info()
         # Summary
         error_count = sum(1 for c in contradictions if c.severity == "error")
         warning_count = sum(1 for c in contradictions if c.severity == "warning")
 
-        print("=" * 70)
-        print(f"Summary: {error_count} errors, {warning_count} warnings")
-        print("=" * 70 + "\n")
-
-
+        logger.info("=" * 70)
+        logger.error(f"Summary: {error_count} errors, {warning_count} warnings")
+        logger.info("=" * 70 + "\n")
 def validate_semantic_consistency(
     concretized: ConcretizedRequirement,
     llm_provider: Optional[Any] = None,

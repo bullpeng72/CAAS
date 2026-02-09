@@ -458,8 +458,8 @@ docker-compose restart caas
 | 변수명 | 기본값 | 설명 |
 |-------|--------|------|
 | `ANTHROPIC_API_KEY` | - | Anthropic Claude API 키 |
-| `DEFAULT_LLM_PROVIDER` | `openai` | 기본 LLM 제공자 |
-| `DEFAULT_LLM_MODEL` | `gpt-4-turbo-preview` | 기본 모델명 |
+| `LLM_PROVIDER` | `openai` | LLM 제공자 |
+| `LLM_MODEL` | `gpt-4-turbo-preview` | 모델명 |
 
 ### Neo4j 설정 (GRAPH_BACKEND=neo4j)
 
@@ -678,5 +678,5 @@ environment:
 
 ---
 
-**최종 업데이트**: 2026-01-31
-**버전**: 1.1.0 (최신 개선사항 반영)
+**최종 업데이트**: 2026-02-06
+**버전**: 1.2.0 (v0.4.1 반영)

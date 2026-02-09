@@ -560,10 +560,10 @@ for module in {python_modules}:
 
 if failed_modules:
     for module, error in failed_modules:
-        print(f"IMPORT_FAILED: {{module}}: {{error}}")
+        logger.error(f"IMPORT_FAILED: {{module}}: {{error}}")
     sys.exit(1)
 else:
-    print("ALL_IMPORTS_SUCCESS")
+    logger.info("ALL_IMPORTS_SUCCESS")
 """
 
         try:
@@ -606,37 +606,33 @@ try:
     agent_vars = [getattr(agents, name) for name in dir(agents) if name.startswith('agent_')]
 
     if not agent_vars:
-        print("WARNING: No agents found")
+        logger.warning("WARNING: No agents found")
     else:
         for agent in agent_vars:
             assert hasattr(agent, 'role'), "Agent missing 'role'"
             assert hasattr(agent, 'goal'), "Agent missing 'goal'"
-        print(f"AGENTS_OK: {{len(agent_vars)}} agents")
-
+        logger.info(f"AGENTS_OK: {{len(agent_vars)}} agents")
     # Test tasks
     from src import tasks
     task_vars = [getattr(tasks, name) for name in dir(tasks) if name.startswith('task_')]
 
     if not task_vars:
-        print("WARNING: No tasks found")
+        logger.warning("WARNING: No tasks found")
     else:
         for task in task_vars:
             assert hasattr(task, 'description'), "Task missing 'description'"
             assert hasattr(task, 'agent'), "Task missing 'agent'"
-        print(f"TASKS_OK: {{len(task_vars)}} tasks")
-
+        logger.info(f"TASKS_OK: {{len(task_vars)}} tasks")
     # Test crew
     from src.crew import crew
     assert hasattr(crew, 'agents'), "Crew missing 'agents'"
     assert hasattr(crew, 'tasks'), "Crew missing 'tasks'"
     assert len(crew.agents) > 0, "Crew has no agents"
     assert len(crew.tasks) > 0, "Crew has no tasks"
-    print("CREW_OK")
-
-    print("INSTANTIATION_SUCCESS")
-
+    logger.info("CREW_OK")
+    logger.info("INSTANTIATION_SUCCESS")
 except Exception as e:
-    print(f"INSTANTIATION_FAILED: {{e}}")
+    logger.error(f"INSTANTIATION_FAILED: {{e}}")
     import traceback
     traceback.print_exc()
     sys.exit(1)
@@ -675,6 +671,11 @@ except Exception as e:
         # This is a lightweight test - just verify structure
         test_script = f"""
 import sys
+
+from caas_framework.utils.logger import get_logger
+
+logger = get_logger(__name__)
+
 sys.path.insert(0, '{tmpdir}')
 
 try:
@@ -689,10 +690,9 @@ try:
     for task in crew.tasks:
         assert task.agent in crew_agents_set, f"Task assigned to agent not in crew"
 
-    print("BASIC_EXECUTION_OK")
-
+    logger.info("BASIC_EXECUTION_OK")
 except Exception as e:
-    print(f"BASIC_EXECUTION_WARNING: {{e}}")
+    logger.warning(f"BASIC_EXECUTION_WARNING: {{e}}")
     # This is not a failure - just a warning
 """
 

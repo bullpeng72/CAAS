@@ -336,12 +336,12 @@ def get_or_create_session_manager():
     return _session_manager
 
 
-async def initialize_framework(llm_provider: str = "openai", **config):
+async def initialize_framework(llm_provider: Optional[str] = None, **config):
     """
     Initialize framework with common settings.
 
     Args:
-        llm_provider: LLM provider name
+        llm_provider: LLM provider name (if None, uses .env LLM_PROVIDER)
         **config: Additional configuration
 
     Returns:
@@ -353,7 +353,7 @@ async def initialize_framework(llm_provider: str = "openai", **config):
         from dotenv import load_dotenv
 
         from caas_framework import CrewAIFramework
-        from caas_framework.config.settings import FrameworkConfig
+        from caas_framework.config.loader import ConfigLoader
 
         # Load .env file
         env_paths = [Path.cwd() / ".env", Path(__file__).parent.parent / ".env"]
@@ -362,10 +362,11 @@ async def initialize_framework(llm_provider: str = "openai", **config):
                 load_dotenv(env_path)
                 break
 
-        # Create config
-        framework_config = FrameworkConfig(**config)
+        # Create config using ConfigLoader (respects .env settings)
+        config_loader = ConfigLoader()
+        framework_config = config_loader.load()
 
-        # Initialize framework
+        # Initialize framework (llm_provider=None means use config's provider from .env)
         framework = CrewAIFramework(llm_provider=llm_provider, config=framework_config)
 
         await framework.initialize()

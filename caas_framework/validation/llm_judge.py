@@ -5,6 +5,7 @@ Uses LLM to evaluate quality of agent outputs with multi-dimensional criteria.
 Goes beyond schema validation to assess semantic quality and design coherence.
 """
 
+import asyncio
 import logging
 from dataclasses import dataclass, field
 from enum import Enum
@@ -98,7 +99,7 @@ class LLMJudge:
         llm_plugin: LLMPlugin,
         approval_threshold: float = 7.0,
         phase_thresholds: Optional[Dict[AgentPhase, float]] = None,
-        use_fast_model: bool = True,
+        use_fast_model: bool = False,  # ✅ Changed default to False for better accuracy
         logger: Optional[logging.Logger] = None,
     ):
         """
@@ -108,7 +109,8 @@ class LLMJudge:
             llm_plugin: LLM plugin for evaluation
             approval_threshold: Default minimum score for approval (0-10)
             phase_thresholds: Optional phase-specific thresholds (overrides default)
-            use_fast_model: If True, use Claude Haiku for 70% faster evaluation (v0.4.0)
+            use_fast_model: If True, use optimized prompt (faster but less detailed)
+                           Changed default to False in v0.4.1 for better evaluation accuracy
             logger: Optional logger
         """
         self.llm = llm_plugin
@@ -177,11 +179,23 @@ class LLMJudge:
                 "max_tokens": 1000 if self.use_fast_model else 2000,  # Shorter for fast model
             }
 
-            # Override model if using fast mode (for Anthropic/OpenAI plugins)
-            if self.use_fast_model:
-                llm_kwargs["model"] = self.fast_model
+            # NOTE: Model override not supported via ainvoke() kwargs due to build_request_params() signature
+            # The LLM plugin uses its configured model (self.model) which is set at initialization
+            # TODO (v0.4.1): Implement proper fast model support by creating separate LLM plugin instance
 
-            response = await self.llm.ainvoke(**llm_kwargs)
+            # ✅ P0 FIX #3: Add timeout protection (belt-and-suspenders approach)
+            # Note: TimeoutManager already wraps this in collaboration.py, but this provides
+            # defensive protection directly in LLM Judge for edge cases
+            try:
+                response = await asyncio.wait_for(
+                    self.llm.ainvoke(**llm_kwargs),
+                    timeout=60.0,  # 60s timeout for LLM calls (can be slow)
+                )
+            except asyncio.TimeoutError:
+                self.logger.error(f"LLM Judge timed out after 60s for {phase.name}")
+                raise TimeoutError(
+                    f"LLM Judge evaluation timed out after 60 seconds for {phase.name}"
+                )
 
             # Extract content from response
             response_content = (
@@ -405,12 +419,21 @@ Return JSON:
                 self.logger.warning("No JSON content found in LLM response")
                 raise ValueError("No JSON content in response")
 
-            # ✅ Strategy 3: Parse JSON with error handling
+            # ✅ Strategy 3: Fix common JSON formatting issues
+            # Fix single quotes to double quotes
+            json_str_fixed = json_str.replace("'", '"')
+            # Fix unquoted property names (basic pattern)
+            import re
+            json_str_fixed = re.sub(r'(\w+):', r'"\1":', json_str_fixed)
+            # Fix double-quoted double quotes (from the above replacement)
+            json_str_fixed = json_str_fixed.replace('""', '"')
+
+            # ✅ Strategy 4: Parse JSON with error handling
             try:
-                data = json.loads(json_str)
+                data = json.loads(json_str_fixed)
             except json.JSONDecodeError as e:
                 self.logger.warning(f"JSON parsing failed: {e}, trying to extract partial JSON")
-                # ✅ Strategy 4: Try to find and extract the first valid JSON object
+                # ✅ Strategy 5: Try to find and extract the first valid JSON object
                 brace_count = 0
                 start_idx = None
                 for i, char in enumerate(json_str):

@@ -1,8 +1,10 @@
 """
 Quality Gate System
 
-Implements quality gates with exit criteria for each BMAD phase.
+Implements quality gates with exit criteria for each CAAS 6-Phase phase.
 Ensures that each phase meets minimum quality standards before proceeding.
+
+v0.4.1 Enhancement: Load thresholds from .env for flexible configuration
 """
 
 import logging
@@ -11,6 +13,7 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 
 from caas_framework.agents.base import AgentPhase
+from caas_framework.config.quality_settings import get_quality_settings
 
 
 class GateStatus(str, Enum):
@@ -118,7 +121,7 @@ class GateEvaluation:
 
 class QualityGate:
     """
-    Quality Gate for a specific BMAD phase
+    Quality Gate for a specific CAAS 6-Phase phase
 
     Defines exit criteria and evaluates whether phase output meets standards.
     """
@@ -134,7 +137,7 @@ class QualityGate:
         Initialize quality gate.
 
         Args:
-            phase: BMAD phase this gate applies to
+            phase: CAAS 6-Phase phase this gate applies to
             metrics: List of quality metrics with thresholds
             min_pass_rate: Minimum percentage of metrics that must pass
             logger: Optional logger
@@ -278,9 +281,12 @@ class QualityGate:
                 if value is not None:
                     return self._convert_to_float(value)
 
-        # Metric value not found
-        self.logger.warning(f"Metric '{metric.name}' not found in output or context")
-        return None
+        # ✅ P0 FIX #2: Metric value not found, use safe default
+        # This prevents None-related calculation errors in quality gate evaluation
+        self.logger.warning(
+            f"⚠️ Metric '{metric.name}' not found in output or context, using default: 0.0"
+        )
+        return 0.0  # Safe default prevents None-related errors
 
     def _get_nested_value(self, data: Dict[str, Any], path: str) -> Any:
         """Get nested value from dict using dot notation"""
@@ -325,7 +331,7 @@ class QualityGate:
 
 class QualityGateSystem:
     """
-    Quality Gate System for BMAD workflow
+    Quality Gate System for CAAS 6-Phase workflow
 
     Manages quality gates for all phases and enforces exit criteria.
     """
@@ -352,7 +358,15 @@ class QualityGateSystem:
         self.gates: Dict[AgentPhase, QualityGate] = self._create_default_gates()
 
     def _create_default_gates(self) -> Dict[AgentPhase, QualityGate]:
-        """Create default quality gates for each phase"""
+        """
+        Create default quality gates for each phase
+
+        ✅ v0.4.1 Enhancement: Load ALL thresholds from .env (quality_settings.py)
+        All 5 phases (Discovery, Architecture, Design, Delivery, QA) now load
+        thresholds from environment configuration instead of hardcoded values.
+        """
+        # Load settings from .env
+        settings = get_quality_settings()
 
         gates = {}
 
@@ -363,7 +377,7 @@ class QualityGateSystem:
                 QualityMetric(
                     name="requirement_clarity",
                     metric_type=MetricType.SCORE,
-                    threshold=7.0,
+                    threshold=settings.discovery.requirement_clarity,  # ✅ From .env
                     weight=1.5,
                     critical=True,
                     description="Requirements must be clear and unambiguous",
@@ -371,7 +385,7 @@ class QualityGateSystem:
                 QualityMetric(
                     name="feature_completeness",
                     metric_type=MetricType.SCORE,
-                    threshold=7.0,
+                    threshold=settings.discovery.feature_completeness,  # ✅ From .env
                     weight=1.5,
                     critical=True,
                     description="All necessary features identified",
@@ -379,13 +393,13 @@ class QualityGateSystem:
                 QualityMetric(
                     name="golden_data_alignment",
                     metric_type=MetricType.PERCENTAGE,
-                    threshold=80.0,
+                    threshold=settings.discovery.golden_data_alignment,  # ✅ From .env
                     weight=2.0,
                     critical=True,
                     description="Alignment with golden data requirements",
                 ),
             ],
-            min_pass_rate=85.0,
+            min_pass_rate=settings.discovery.min_pass_rate,  # ✅ From .env
         )
 
         # ARCHITECTURE Phase Gate
@@ -395,7 +409,7 @@ class QualityGateSystem:
                 QualityMetric(
                     name="component_clarity",
                     metric_type=MetricType.SCORE,
-                    threshold=7.0,
+                    threshold=settings.architecture.component_clarity,  # ✅ From .env
                     weight=1.5,
                     critical=True,
                     description="Component responsibilities clearly defined",
@@ -403,7 +417,7 @@ class QualityGateSystem:
                 QualityMetric(
                     name="architectural_coherence",
                     metric_type=MetricType.SCORE,
-                    threshold=7.0,
+                    threshold=settings.architecture.architectural_coherence,  # ✅ From .env
                     weight=1.5,
                     critical=True,
                     description="Components interact logically",
@@ -411,13 +425,13 @@ class QualityGateSystem:
                 QualityMetric(
                     name="scalability_score",
                     metric_type=MetricType.SCORE,
-                    threshold=6.0,
+                    threshold=settings.architecture.scalability_score,  # ✅ From .env
                     weight=1.0,
                     critical=False,
                     description="Architecture supports scaling",
                 ),
             ],
-            min_pass_rate=80.0,
+            min_pass_rate=settings.architecture.min_pass_rate,  # ✅ From .env
         )
 
         # DESIGN Phase Gate
@@ -427,7 +441,7 @@ class QualityGateSystem:
                 QualityMetric(
                     name="agent_role_clarity",
                     metric_type=MetricType.SCORE,
-                    threshold=7.0,
+                    threshold=settings.design.agent_role_clarity,  # ✅ From .env
                     weight=2.0,
                     critical=True,
                     description="Agent roles are clear and non-overlapping",
@@ -435,7 +449,7 @@ class QualityGateSystem:
                 QualityMetric(
                     name="task_completeness",
                     metric_type=MetricType.SCORE,
-                    threshold=7.0,
+                    threshold=settings.design.task_completeness,  # ✅ From .env
                     weight=2.0,
                     critical=True,
                     description="All necessary tasks defined",
@@ -443,7 +457,7 @@ class QualityGateSystem:
                 QualityMetric(
                     name="dependency_correctness",
                     metric_type=MetricType.SCORE,
-                    threshold=8.0,
+                    threshold=settings.design.dependency_correctness,  # ✅ From .env
                     weight=1.5,
                     critical=True,
                     description="Task dependencies are logical and acyclic",
@@ -451,13 +465,13 @@ class QualityGateSystem:
                 QualityMetric(
                     name="tool_appropriateness",
                     metric_type=MetricType.SCORE,
-                    threshold=7.0,
+                    threshold=settings.design.tool_appropriateness,  # ✅ From .env
                     weight=1.0,
                     critical=False,
                     description="Tools appropriate for agent roles",
                 ),
             ],
-            min_pass_rate=85.0,
+            min_pass_rate=settings.design.min_pass_rate,  # ✅ From .env
         )
 
         # DELIVERY Phase Gate
@@ -467,7 +481,7 @@ class QualityGateSystem:
                 QualityMetric(
                     name="code_quality",
                     metric_type=MetricType.SCORE,
-                    threshold=7.0,
+                    threshold=settings.delivery.code_quality,  # ✅ From .env
                     weight=2.0,
                     critical=True,
                     description="Code is readable and well-structured",
@@ -475,7 +489,7 @@ class QualityGateSystem:
                 QualityMetric(
                     name="implementation_completeness",
                     metric_type=MetricType.SCORE,
-                    threshold=8.0,
+                    threshold=settings.delivery.implementation_completeness,  # ✅ From .env
                     weight=2.0,
                     critical=True,
                     description="All required features implemented",
@@ -483,7 +497,7 @@ class QualityGateSystem:
                 QualityMetric(
                     name="security_score",
                     metric_type=MetricType.SCORE,
-                    threshold=8.0,
+                    threshold=settings.delivery.security_score,  # ✅ From .env
                     weight=1.5,
                     critical=True,
                     description="No critical security issues",
@@ -491,13 +505,13 @@ class QualityGateSystem:
                 QualityMetric(
                     name="test_coverage",
                     metric_type=MetricType.PERCENTAGE,
-                    threshold=70.0,
+                    threshold=settings.delivery.test_coverage,  # ✅ From .env
                     weight=1.0,
                     critical=False,
                     description="Adequate test coverage",
                 ),
             ],
-            min_pass_rate=80.0,
+            min_pass_rate=settings.delivery.min_pass_rate,  # ✅ From .env
         )
 
         # QUALITY_ASSURANCE Phase Gate
@@ -507,7 +521,7 @@ class QualityGateSystem:
                 QualityMetric(
                     name="test_completeness",
                     metric_type=MetricType.SCORE,
-                    threshold=7.0,
+                    threshold=settings.qa.test_completeness,  # ✅ From .env
                     weight=2.0,
                     critical=True,
                     description="All critical aspects tested",
@@ -515,7 +529,7 @@ class QualityGateSystem:
                 QualityMetric(
                     name="test_correctness",
                     metric_type=MetricType.SCORE,
-                    threshold=8.0,
+                    threshold=settings.qa.test_correctness,  # ✅ From .env
                     weight=1.5,
                     critical=True,
                     description="Test assertions are correct",
@@ -523,13 +537,13 @@ class QualityGateSystem:
                 QualityMetric(
                     name="coverage_percentage",
                     metric_type=MetricType.PERCENTAGE,
-                    threshold=75.0,
+                    threshold=settings.qa.coverage_percentage,  # ✅ From .env
                     weight=1.0,
                     critical=False,
                     description="Test coverage percentage",
                 ),
             ],
-            min_pass_rate=85.0,
+            min_pass_rate=settings.qa.min_pass_rate,  # ✅ From .env
         )
 
         return gates

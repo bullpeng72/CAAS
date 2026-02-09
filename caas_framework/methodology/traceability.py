@@ -295,8 +295,7 @@ class TraceabilityMatrix:
         unimplemented_features = [
             {"id": f.feature_id, "name": f.feature_name, "status": f.status.value}
             for f in self.features.values()
-            if f.status
-            in (ImplementationStatus.NOT_STARTED, ImplementationStatus.IN_PROGRESS)
+            if f.status in (ImplementationStatus.NOT_STARTED, ImplementationStatus.IN_PROGRESS)
         ]
 
         report = {

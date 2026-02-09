@@ -95,92 +95,73 @@ class RequirementAnalystAgent(BaseExpertAgent):
 
     def _build_analysis_prompt(self, requirement: str, context: str) -> str:
         """Build LLM prompt for requirement analysis."""
-
-        builder = (
-            PromptBuilder(
-                "analyze the following requirement and provide comprehensive analysis"
-            )
-            .add_task("You are an expert Requirements Analyst.")
-            .add_input(requirement=requirement)
-        )
-
-        # Add golden data if available
-        if self.golden_data:
-            builder.add_golden_data(
-                self.golden_data,
-                fields=["domain", "project_name", "features", "data_models"],
-            )
-
-        # Add context if provided
-        if context:
-            builder.add_context("Additional Context", context)
-
-        # Add output format
-        builder.add_output_format(
-            {
-                "functional_requirements": [
-                    {
-                        "id": "FR1",
-                        "description": "functional requirement description",
-                        "priority": "high|medium|low",
-                        "source": "derived from which feature or requirement",
-                        "acceptance_criteria": ["criterion 1", "criterion 2"],
-                    }
-                ],
-                "non_functional_requirements": {
-                    "performance": ["requirement 1", "requirement 2"],
-                    "security": ["requirement 1", "requirement 2"],
-                    "scalability": ["requirement 1", "requirement 2"],
-                    "usability": ["requirement 1", "requirement 2"],
-                    "reliability": ["requirement 1", "requirement 2"],
-                },
-                "success_criteria": [
-                    "Measurable success criterion 1",
-                    "Measurable success criterion 2",
-                ],
-                "constraints": ["Technical constraint 1", "Business constraint 2"],
-                "risks": [
-                    {
-                        "risk": "risk description",
-                        "impact": "high|medium|low",
-                        "mitigation": "mitigation strategy",
-                    }
-                ],
-                "assumptions": ["Assumption 1", "Assumption 2"],
-                "dependencies": ["External dependency 1", "External dependency 2"],
-                "boundaries": {
-                    "always_allowed": [
-                        "Read files in project directory",
-                        "Write to project directory",
-                        "Install packages from requirements.txt",
-                    ],
-                    "ask_first": [
-                        "Make API calls to external services",
-                        "Modify system configuration",
-                        "Delete files or directories",
-                    ],
-                    "never_allowed": [
-                        "Execute shell commands with sudo",
-                        "Modify files outside project directory",
-                        "Disable security features",
-                    ],
-                },
+        # Use base class template method with custom output format
+        output_format = {
+            "functional_requirements": [
+                {
+                    "id": "FR1",
+                    "description": "functional requirement description",
+                    "priority": "high|medium|low",
+                    "source": "derived from which feature or requirement",
+                    "acceptance_criteria": ["criterion 1", "criterion 2"],
+                }
+            ],
+            "non_functional_requirements": {
+                "performance": ["requirement 1", "requirement 2"],
+                "security": ["requirement 1", "requirement 2"],
+                "scalability": ["requirement 1", "requirement 2"],
+                "usability": ["requirement 1", "requirement 2"],
+                "reliability": ["requirement 1", "requirement 2"],
             },
-            "Provide detailed requirements analysis in JSON format:",
-        )
+            "success_criteria": [
+                "Measurable success criterion 1",
+                "Measurable success criterion 2",
+            ],
+            "constraints": ["Technical constraint 1", "Business constraint 2"],
+            "risks": [
+                {
+                    "risk": "risk description",
+                    "impact": "high|medium|low",
+                    "mitigation": "mitigation strategy",
+                }
+            ],
+            "assumptions": ["Assumption 1", "Assumption 2"],
+            "dependencies": ["External dependency 1", "External dependency 2"],
+            "boundaries": {
+                "always_allowed": [
+                    "Read files in project directory",
+                    "Write to project directory",
+                    "Install packages from requirements.txt",
+                ],
+                "ask_first": [
+                    "Make API calls to external services",
+                    "Modify system configuration",
+                    "Delete files or directories",
+                ],
+                "never_allowed": [
+                    "Execute shell commands with sudo",
+                    "Modify files outside project directory",
+                    "Disable security features",
+                ],
+            },
+        }
 
-        builder.add_guidelines(
-            [
-                "Be thorough and align with Golden Data features when provided",
-                "Ensure all functional requirements have clear acceptance criteria",
-                "Identify both technical and business constraints",
-                "CRITICAL: Define security boundaries based on the requirement's needs",
-                "Always set 'never_allowed' to prevent dangerous operations",
-                "Use 'ask_first' for operations that could be risky or costly",
-            ]
-        )
+        guidelines = [
+            "Be thorough and align with Golden Data features when provided",
+            "Ensure all functional requirements have clear acceptance criteria",
+            "Identify both technical and business constraints",
+            "CRITICAL: Define security boundaries based on the requirement's needs",
+            "Always set 'never_allowed' to prevent dangerous operations",
+            "Use 'ask_first' for operations that could be risky or costly",
+        ]
 
-        return builder.build()
+        # Use standardized template method from base class
+        return self._build_standard_prompt(
+            requirement=requirement,
+            output_format=output_format,
+            guidelines=guidelines,
+            context={"additional_context": context} if context else None,
+        )
 
     def _create_fallback_analysis(self, requirement: str) -> Dict[str, Any]:
         """Create basic analysis structure when LLM fails."""

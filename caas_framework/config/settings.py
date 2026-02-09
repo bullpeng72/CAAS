@@ -328,7 +328,7 @@ class FrameworkConfig(BaseModel):
 
 
 # =============================================================================
-# Legacy Settings (from caas_app/utils/config.py)
+# Settings
 # Provides pydantic-settings based configuration with .env file support
 # =============================================================================
 
@@ -369,16 +369,6 @@ class LLMSettings(BaseSettings):
     anthropic_api_key: Optional[str] = Field(
         default=None,
         validation_alias="ANTHROPIC_API_KEY",
-    )
-
-    # Default LLM
-    default_llm_provider: str = Field(
-        default="openai",
-        validation_alias="DEFAULT_LLM_PROVIDER",
-    )
-    default_llm_model: str = Field(
-        default="gpt-4-turbo-preview",
-        validation_alias="DEFAULT_LLM_MODEL",
     )
 
     # Ollama
@@ -528,10 +518,9 @@ class ArtifactSettings(BaseSettings):
 
 class Settings(BaseSettings):
     """
-    Unified settings class (compatible with caas_app/utils/config.py).
+    Unified settings class.
 
     Provides pydantic-settings based configuration with .env file support.
-    This is the legacy settings system that loads from environment variables.
 
     For new code, prefer using FrameworkConfig for programmatic configuration.
     """

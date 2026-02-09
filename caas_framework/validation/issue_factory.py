@@ -9,6 +9,11 @@ from typing import Any, Dict, List
 
 from caas_framework.models.validation import ValidationIssue
 
+from caas_framework.utils.logger import get_logger
+
+logger = get_logger(__name__)
+
+
 
 class ValidationIssueFactory:
     """
@@ -316,7 +321,7 @@ class ValidationIssueFactory:
 
         Example:
             summary = ValidationIssueFactory.format_summary(issues)
-            print(f"Total issues: {summary['total']}")
+            logger.info(f"Total issues: {summary['total']}")
         """
         summary = {
             "total": len(issues),
@@ -709,7 +714,7 @@ class ValidationIssueFactory:
 
         Example:
             if ValidationIssueFactory.count_errors(issues) > 0:
-                print("Validation failed")
+                logger.error("Validation failed")
         """
         return len([
             i for i in issues

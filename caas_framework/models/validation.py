@@ -69,12 +69,6 @@ class ValidationIssue(BaseModel):
     auto_fix_available: bool = False
     auto_fix_data: Optional[Dict[str, Any]] = None
 
-    # Legacy field aliases (for backward compatibility)
-    @property
-    def category(self) -> str:
-        """Alias for issue_type (legacy compatibility)"""
-        return self.issue_type
-
     @property
     def suggestion(self) -> Optional[str]:
         """Alias for suggested_fix (legacy compatibility)"""
@@ -90,7 +84,7 @@ class ValidationResult(BaseModel):
 
     is_valid: bool = True
     issues: List[ValidationIssue] = Field(default_factory=list)
-    summary: Dict[str, int] = Field(default_factory=dict)
+    summary: Dict[str, Any] = Field(default_factory=dict)  # ✅ Support nested dicts (by_severity)
 
     @property
     def error_count(self) -> int:

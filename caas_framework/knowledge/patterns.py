@@ -9,6 +9,11 @@ from typing import Dict, List, Optional
 
 from caas_framework.models.domain_types import DomainType, ExecutionPattern
 
+from caas_framework.utils.logger import get_logger
+
+logger = get_logger(__name__)
+
+
 
 class AgentPattern:
     """Agent 패턴 정의"""
@@ -75,20 +80,20 @@ def load_agent_patterns() -> Dict[DomainType, AgentPattern]:
                     patterns_map[domain_type] = pattern
                 except (ValueError, KeyError) as e:
                     # Skip invalid patterns
-                    print(f"Warning: Failed to load pattern for {domain_str}: {e}")
+                    logger.error(f"Warning: Failed to load pattern for {domain_str}: {e}")
                     continue
 
             _AGENT_PATTERNS_CACHE = patterns_map
             return patterns_map
         else:
             # Fallback to empty dict if file not found
-            print(f"Warning: Agent patterns file not found at {patterns_path}")
+            logger.warning(f"Warning: Agent patterns file not found at {patterns_path}")
             _AGENT_PATTERNS_CACHE = {}
             return {}
 
     except Exception as e:
         # Fallback on error
-        print(f"Warning: Failed to load agent patterns: {e}")
+        logger.error(f"Warning: Failed to load agent patterns: {e}")
         _AGENT_PATTERNS_CACHE = {}
         return {}
 

@@ -516,6 +516,6 @@ caas generate "할일 관리 시스템" --output ./generated
 
 ---
 
-**Last Updated**: 2026-02-04
-**Version**: CAAS v0.3.0
+**Last Updated**: 2026-02-06
+**Version**: CAAS v0.4.1
 **Status**: ✅ Production-Ready
