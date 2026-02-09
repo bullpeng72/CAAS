@@ -13,7 +13,7 @@ CAAS (CrewAI Agent Auto-generation System)의 전체 아키텍처를 설명하�
 - [아키텍처 다이어그램](#아키텍처-다이어그램)
 - [모듈 구조](#모듈-구조)
 - [데이터 플로우](#데이터-플로우)
-- [CAAS 6-Phase 프로세스](#bmad-6-phase-프로세스)
+- [CAAS 6-Phase 프로세스](#caas-6-phase-프로세스)
 - [디자인 패턴](#디자인-패턴)
 - [보안 아키텍처](#보안-아키텍처)
 - [확장성 및 성능](#확장성-및-성능)
@@ -32,7 +32,7 @@ CAAS는 자연어 요구사항을 입력받아 **CrewAI 기반 멀티에이전�
   - **CRUD_BASED**: FastAPI + SQLAlchemy 백엔드 (TASK_MANAGEMENT 등)
 - **CAAS 6-Phase 방법론**: 요구사항 분석부터 코드 생성, 품질 보증까지의 체계적인 워크플로우
 - **Expert Agent Collaboration**: 6명의 전문가 에이전트 협업 (v0.4.0에서 CodeAnalysisAgent 추가)
-- **도메인 기반 분류**: 13개 주요 도메인 자동 분류 및 최적 전략 선택
+- **도메인 기반 분류**: 17개 주요 도메인 자동 분류 및 최적 전략 선택
 - **온톨로지 기반 추론**: 도메인 지식을 활용한 지능적 역할/도구 매핑
 - **이중 그래프 백엔드**: Neo4j (프로덕션) 또는 임베디드 (개발)
 - **템플릿 + LLM 하이브리드 생성**: Jinja2 템플릿 + LLM 기반 코드 생성
@@ -41,8 +41,8 @@ CAAS는 자연어 요구사항을 입력받아 **CrewAI 기반 멀티에이전�
 
 ### 프로덕션 규모
 
-- **코드량**: 28,000+ 라인 (caas_framework/)
-- **CLI 명령**: 29개 메인 명령
+- **코드량**: 86,000+ 라인 (caas_framework/)
+- **CLI 명령**: 28개 메인 명령
   - v0.4.0: `analyze-completeness`, `fix-runtime-error` 추가
   - v0.4.1: 품질 보증 시스템 강화
 - **Expert Agents**: 6개 (v0.4.0에서 CodeAnalysisAgent 추가)
@@ -308,6 +308,9 @@ caas/
 ## 디자인 패턴
 
 - **Plugin Architecture**: LLM, DB 등을 플러그인 형태로 쉽게 교체 및 확장.
+  - **LLM Providers**: OpenAI (기본), Anthropic, Ollama (로컬 LLM, API 키 불필요) ✨ NEW
+  - **Graph DB**: Neo4j (프로덕션), Embedded (개발)
+  - **Vector DB**: 선택적 통합 지원
 - **Factory Pattern**: 도메인 전략에 따라 Agent, Task, Code Generator 등 다른 객체 생성.
 - **Strategy Pattern**: `AGENT_BASED`, `CRUD_BASED` 등 도메인에 맞는 코드 생성 전략을 동적으로 선택.
 - **Observer Pattern**: `ProgressReporter`를 통해 워크플로우의 각 단계를 모니터링하고 사용자에게 진행 상황 알림.
@@ -367,9 +370,12 @@ caas/
 
 ## 참고 자료
 
-- **개발 방법론**: [개발_방법론.md](../2_개발_방법론/개발_방법론.md)
-- **배포 가이드**: [배포_가이드.md](./배포_가이드.md)
-- **CLI 사용 가이드**: [CLI_사용_가이드.md](../1_시작하기/CLI_사용_가이드.md)
+- **전문가 방법론 가이드**: [05_Expert_Methodology_Guide.md](05_Expert_Methodology_Guide.md)
+- **배포 가이드**: [07_Deployment_Guide.md](07_Deployment_Guide.md)
+- **CLI 사용 가이드**: [04_CLI_Usage_Guide.md](04_CLI_Usage_Guide.md)
+- **빠른 시작 가이드**: [03_Quick_Start_Guide.md](03_Quick_Start_Guide.md)
+- **코드 분석 가이드**: [14_Code_Analysis_Guide.md](14_Code_Analysis_Guide.md)
+- **Ollama 설정 가이드**: [15_Ollama_Setup_Guide.md](15_Ollama_Setup_Guide.md)
 
 ---
 

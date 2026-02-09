@@ -2,18 +2,19 @@
 
 CAAS의 포괄적인 진행상황 보고 시스템 사용 가이드입니다.
 
-**최종 업데이트**: 2026-01-31
+**최종 업데이트**: 2026-02-06
+**CAAS 버전**: v0.4.1
 
 ---
 
 ## 개요
 
-CAAS 프레임워크는 6-Phase 워크플로우 실행에 대한 실시간 가시성을 제공하는 진행상황 보고 시스템을 포함합니다:
+CAAS 프레임워크는 **CAAS 6-Phase Methodology** 워크플로우 실행에 대한 실시간 가시성을 제공하는 진행상황 보고 시스템을 포함합니다:
 
-- Phase 전환 (Concretization, Discovery, Architecture, Design, Development, Delivery)
-- Agent 실행 (RequirementAnalyst, SystemArchitect, AgentDesigner, CodeGenerator, QASpecialist)
-- 검증 결과 및 피드백 루프
-- 전체 워크플로우 진행률 및 통계
+- **Phase 전환**: Phase 0-5 (Concretization, Discovery, Architecture, Design, Development, Delivery)
+- **6 Expert Agents 실행**: RequirementAnalyst, SystemArchitect, AgentDesigner, CodeGenerator, QASpecialist, **CodeAnalysisAgent** ✨ (v0.4.0+)
+- **검증 결과 및 피드백 루프**: 자동 품질 검증 및 수정
+- **전체 워크플로우 진행률 및 통계**: 실시간 메트릭 추적
 
 ---
 
@@ -205,9 +206,9 @@ caas generate --verbosity debug "데이터 파이프라인 만들기"
 ### 2. Python API 사용
 
 ```python
-from caas_framework.methodology.engine import SixPhaseEngine
+from caas_framework.framework import CrewAIFramework
 from caas_framework.reporting import ProgressReporter, VerbosityLevel
-from caas_framework.plugins.llm.openai_plugin import OpenAIPlugin
+from caas_framework.plugins.llm.openai import OpenAIPlugin
 
 # 원하는 상세 수준으로 진행상황 리포터 생성
 reporter = ProgressReporter(
@@ -215,20 +216,36 @@ reporter = ProgressReporter(
     use_rich=True  # 컬러풀한 출력
 )
 
-# LLM 초기화
+# LLM 초기화 (OpenAI, Anthropic, Ollama 중 선택)
 llm = OpenAIPlugin(model="gpt-4o-mini")
 
-# 진행상황 보고를 포함한 6-Phase 엔진 생성
-engine = SixPhaseEngine(
+# Framework 초기화 (진행상황 보고 포함)
+framework = CrewAIFramework(
     llm_plugin=llm,
-    progress_reporter=reporter,
-    verbosity=VerbosityLevel.VERBOSE
+    progress_reporter=reporter
 )
+await framework.initialize()
 
 # 워크플로우 실행 - 진행상황이 자동으로 보고됨
-result = await engine.run(
+result = await framework.generate_from_requirement(
     requirement="할일 관리 시스템 만들기",
-    domain="productivity"
+    domain_hint="TASK_MANAGEMENT"
+)
+```
+
+**Ollama 사용 예시** (v0.4.1):
+```python
+from caas_framework.plugins.llm.ollama import OllamaPlugin
+
+# Ollama 로컬 LLM (API 키 불필요)
+llm = OllamaPlugin(
+    model="llama3.1:8b",
+    base_url="http://localhost:11434/v1"
+)
+
+framework = CrewAIFramework(
+    llm_plugin=llm,
+    progress_reporter=reporter
 )
 ```
 
@@ -423,66 +440,104 @@ caas generate --verbosity verbose "..."
 
 ## API 참조
 
-전체 API 문서는 `caas_framework/reporting/progress_reporter.py`를 참조하세요.
+전체 API 문서는 `caas_framework/reporting/progress_reporter.py` (25.3 KB)를 참조하세요.
 
-### 주요 메서드
+### ProgressReporter 클래스
 
-- `start_workflow(workflow_name, total_phases)`
-- `start_phase(phase_name, agent_name, description)`
-- `complete_phase(phase_name, duration, success)`
-- `agent_working(agent_name, message)`
-- `agent_completed(agent_name, duration, iterations)`
-- `validation_start(validator_name)`
-- `validation_result(validator_name, passed, issues_count)`
-- `feedback_iteration(agent_name, iteration, max_iterations)`
-- `complete_workflow(success, summary)`
-
----
-
-## 마이그레이션 가이드
-
-기존 SixPhaseEngine을 사용하는 코드가 있다면:
-
-### Before
-```python
-engine = SixPhaseEngine(
-    llm_plugin=llm,
-    enable_validation=True
-)
-```
-
-### After (진행상황 보고 포함)
 ```python
 from caas_framework.reporting import ProgressReporter, VerbosityLevel
 
-reporter = ProgressReporter(verbosity=VerbosityLevel.NORMAL)
+class ProgressReporter:
+    """진행상황 보고 클래스"""
 
-engine = SixPhaseEngine(
-    llm_plugin=llm,
-    enable_validation=True,
-    progress_reporter=reporter
-)
+    def __init__(
+        self,
+        verbosity: VerbosityLevel = VerbosityLevel.NORMAL,
+        use_rich: bool = True
+    ):
+        """
+        Args:
+            verbosity: 상세 수준 (QUIET, MINIMAL, NORMAL, VERBOSE, DEBUG)
+            use_rich: Rich 라이브러리 사용 여부 (컬러풀한 출력)
+        """
 ```
 
-리포터가 제공되지 않으면 프레임워크가 자동으로 기본 리포터를 생성하므로, 기존 코드는 변경 없이 계속 작동합니다!
+### 주요 메서드
+
+| 메서드 | 설명 | 상세 수준 |
+|--------|------|----------|
+| `start_workflow(workflow_name, total_phases)` | 워크플로우 시작 | MINIMAL+ |
+| `start_phase(phase_name, agent_name, description)` | Phase 시작 | MINIMAL+ |
+| `complete_phase(phase_name, duration, success)` | Phase 완료 | MINIMAL+ |
+| `agent_working(agent_name, message)` | Agent 작업 중 | NORMAL+ |
+| `agent_completed(agent_name, duration, iterations)` | Agent 완료 | NORMAL+ |
+| `validation_start(validator_name)` | 검증 시작 | VERBOSE+ |
+| `validation_result(validator_name, passed, issues_count)` | 검증 결과 | VERBOSE+ |
+| `feedback_iteration(agent_name, iteration, max_iterations)` | 피드백 루프 | VERBOSE+ |
+| `complete_workflow(success, summary)` | 워크플로우 완료 | MINIMAL+ |
+| `debug(message)` | 디버그 메시지 | DEBUG |
+
+---
+
+## 참고 자료
+
+### CAAS 핵심 파일
+
+**Reporting Module** (`caas_framework/reporting/`):
+- `progress_reporter.py` (25.3 KB) - 진행상황 보고 구현
+- `interfaces.py` (5.4 KB) - ProgressReporter 프로토콜 및 VerbosityLevel
+- `__init__.py` - 모듈 exports
+
+**UI Progress Trackers**:
+- `caas_framework/ui/progress_tracker.py` - UI 전용 진행상황 추적
+
+### VerbosityLevel Enum
+
+```python
+class VerbosityLevel(Enum):
+    QUIET = 0      # 에러만
+    MINIMAL = 1    # Phase 전환 + 에러
+    NORMAL = 2     # Phase + Agent (기본값)
+    VERBOSE = 3    # + 검증 결과 + 피드백 루프
+    DEBUG = 4      # 모든 디버그 정보
+```
+
+### CAAS 문서
+
+- [01_README_KO.md](01_README_KO.md) - 프로젝트 개요
+- [03_Quick_Start_Guide.md](03_Quick_Start_Guide.md) - 빠른 시작 가이드
+- [04_CLI_Usage_Guide.md](04_CLI_Usage_Guide.md) - CLI 사용 가이드 (29 commands)
+- [05_Expert_Methodology_Guide.md](05_Expert_Methodology_Guide.md) - CAAS 6-Phase 방법론
+- [06_Architecture_Guide.md](06_Architecture_Guide.md) - 아키텍처 가이드
+- [CLAUDE.md](../CLAUDE.md) - 프로젝트 컨텍스트
+
+### 외부 리소스
+
+- [Rich Documentation](https://rich.readthedocs.io/) - 컬러풀한 터미널 출력
+- [Python Logging](https://docs.python.org/3/library/logging.html) - 표준 로깅
 
 ---
 
 ## 요약
 
-새로운 진행상황 보고 시스템은 다음을 제공합니다:
+진행상황 보고 시스템은 다음을 제공합니다:
 
-✅ **5단계 상세 수준** - 다양한 사용 사례에 맞춤
-✅ **실시간 가시성** - 6-Phase 워크플로우 실행에 대한
-✅ **Rich 콘솔 출력** - 컬러 및 포맷팅
+✅ **5단계 상세 수준** (QUIET → DEBUG) - 다양한 사용 사례에 맞춤
+✅ **실시간 가시성** - CAAS 6-Phase 워크플로우 및 6 Expert Agents 실행 추적
+✅ **Rich 콘솔 출력** - 컬러풀하고 포맷된 터미널 출력
+✅ **6 Expert Agents 지원** - CodeAnalysisAgent 포함 (v0.4.0+)
+✅ **멀티 LLM 지원** - OpenAI, Anthropic, Ollama (v0.4.1)
+✅ **설정 가능** - CLI (`--verbosity`), Python API, 환경 변수
+✅ **성능 우수** - DEBUG 레벨에서도 최소 오버헤드 (~1-2%)
 ✅ **하위 호환성** - 기존 코드가 변경 없이 작동
-✅ **설정 가능** - CLI, API 또는 설정 파일을 통해
-✅ **성능 우수** - DEBUG 레벨에서도 최소 오버헤드
 
-질문이나 이슈가 있으면 메인 문서를 참조하거나 GitHub에 이슈를 생성하세요.
+질문이나 이슈가 있으면 메인 문서를 참조하거나 [GitHub Issues](https://github.com/bullpeng72/CAAS/issues)에 문의하세요.
 
 ---
 
 **최종 업데이트**: 2026-02-06
-**버전**: v0.4.1
+**CAAS 버전**: v0.4.1
+**문서 버전**: 1.1.0
 **상태**: Production Ready ✅
+
+**Made with ❤️ by bullpeng72**

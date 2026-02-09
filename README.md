@@ -579,45 +579,55 @@ caas generate-code \
 
 ---
 
-## 🎯 지원 도메인 (13개)
+## 🎯 지원 도메인 (17개)
 
-**13개 도메인이 완전히 구현되어 agent/tool 자동 선택에 영향을 줍니다.**
+**17개 도메인이 완전히 구현되어 agent/tool 자동 선택에 영향을 줍니다.**
 
-### AGENT_BASED (5개)
-CrewAI 멀티 에이전트 중심, 복잡한 협업 로직 처리
-
+### 대화 & 커뮤니케이션 (2개)
 | 도메인 | 특징 | 생성 코드 |
 |--------|------|----------|
 | **CONVERSATIONAL_AI** | 대화형 AI 시스템 | CrewAI Agents + Chat UI |
 | **CUSTOMER_SUPPORT** | 고객 지원 자동화 | CrewAI Agents + Support UI |
-| **CONTENT_CREATION** | 콘텐츠 생성 및 편집 | CrewAI Agents + Content UI |
-| **REPORT_GENERATION** | 리포트 자동 생성 | CrewAI Agents + Report UI |
-| **EDUCATION** | 교육 및 학습 시스템 | CrewAI Agents + Learning UI |
 
-### HYBRID (4개)
-Agent + CRUD 결합, 최고의 유연성
-
+### 작업 & 워크플로우 관리 (2개)
 | 도메인 | 특징 | 생성 코드 |
 |--------|------|----------|
+| **TASK_MANAGEMENT** | 할일, 작업 관리 | FastAPI + SQLAlchemy |
 | **WORKFLOW_AUTOMATION** | 워크플로우 자동화 | CrewAI + FastAPI + Database |
-| **DATA_ANALYSIS** | 데이터 수집/분석 | CrewAI + FastAPI + Database |
-| **DOCUMENT_PROCESSING** | 문서 처리 및 변환 | CrewAI + FastAPI + Database |
-| **API_INTEGRATION** | 외부 API 통합 | CrewAI + FastAPI + Database |
 
-### CRUD_BASED (4개)
-Agent 최소화, CRUD API 중심, 빠른 개발
-
+### 데이터 & 분석 (3개)
 | 도메인 | 특징 | 생성 코드 |
 |--------|------|----------|
-| **TASK_MANAGEMENT** | 할일, 작업 관리 | FastAPI + SQLAlchemy + Streamlit |
-| **DASHBOARD** | 대시보드 및 모니터링 | FastAPI + SQLAlchemy + Streamlit |
-| **KNOWLEDGE_BASE** | 지식 관리 시스템 | FastAPI + SQLAlchemy + Streamlit |
-| **E_COMMERCE** | 전자상거래 | FastAPI + SQLAlchemy + Streamlit |
+| **DATA_ANALYSIS** | 데이터 수집/분석 | CrewAI + FastAPI + Database |
+| **REPORT_GENERATION** | 리포트 자동 생성 | CrewAI Agents + Report UI |
+| **DASHBOARD** | 대시보드 및 모니터링 | FastAPI + SQLAlchemy |
 
-### 전략 설명
-- **AGENT_BASED**: 멀티 에이전트 협업 중심 (AI 기반 복잡한 의사결정)
-- **HYBRID**: Agent + 데이터 처리 결합 (유연성 + 성능)
-- **CRUD_BASED**: 전통적인 CRUD 중심 (빠른 프로토타이핑)
+### 콘텐츠 & 문서 (3개)
+| 도메인 | 특징 | 생성 코드 |
+|--------|------|----------|
+| **CONTENT_CREATION** | 콘텐츠 생성 및 편집 | CrewAI Agents + Content UI |
+| **DOCUMENT_PROCESSING** | 문서 처리 및 변환 | CrewAI + FastAPI + Database |
+| **KNOWLEDGE_BASE** | 지식 관리 시스템 | FastAPI + SQLAlchemy |
+
+### 통합 & API (2개)
+| 도메인 | 특징 | 생성 코드 |
+|--------|------|----------|
+| **API_INTEGRATION** | 외부 API 통합 | CrewAI + FastAPI + Database |
+| **WEBHOOK_HANDLER** | Webhook 처리 | FastAPI + Event Handling |
+
+### 도메인 특화 (5개)
+| 도메인 | 특징 | 생성 코드 |
+|--------|------|----------|
+| **E_COMMERCE** | 전자상거래 | FastAPI + SQLAlchemy |
+| **EDUCATION** | 교육 및 학습 시스템 | CrewAI Agents + Learning UI |
+| **HEALTHCARE** | 헬스케어 | FastAPI + SQLAlchemy |
+| **FINANCE** | 금융 & 회계 | FastAPI + SQLAlchemy |
+| **CUSTOM** | 커스텀/기타 | 범용 템플릿 |
+
+### 추천 도메인 (고구현률)
+- ⭐ **CONVERSATIONAL_AI**: 98.7% 구현률 (대화형 AI 최고)
+- ⭐ **DATA_ANALYSIS**: 98.3% 구현률 (데이터 처리 최고)
+- ⭐ **CONTENT_CREATION**: 98.7% 구현률 (콘텐츠 생성 최고)
 
 ---
 
@@ -862,7 +872,7 @@ pytest tests/test_validation/        # 검증 시스템
   - 디렉토리: `caas_framework/bmad/` → `caas_framework/methodology/`
   - 클래스: `BMADEngine` → `SixPhaseEngine`, `BMADPhase` → `Phase`
   - Import: `from caas_framework.bmad` → `from caas_framework.methodology`
-- [x] **도메인 확장** - 8개 → 13개 도메인 지원
+- [x] **도메인 확장** - 8개 → 17개 도메인 지원
   - AGENT_BASED (5개): conversational_ai, customer_support, content_creation, report_generation, education
   - HYBRID (4개): workflow_automation, data_analysis, document_processing, api_integration
   - CRUD_BASED (4개): task_management, dashboard, knowledge_base, e_commerce

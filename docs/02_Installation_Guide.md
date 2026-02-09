@@ -8,7 +8,10 @@ CAAS (CrewAI Agent Auto-generation System) 완전 설치 가이드입니다.
 
 - **Python**: 3.11 이상
 - **Git**: 리포지토리 클론용
-- **API 키**: OpenAI API 키 또는 Anthropic API 키 (최소 하나 필수)
+- **LLM Provider** (최소 하나 필수):
+  - OpenAI API 키, 또는
+  - Anthropic API 키, 또는
+  - Ollama (로컬 LLM, API 키 불필요) ✨ NEW
 - **선택사항**: Neo4j (지식 그래프 시각화용)
 
 ---
@@ -85,17 +88,26 @@ pip install -e ".[dev]"
 cp .env.example .env
 ```
 
-`.env` 파일을 편집하여 API 키를 추가합니다:
+`.env` 파일을 편집하여 LLM Provider를 설정합니다:
 ```env
-# 필수: 최소 하나의 LLM 제공자
+# 필수: 최소 하나의 LLM 제공자 선택
+
+# 옵션 1: OpenAI
 OPENAI_API_KEY=sk-your-openai-key-here
+
+# 옵션 2: Anthropic
 ANTHROPIC_API_KEY=sk-ant-your-anthropic-key-here
+
+# 옵션 3: Ollama (로컬 LLM, API 키 불필요) ✨ NEW
+OLLAMA_API_BASE=http://localhost:11434/v1
 
 # 선택: Neo4j 지식 그래프용
 NEO4J_URI=bolt://localhost:7687
 NEO4J_USER=neo4j
 NEO4J_PASSWORD=password
 ```
+
+> 💡 **Ollama 사용**: Ollama를 사용하면 API 키 없이 로컬에서 LLM을 실행할 수 있습니다. 자세한 내용은 [15_Ollama_Setup_Guide.md](15_Ollama_Setup_Guide.md)를 참조하세요.
 
 #### 5단계: 설치 확인
 
@@ -194,6 +206,27 @@ NEO4J_USER=neo4j
 NEO4J_PASSWORD=password
 ```
 
+### Ollama (로컬 LLM 실행) ✨ NEW
+
+API 키 없이 로컬에서 LLM을 실행:
+
+**설치 및 설정:**
+```bash
+# 1. Ollama 설치 (macOS)
+brew install ollama
+
+# 2. Ollama 서비스 시작
+ollama serve
+
+# 3. 모델 다운로드 (예: llama3)
+ollama pull llama3
+
+# 4. .env 설정
+echo "OLLAMA_API_BASE=http://localhost:11434/v1" >> .env
+```
+
+**자세한 내용**: [15_Ollama_Setup_Guide.md](15_Ollama_Setup_Guide.md)
+
 ### Redis (선택 - 다중 서버 설정)
 
 분산 배포 시에만 필요:
@@ -264,12 +297,19 @@ pip install -e . --force-reinstall
 
 ---
 
-### 문제: "OPENAI_API_KEY not found"
+### 문제: "OPENAI_API_KEY not found" 또는 LLM Provider 오류
 
 **해결책:**
+
+**옵션 1: API 키 사용 (OpenAI/Anthropic)**
 1. 프로젝트 루트에 `.env` 파일이 있는지 확인
-2. API 키 설정 확인: `cat .env | grep OPENAI_API_KEY`
+2. API 키 설정 확인: `cat .env | grep API_KEY`
 3. 터미널/셸을 재시작하여 환경 다시 로드
+
+**옵션 2: Ollama 사용 (API 키 불필요)** ✨ NEW
+1. Ollama 설치 및 실행: `ollama serve`
+2. `.env`에 추가: `OLLAMA_API_BASE=http://localhost:11434/v1`
+3. 자세한 내용: [15_Ollama_Setup_Guide.md](15_Ollama_Setup_Guide.md)
 
 ---
 
@@ -286,8 +326,8 @@ pip install -e . --force-reinstall
 
 **해결책:**
 ```bash
-# CLI 의존성 재설치
-pip install -e ".[cli]"
+# CAAS 재설치 (CLI 포함)
+pip install -e . --force-reinstall
 
 # entry point 등록 확인
 which caas
@@ -331,11 +371,17 @@ uvicorn backend.main:app --port 8001
 
 ## CAAS 업데이트
 
+### PyPI에서 (권장)
+
+```bash
+pip install --upgrade caas
+```
+
 ### 소스에서 (개발 모드)
 
 ```bash
 cd /path/to/caas
-git pull origin main
+git pull origin CAAS
 
 # 의존성 재설치
 pip install -e ".[dev]" --force-reinstall
@@ -349,8 +395,8 @@ find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null
 ## 제거
 
 ```bash
-# 프레임워크 제거
-pip uninstall caas-cli
+# CAAS 제거 (Framework + CLI + SDK)
+pip uninstall caas
 
 # 가상 환경 제거
 deactivate
@@ -380,11 +426,11 @@ caas_framework/     - 핵심 프레임워크 (UI 독립적)
     ├── exceptions.py - 커스텀 예외 체계 (v0.4.1+)
     └── ...
 
-caas_cli/           - CLI 인터페이스 (29개 명령어)
+caas_cli/           - CLI 인터페이스 (28개 명령어)
 caas_sdk/           - Python SDK
 data/               - 템플릿, 온톨로지, 예제
-docs/               - 한국어 문서 (15개)
-tests/              - 테스트 스위트 (160 tests, v0.4.1+)
+docs/               - 한국어 + 영어 문서 (15개)
+tests/              - 테스트 스위트 (160+ tests, v0.4.1: +60개)
 ```
 
 **핵심 설계**:
@@ -401,9 +447,9 @@ tests/              - 테스트 스위트 (160 tests, v0.4.1+)
 
 | 사용 사례 | 설치 명령 | 구성요소 |
 |----------|----------|---------|
-| **터미널에서 코드 생성** | `pip install -e "."` | Framework + CLI |
-| **Python 코드에서 사용** | `pip install -e "."` | Framework + SDK |
-| **CAAS 프레임워크 개발** | `pip install -e ".[dev]"` | 모든 것 + 테스트 도구 |
+| **일반 사용자 (권장)** | `pip install caas` | Framework + CLI + SDK |
+| **개발 모드 (소스 수정)** | `pip install -e "."` | Framework + CLI + SDK |
+| **CAAS 프레임워크 개발** | `pip install -e ".[dev]"` | 전체 + 테스트 도구 |
 
 ---
 
@@ -411,19 +457,20 @@ tests/              - 테스트 스위트 (160 tests, v0.4.1+)
 
 설치 후:
 
-1. **빠른 시작**: `docs/1_시작하기/빠른_시작_가이드.md`에서 5분 튜토리얼 확인
-2. **CLI 가이드**: `docs/1_시작하기/CLI_사용_가이드.md`에서 CLI 사용법 확인
-3. **아키텍처**: `docs/3_시스템_문서/아키텍처_가이드.md`에서 시스템 설계 확인
-4. **개발 방법론**: `docs/2_개발_방법론/전문가_방법론_가이드.md`에서 CAAS 6-Phase Methodology 확인
+1. **빠른 시작**: [03_Quick_Start_Guide.md](03_Quick_Start_Guide.md)에서 5분 튜토리얼 확인
+2. **CLI 가이드**: [04_CLI_Usage_Guide.md](04_CLI_Usage_Guide.md)에서 CLI 28개 명령어 확인
+3. **아키텍처**: [06_Architecture_Guide.md](06_Architecture_Guide.md)에서 시스템 설계 확인
+4. **개발 방법론**: [05_Expert_Methodology_Guide.md](05_Expert_Methodology_Guide.md)에서 CAAS 6-Phase Methodology 확인
+5. **Ollama 설정**: [15_Ollama_Setup_Guide.md](15_Ollama_Setup_Guide.md)에서 로컬 LLM 설정 확인 ✨ NEW
 
 ---
 
 ## 지원
 
 - **GitHub Issues**: https://github.com/bullpeng72/CAAS/issues
-- **문서**: `docs/README_KO.md`
+- **문서**: [01_README_KO.md](01_README_KO.md) - 전체 문서 색인
 - **테스트**: `tests/` 디렉토리에서 E2E 예제 확인
 
 ---
 
-**다음 단계**: `docs/1_시작하기/빠른_시작_가이드.md`에서 첫 프로젝트를 만들어보세요!
+**다음 단계**: [03_Quick_Start_Guide.md](03_Quick_Start_Guide.md)에서 첫 프로젝트를 만들어보세요!

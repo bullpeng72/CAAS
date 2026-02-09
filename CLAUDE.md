@@ -9,7 +9,7 @@
 - **핵심 목표**: 자연어 → Golden Data → Agent/Task 설계 → Production Code 자동 생성
 - **방법론**: CAAS 6-Phase Methodology (Concretization → Discovery → Architecture → Design → Development → Delivery)
 - **강점**: CrewAI 멀티 에이전트 시스템 98.7% 구현률 달성
-- **도메인**: 13개 도메인 지원 (AGENT_BASED 5개, HYBRID 4개, CRUD_BASED 4개)
+- **도메인**: 17개 도메인 지원 (대화/커뮤니케이션 2개, 작업/워크플로우 2개, 데이터/분석 3개, 콘텐츠/문서 3개, 통합/API 2개, 도메인특화 5개)
 - **아키텍처**: Framework-First (UI-독립적 코어 + 다중 인터페이스)
 - **배포 전략**: 단일 통합 패키지 (CLI 필수 + Framework 라이브러리)
 
@@ -711,28 +711,35 @@ from caas_framework.knowledge.graph_client import GraphClient
 
 ### 4. 지원되는 도메인
 
-**13개 도메인 지원 (v0.3.0+)**:
+**17개 도메인 지원 (v0.4.1+)**:
 
-| 도메인 | 전략 | 구현률 |
-|--------|------|--------|
-| **AGENT_BASED (5개)** |
-| CONVERSATIONAL_AI | AGENT_BASED | 98.7% ⭐ |
-| CUSTOMER_SUPPORT | AGENT_BASED | 높음 |
-| CONTENT_CREATION | AGENT_BASED | 98.7% ⭐ |
-| REPORT_GENERATION | AGENT_BASED | 높음 |
-| EDUCATION | AGENT_BASED | 중간 |
-| **HYBRID (4개)** |
-| WORKFLOW_AUTOMATION | HYBRID | 높음 |
-| DATA_ANALYSIS | HYBRID | 98.3% ⭐ |
-| DOCUMENT_PROCESSING | HYBRID | 높음 |
-| API_INTEGRATION | HYBRID | 중간 |
-| **CRUD_BASED (4개)** |
-| TASK_MANAGEMENT | CRUD_BASED | 중간 |
-| DASHBOARD | CRUD_BASED | 중간 |
-| KNOWLEDGE_BASE | CRUD_BASED | 중간 |
-| E_COMMERCE | CRUD_BASED | 중간 |
+| 도메인 | 카테고리 | 구현률 |
+|--------|---------|--------|
+| **대화 & 커뮤니케이션 (2개)** |
+| CONVERSATIONAL_AI | 대화형 AI | 98.7% ⭐ |
+| CUSTOMER_SUPPORT | 고객 지원 | 높음 |
+| **작업 & 워크플로우 (2개)** |
+| TASK_MANAGEMENT | 작업 관리 | 중간 |
+| WORKFLOW_AUTOMATION | 업무 자동화 | 높음 |
+| **데이터 & 분석 (3개)** |
+| DATA_ANALYSIS | 데이터 분석 | 98.3% ⭐ |
+| REPORT_GENERATION | 리포트 생성 | 높음 |
+| DASHBOARD | 대시보드 | 중간 |
+| **콘텐츠 & 문서 (3개)** |
+| CONTENT_CREATION | 콘텐츠 생성 | 98.7% ⭐ |
+| DOCUMENT_PROCESSING | 문서 처리 | 높음 |
+| KNOWLEDGE_BASE | 지식베이스 | 중간 |
+| **통합 & API (2개)** |
+| API_INTEGRATION | API 통합 | 중간 |
+| WEBHOOK_HANDLER | Webhook 처리 | 중간 |
+| **도메인 특화 (5개)** |
+| E_COMMERCE | 전자상거래 | 중간 |
+| EDUCATION | 교육 | 중간 |
+| HEALTHCARE | 헬스케어 | 중간 |
+| FINANCE | 금융 | 중간 |
+| CUSTOM | 커스텀/기타 | 범용 |
 
-**추천**: CrewAI 멀티 에이전트 시스템 (98.7%), 데이터 분석 워크플로우 (98.3%)
+**추천**: CrewAI 멀티 에이전트 시스템 (98.7%), 데이터 분석 워크플로우 (98.3%), 콘텐츠 생성 (98.7%)
 
 ### 5. 환경 변수 설정
 
@@ -950,7 +957,7 @@ async def handle_request(request_json):
 **A**: ✅ 가능. `pip install caas` 후 `from caas_framework import CrewAIFramework`로 import하여 Streamlit, FastAPI, React, VSCode Extension 등 다양한 UI 개발에 사용 가능.
 
 ### Q: 어떤 도메인이 가장 잘 지원되나요?
-**A**: 13개 도메인 지원. 최우수: CrewAI 멀티 에이전트 시스템 (98.7% 구현률), 데이터 분석 워크플로우 (98.3% 구현률). AGENT_BASED 5개, HYBRID 4개, CRUD_BASED 4개 도메인 완전 구현.
+**A**: 17개 도메인 지원. 최우수: CrewAI 멀티 에이전트 시스템 (98.7% 구현률), 데이터 분석 워크플로우 (98.3% 구현률), 콘텐츠 생성 (98.7% 구현률). 대화/커뮤니케이션 2개, 작업/워크플로우 2개, 데이터/분석 3개, 콘텐츠/문서 3개, 통합/API 2개, 도메인특화 5개 완전 구현.
 
 ### Q: 테스트 커버리지는 어떻게 되나요?
 **A**: 100+ 테스트 존재. E2E 테스트로 실제 사용 시나리오 검증.

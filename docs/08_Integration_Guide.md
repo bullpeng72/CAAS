@@ -538,11 +538,15 @@ pytest test_integration.py -v
 ### 공식 문서
 - [FastAPI 문서](https://fastapi.tiangolo.com/)
 - [Requests 라이브러리](https://requests.readthedocs.io/)
-- [CAAS 아키텍처 가이드](./아키텍처_가이드.md)
+- [CrewAI 문서](https://docs.crewai.com/)
 
 ### CAAS 문서
-- [배포 가이드](./배포_가이드.md)
-- [빠른 시작 가이드](../1_시작하기/빠른_시작_가이드.md)
+- [CAAS 아키텍처 가이드](06_Architecture_Guide.md) - 시스템 구조
+- [배포 가이드](07_Deployment_Guide.md) - 프로덕션 배포
+- [빠른 시작 가이드](03_Quick_Start_Guide.md) - 첫 프로젝트 생성
+- [CLI 사용 가이드](04_CLI_Usage_Guide.md) - CLI 명령어
+- [전문가 방법론 가이드](05_Expert_Methodology_Guide.md) - 개발 방법론
+- [Ollama 설정 가이드](15_Ollama_Setup_Guide.md) - 로컬 LLM 설정 ✨ NEW
 
 ---
 

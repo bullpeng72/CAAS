@@ -5,8 +5,6 @@
 **최종 업데이트**: 2026-02-06
 **대상**: CAAS를 처음 사용하는 개발자
 
-> ⚠️ **v0.3.0 사용자 주의**: Python 라이브러리로 CAAS를 사용하는 경우 [v0.3.0 마이그레이션 가이드](01_README_KO.md#-v030-마이그레이션-가이드)를 확인하세요. CLI 사용자는 변경사항 없음.
-
 ---
 
 ## 📖 이 가이드에 대하여
@@ -128,6 +126,16 @@ ANTHROPIC_API_KEY=sk-ant-xxxxxxxxxxxxx
 LLM_PROVIDER=anthropic
 LLM_MODEL=claude-3-5-sonnet-20241022
 ```
+
+**선택 3: Ollama (로컬 LLM, API 키 불필요)** ✨ NEW
+```env
+# .env 파일
+OLLAMA_API_BASE=http://localhost:11434/v1
+LLM_PROVIDER=ollama
+LLM_MODEL=llama3
+```
+
+> 💡 **Ollama 사용**: API 키 없이 로컬에서 무료로 LLM을 실행할 수 있습니다. 자세한 설정은 [15_Ollama_Setup_Guide.md](15_Ollama_Setup_Guide.md)를 참조하세요.
 
 ---
 
@@ -1009,9 +1017,11 @@ collaboration = ExpertAgentCollaboration(
 
 ## 📚 추가 학습 자료
 
-- **[Expert Methodology Guide](./05_Expert_Methodology_Guide.md)**: 고급 기법 및 최적화 전략
-- **[CLI Usage Guide](./04_CLI_Usage_Guide.md)**: 모든 CLI 명령어 완전 레퍼런스
-- **[Architecture Guide](./06_Architecture_Guide.md)**: CAAS 내부 구조 및 설계 원리
+- **[Expert Methodology Guide](05_Expert_Methodology_Guide.md)**: 고급 기법 및 최적화 전략
+- **[CLI Usage Guide](04_CLI_Usage_Guide.md)**: 모든 CLI 명령어 완전 레퍼런스
+- **[Architecture Guide](06_Architecture_Guide.md)**: CAAS 내부 구조 및 설계 원리
+- **[Code Analysis Guide](14_Code_Analysis_Guide.md)**: 코드 분석 및 런타임 오류 자동 수정 ✨ NEW
+- **[Ollama Setup Guide](15_Ollama_Setup_Guide.md)**: 로컬 LLM 설정 가이드 ✨ NEW
 
 ---
 
@@ -1114,7 +1124,7 @@ caas fix-runtime-error \
 > - `analyze-completeness`: `--detailed` 플래그로 상세 분석 가능
 > - `fix-runtime-error`: `--apply` 플래그가 있어야 실제로 수정 적용 (없으면 미리보기만)
 
-자세한 내용: [코드 분석 가이드](./14_Code_Analysis_Guide.md)
+자세한 내용: [코드 분석 가이드](14_Code_Analysis_Guide.md)
 
 ---
 

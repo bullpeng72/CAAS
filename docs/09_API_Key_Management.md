@@ -20,11 +20,15 @@ CAAS에서 사용하는 CrewAI 도구들의 API 키 관리 가이드입니다.
 
 CAAS 프레임워크는 40개 이상의 CrewAI 도구를 지원하며, 많은 도구들이 외부 서비스의 API 키를 필요로 합니다.
 
+**v0.4.1**: Ollama 로컬 LLM 지원 추가로 API 키 없이도 CAAS 사용 가능! ✨
+
 ### 주요 기능
 
+- ✅ **3가지 LLM Provider 지원** (OpenAI, Anthropic, Ollama)
+- ✅ Ollama 로컬 LLM 지원 (API 키 불필요) ✨ NEW
 - ✅ API 키 요구사항 자동 감지
 - ✅ .env 파일에서 API 키 관리
-- ✅ CLI 및 UI에서 API 키 설정/확인
+- ✅ **28개 CLI 명령어**로 환경 변수 관리
 - ✅ 생성된 코드에서 API 키 자동 로드
 - ✅ 도구별 API 키 상태 표시
 - ✅ API 키 검증 스크립트 제공
@@ -50,11 +54,27 @@ nano .env
 code .env
 ```
 
-### 3. OpenAI API 키 설정 (필수)
+### 3. LLM Provider API 키 설정 (최소 1개 필수)
 
+**선택 1: OpenAI (권장)**
 ```bash
 # .env 파일에 추가
 OPENAI_API_KEY=sk-your-actual-openai-key-here
+```
+
+**선택 2: Anthropic**
+```bash
+ANTHROPIC_API_KEY=sk-ant-your-anthropic-key-here
+```
+
+**선택 3: Ollama (로컬 LLM, API 키 불필요)** ✨ NEW
+```bash
+# Ollama 설치 및 실행 (https://ollama.ai)
+ollama serve
+
+# .env 파일에 추가
+OLLAMA_API_BASE=http://localhost:11434/v1
+OLLAMA_MODEL=llama3.1:8b
 ```
 
 ### 4. 검증 재실행
@@ -67,15 +87,20 @@ python3 scripts/validate_api_keys.py
 
 ## API 키 분류 및 목록
 
-### ✅ REQUIRED (필수)
+### ✅ REQUIRED (필수) - LLM Provider
 
-CAAS의 기본 기능을 사용하기 위해 **반드시** 필요한 키입니다.
+CAAS의 기본 기능을 사용하기 위해 **최소 1개의 LLM Provider API 키**가 필요합니다.
 
-| API Key | 도구 | 설명 | 발급 방법 |
-|---------|------|------|----------|
-| `OPENAI_API_KEY` | VisionTool, DallETool | OpenAI API (이미지 분석, 생성) | [OpenAI Platform](https://platform.openai.com/api-keys) |
+| API Key | 용도 | 설명 | 발급 방법 | 비용 |
+|---------|------|------|----------|------|
+| `OPENAI_API_KEY` | LLM + VisionTool, DallETool | OpenAI API (권장) | [OpenAI Platform](https://platform.openai.com/api-keys) | $5 무료 크레딧 |
+| `ANTHROPIC_API_KEY` | LLM | Anthropic Claude API (대안) | [Anthropic Console](https://console.anthropic.com/) | $5 무료 크레딧 |
+| `OLLAMA_API_BASE` + `OLLAMA_MODEL` | LLM (로컬) | Ollama 로컬 LLM ✨ NEW | [Ollama 설치](https://ollama.ai) | **무료** (API 키 불필요) |
 
-**비용**: $5 무료 크레딧 (신규 계정)
+**참고**:
+- 최소 1개 선택: OpenAI **또는** Anthropic **또는** Ollama
+- Ollama는 로컬 실행으로 API 키 불필요 (프라이버시, 비용 절감)
+- 자세한 설정: [15_Ollama_Setup_Guide.md](15_Ollama_Setup_Guide.md)
 
 ---
 
@@ -315,9 +340,14 @@ vim .env
 # =============================================================================
 
 # -----------------------------------------------------------------------------
-# LLM API Keys
+# LLM API Keys (최소 1개 필수: OpenAI OR Anthropic OR Ollama)
 # -----------------------------------------------------------------------------
 OPENAI_API_KEY=sk-your-actual-openai-key-here
+# ANTHROPIC_API_KEY=sk-ant-your-anthropic-key-here
+
+# Ollama (로컬 LLM, API 키 불필요) ✨ NEW
+# OLLAMA_API_BASE=http://localhost:11434/v1
+# OLLAMA_MODEL=llama3.1:8b
 
 # -----------------------------------------------------------------------------
 # CrewAI Tool API Keys
@@ -892,23 +922,29 @@ ValueError: ❌ SerperDevTool requires SERPER_API_KEY to be set
 ### 추가 문서
 
 - [01_README_KO.md](01_README_KO.md) - CAAS 프로젝트 개요
+- [02_Installation_Guide.md](02_Installation_Guide.md) - 설치 가이드
 - [03_Quick_Start_Guide.md](03_Quick_Start_Guide.md) - 빠른 시작 가이드
+- [04_CLI_Usage_Guide.md](04_CLI_Usage_Guide.md) - CLI 사용 가이드 (29 commands)
 - [06_Architecture_Guide.md](06_Architecture_Guide.md) - 아키텍처 가이드
+- [08_Integration_Guide.md](08_Integration_Guide.md) - Frontend-Backend 통합 가이드
+- [15_Ollama_Setup_Guide.md](15_Ollama_Setup_Guide.md) - Ollama 로컬 LLM 설정 ✨ NEW
 - [CLAUDE.md](../CLAUDE.md) - 프로젝트 컨텍스트
 
 ### 외부 리소스
 
-#### API 키 발급
+#### LLM Provider 및 API 키 발급
 
-| 서비스 | URL |
-|--------|-----|
-| OpenAI | https://platform.openai.com/api-keys |
-| Serper | https://serper.dev/api-key |
-| Brave Search | https://brave.com/search/api/ |
-| Tavily | https://tavily.com/ |
-| Firecrawl | https://firecrawl.dev/ |
-| GitHub | https://github.com/settings/tokens |
-| YouTube | https://console.cloud.google.com/apis/credentials |
+| 서비스 | 카테고리 | URL |
+|--------|---------|-----|
+| **OpenAI** | **LLM (권장)** | https://platform.openai.com/api-keys |
+| **Anthropic** | **LLM (대안)** | https://console.anthropic.com/ |
+| **Ollama** | **LLM (로컬, 무료)** ✨ NEW | https://ollama.ai |
+| Serper | 검색 | https://serper.dev/api-key |
+| Brave Search | 검색 | https://brave.com/search/api/ |
+| Tavily | 검색 | https://tavily.com/ |
+| Firecrawl | 스크래핑 | https://firecrawl.dev/ |
+| GitHub | 코드 통합 | https://github.com/settings/tokens |
+| YouTube | 미디어 | https://console.cloud.google.com/apis/credentials |
 
 #### 커뮤니티
 
@@ -999,7 +1035,10 @@ ValueError: ❌ SerperDevTool requires SERPER_API_KEY to be set
 
 ### 필수 액션 체크리스트
 
-- [ ] OpenAI API 키 발급 및 설정 (필수)
+- [ ] **LLM Provider 설정** (최소 1개 필수)
+  - [ ] OpenAI API 키 발급 및 설정 (권장), 또는
+  - [ ] Anthropic API 키 발급 및 설정, 또는
+  - [ ] Ollama 설치 및 설정 (무료, API 키 불필요) ✨ NEW
 - [ ] Serper API 키 발급 및 설정 (권장)
 - [ ] .env 파일 생성 및 편집
 - [ ] `python3 scripts/validate_api_keys.py` 실행

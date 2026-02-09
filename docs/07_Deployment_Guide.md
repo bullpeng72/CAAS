@@ -130,8 +130,17 @@ cp .env.example .env
 
 `.env` 파일 편집:
 ```env
-# LLM API 키 (필수)
+# LLM API 키 (하나 이상 필수)
+# 옵션 1: OpenAI
 OPENAI_API_KEY=sk-your-openai-api-key
+
+# 옵션 2: Anthropic
+# ANTHROPIC_API_KEY=sk-ant-your-api-key
+
+# 옵션 3: Ollama (로컬 LLM, API 키 불필요) ✨ NEW
+# OLLAMA_API_BASE=http://localhost:11434/v1
+# LLM_PROVIDER=ollama
+# LLM_MODEL=llama3
 
 # 그래프 백엔드 설정 (임베디드 사용)
 GRAPH_BACKEND=embedded
@@ -141,9 +150,6 @@ EMBEDDED_GRAPH_STORAGE=./data/embedded_graph.json
 APP_ENV=development
 DEBUG=true
 LOG_LEVEL=INFO
-
-# 선택사항: Anthropic API
-# ANTHROPIC_API_KEY=sk-ant-your-api-key
 
 # 출력 디렉토리
 OUTPUT_DIR=./generated
@@ -212,8 +218,17 @@ python scripts/seed_patterns.py
 
 `.env` 파일 편집:
 ```env
-# LLM API 키
+# LLM API 키 (하나 이상 필수)
+# 옵션 1: OpenAI
 OPENAI_API_KEY=sk-your-openai-api-key
+
+# 옵션 2: Anthropic
+# ANTHROPIC_API_KEY=sk-ant-your-api-key
+
+# 옵션 3: Ollama (로컬 LLM, API 키 불필요) ✨ NEW
+# OLLAMA_API_BASE=http://localhost:11434/v1
+# LLM_PROVIDER=ollama
+# LLM_MODEL=llama3
 
 # Neo4j 설정
 GRAPH_BACKEND=neo4j
@@ -283,9 +298,17 @@ pip install -r requirements.txt
 ```bash
 # .env 파일 생성
 cat > .env << 'EOF'
-# LLM API Keys
+# LLM API Keys (하나 이상 필수)
+# 옵션 1: OpenAI
 OPENAI_API_KEY=sk-your-production-api-key
+
+# 옵션 2: Anthropic
 ANTHROPIC_API_KEY=sk-ant-your-production-api-key
+
+# 옵션 3: Ollama (로컬 LLM, API 키 불필요) ✨ NEW
+# OLLAMA_API_BASE=http://localhost:11434/v1
+# LLM_PROVIDER=ollama
+# LLM_MODEL=llama3
 
 # Graph Backend
 GRAPH_BACKEND=neo4j
@@ -336,55 +359,26 @@ python scripts/setup_neo4j.py
 python scripts/seed_patterns.py
 ```
 
-#### 6. 사용자 및 권한 설정
+#### 6. 배포 완료 및 검증
 
-CAAS는 CLI/Python API로 작동하므로 systemd 서비스로 실행할 필요가 없습니다. 필요시 CLI 명령을 cron이나 스크립트로 호출합니다.
-
-```bash
-# 사용자 생성 (선택사항)
-sudo useradd -r -s /bin/bash -d /opt/caas caas
-sudo chown -R caas:caas /opt/caas
-
-# 권한 설정
-sudo systemctl daemon-reload
-sudo systemctl enable caas-api
-sudo systemctl start caas-api
-
-# 상태 확인
-sudo systemctl status caas-api
-```
-
-#### 7. Nginx 리버스 프록시 설정 (선택사항)
+CAAS는 CLI/Python API로 작동하므로 별도의 웹 서버나 systemd 서비스가 필요하지 않습니다.
 
 ```bash
-# Nginx 설치
-sudo apt install nginx -y
+# 설치 확인
+source venv/bin/activate
+caas --version
 
-# 설정 파일 생성
-sudo cat > /etc/nginx/sites-available/caas << 'EOF'
-server {
-    listen 80;
-    server_name your-domain.com;
+# 테스트 실행
+caas generate "간단한 할일 앱" --output /opt/caas/test-output
 
-    location / {
-        proxy_pass http://localhost:8000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_read_timeout 86400;
-    }
-}
-EOF
-
-# 설정 활성화
-sudo ln -s /etc/nginx/sites-available/caas /etc/nginx/sites-enabled/
-sudo nginx -t
-sudo systemctl restart nginx
+# CLI 접근성 확인
+which caas
 ```
+
+**참고**:
+- CAAS 자체는 웹 서버가 아니므로 Nginx나 systemd 설정이 불필요합니다
+- 생성된 프로젝트가 FastAPI 백엔드인 경우, 해당 프로젝트를 배포할 때 Nginx/Gunicorn 설정이 필요합니다 (아래 "생성된 프로젝트 배포" 섹션 참조)
+- 정기적인 코드 생성이 필요한 경우 cron job으로 CAAS CLI 명령을 스케줄링할 수 있습니다
 
 ---
 
@@ -409,9 +403,17 @@ sudo chmod +x /usr/local/bin/docker-compose
 
 `.env` 파일 생성:
 ```env
-# LLM API Keys
+# LLM API Keys (하나 이상 필수)
+# 옵션 1: OpenAI
 OPENAI_API_KEY=sk-your-api-key
+
+# 옵션 2: Anthropic
 ANTHROPIC_API_KEY=sk-ant-your-api-key
+
+# 옵션 3: Ollama (로컬 LLM, API 키 불필요) ✨ NEW
+# OLLAMA_API_BASE=http://localhost:11434/v1
+# LLM_PROVIDER=ollama
+# LLM_MODEL=llama3
 
 # Neo4j Settings
 NEO4J_PASSWORD=secure-password
@@ -450,16 +452,19 @@ docker-compose restart caas
 
 | 변수명 | 설명 | 예시 |
 |-------|------|------|
-| `OPENAI_API_KEY` | OpenAI API 키 | `sk-...` |
+| `OPENAI_API_KEY` | OpenAI API 키 (옵션 1) | `sk-...` |
+| `ANTHROPIC_API_KEY` | Anthropic API 키 (옵션 2) | `sk-ant-...` |
+| `OLLAMA_API_BASE` | Ollama API 베이스 URL (옵션 3) ✨ NEW | `http://localhost:11434/v1` |
 | `GRAPH_BACKEND` | 그래프 백엔드 선택 | `embedded` 또는 `neo4j` |
+
+**참고**: 최소 하나의 LLM Provider가 필요합니다 (OpenAI, Anthropic, 또는 Ollama).
 
 ### LLM 설정
 
 | 변수명 | 기본값 | 설명 |
 |-------|--------|------|
-| `ANTHROPIC_API_KEY` | - | Anthropic Claude API 키 |
-| `LLM_PROVIDER` | `openai` | LLM 제공자 |
-| `LLM_MODEL` | `gpt-4-turbo-preview` | 모델명 |
+| `LLM_PROVIDER` | `openai` | LLM 제공자 (`openai`, `anthropic`, `ollama`) |
+| `LLM_MODEL` | `gpt-4-turbo-preview` | 모델명 (OpenAI: `gpt-4o`, Anthropic: `claude-3-opus`, Ollama: `llama3`) |
 
 ### Neo4j 설정 (GRAPH_BACKEND=neo4j)
 
@@ -525,7 +530,12 @@ pip install -r requirements.txt
 
 # .env 파일 생성
 cat > .env << 'EOF'
+# 하나 이상의 LLM Provider 필요
 OPENAI_API_KEY=sk-your-api-key
+# 또는 Ollama 사용 (API 키 불필요)
+# OLLAMA_API_BASE=http://localhost:11434/v1
+# LLM_PROVIDER=ollama
+# LLM_MODEL=llama3
 EOF
 
 # 실행
@@ -595,7 +605,8 @@ caas: command not found
 
 **해결:**
 ```bash
-pip install -e ".[cli]"
+# CAAS 재설치
+pip install -e .
 ```
 
 ### 2. Neo4j 연결 실패
@@ -671,9 +682,11 @@ environment:
 
 ## 추가 리소스
 
-- 📚 [설치 가이드](../1_시작하기/설치_가이드.md) - 설치 방법
-- ✨ [아키텍처 가이드](./아키텍처_가이드.md) - 시스템 구조 및 최신 개선사항
-- 📙 [통합 가이드](./통합_가이드.md) - 프론트엔드-백엔드 통합
+- 📚 [설치 가이드](02_Installation_Guide.md) - 설치 방법
+- ✨ [아키텍처 가이드](06_Architecture_Guide.md) - 시스템 구조 및 최신 개선사항
+- 🚀 [빠른 시작 가이드](03_Quick_Start_Guide.md) - 첫 프로젝트 생성
+- 📘 [CLI 사용 가이드](04_CLI_Usage_Guide.md) - 28개 CLI 명령어
+- 🔧 [Ollama 설정 가이드](15_Ollama_Setup_Guide.md) - 로컬 LLM 설정 ✨ NEW
 - [GitHub Issues](https://github.com/bullpeng72/CAAS/issues)
 
 ---

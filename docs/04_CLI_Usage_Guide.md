@@ -12,8 +12,10 @@ CAAS CLI는 자연어 요구사항으로부터 멀티 에이전트 시스템을 
 - 명령줄에서 완전한 CrewAI 프로젝트 생성
 - 직접 프레임워크 사용 (API 서버 불필요)
 - CAAS 6-Phase 워크플로우 실행
-- 13개 도메인 지원 (AGENT_BASED 5개, HYBRID 4개, CRUD_BASED 4개)
+- **17개 도메인 지원** (대화/커뮤니케이션 2개, 작업/워크플로우 2개, 데이터/분석 3개, 콘텐츠/문서 3개, 통합/API 2개, 도메인특화 5개)
+- **28개 CLI 명령어** (v0.4.1+)
 - 유연한 출력 및 품질 제어
+- Ollama 로컬 LLM 지원 ✨ NEW
 
 ---
 
@@ -23,21 +25,33 @@ CAAS CLI는 자연어 요구사항으로부터 멀티 에이전트 시스템을 
 
 - Python 3.11+
 - Git
-- OpenAI 또는 Anthropic API 키
+- LLM Provider (최소 하나):
+  - OpenAI API 키, 또는
+  - Anthropic API 키, 또는
+  - Ollama (로컬 LLM, API 키 불필요) ✨ NEW
 
 ### CLI 설치
 
+**방법 1: PyPI 설치 (권장)**
+```bash
+pip install caas
+
+# 설치 확인
+caas --help
+```
+
+**방법 2: 소스에서 설치 (개발)**
 ```bash
 # 리포지토리 클론
 git clone https://github.com/bullpeng72/CAAS.git
-cd caas
+cd CAAS
 
 # 가상환경 생성 및 활성화
 python3 -m venv venv
 source venv/bin/activate
 
-# CLI 지원 포함 설치
-pip install -e ".[cli]"
+# CAAS 설치 (CLI 포함)
+pip install -e .
 
 # 설치 확인
 caas --help
@@ -72,7 +86,13 @@ caas generate "블로그 플랫폼 만들기" \
 
 ## 전체 CLI 명령어
 
-CAAS CLI는 **28개 메인 명령어**와 다수의 서브명령어를 제공합니다.
+CAAS CLI는 **28개 명령어**를 제공합니다.
+
+### 🚀 Production-Ready
+
+- **`caas auto-deploy`**: 전체 자동화 (요구사항 → 배포된 코드) ✨ NEW
+
+---
 
 ### Setup & Configuration (설정 및 구성)
 
@@ -87,6 +107,7 @@ CAAS CLI는 **28개 메인 명령어**와 다수의 서브명령어를 제공합
 - **`caas analyze-gaps`**: 요구사항의 부족한 부분을 분석
 - **`caas expand`**: 요구사항 자동 확장
 - **`caas questions`**: 갭을 해결하기 위한 대화형 질문 생성
+- **`caas examples`**: 예제 템플릿 관리 및 사용 ✨ NEW
 
 ---
 
@@ -131,13 +152,22 @@ CAAS CLI는 **28개 메인 명령어**와 다수의 서브명령어를 제공합
 
 ---
 
+### Monitoring & Performance (모니터링 및 성능) ✨ NEW
+
+- **`caas cache`**: 캐시 관리 (stats, clear, config)
+- **`caas monitor`**: 실시간 모니터링 (metrics, cost, quality, alerts)
+- **`caas models`**: 멀티 모델 라우터 (list, metrics, switch, strategy)
+- **`caas profile`**: 성능 프로파일링 (run, report, bottlenecks)
+
+---
+
 ## 명령 옵션
 
 ### 핵심 옵션
 
 | 옵션 | 설명 | 기본값 |
 |-----|------|--------|
-| `--domain, -d` | 도메인 힌트 (17+개 지원) | 자동 감지 |
+| `--domain, -d` | 도메인 힌트 (17개 지원) | 자동 감지 |
 | `--output, -o` | 출력 디렉토리 | `./generated` |
 | `--deployment` | 배포 대상 (docker, kubernetes, serverless) | `docker` |
 | `--golden-data, -g` | 기존 Golden Data JSON 파일 | None |
@@ -162,27 +192,35 @@ CAAS CLI는 **28개 메인 명령어**와 다수의 서브명령어를 제공합
 
 ## 지원 도메인
 
-CAAS는 최적화된 생성을 위해 13개 도메인 타입을 지원합니다.
+CAAS는 최적화된 생성을 위해 **17개 도메인**을 지원합니다.
 
-| 도메인 | 타입 | 사용 사례 |
-|--------|------|----------|
-| `TASK_MANAGEMENT` | CRUD | 할일 앱, 프로젝트 트래커 |
-| `CONTENT_GENERATION` | Agent | 보고서 생성기, 블로그 작성기 |
-| `CHATBOT` | Agent | 고객 지원, FAQ 봇 |
-| `DATA_PIPELINE` | Agent | ETL, 데이터 동기화 |
-| `ECOMMERCE` | Mixed | 온라인 쇼핑몰, 마켓플레이스 |
-| `FINANCE` | Agent | 투자 분석, 트레이딩 |
-| `HEALTHCARE` | Mixed | 환자 관리, 스케줄링 |
-| `EDUCATION` | Mixed | LMS, 퀴즈 시스템 |
-| `SOCIAL_MEDIA` | CRUD | 소셜 네트워크, 피드 |
-| `IOT` | Agent | 디바이스 관리, 모니터링 |
-| `ANALYTICS` | Agent | 데이터 분석, 시각화 |
-| `SEARCH` | Mixed | 검색 엔진, 추천 |
-| `WORKFLOW` | Agent | 비즈니스 프로세스 자동화 |
-| `COMMUNICATION` | Mixed | 메시징, 이메일 시스템 |
-| **`GAMING`** | **Mixed** | **게임 서버, 게임 AI, 매치메이킹** |
-| `DOCUMENT_MANAGEMENT` | CRUD | 문서 저장, 버전 관리 |
-| `MONITORING` | Agent | 시스템 모니터링, 알림 |
+### AGENT_BASED (5개) - 98.7% 구현률 ⭐
+
+| 도메인 | 사용 사례 |
+|--------|----------|
+| `CONVERSATIONAL_AI` | 챗봇, 대화형 AI, FAQ 봇 |
+| `CUSTOMER_SUPPORT` | 고객 지원, 티켓팅 시스템 |
+| `CONTENT_CREATION` | 보고서 생성, 블로그 작성, 콘텐츠 생성 |
+| `REPORT_GENERATION` | 자동 리포트, 분석 문서 생성 |
+| `EDUCATION` | LMS, 튜터링, 퀴즈 시스템 |
+
+### HYBRID (4개) - Agent + CRUD
+
+| 도메인 | 사용 사례 |
+|--------|----------|
+| `WORKFLOW_AUTOMATION` | 비즈니스 프로세스 자동화 |
+| `DATA_ANALYSIS` | 데이터 분석, 시각화, ETL ⭐ 98.3% 구현률 |
+| `DOCUMENT_PROCESSING` | 문서 처리, 변환, 분석 |
+| `API_INTEGRATION` | 외부 API 통합, 데이터 동기화 |
+
+### CRUD_BASED (4개) - 백엔드 API
+
+| 도메인 | 사용 사례 |
+|--------|----------|
+| `TASK_MANAGEMENT` | 할일 앱, 프로젝트 트래커 |
+| `DASHBOARD` | 대시보드, 통계 화면 |
+| `KNOWLEDGE_BASE` | 지식 베이스, 문서 관리 |
+| `E_COMMERCE` | 이커머스, 온라인 쇼핑몰 |
 
 ---
 
@@ -205,14 +243,14 @@ caas generate "뉴스를 수집하고, 감성을 분석하고, 보고서를 생�
 ```
 **출력**: 뉴스 수집, 감성 분석, 보고서 생성 역할을 하는 CrewAI 멀티 에이전트 시스템
 
-### 예시 3: 게임 전략 AI (고급)
+### 예시 3: 워크플로우 자동화 (고급)
 
 ```bash
-caas generate "4:4 물고기 전투 게임을 위한 AI 에이전트를 만들어줘. 각 물고기는 고유한 스킬과 패시브를 가지고 있어. AI는 상대방의 물고기 종류를 추론(Assert)하고, 주어진 상황에서 최적의 행동(Act)을 결정해야 해." \
-  --domain GAMING \
-  --output ./fish-battle-ai
+caas generate "고객 온보딩 프로세스 자동화 시스템 만들기. 신규 고객 등록 시 이메일 발송, 문서 생성, CRM 업데이트, 담당자 배정을 자동으로 처리해야 함. 각 단계마다 상태 추적 및 오류 처리 포함." \
+  --domain WORKFLOW_AUTOMATION \
+  --output ./onboarding-automation
 ```
-**출력**: `Pick`, `Assert`, `Act`와 같은 게임 단계별 메소드를 포함하는 복잡한 상태 기반 `AI` 클래스. 내부에 승리 전략, 적 추론 로직, 스킬 사용 판단 로직 등이 포함될 수 있습니다.
+**출력**: 이메일 발송, 문서 생성, CRM 통합, 담당자 배정 등 각 단계를 담당하는 CrewAI 멀티 에이전트 시스템. 상태 추적 및 오류 처리 로직 포함.
 
 ---
 
@@ -253,7 +291,7 @@ caas generate "4:4 물고기 전투 게임을 위한 AI 에이전트를 만들�
 caas generate "요구사항"
 
 # 도메인 지정 및 출력 디렉토리 설정
-caas generate "요구사항" --domain CHATBOT -o ./my-project
+caas generate "요구사항" --domain CONVERSATIONAL_AI -o ./my-project
 
 # Golden Data 사용
 caas generate "요구사항" -g ./golden.json
@@ -263,6 +301,25 @@ caas generate "프로토타입" --no-validation --no-traceability
 
 # 상세 로그와 함께 실행
 caas generate "디버깅할 요구사항" --verbosity debug
+
+# 전체 자동화 (배포까지) ✨ NEW
+caas auto-deploy "요구사항" --target docker
+
+# 예제 사용 ✨ NEW
+caas examples list
+caas generate --from-example web_app
+
+# 코드 분석 ✨ NEW
+caas analyze-completeness --project ./generated --golden-data ./golden.json --detailed
+caas fix-runtime-error --project ./generated --error-log ./error.log --apply
+
+# 캐시 관리 ✨ NEW
+caas cache stats
+caas cache clear
+
+# 모델 관리 ✨ NEW
+caas models list
+caas models switch --model gpt-4o
 
 # 버전 확인
 caas --version
@@ -277,5 +334,10 @@ caas generate --help
 ## 지원
 
 - **GitHub Issues**: https://github.com/bullpeng72/CAAS/issues
-- **문서**: `docs/README_KO.md`
-- **예제**: `tests/test_e2e_` 디렉토리 확인
+- **문서**: [01_README_KO.md](01_README_KO.md) - 전체 문서 색인
+- **예제**: `tests/test_e2e_*.py` 디렉토리 확인
+- **추가 가이드**:
+  - [02_Installation_Guide.md](02_Installation_Guide.md) - 설치 가이드
+  - [03_Quick_Start_Guide.md](03_Quick_Start_Guide.md) - 빠른 시작
+  - [14_Code_Analysis_Guide.md](14_Code_Analysis_Guide.md) - 코드 분석 ✨ NEW
+  - [15_Ollama_Setup_Guide.md](15_Ollama_Setup_Guide.md) - Ollama 설정 ✨ NEW

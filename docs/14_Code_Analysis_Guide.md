@@ -1,10 +1,10 @@
-```markdown
 # 코드 분석 가이드 (Code Analysis Guide)
 
 CAAS v0.4.0의 새로운 Code Analysis Agent를 활용한 코드 품질 보증 가이드입니다.
 
 **버전**: v0.4.1
 **최종 업데이트**: 2026-02-06
+**상태**: Production Ready ✅
 
 ---
 
@@ -443,7 +443,7 @@ from caas_framework.config.loader import load_config
 async def analyze_project(project_path: Path, golden_path: Path):
     # Setup
     config = load_config()
-    llm = create_llm_plugin(config)
+    llm = create_llm_plugin(config)  # OpenAI, Anthropic, or Ollama
     golden_data = ConcretizedRequirement.parse_file(golden_path)
 
     # Create agent
@@ -461,6 +461,23 @@ async def analyze_project(project_path: Path, golden_path: Path):
         print(f"Gap: {gap.feature_name} - {gap.impact}")
 
     return result
+```
+
+**Ollama 사용 예시** (v0.4.1):
+```python
+from caas_framework.plugins.llm.ollama import OllamaPlugin
+
+# Ollama 로컬 LLM (API 키 불필요)
+llm = OllamaPlugin(
+    model="llama3.1:8b",
+    base_url="http://localhost:11434/v1"
+)
+
+agent = CodeAnalysisAgent(llm_plugin=llm, golden_data=golden_data)
+result = await agent.analyze_implementation(
+    project_path=project_path,
+    golden_data=golden_data
+)
 ```
 
 ### 3. 커스텀 리포팅
@@ -567,13 +584,19 @@ caas fix-runtime-error -p ./project -e error.log
 ### Q3: LLM 비용이 과도합니다
 
 **해결**:
-- Haiku 모델 사용: 간단한 분석은 빠른 모델
-- 배치 처리: 여러 에러를 하나의 로그로 통합
-- 캐싱 활용: LLM 응답 캐시 활성화
+- **Haiku 모델 사용**: 간단한 분석은 빠른 모델
+- **Ollama 로컬 LLM 사용** ✨ NEW (v0.4.1): API 비용 0원
+- **배치 처리**: 여러 에러를 하나의 로그로 통합
+- **캐싱 활용**: LLM 응답 캐시 활성화
 
 ```bash
-# Haiku 모델 사용
+# 1. Haiku 모델 사용 (저렴)
 export CAAS_MODEL=haiku
+caas analyze-completeness -p ./project -g golden_data.json
+
+# 2. Ollama 사용 (무료) ✨ NEW
+export CAAS_LLM_PROVIDER=ollama
+export OLLAMA_MODEL=llama3.1:8b
 caas analyze-completeness -p ./project -g golden_data.json
 ```
 
@@ -581,13 +604,46 @@ caas analyze-completeness -p ./project -g golden_data.json
 
 ## 참고 자료
 
-- [전문가 방법론 가이드](./05_전문가_방법론_가이드.md)
-- [CLI 사용 가이드](./04_CLI_사용_가이드.md)
-- [배포 가이드](./09_배포_가이드.md)
-- [아키텍처 가이드](./06_아키텍처_가이드.md)
+### CAAS 핵심 파일
+
+**Code Analysis Agent** (`caas_framework/agents/`):
+- `code_analysis_agent.py` - 6번째 Expert Agent (v0.4.0+)
+
+**Models** (`caas_framework/models/`):
+- `code_analysis.py` - 코드 분석 데이터 모델
+- `specifications.py` - Golden Data 및 요구사항 모델
+
+**CLI Commands** (`caas_cli/commands/`):
+- `analyze_completeness.py` (9.6 KB) - 구현 완전성 분석
+- `fix_runtime_error.py` (10.7 KB) - 런타임 에러 자동 수정
+
+**LLM Plugins** (`caas_framework/plugins/llm/`):
+- `factory.py` - LLM 플러그인 팩토리 (OpenAI, Anthropic, Ollama)
+- `openai.py`, `anthropic.py`, `ollama.py` ✨ NEW
+
+### CAAS 문서
+
+- [01_README_KO.md](01_README_KO.md) - 프로젝트 개요
+- [03_Quick_Start_Guide.md](03_Quick_Start_Guide.md) - 빠른 시작 가이드
+- [04_CLI_Usage_Guide.md](04_CLI_Usage_Guide.md) - CLI 사용 가이드 (29 commands)
+- [05_Expert_Methodology_Guide.md](05_Expert_Methodology_Guide.md) - CAAS 6-Phase 방법론
+- [06_Architecture_Guide.md](06_Architecture_Guide.md) - 아키텍처 가이드
+- [07_Deployment_Guide.md](07_Deployment_Guide.md) - 배포 가이드
+- [12_Requirement_Refinement.md](12_Requirement_Refinement.md) - 요구사항 정제 및 TDD
+- [15_Ollama_Setup_Guide.md](15_Ollama_Setup_Guide.md) - Ollama 로컬 LLM 설정 ✨ NEW
+- [CLAUDE.md](../CLAUDE.md) - 프로젝트 컨텍스트
+
+### 외부 리소스
+
+- [GitHub Issues](https://github.com/bullpeng72/CAAS/issues) - 문의 및 버그 리포트
+- [Python AST Documentation](https://docs.python.org/3/library/ast.html) - AST 기반 코드 분석
+- [pytest Documentation](https://docs.pytest.org/) - 테스트 실행
 
 ---
 
-**Last Updated**: 2026-02-06
-**Version**: v0.4.1
-```
+**최종 업데이트**: 2026-02-06
+**CAAS 버전**: v0.4.1
+**문서 버전**: 1.0.0
+**상태**: Production Ready ✅
+
+**Made with ❤️ by bullpeng72**

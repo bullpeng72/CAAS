@@ -508,14 +508,48 @@ caas generate "할일 관리 시스템" --output ./generated
 
 ## 참고 자료
 
+### Ollama 공식 리소스
+
 - [Ollama 공식 문서](https://ollama.ai/docs)
 - [Ollama GitHub](https://github.com/ollama/ollama)
 - [Ollama 모델 라이브러리](https://ollama.ai/library)
-- [CAAS CLI 가이드](./03_Quick_Start_Guide.md)
-- [LLM 플러그인 개발 가이드](./12_Plugin_Development_Guide.md)
+- [Llama 3 모델](https://ollama.ai/library/llama3)
+- [CodeLlama 모델](https://ollama.ai/library/codellama)
+
+### CAAS 핵심 파일
+
+**LLM Plugin** (`caas_framework/plugins/llm/`):
+- `ollama.py` - Ollama 플러그인 구현
+- `factory.py` - LLM 플러그인 팩토리
+- `openai.py`, `anthropic.py` - 다른 LLM 플러그인
+
+**Configuration** (`caas_framework/config/`):
+- `settings.py` - LLMConfig, LLMProvider, MultiModelConfig
+- `unified.py` - 통합 설정 관리
+
+### CAAS 문서
+
+- [01_README_KO.md](01_README_KO.md) - 프로젝트 개요
+- [02_Installation_Guide.md](02_Installation_Guide.md) - 설치 가이드 (Ollama 포함)
+- [03_Quick_Start_Guide.md](03_Quick_Start_Guide.md) - 빠른 시작 가이드
+- [04_CLI_Usage_Guide.md](04_CLI_Usage_Guide.md) - CLI 사용 가이드 (29 commands)
+- [05_Expert_Methodology_Guide.md](05_Expert_Methodology_Guide.md) - CAAS 6-Phase 방법론
+- [06_Architecture_Guide.md](06_Architecture_Guide.md) - 아키텍처 가이드 (플러그인 시스템)
+- [07_Deployment_Guide.md](07_Deployment_Guide.md) - 배포 가이드
+- [09_API_Key_Management.md](09_API_Key_Management.md) - API 키 관리 (Ollama는 불필요)
+- [14_Code_Analysis_Guide.md](14_Code_Analysis_Guide.md) - 코드 분석 (Ollama 사용 예시 포함)
+- [CLAUDE.md](../CLAUDE.md) - 프로젝트 컨텍스트
+
+### 커뮤니티
+
+- [CAAS GitHub Issues](https://github.com/bullpeng72/CAAS/issues) - 문의 및 버그 리포트
+- [Ollama Discord](https://discord.gg/ollama) - Ollama 커뮤니티
 
 ---
 
-**Last Updated**: 2026-02-06
-**Version**: CAAS v0.4.1
-**Status**: ✅ Production-Ready
+**최종 업데이트**: 2026-02-06
+**CAAS 버전**: v0.4.1
+**문서 버전**: 1.0.0
+**상태**: Production Ready ✅
+
+**Made with ❤️ by bullpeng72**

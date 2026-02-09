@@ -4,6 +4,10 @@
 
 이 가이드는 CAAS의 요구사항 정제 및 TDD 통합 기능을 설명합니다.
 
+**최종 업데이트**: 2026-02-06
+**CAAS 버전**: v0.4.1
+**상태**: Production Ready ✅
+
 ---
 
 ## 📋 목차
@@ -42,15 +46,16 @@ CAAS: → Gap Analysis (갭 분석)
 
 ### 주요 기능
 
-| 기능 | 설명 | 모듈 |
-|------|------|------|
-| **Gap Analysis** | 누락된 요구사항 자동 탐지 | `caas_framework.refinement.gap_analyzer` |
-| **Auto-Expansion** | 자동 요구사항 확장 | `caas_framework.refinement.expander` |
-| **Interactive Questions** | 사용자 대화형 질문 생성 | `caas_framework.refinement.question_generator` |
-| **Traceability Matrix** | 요구사항-코드 추적 | `caas_framework.validation.traceability` |
-| **Test Scenario Generation** | BDD 테스트 시나리오 생성 | `caas_framework.testing.test_scenario` |
-| **Test-First Code Gen** | Pytest 테스트 코드 생성 | `caas_framework.testing.test_generator` |
-| **Test Execution** | 테스트 자동 실행 및 분석 | `caas_framework.testing.test_executor` |
+| 기능 | 설명 | 모듈 | 상태 |
+|------|------|------|------|
+| **Gap Analysis** | 누락된 요구사항 자동 탐지 | `caas_framework.refinement.gap_analyzer` | ✅ |
+| **Auto-Expansion** | 자동 요구사항 확장 | `caas_framework.refinement.expander` | ✅ |
+| **Interactive Questions** | 사용자 대화형 질문 생성 | `caas_framework.refinement.question_generator` | ✅ |
+| **Traceability Matrix** | 요구사항-코드 추적 | `caas_framework.validation.traceability` | ✅ |
+| **Test Scenario Generation** | BDD 테스트 시나리오 생성 | `caas_framework.testing.test_scenario` | ✅ |
+| **Test-First Code Gen** | Pytest 테스트 코드 생성 | `caas_framework.testing.bdd_test_generator` | ✅ |
+| **Test Execution** | 테스트 자동 실행 및 분석 | `caas_framework.testing.test_executor` | ✅ |
+| **TDD Orchestrator** | TDD 워크플로우 통합 관리 | `caas_framework.testing.tdd_orchestrator` | ✅ |
 
 ---
 
@@ -94,7 +99,17 @@ CAAS: → Gap Analysis (갭 분석)
 
 ## CLI를 이용한 통합 워크플로우
 
-이러한 정제 기능들은 CLI 명령어를 통해 유기적으로 사용할 수 있습니다.
+이러한 정제 기능들은 **28개 CLI 명령어** 중 일부를 통해 유기적으로 사용할 수 있습니다.
+
+### 관련 CLI 명령어
+
+| 명령어 | 파일 | 설명 |
+|--------|------|------|
+| `caas analyze-gaps` | `caas_cli/commands/analyze_gaps.py` | 요구사항 갭 분석 |
+| `caas questions` | `caas_cli/commands/interactive_questions.py` | 대화형 질문 생성 |
+| `caas expand` | `caas_cli/commands/expand_requirement.py` | 요구사항 자동 확장 |
+| `caas traceability` | `caas_cli/commands/traceability.py` | 추적성 매트릭스 생성 |
+| `caas validate` | `caas_cli/commands/validate.py` | 설계 검증 |
 
 ### 예제: "할일 앱" 요구사항 구체화하기
 
@@ -142,39 +157,191 @@ caas expand "할일 앱 만들어줘" \
 
 각 기능은 `caas_framework` 내의 모듈을 통해 프로그래밍 방식으로도 사용할 수 있습니다.
 
-### Gap Analysis
+### 1. Gap Analysis (갭 분석)
+
 ```python
-from caas_framework.refinement import RequirementGapAnalyzer
-analyzer = RequirementGapAnalyzer()
-gap_result = analyzer.analyze_gaps(...)
+from caas_framework.refinement import (
+    RequirementGapAnalyzer,
+    GapType,
+    GapAnalysisResult
+)
+
+# Analyzer 초기화
+analyzer = RequirementGapAnalyzer(llm_plugin=llm)
+
+# 요구사항 갭 분석
+gap_result: GapAnalysisResult = await analyzer.analyze_gaps(
+    requirement="할일 관리 앱 만들기",
+    domain_hint="TASK_MANAGEMENT"
+)
+
+# 분석된 갭 출력
+for gap in gap_result.gaps:
+    print(f"Gap Type: {gap.gap_type}")
+    print(f"Description: {gap.description}")
+    print(f"Severity: {gap.severity}")
 ```
 
-### Traceability
+### 2. Auto-Expansion (자동 확장)
+
 ```python
-from caas_framework.validation.traceability import TraceabilityManager
+from caas_framework.refinement import (
+    RequirementExpander,
+    ExpandedRequirement
+)
+
+# Expander 초기화
+expander = RequirementExpander(llm_plugin=llm)
+
+# 요구사항 자동 확장
+expanded: ExpandedRequirement = await expander.expand_requirement(
+    requirement="할일 관리 앱",
+    gap_analysis_result=gap_result,
+    user_answers={"database": "PostgreSQL", "auth": True}
+)
+
+print(f"Expanded Requirement: {expanded.enhanced_requirement}")
+print(f"Added Features: {len(expanded.added_features)}")
+```
+
+### 3. Interactive Questions (대화형 질문)
+
+```python
+from caas_framework.refinement import (
+    InteractiveQuestionGenerator,
+    QuestionType,
+    QuestionnaireResult
+)
+
+# Question Generator 초기화
+question_gen = InteractiveQuestionGenerator(llm_plugin=llm)
+
+# 질문 생성
+questions = await question_gen.generate_questions(
+    gap_analysis_result=gap_result,
+    requirement="할일 관리 앱",
+    domain_hint="TASK_MANAGEMENT"
+)
+
+# 질문 표시 및 답변 수집
+for question in questions:
+    print(f"Q: {question.question_text}")
+    print(f"Options: {question.options}")
+    # user_answer = input("> ")
+```
+
+### 4. Traceability Matrix (추적성)
+
+```python
+from caas_framework.validation.traceability import (
+    TraceabilityManager,
+    TraceabilityReport
+)
+
+# Traceability Manager 초기화
 trace_manager = TraceabilityManager()
-trace_manager.build_from_workflow(...)
-report = trace_manager.generate_report()
+
+# 워크플로우로부터 추적성 구축
+trace_manager.build_from_workflow(
+    golden_data=golden_data,
+    agents=agents,
+    tasks=tasks,
+    code_files=code_files
+)
+
+# 추적성 리포트 생성
+report: TraceabilityReport = trace_manager.generate_report()
+print(f"Coverage: {report.coverage_percentage}%")
 ```
 
-### TDD
+### 5. TDD Workflow (테스트 주도 개발)
+
 ```python
-from caas_framework.testing import TestScenarioGenerator, TestFirstGenerator, TestExecutor
-scenario_gen = TestScenarioGenerator()
-test_gen = TestFirstGenerator()
-executor = TestExecutor()
+from caas_framework.testing import (
+    TestScenarioGenerator,
+    TestFirstGenerator,
+    TestExecutor,
+    TDDOrchestrator
+)
 
-scenarios = scenario_gen.generate_scenarios(...)
-test_code = test_gen.generate_test_code(...)
-test_result = executor.execute_pytest(...)
+# 1. Test Scenario 생성
+scenario_gen = TestScenarioGenerator(llm_plugin=llm)
+scenarios = await scenario_gen.generate_scenarios(
+    golden_data=golden_data,
+    agents=agents,
+    tasks=tasks
+)
+
+# 2. Test Code 생성
+test_gen = TestFirstGenerator(llm_plugin=llm)
+test_code = await test_gen.generate_test_code(
+    scenarios=scenarios,
+    framework="pytest"
+)
+
+# 3. Test 실행
+executor = TestExecutor()
+test_result = await executor.execute_tests(
+    test_code_path="./tests/test_generated.py"
+)
+
+print(f"Tests Passed: {test_result.passed}/{test_result.total}")
+print(f"Coverage: {test_result.coverage}%")
+
+# 또는 TDD Orchestrator로 통합 실행
+orchestrator = TDDOrchestrator(llm_plugin=llm)
+tdd_result = await orchestrator.run_tdd_cycle(
+    golden_data=golden_data,
+    agents=agents,
+    tasks=tasks
+)
 ```
 
 ---
 
-## 예제
+## 참고 자료
 
-- **통합 데모**: `tests/test_e2e_14_requirement_refinement_demo.py`
-- **CLI 워크플로우**: `docs/2_개발_방법론/전문가_방법론_가이드.md`의 실전 예제 참조
+### CAAS 핵심 파일
+
+**Refinement Module** (`caas_framework/refinement/`):
+- `gap_analyzer.py` (27.6 KB) - 요구사항 갭 분석
+- `expander.py` (15.3 KB) - 자동 요구사항 확장
+- `question_generator.py` (21.5 KB) - 대화형 질문 생성
+
+**Testing Module** (`caas_framework/testing/`):
+- `test_scenario.py` (7.5 KB) - BDD 테스트 시나리오 생성
+- `bdd_test_generator.py` (4.7 KB) - Pytest 코드 생성
+- `test_executor.py` (7.0 KB) - 테스트 실행 및 분석
+- `tdd_orchestrator.py` (15.4 KB) - TDD 워크플로우 통합
+
+**Validation Module** (`caas_framework/validation/`):
+- `traceability.py` - 추적성 매트릭스 관리
+
+**CLI Commands** (`caas_cli/commands/`):
+- `analyze_gaps.py` (7.9 KB)
+- `expand_requirement.py` (9.8 KB)
+- `interactive_questions.py` (11.9 KB)
+- `traceability.py`
+
+### CAAS 문서
+
+- [01_README_KO.md](01_README_KO.md) - 프로젝트 개요
+- [03_Quick_Start_Guide.md](03_Quick_Start_Guide.md) - 빠른 시작 가이드
+- [04_CLI_Usage_Guide.md](04_CLI_Usage_Guide.md) - CLI 사용 가이드 (29 commands)
+- [05_Expert_Methodology_Guide.md](05_Expert_Methodology_Guide.md) - CAAS 6-Phase 방법론 및 실전 예제
+- [06_Architecture_Guide.md](06_Architecture_Guide.md) - 아키텍처 가이드
+- [CLAUDE.md](../CLAUDE.md) - 프로젝트 컨텍스트
+
+### 외부 문서
+
+- [Pytest Documentation](https://docs.pytest.org/)
+- [BDD with Pytest](https://pytest-bdd.readthedocs.io/)
 
 ---
+
+**최종 업데이트**: 2026-02-06
+**CAAS 버전**: v0.4.1
+**문서 버전**: 1.1.0
+**상태**: Production Ready ✅
+
 **Made with ❤️ by bullpeng72**
