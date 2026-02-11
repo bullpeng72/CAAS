@@ -506,7 +506,7 @@ class VerbosityLevel(Enum):
 
 - [01_README_KO.md](01_README_KO.md) - 프로젝트 개요
 - [03_Quick_Start_Guide.md](03_Quick_Start_Guide.md) - 빠른 시작 가이드
-- [04_CLI_Usage_Guide.md](04_CLI_Usage_Guide.md) - CLI 사용 가이드 (29 commands)
+- [04_CLI_Usage_Guide.md](04_CLI_Usage_Guide.md) - CLI 사용 가이드 (28 commands, 65 subcommands)
 - [05_Expert_Methodology_Guide.md](05_Expert_Methodology_Guide.md) - CAAS 6-Phase 방법론
 - [06_Architecture_Guide.md](06_Architecture_Guide.md) - 아키텍처 가이드
 - [CLAUDE.md](../CLAUDE.md) - 프로젝트 컨텍스트

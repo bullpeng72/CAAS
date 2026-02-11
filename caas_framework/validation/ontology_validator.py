@@ -657,4 +657,422 @@ class OntologyValidator:
                         task["agent"] = new_agent_id
                         break
 
+    def validate_design_time(
+        self,
+        agents: List[Dict[str, Any]],
+        tasks: List[Dict[str, Any]],
+        golden_data: Optional[Any] = None,
+    ) -> ValidationResult:
+        """
+        ✅ v0.5.0: Design-Time validation before code generation.
+
+        Validates:
+        1. UI requirements mapping (critical for preventing empty input sections)
+        2. Template variable consistency
+        3. Tool compatibility with roles
+        4. Semantic consistency between agents and tasks
+
+        This runs AFTER Phase 3 (Design) and BEFORE Phase 4 (Delivery).
+
+        Args:
+            agents: List of agent specifications
+            tasks: List of task specifications
+            golden_data: Optional ConcretizedRequirement for context
+
+        Returns:
+            ValidationResult with design-time issues
+        """
+        issues: List[ValidationIssue] = []
+
+        # Check 1: UI requirements mapping (CRITICAL - prevents empty input sections)
+        issues.extend(self._validate_ui_requirements_mapping(tasks, golden_data))
+
+        # Check 2: Template variable consistency
+        issues.extend(self._validate_template_variables(tasks))
+
+        # Check 3: Tool-role compatibility (enhanced from existing)
+        issues.extend(self._validate_tool_role_compatibility(agents))
+
+        # Check 4: Semantic consistency (agent goals match task descriptions)
+        issues.extend(self._validate_semantic_consistency(agents, tasks))
+
+        # Check 5: Data flow consistency (task dependencies and output types)
+        issues.extend(self._validate_data_flow(tasks))
+
+        # Generate summary
+        summary = ValidationIssueFactory.create_validation_summary(issues)
+        is_valid = summary["is_valid"]
+
+        return ValidationResult(is_valid=is_valid, issues=issues, summary=summary)
+
+    def _validate_ui_requirements_mapping(
+        self,
+        tasks: List[Dict[str, Any]],
+        golden_data: Optional[Any] = None,
+    ) -> List[ValidationIssue]:
+        """
+        ✅ v0.5.0: Validate that UI requirements are properly mapped.
+
+        This is the KEY check that would have prevented the empty input section bug!
+
+        Checks:
+        - If tasks have template variables ({keyword}), inputs are expected
+        - If golden_data mentions input/검색/키워드, inputs should be captured
+        """
+        issues = []
+
+        # Extract template variables from all tasks
+        import re
+
+        template_vars = set()
+        for task in tasks:
+            description = _safe_get(task, "description", "")
+            matches = re.findall(r"\{(\w+)\}", description)
+            template_vars.update(matches)
+
+        # Check if template variables exist but golden_data doesn't mention inputs
+        if template_vars and golden_data:
+            # Check if golden_data mentions these inputs
+            golden_desc = str(golden_data)  # Convert to string for searching
+
+            for var_name in template_vars:
+                # Check if variable is mentioned in golden data
+                mentioned = (
+                    var_name.lower() in golden_desc.lower()
+                    or "입력" in golden_desc
+                    or "input" in golden_desc.lower()
+                )
+
+                if not mentioned:
+                    issues.append(
+                        ValidationIssue(
+                            severity=ValidationSeverity.WARNING,
+                            issue_type="ui_requirement",
+                            message=f"Template variable '{var_name}' used but not mentioned in requirements",
+                            suggested_fix=f"Add requirement describing '{var_name}' input or remove template variable",
+                            auto_fix_available=False,
+                        )
+                    )
+
+        # Check reverse: golden_data mentions input but no template variables
+        if golden_data and not template_vars:
+            golden_desc = str(golden_data).lower()
+
+            # Input-related keywords
+            input_keywords = [
+                "입력",
+                "검색",
+                "키워드",
+                "input",
+                "search",
+                "keyword",
+                "query",
+            ]
+
+            mentions_input = any(kw in golden_desc for kw in input_keywords)
+
+            if mentions_input:
+                issues.append(
+                    ValidationIssue(
+                        severity=ValidationSeverity.ERROR,
+                        issue_type="missing_ui_mapping",
+                        message="Requirements mention user input but no template variables found in tasks",
+                        suggested_fix="Add template variables like {keyword} to task descriptions",
+                        auto_fix_available=True,
+                        auto_fix_data={
+                            "action": "add_template_variable",
+                            "variable_name": "keyword",
+                            "task_id": _safe_get(tasks[0], "id") if tasks else None,
+                        },
+                    )
+                )
+
+        return issues
+
+    def _validate_template_variables(
+        self, tasks: List[Dict[str, Any]]
+    ) -> List[ValidationIssue]:
+        """
+        ✅ v0.5.0: Validate template variable consistency across tasks.
+
+        Checks:
+        - All template variables use consistent naming
+        - No undefined variables
+        """
+        issues = []
+
+        import re
+
+        all_template_vars = {}
+
+        for task in tasks:
+            task_id = _safe_get(task, "id", "unknown")
+            description = _safe_get(task, "description", "")
+
+            # Find all {variable} patterns
+            matches = re.findall(r"\{(\w+)\}", description)
+
+            for var_name in matches:
+                if var_name not in all_template_vars:
+                    all_template_vars[var_name] = []
+                all_template_vars[var_name].append(task_id)
+
+        # Check for inconsistent usage (different variable names for same concept)
+        keyword_variants = ["keyword", "query", "search", "search_term"]
+        used_keyword_variants = [v for v in keyword_variants if v in all_template_vars]
+
+        if len(used_keyword_variants) > 1:
+            issues.append(
+                ValidationIssue(
+                    severity=ValidationSeverity.WARNING,
+                    issue_type="inconsistent_variables",
+                    message=f"Multiple keyword variants used: {', '.join(used_keyword_variants)}",
+                    suggested_fix=f"Standardize to single variable name: '{used_keyword_variants[0]}'",
+                    auto_fix_available=True,
+                    auto_fix_data={
+                        "action": "standardize_variables",
+                        "variants": used_keyword_variants,
+                        "canonical": used_keyword_variants[0],
+                    },
+                )
+            )
+
+        return issues
+
+    def _validate_tool_role_compatibility(
+        self, agents: List[Dict[str, Any]]
+    ) -> List[ValidationIssue]:
+        """
+        ✅ v0.5.0: Enhanced tool-role compatibility check using ontology.
+
+        Checks if assigned tools are appropriate for agent roles.
+        """
+        issues = []
+
+        # Tool-role compatibility map from ontology
+        tool_role_map = {
+            "web_search": ["researcher", "analyst", "investigator"],
+            "file_read": ["analyst", "developer", "researcher"],
+            "file_write": ["developer", "writer", "reporter"],
+            "code_interpreter": ["developer", "analyst"],
+            "directory_read": ["developer", "analyst"],
+        }
+
+        for agent in agents:
+            agent_id = _safe_get(agent, "id", "unknown")
+            role = _safe_get(agent, "role", "").lower()
+            tools = _safe_get(agent, "tools", [])
+
+            for tool_name in tools:
+                compatible_roles = tool_role_map.get(tool_name, [])
+
+                if compatible_roles and role not in compatible_roles:
+                    # Check if role is similar to any compatible role
+                    similar_role = any(
+                        comp_role in role or role in comp_role
+                        for comp_role in compatible_roles
+                    )
+
+                    if not similar_role:
+                        issues.append(
+                            ValidationIssue(
+                                severity=ValidationSeverity.WARNING,
+                                issue_type="tool_role_mismatch",
+                                agent_id=agent_id,
+                                message=f"Tool '{tool_name}' may not be suitable for role '{role}'",
+                                suggested_fix=f"Consider roles: {', '.join(compatible_roles)}",
+                                auto_fix_available=False,
+                            )
+                        )
+
+        return issues
+
+    def _validate_semantic_consistency(
+        self,
+        agents: List[Dict[str, Any]],
+        tasks: List[Dict[str, Any]],
+    ) -> List[ValidationIssue]:
+        """
+        ✅ v0.5.0: Validate semantic consistency between agents and tasks.
+
+        Checks if agent goals semantically match assigned task descriptions.
+        Uses simple keyword overlap for now (can be enhanced with embeddings).
+        """
+        issues = []
+
+        for task in tasks:
+            task_id = _safe_get(task, "id", "unknown")
+            task_desc = _safe_get(task, "description", "").lower()
+            assigned_agent_id = _safe_get(task, "agent") or _safe_get(
+                task, "assigned_agent"
+            )
+
+            if not assigned_agent_id:
+                continue
+
+            # Find agent
+            agent = next(
+                (a for a in agents if _safe_get(a, "id") == assigned_agent_id), None
+            )
+
+            if not agent:
+                continue
+
+            agent_goal = _safe_get(agent, "goal", "").lower()
+
+            # Simple keyword overlap check
+            agent_keywords = set(agent_goal.split())
+            task_keywords = set(task_desc.split())
+
+            # Remove common words
+            stop_words = {
+                "the",
+                "a",
+                "an",
+                "and",
+                "or",
+                "but",
+                "in",
+                "on",
+                "at",
+                "to",
+                "for",
+                "of",
+                "with",
+                "by",
+                "는",
+                "을",
+                "를",
+                "이",
+                "가",
+                "의",
+            }
+            agent_keywords -= stop_words
+            task_keywords -= stop_words
+
+            overlap = len(agent_keywords & task_keywords)
+
+            # If overlap is very low, flag as potential mismatch
+            if overlap < 2 and len(agent_keywords) > 3:
+                issues.append(
+                    ValidationIssue(
+                        severity=ValidationSeverity.INFO,
+                        issue_type="semantic_mismatch",
+                        agent_id=assigned_agent_id,
+                        task_id=task_id,
+                        message=f"Agent '{assigned_agent_id}' goal may not match task '{task_id}' description (low keyword overlap)",
+                        suggested_fix="Review agent-task assignment for semantic consistency",
+                        auto_fix_available=False,
+                    )
+                )
+
+        return issues
+
+    def _validate_data_flow(
+        self, tasks: List[Dict[str, Any]]
+    ) -> List[ValidationIssue]:
+        """
+        ✅ v0.5.0: Validate data flow consistency between tasks.
+
+        Checks:
+        - Task dependencies are properly defined
+        - Output types match expected input types in dependent tasks
+        - No circular dependencies
+        - Template variables flow correctly through task chain
+        """
+        issues = []
+
+        # Build dependency graph
+        task_map = {_safe_get(t, "id", f"task_{i}"): t for i, t in enumerate(tasks)}
+        dependencies = {}
+
+        for task in tasks:
+            task_id = _safe_get(task, "id", "unknown")
+            context_deps = _safe_get(task, "context", [])
+
+            # Extract dependencies from context
+            if context_deps:
+                dependencies[task_id] = context_deps if isinstance(context_deps, list) else [context_deps]
+
+        # Check 1: Validate all dependencies exist
+        for task_id, deps in dependencies.items():
+            for dep_id in deps:
+                if dep_id not in task_map:
+                    issues.append(
+                        ValidationIssue(
+                            severity=ValidationSeverity.ERROR,
+                            issue_type="missing_dependency",
+                            task_id=task_id,
+                            message=f"Task '{task_id}' depends on non-existent task '{dep_id}'",
+                            suggested_fix=f"Remove dependency or create task '{dep_id}'",
+                            auto_fix_available=False,
+                        )
+                    )
+
+        # Check 2: Detect circular dependencies
+        def has_cycle(task_id: str, visited: set, rec_stack: set) -> bool:
+            visited.add(task_id)
+            rec_stack.add(task_id)
+
+            for dep in dependencies.get(task_id, []):
+                if dep not in visited:
+                    if has_cycle(dep, visited, rec_stack):
+                        return True
+                elif dep in rec_stack:
+                    return True
+
+            rec_stack.remove(task_id)
+            return False
+
+        visited = set()
+        for task_id in task_map.keys():
+            if task_id not in visited:
+                rec_stack = set()
+                if has_cycle(task_id, visited, rec_stack):
+                    issues.append(
+                        ValidationIssue(
+                            severity=ValidationSeverity.ERROR,
+                            issue_type="circular_dependency",
+                            task_id=task_id,
+                            message=f"Circular dependency detected involving task '{task_id}'",
+                            suggested_fix="Remove circular dependencies to create a valid task flow",
+                            auto_fix_available=False,
+                        )
+                    )
+                    break  # Only report once
+
+        # Check 3: Validate template variable flow
+        import re
+
+        for task in tasks:
+            task_id = _safe_get(task, "id", "unknown")
+            description = _safe_get(task, "description", "")
+            deps = dependencies.get(task_id, [])
+
+            # Find template variables in description
+            template_vars = set(re.findall(r"\{(\w+)\}", description))
+
+            if template_vars and deps:
+                # Check if dependent tasks provide these variables in their output
+                for dep_id in deps:
+                    dep_task = task_map.get(dep_id)
+                    if dep_task:
+                        dep_output = _safe_get(dep_task, "expected_output", "").lower()
+
+                        # Check if output mentions the required variables
+                        for var in template_vars:
+                            if var.lower() not in dep_output:
+                                issues.append(
+                                    ValidationIssue(
+                                        severity=ValidationSeverity.WARNING,
+                                        issue_type="data_flow_mismatch",
+                                        task_id=task_id,
+                                        message=f"Task '{task_id}' requires '{var}' but dependency '{dep_id}' may not provide it",
+                                        suggested_fix=f"Ensure task '{dep_id}' output includes '{var}' or remove dependency",
+                                        auto_fix_available=False,
+                                    )
+                                )
+
+        return issues
+
         return agents, tasks

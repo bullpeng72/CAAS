@@ -25,6 +25,7 @@ from caas_framework.methodology.traceability import TraceabilityMatrix
 from caas_framework.codegen.engine import CodeGenerationEngine
 from caas_framework.config.settings import LLMConstants
 from caas_framework.events import Event, PhaseEvent, get_global_event_bus
+from caas_framework.models.artifact_constants import get_default_artifact_types
 from caas_framework.fixing.auto_fixer import AutoFixer
 from caas_framework.models.specifications import (
     AgentSpecModel,
@@ -198,22 +199,21 @@ class SixPhaseEngine:
                 from caas_framework.models import ArtifactGenerationConfig
 
                 # Create ArtifactGenerationConfig from artifact_config
+                # ✅ v0.5.0: Dict-based configuration (clean, extensible)
+                enabled_types = getattr(artifact_config, "types", {})
+
+                # Default types if not provided
+                # ✅ Single Source: artifact_constants.py에서 import
+                if not enabled_types:
+                    enabled_types = get_default_artifact_types()
+
                 gen_config = ArtifactGenerationConfig(
                     enabled=True,
                     output_directory=getattr(
                         artifact_config, "output_dir", "./artifacts"
                     ),
                     output_format=getattr(artifact_config, "output_format", "markdown"),
-                    generate_project_proposal=True,
-                    generate_requirements_spec=True,
-                    generate_architecture_design=True,
-                    generate_data_design=True,
-                    generate_agent_design=True,
-                    generate_api_design=False,
-                    generate_test_plan=False,
-                    generate_test_report=False,
-                    generate_code_review=False,
-                    generate_deployment_guide=False,
+                    enabled_types=enabled_types,  # ✅ v0.5.0: Use Dict directly
                 )
 
                 self.artifact_generator = ArtifactGenerator(config=gen_config)
@@ -236,6 +236,8 @@ class SixPhaseEngine:
         bootstrap_project: bool = False,
         project_name: Optional[str] = None,
         bootstrap_dir: Optional[Path] = None,
+        enable_frontend: Optional[bool] = None,  # ✅ FIX #1: Add frontend override
+        frontend_framework: Optional[str] = None,  # ✅ FIX #1: Add framework choice
     ) -> MethodologyResult:
         """
         Run complete CAAS 6-Phase pipeline.
@@ -252,6 +254,8 @@ class SixPhaseEngine:
             bootstrap_project: Whether to bootstrap a complete project directory (default: False)
             project_name: Name for the bootstrapped project (required if bootstrap_project=True)
             bootstrap_dir: Directory to create project in (default: current directory)
+            enable_frontend: Override auto-detection and force frontend generation (default: None = auto-detect)
+            frontend_framework: Force specific frontend framework - "streamlit" or "react" (default: None = auto-detect)
 
         Returns:
             MethodologyResult with all artifacts and optional bootstrap result
@@ -281,6 +285,10 @@ class SixPhaseEngine:
         """
         start_time = datetime.now()
         result = MethodologyResult()
+
+        # ✅ FIX #1: Store frontend configuration for use in code generation
+        self._enable_frontend_override = enable_frontend
+        self._frontend_framework_override = frontend_framework
 
         # Initialize traceability matrix (Phase 2 enhancement)
         traceability = TraceabilityMatrix() if enable_traceability else None
@@ -340,6 +348,16 @@ class SixPhaseEngine:
                     f"📊 Registered {len(result.golden_data.features)} features for traceability"
                 )
 
+            # ✅ AUTO-DETECTION: If no explicit frontend override, auto-detect from Golden Data
+            if self._enable_frontend_override is None and result.golden_data:
+                detected_frontend, detected_framework = self._detect_ui_requirements(result.golden_data)
+                if detected_frontend:
+                    self._enable_frontend_override = detected_frontend
+                    self._frontend_framework_override = detected_framework
+                    self.reporter.info(
+                        f"🎨 UI 요구사항 자동 감지: {detected_framework.value if detected_framework else 'streamlit'}"
+                    )
+
             # Use Expert Agent Collaboration if enabled
             if self.use_expert_agents:
                 self.reporter.info("🤖 Using Expert Agent Collaboration")
@@ -357,6 +375,8 @@ class SixPhaseEngine:
                     max_workers=self.max_workers,  # Pass max workers for parallel execution
                     enable_critic_pattern=self.enable_critic_pattern,  # Enable Producer-Critic peer review
                     strict_quality_gates=self.strict_quality_gates,  # Strict Quality Gate mode
+                    enable_frontend=self._enable_frontend_override,  # ✅ FIX #1: Pass frontend override (now with auto-detection)
+                    frontend_framework=self._frontend_framework_override,  # ✅ FIX #1: Pass framework choice (now with auto-detection)
                 )
 
                 # Run collaboration
@@ -974,6 +994,31 @@ JSON으로 반환하세요 (모든 텍스트 필드는 한국어로)."""
         agents = [AgentSpecModel(**a) for a in spec_data.get("agents", [])]
         tasks = [TaskSpecModel(**t) for t in spec_data.get("tasks", [])]
 
+        # ✅ P1-1: Auto-detect UI requirements from Golden Data
+        enable_frontend, frontend_framework = self._detect_ui_requirements(golden_data)
+
+        if enable_frontend:
+            self.reporter.info(
+                f"🎨 UI 생성 자동 감지: {frontend_framework.value if frontend_framework else 'streamlit'}"
+            )
+
+        # ✅ P1-2: Auto-detect language from Golden Data
+        detected_language = self._detect_language(golden_data)
+        if detected_language == 'ko':
+            self.reporter.info("🌐 한국어 출력 모드 감지")
+
+        # ✅ P1-2: Inject language into Golden Data if not present
+        if hasattr(golden_data, 'code_style') and golden_data.code_style:
+            if isinstance(golden_data.code_style, dict):
+                if 'language' not in golden_data.code_style:
+                    golden_data.code_style['language'] = detected_language
+            elif not hasattr(golden_data.code_style, 'language'):
+                # If code_style is a Pydantic model, update it
+                golden_data.code_style.language = detected_language
+        else:
+            # If code_style doesn't exist, create it
+            golden_data.code_style = {'language': detected_language}
+
         # Initialize code generation engine
         code_gen_engine = CodeGenerationEngine(
             llm_plugin=self.llm,
@@ -982,6 +1027,8 @@ JSON으로 반환하세요 (모든 텍스트 필드는 한국어로)."""
             enable_tests=True,
             enable_deployment=True,
             enable_llm_generation=True,
+            enable_frontend=enable_frontend,  # ✅ P0-2: Enable frontend generation
+            frontend_framework=frontend_framework if frontend_framework else None,
         )
 
         # Generate production-ready code
@@ -1433,6 +1480,120 @@ JSON으로 반환하세요 (모든 텍스트 필드는 한국어로)."""
             else:
                 result.append({})
         return result
+
+    def _detect_ui_requirements(
+        self, golden_data: ConcretizedRequirement
+    ) -> tuple[bool, Optional[Any]]:
+        """
+        ✅ P1-1: Auto-detect UI requirements from Golden Data
+
+        Detects if UI generation is needed based on:
+        1. ui_components field in Golden Data
+        2. "streamlit" or "react" in commands.run
+        3. Features containing UI-related keywords
+
+        Returns:
+            (enable_frontend, frontend_framework)
+        """
+        from caas_framework.codegen.frontend_generator import FrontendFramework
+
+        enable_frontend = False
+        frontend_framework = None
+
+        # Check 1: ui_components field
+        if hasattr(golden_data, 'ui_components') and golden_data.ui_components:
+            if len(golden_data.ui_components) > 0:
+                enable_frontend = True
+                self.reporter.debug(
+                    f"UI 감지: ui_components 필드 ({len(golden_data.ui_components)}개 컴포넌트)"
+                )
+
+        # Check 2: commands.run field
+        if hasattr(golden_data, 'commands') and golden_data.commands:
+            run_cmd = golden_data.commands.get('run', '') if isinstance(golden_data.commands, dict) else ''
+            if 'streamlit' in run_cmd.lower():
+                enable_frontend = True
+                frontend_framework = FrontendFramework.STREAMLIT
+                self.reporter.debug("UI 감지: commands.run에서 'streamlit' 발견")
+            elif 'react' in run_cmd.lower() or 'npm' in run_cmd.lower():
+                enable_frontend = True
+                frontend_framework = FrontendFramework.REACT
+                self.reporter.debug("UI 감지: commands.run에서 'react' 발견")
+
+        # Check 3: Features with UI keywords
+        if hasattr(golden_data, 'features') and golden_data.features:
+            ui_keywords = ['ui', 'streamlit', 'react', 'frontend', 'interface', 'dashboard', 'form', 'button']
+            for feature in golden_data.features:
+                feature_name = feature.name.lower() if hasattr(feature, 'name') else str(feature).lower()
+                feature_desc = feature.description.lower() if hasattr(feature, 'description') else ''
+
+                if any(keyword in feature_name or keyword in feature_desc for keyword in ui_keywords):
+                    enable_frontend = True
+                    if 'streamlit' in feature_name or 'streamlit' in feature_desc:
+                        frontend_framework = FrontendFramework.STREAMLIT
+                    elif 'react' in feature_name or 'react' in feature_desc:
+                        frontend_framework = FrontendFramework.REACT
+                    self.reporter.debug(f"UI 감지: feature '{feature.name}'에서 UI 키워드 발견")
+                    break
+
+        # Default to Streamlit if UI detected but framework not specified
+        if enable_frontend and frontend_framework is None:
+            frontend_framework = FrontendFramework.STREAMLIT
+
+        return enable_frontend, frontend_framework
+
+    def _detect_language(self, golden_data: ConcretizedRequirement) -> str:
+        """
+        ✅ P1-2: Auto-detect output language from Golden Data
+
+        Detects language based on:
+        1. code_style.language field
+        2. Korean characters in features/description
+        3. Explicit language requirements (e.g., "in Korean", "한국어로")
+
+        Returns:
+            Language code ('ko', 'en', etc.)
+        """
+        # Check 1: Explicit language in code_style
+        if hasattr(golden_data, 'code_style') and golden_data.code_style:
+            if isinstance(golden_data.code_style, dict):
+                lang = golden_data.code_style.get('language', '')
+                if lang:
+                    self.reporter.debug(f"언어 감지: code_style.language = {lang}")
+                    return lang
+            elif hasattr(golden_data.code_style, 'language'):
+                lang = golden_data.code_style.language
+                if lang:
+                    self.reporter.debug(f"언어 감지: code_style.language = {lang}")
+                    return lang
+
+        # Check 2: Korean characters in features
+        if hasattr(golden_data, 'features') and golden_data.features:
+            for feature in golden_data.features:
+                feature_name = feature.name if hasattr(feature, 'name') else str(feature)
+                feature_desc = feature.description if hasattr(feature, 'description') else ''
+
+                # Check for Korean characters (Hangul Unicode range: 0xAC00-0xD7A3)
+                if any('\uac00' <= char <= '\ud7a3' for char in feature_name + feature_desc):
+                    self.reporter.debug("언어 감지: 한글 문자 발견")
+                    return 'ko'
+
+        # Check 3: Korean language keywords in description
+        if hasattr(golden_data, 'description') and golden_data.description:
+            korean_keywords = ['한국어', '한글', 'in korean', 'korean language']
+            if any(keyword in golden_data.description.lower() for keyword in korean_keywords):
+                self.reporter.debug("언어 감지: 한국어 키워드 발견")
+                return 'ko'
+
+        # Check 4: Korean characters in purpose/objective
+        if hasattr(golden_data, 'purpose') and golden_data.purpose:
+            if any('\uac00' <= char <= '\ud7a3' for char in golden_data.purpose):
+                self.reporter.debug("언어 감지: purpose에서 한글 발견")
+                return 'ko'
+
+        # Default to English
+        self.reporter.debug("언어 감지: 기본값 'en' 사용")
+        return 'en'
 
     async def _bootstrap_project(
         self,

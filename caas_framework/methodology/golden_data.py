@@ -22,6 +22,7 @@ from caas_framework.models.specifications import (
 )
 from caas_framework.plugins.llm.base import LLMPlugin
 from caas_framework.utils.logger import get_logger
+from caas_framework.utils.text_processing import JsonExtractor
 
 
 class RequirementConcretizer:
@@ -77,37 +78,27 @@ class RequirementConcretizer:
         self.logger.debug(f"LLM response text (first 500 chars): {result_text[:500]}")
 
         # Extract JSON from response (improved parsing logic)
-        result_data = None
+        # ✅ Use consolidated JsonExtractor (P1-30)
+        fallback_data = {
+            "domain": domain or "GENERAL",
+            "project_name": "Generated Project",
+            "description": requirement[:200],
+            "features": [],
+        }
+        result_data = JsonExtractor.safe_parse(
+            result_text,
+            default=fallback_data,
+            extract_markdown=True,
+            return_type=dict,
+        )
 
-        # Strategy 1: Check for markdown code blocks first (most common)
-        json_match = re.search(r"```json\s*(.*?)\s*```", result_text, re.DOTALL)
-        if json_match:
-            try:
-                result_data = json.loads(json_match.group(1))
-                self.logger.debug("Successfully parsed JSON from markdown code block")
-            except json.JSONDecodeError as e:
-                self.logger.debug(f"Markdown JSON parse failed: {e}")
-
-        # Strategy 2: Try direct JSON parse with stripped whitespace
-        if result_data is None:
-            try:
-                result_data = json.loads(result_text.strip())
-                self.logger.debug("Successfully parsed JSON directly (after strip)")
-            except json.JSONDecodeError as e:
-                self.logger.debug(f"Direct JSON parse failed: {e}")
-
-        # Strategy 3: Fallback to minimal structure
-        if result_data is None:
-            self.logger.error(
-                f"Failed to parse LLM response with all strategies. "
+        if result_data == fallback_data:
+            self.logger.warning(
+                f"Failed to parse LLM response, using fallback structure. "
                 f"Response (first 1000 chars): {result_text[:1000]}"
             )
-            result_data = {
-                "domain": domain or "GENERAL",
-                "project_name": "Generated Project",
-                "description": requirement[:200],
-                "features": [],
-            }
+        else:
+            self.logger.debug("Successfully parsed Golden Data from LLM response")
 
         # Convert to ConcretizedRequirement
         golden_data = self._parse_golden_data(result_data, requirement, domain)

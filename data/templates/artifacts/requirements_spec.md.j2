@@ -33,31 +33,65 @@
 {% if golden_data %}
 
 ### 3.1 프로젝트 목표
-{{ golden_data.objective or "목표 정의 중" }}
+{% if golden_data.purpose %}
+{{ golden_data.purpose }}
+{% elif golden_data.objective %}
+{{ golden_data.objective }}
+{% elif golden_data.description %}
+{{ golden_data.description }}
+{% else %}
+{{ golden_data.project_name or "프로젝트" }}는 다음과 같은 목표를 가지고 있습니다:
+{% if golden_data.features and golden_data.features|length > 0 %}
+{% for feature in golden_data.features[:3] %}
+- {{ feature.description if feature.description else feature.name }}
+{% endfor %}
+{% else %}
+사용자 요구사항을 만족하는 시스템 구축
+{% endif %}
+{% endif %}
 
 {% if golden_data.domain %}
 ### 3.2 도메인 분류
 - **도메인**: {{ golden_data.domain }}
-- **도메인 타입**: {{ golden_data.domain_type or "N/A" }}
+{% if golden_data.workflow_type %}
+- **워크플로우 타입**: {{ golden_data.workflow_type }}
+{% endif %}
+{% if golden_data.system_type %}
+- **시스템 타입**: {{ golden_data.system_type }}
+{% endif %}
 {% endif %}
 
 ### 3.3 핵심 엔티티
-{% if golden_data.entities %}
+{% if golden_data.data_models and golden_data.data_models|length > 0 %}
+{% for entity in golden_data.data_models %}
+- **{{ entity.entity_name }}**: {{ entity.description if entity.description else "데이터 엔티티" }}
+  {% if entity.attributes and entity.attributes|length > 0 %}
+  - 주요 속성: {% for attr in entity.attributes[:5] %}{{ attr.name }}{% if not loop.last %}, {% endif %}{% endfor %}
+  {% endif %}
+{% endfor %}
+{% elif golden_data.entities %}
 {% for entity in golden_data.entities %}
 - **{{ entity.name }}**: {{ entity.description }}
 {% endfor %}
 {% else %}
-엔티티 정의 필요
+{% if golden_data.features and golden_data.features|length > 0 %}
+시스템의 핵심 엔티티는 기능 요구사항을 통해 식별됩니다:
+{% for feature in golden_data.features[:5] %}
+- **{{ feature.name.split()[0] }}**: {{ feature.description[:100] }}...
+{% endfor %}
+{% else %}
+핵심 엔티티는 요구사항 분석을 통해 도출됩니다.
+{% endif %}
 {% endif %}
 
 ---
 
 ## 4. 기능 요구사항 (Functional Requirements)
 
-{% if golden_data.functional_requirements %}
+{% if golden_data.functional_requirements and golden_data.functional_requirements|length > 0 %}
 {% for req in golden_data.functional_requirements %}
 
-### FR-{{ loop.index }}: {{ req.title or req.category or "기능" }}
+### FR-{{ loop.index }}: {{ req.title or req.category or req.description[:50] }}
 
 **ID**: FR-{{ "%03d" | format(loop.index) }}
 
@@ -66,30 +100,73 @@
 **우선순위**: {{ req.priority or "중" }}
 
 **수용 기준** (Acceptance Criteria):
-{% if req.acceptance_criteria %}
+{% if req.acceptance_criteria and req.acceptance_criteria|length > 0 %}
 {% for criteria in req.acceptance_criteria %}
 - {{ criteria }}
 {% endfor %}
 {% else %}
 - 기능이 정상적으로 동작해야 함
 - 에러 없이 완료되어야 함
+- 사용자 피드백이 적절히 제공되어야 함
 {% endif %}
 
-**관련 에이전트**: {{ req.related_agents | join(", ") if req.related_agents else "TBD" }}
+**관련 에이전트**: {{ req.related_agents | join(", ") if req.related_agents else "설계 단계에서 할당 예정" }}
+
+---
+
+{% endfor %}
+{% elif golden_data.features and golden_data.features|length > 0 %}
+{% for feature in golden_data.features %}
+
+### FR-{{ loop.index }}: {{ feature.name }}
+
+**ID**: FR-{{ "%03d" | format(loop.index) }}
+
+**설명**: {{ feature.description }}
+
+**우선순위**: {{ feature.priority or "중" }}
+
+**수용 기준** (Acceptance Criteria):
+{% if feature.acceptance_criteria and feature.acceptance_criteria|length > 0 %}
+{% for criteria in feature.acceptance_criteria %}
+- {{ criteria }}
+{% endfor %}
+{% else %}
+- {{ feature.name }} 기능이 정상적으로 동작해야 함
+- 사용자 입력에 대한 적절한 검증이 이루어져야 함
+- 오류 발생 시 명확한 피드백을 제공해야 함
+{% if "UI" in feature.name or "ui" in feature.name.lower() %}
+- 사용자 인터페이스가 직관적이고 사용하기 쉬워야 함
+{% endif %}
+{% if "한국어" in feature.description or "Korean" in feature.description %}
+- 모든 출력이 한국어로 제공되어야 함
+{% endif %}
+{% endif %}
+
+**기능 범위**:
+{% if feature.functional_requirements and feature.functional_requirements|length > 0 %}
+{% for func_req in feature.functional_requirements %}
+- {{ func_req }}
+{% endfor %}
+{% else %}
+- 기본 기능 구현
+- 에러 처리 및 로깅
+{% endif %}
 
 ---
 
 {% endfor %}
 {% else %}
 
-### FR-001: 기본 기능
+### FR-001: 시스템 핵심 기능
 
-**설명**: 요구사항에서 도출된 기본 기능
+**설명**: 사용자 요구사항을 충족하는 핵심 기능
 
 **우선순위**: 높음
 
 **수용 기준**:
-- 사용자 요구사항을 충족해야 함
+- 사용자 요구사항이 명확히 충족되어야 함
+- 시스템이 안정적으로 동작해야 함
 
 ---
 
@@ -156,7 +233,7 @@
 
 ## 6. 사용자 스토리
 
-{% if golden_data.user_stories %}
+{% if golden_data.user_stories and golden_data.user_stories|length > 0 %}
 {% for story in golden_data.user_stories %}
 
 ### US-{{ loop.index }}: {{ story.title }}
@@ -166,7 +243,7 @@
 **So that** {{ story.so_that or "목적을 달성할 수 있다" }}.
 
 **수용 기준**:
-{% if story.acceptance_criteria %}
+{% if story.acceptance_criteria and story.acceptance_criteria|length > 0 %}
 {% for criteria in story.acceptance_criteria %}
 - [ ] {{ criteria }}
 {% endfor %}
@@ -177,16 +254,41 @@
 ---
 
 {% endfor %}
-{% else %}
+{% elif golden_data.features and golden_data.features|length > 0 %}
+{% for feature in golden_data.features[:10] %}
 
-### US-001: 기본 사용자 스토리
+### US-{{ loop.index }}: {{ feature.name }}
 
-**As a** 사용자,
-**I want** 시스템을 사용하고 싶다,
-**So that** 업무를 효율적으로 처리할 수 있다.
+**As a** {{ feature.user_role or "시스템 사용자" }},
+**I want** {{ feature.description or feature.name }}을 사용하고 싶다,
+**So that** {% if "검색" in feature.name or "search" in feature.name.lower() %}필요한 정보를 빠르게 찾을 수 있다{% elif "입력" in feature.name or "input" in feature.name.lower() %}데이터를 쉽게 입력할 수 있다{% elif "보고서" in feature.name or "report" in feature.name.lower() %}결과를 명확히 확인할 수 있다{% elif "UI" in feature.name or "interface" in feature.name.lower() %}시스템을 편리하게 사용할 수 있다{% else %}업무를 효율적으로 처리할 수 있다{% endif %}.
 
 **수용 기준**:
-- [ ] 요구사항이 충족되어야 함
+{% if feature.acceptance_criteria and feature.acceptance_criteria|length > 0 %}
+{% for criteria in feature.acceptance_criteria %}
+- [ ] {{ criteria }}
+{% endfor %}
+{% else %}
+- [ ] {{ feature.name }} 기능이 정상적으로 동작해야 함
+- [ ] 사용자가 결과를 명확하게 확인할 수 있어야 함
+- [ ] 오류 발생 시 적절한 안내가 제공되어야 함
+{% endif %}
+
+---
+
+{% endfor %}
+{% else %}
+
+### US-001: 시스템 기본 사용
+
+**As a** 시스템 사용자,
+**I want** 시스템의 핵심 기능을 사용하고 싶다,
+**So that** 업무 목표를 달성할 수 있다.
+
+**수용 기준**:
+- [ ] 시스템이 정상적으로 동작해야 함
+- [ ] 사용자 입력이 올바르게 처리되어야 함
+- [ ] 결과가 기대한 형식으로 출력되어야 함
 
 ---
 

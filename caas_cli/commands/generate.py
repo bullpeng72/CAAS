@@ -132,6 +132,18 @@ for env_path in env_paths:
     default=True,
     help="Enable multi-layer quality validation (default: enabled). Use --no-validation to disable all validation.",
 )
+@click.option(
+    "--enable-frontend",
+    is_flag=True,
+    default=False,
+    help="✅ P2-1: Explicitly enable frontend UI generation (Streamlit/React). Auto-detected by default from Golden Data.",
+)
+@click.option(
+    "--frontend-framework",
+    type=click.Choice(["streamlit", "react"]),
+    default="streamlit",
+    help="Frontend framework to use when --enable-frontend is set (default: streamlit)",
+)
 @handle_keyboard_interrupt
 def generate(
     requirement,
@@ -151,6 +163,8 @@ def generate(
     workers,
     critic_pattern,
     enable_validation,
+    enable_frontend,
+    frontend_framework,
 ):
     """
     \b
@@ -366,6 +380,11 @@ def generate(
     if distributed:
         workers_str = f"{workers} workers" if workers else "auto workers"
         echo_info(f"Distributed Execution: Enabled ({workers_str}) - 30-50% speedup")
+    # ✅ P2-1: Show frontend configuration
+    if enable_frontend:
+        echo_info(f"Frontend UI: Enabled ({frontend_framework})")
+    else:
+        echo_info("Frontend UI: Auto-detect from Golden Data")
     click.echo()
 
     try:
@@ -424,6 +443,8 @@ def generate(
                     progress_reporter=progress_tracker,
                     enable_critic_pattern=critic_pattern,
                     strict_quality_gates=False,  # ⚠️ Temporarily disabled (2026-02-06) - Quality Gate too strict
+                    enable_frontend=enable_frontend if enable_frontend else None,  # ✅ P2-1: Frontend override
+                    frontend_framework=frontend_framework if enable_frontend else None,  # ✅ P2-1: Framework choice
                 )
 
             generation_time = time.time() - start_time
@@ -819,6 +840,73 @@ def generate(
                     click.echo(f"  ✓ {artifact}")
             else:
                 echo_warning("No CAAS phase artifacts were generated")
+
+            # ✅ v0.5.0: Generate documentation artifacts (API spec, etc.)
+            try:
+                from caas_framework.artifacts.generator import ArtifactGenerator
+                from caas_framework.config import get_config
+                from caas_framework.models.artifact_types import ArtifactGenerationConfig
+
+                # ✅ v0.5.0: Use new unified config API (supports individual artifact type env vars)
+                config = get_config(force_reload=True)
+                artifact_settings = config.artifacts
+
+                # Convert ArtifactConfig to ArtifactGenerationConfig
+                artifact_config = ArtifactGenerationConfig(
+                    enabled=artifact_settings.enabled,
+                    enabled_types=artifact_settings.types,  # ✅ This reads from .env via unified.py
+                    output_directory=str(artifact_settings.output_dir),
+                    output_format=artifact_settings.output_format,
+                )
+
+                if artifact_config.enabled:
+                    echo_progress("Generating documentation artifacts...")
+
+                    # Prepare bmad_data for artifact generation
+                    bmad_data = {
+                        "requirement": result.requirement,
+                        "golden_data": result.golden_data.__dict__ if result.golden_data else {},
+                        "requirement_analysis": result.requirement_analysis,
+                        "architecture": result.architecture,
+                        "agents": [agent.__dict__ if hasattr(agent, '__dict__') else agent for agent in result.agents] if result.agents else [],
+                        "tasks": [task.__dict__ if hasattr(task, '__dict__') else task for task in result.tasks] if result.tasks else [],
+                        "code": result.generated_code or {},
+                    }
+
+                    generator = ArtifactGenerator(config=artifact_config)
+                    doc_artifacts = generator.generate_all(bmad_data)
+
+                    if doc_artifacts:
+                        # Create artifacts directory
+                        artifacts_dir = output_path / "artifacts"
+                        artifacts_dir.mkdir(exist_ok=True)
+
+                        # Save each artifact
+                        doc_artifacts_saved = []
+                        for artifact in doc_artifacts:
+                            artifact_file = artifacts_dir / f"{artifact.metadata.artifact_type.value}.md"
+                            try:
+                                with open(artifact_file, "w", encoding="utf-8") as f:
+                                    f.write(artifact.content)
+                                doc_artifacts_saved.append(f"{artifact.metadata.title} ({artifact.metadata.artifact_type.value}.md)")
+                            except Exception as e:
+                                echo_warning(f"Failed to save artifact {artifact.metadata.artifact_type.value}: {e}")
+
+                        if doc_artifacts_saved:
+                            echo_success(f"Generated {len(doc_artifacts_saved)} documentation artifacts:")
+                            for doc_artifact in doc_artifacts_saved:
+                                click.echo(f"  ✓ {doc_artifact}")
+                        else:
+                            echo_warning("No documentation artifacts were saved")
+                    else:
+                        echo_info("No documentation artifacts were generated (all types may be disabled)")
+                else:
+                    echo_info("Documentation artifact generation is disabled (set ARTIFACT_GENERATION_ENABLED=true in .env to enable)")
+
+            except ImportError as e:
+                echo_warning(f"Could not import ArtifactGenerator: {e}")
+            except Exception as e:
+                echo_warning(f"Error generating documentation artifacts: {e}")
 
             # Save spec YAML if available
             if result.spec_yaml and not result.generated_code:

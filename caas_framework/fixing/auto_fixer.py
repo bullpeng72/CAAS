@@ -18,6 +18,7 @@ from caas_framework.models.specifications import (
     TaskSpecModel,
 )
 from caas_framework.models.validation import GoldenValidationReport
+from caas_framework.utils.text_processing import JsonExtractor
 
 
 def _to_dict(item: Union[Dict, BaseModel]) -> Dict:
@@ -387,25 +388,15 @@ Return ONLY valid JSON, no additional text."""
                 # Parse response
                 import json
 
-                response_text = (
-                    response.get("content", "")
-                    if isinstance(response, dict)
-                    else str(response)
+                # ✅ Use consolidated JsonExtractor (P1-30)
+                llm_output = JsonExtractor.safe_parse(
+                    response,
+                    default={},
+                    extract_markdown=True,
+                    return_type=dict,
                 )
-
-                try:
-                    llm_output = json.loads(response_text)
-                except json.JSONDecodeError:
-                    # Try to extract JSON from markdown
-                    import re
-
-                    json_match = re.search(
-                        r"```json\s*(.*?)\s*```", response_text, re.DOTALL
-                    )
-                    if json_match:
-                        llm_output = json.loads(json_match.group(1))
-                    else:
-                        raise ValueError("Could not parse LLM response as JSON")
+                if not llm_output or not isinstance(llm_output, dict):
+                    raise ValueError("Could not parse LLM response as JSON")
 
                 # Apply LLM suggestions
                 new_agents = llm_output.get("new_agents", [])

@@ -245,6 +245,8 @@ class CrewAIFramework:
         progress_reporter: Optional[Any] = None,
         enable_critic_pattern: bool = False,
         strict_quality_gates: bool = True,
+        enable_frontend: Optional[bool] = None,  # ✅ P2-1: Optional frontend override
+        frontend_framework: Optional[str] = None,  # ✅ P2-1: Optional framework override
     ) -> MethodologyResult:
         """
         Generate complete project from natural language requirement
@@ -263,6 +265,8 @@ class CrewAIFramework:
             distributed: Enable distributed parallel execution (default: False)
             max_workers: Maximum number of workers for distributed execution (default: CPU count)
             progress_reporter: Custom progress reporter (optional, uses default if None)
+            enable_frontend: Override auto-detection and force frontend generation (default: None = auto-detect)
+            frontend_framework: Force specific frontend framework - "streamlit" or "react" (default: None = auto-detect)
 
         Returns:
             MethodologyResult with all artifacts
@@ -282,6 +286,33 @@ class CrewAIFramework:
         golden_req = None
         if golden_data:
             if isinstance(golden_data, dict):
+                # ✅ P2-1: Inject frontend override into golden_data if specified
+                if enable_frontend is not None and enable_frontend:
+                    if 'commands' not in golden_data:
+                        golden_data['commands'] = {}
+
+                    # Add streamlit/react to commands.run to trigger auto-detection
+                    framework_cmd = frontend_framework if frontend_framework else 'streamlit'
+                    golden_data['commands']['run'] = f"{framework_cmd} run main.py"
+
+                    # Also add a UI feature if not present
+                    if 'features' not in golden_data or not golden_data['features']:
+                        golden_data['features'] = []
+
+                    # Check if UI feature already exists
+                    has_ui_feature = any(
+                        'ui' in str(f).lower() or 'streamlit' in str(f).lower()
+                        for f in golden_data.get('features', [])
+                    )
+
+                    if not has_ui_feature:
+                        golden_data['features'].append({
+                            'id': 'cli_ui_override',
+                            'name': f'{framework_cmd.capitalize()} UI',
+                            'description': f'User interface using {framework_cmd} (CLI override)',
+                            'priority': 'high'
+                        })
+
                 golden_req = ConcretizedRequirement(**golden_data)
             else:
                 golden_req = golden_data
@@ -338,6 +369,8 @@ class CrewAIFramework:
             enable_traceability=enable_traceability,
             enable_completeness_validation=enable_completeness_validation,
             enable_gap_filling=enable_gap_filling,
+            enable_frontend=enable_frontend,  # ✅ FIX #1: Pass frontend override
+            frontend_framework=frontend_framework,  # ✅ FIX #1: Pass framework choice
         )
 
         return result

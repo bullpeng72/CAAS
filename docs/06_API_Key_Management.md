@@ -924,7 +924,7 @@ ValueError: ❌ SerperDevTool requires SERPER_API_KEY to be set
 - [01_README_KO.md](01_README_KO.md) - CAAS 프로젝트 개요
 - [02_Installation_Guide.md](02_Installation_Guide.md) - 설치 가이드
 - [03_Quick_Start_Guide.md](03_Quick_Start_Guide.md) - 빠른 시작 가이드
-- [04_CLI_Usage_Guide.md](04_CLI_Usage_Guide.md) - CLI 사용 가이드 (29 commands)
+- [04_CLI_Usage_Guide.md](04_CLI_Usage_Guide.md) - CLI 사용 가이드 (28 commands, 65 subcommands)
 - [06_Architecture_Guide.md](06_Architecture_Guide.md) - 아키텍처 가이드
 - [08_Integration_Guide.md](08_Integration_Guide.md) - Frontend-Backend 통합 가이드
 - [15_Ollama_Setup_Guide.md](15_Ollama_Setup_Guide.md) - Ollama 로컬 LLM 설정 ✨ NEW

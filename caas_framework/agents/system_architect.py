@@ -105,15 +105,16 @@ class SystemArchitectAgent(BaseExpertAgent):
         self, requirement: str, req_analysis: Optional[Dict[str, Any]], context: str
     ) -> str:
         """Build LLM prompt for architecture design."""
+        # ✅ v0.5.0: 한국어 출력 강제 (P0 수정)
         # Use base class template method
         output_format = {
             "components": [
                 {
                     "id": "component_id",
-                    "name": "Component Name",
+                    "name": "컴포넌트 이름",
                     "type": "backend|frontend|database|service|api",
-                    "responsibility": "What this component does",
-                    "interfaces": ["interface1", "interface2"],
+                    "responsibility": "이 컴포넌트가 수행하는 역할",
+                    "interfaces": ["인터페이스1", "인터페이스2"],
                     "dependencies": ["component_id1", "component_id2"],
                 }
             ],
@@ -122,50 +123,52 @@ class SystemArchitectAgent(BaseExpertAgent):
                     {
                         "from": "component_id",
                         "to": "component_id",
-                        "data": "what data flows",
+                        "data": "전달되는 데이터",
                         "protocol": "REST|gRPC|WebSocket|etc",
                     }
                 ]
             },
             "integration_points": [
                 {
-                    "name": "Integration name",
+                    "name": "통합 이름",
                     "type": "external_api|database|service",
-                    "purpose": "why this integration",
+                    "purpose": "통합의 목적",
                     "protocol": "REST|GraphQL|etc",
                 }
             ],
             "technology_stack": {
-                "backend": ["framework", "language"],
-                "frontend": ["framework", "library"],
-                "database": ["database_type"],
+                "backend": ["프레임워크", "언어"],
+                "frontend": ["프레임워크", "라이브러리"],
+                "database": ["데이터베이스 타입"],
                 "infrastructure": ["docker", "kubernetes"],
-                "tools": ["tool1", "tool2"],
+                "tools": ["도구1", "도구2"],
             },
             "architecture_patterns": [
-                "Microservices",
-                "Event-driven",
+                "마이크로서비스",
+                "이벤트 기반",
                 "CQRS",
-                "etc",
+                "기타 패턴",
             ],
             "deployment_architecture": {
-                "environment": "cloud|on-premise|hybrid",
-                "containers": ["container1", "container2"],
-                "services": ["service1", "service2"],
-                "scaling_strategy": "horizontal|vertical|auto",
+                "environment": "cloud|on-premise|hybrid (클라우드|온프레미스|하이브리드)",
+                "containers": ["컨테이너1", "컨테이너2"],
+                "services": ["서비스1", "서비스2"],
+                "scaling_strategy": "horizontal|vertical|auto (수평|수직|자동)",
             },
             "security_architecture": {
-                "authentication": "strategy",
-                "authorization": "strategy",
-                "data_protection": ["encryption", "etc"],
+                "authentication": "인증 전략",
+                "authorization": "권한 부여 전략",
+                "data_protection": ["암호화", "기타 보호 방법"],
             },
         }
 
         guidelines = [
-            "Support all functional and non-functional requirements",
-            "Align with Golden Data structure",
-            "Be scalable and maintainable",
-            "Follow best practices and patterns",
+            "**중요: 모든 텍스트 값(name, responsibility, purpose 등)을 한국어로 작성하세요**",
+            "JSON 키(key)는 영어로 유지하되, 값(value)은 반드시 한국어로 작성하세요",
+            "모든 기능적/비기능적 요구사항을 지원하세요",
+            "Golden Data 구조와 정렬하세요",
+            "확장 가능하고 유지보수 가능하도록 설계하세요",
+            "모범 사례와 패턴을 따르세요",
         ]
 
         # Prepare previous outputs

@@ -55,9 +55,15 @@ class AgentPromptTemplates:
         Returns:
             Complete prompt string
         """
+        # ✅ v0.5.0: 한국어 출력 강제 (P0 수정)
         builder = PromptBuilder(
             f"analyze the following requirement as {agent_role}"
-        ).add_task(f"You are an {agent_role}.")
+        ).add_task(f"""You are an {agent_role}.
+
+**CRITICAL: Output all text values in Korean (한국어).**
+- Keep JSON keys in English
+- Write all values (descriptions, names, comments) in Korean
+- Exception: Technical terms, code, and identifiers can remain in English""")
 
         # Add requirement
         builder.add_input(requirement=requirement)

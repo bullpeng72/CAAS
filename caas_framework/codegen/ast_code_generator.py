@@ -443,6 +443,12 @@ class ASTCodeGenerator:
 
         Returns:
             str: main() 함수 코드
+
+        Note:
+            ✅ v0.4.1: 프론트엔드 호환성 추가
+            - main(inputs=None) 시그니처 생성
+            - inputs가 None이면 CLI 모드 (input() 사용)
+            - inputs가 제공되면 Frontend 모드 (제공된 입력 사용)
         """
         body = []
 
@@ -463,6 +469,9 @@ class ASTCodeGenerator:
             ),
         )
         body.append(tasks_call)
+
+        # ✅ NOTE: Input collection code will be injected here by _generate_main_file_ast()
+        # It will be wrapped in `if inputs is None:` check to support both CLI and frontend modes
 
         # crew = Crew(...)
         process_attr = Attribute(
@@ -526,12 +535,19 @@ class ASTCodeGenerator:
         return_stmt = Return(value=Name(id="result", ctx=Load()))
         body.append(return_stmt)
 
+        # ✅ v0.4.1: main(inputs=None) 시그니처 생성 (Frontend 호환)
+        func_args = arguments(
+            posonlyargs=[],
+            args=[arg(arg="inputs", annotation=None)],  # ✅ inputs 파라미터 추가
+            kwonlyargs=[],
+            kw_defaults=[],
+            defaults=[Constant(value=None)],  # ✅ 기본값 None
+        )
+
         # 함수 정의
         func_def = FunctionDef(
             name="main",
-            args=arguments(
-                posonlyargs=[], args=[], kwonlyargs=[], kw_defaults=[], defaults=[]
-            ),
+            args=func_args,
             body=body,
             decorator_list=[],
             returns=None,

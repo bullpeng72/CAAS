@@ -14,6 +14,8 @@ from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from caas_framework.models.artifact_constants import get_default_artifact_types
+
 
 class LLMProvider(str, Enum):
     """Supported LLM providers"""
@@ -478,7 +480,17 @@ class AppSettings(BaseSettings):
 
 
 class ArtifactSettings(BaseSettings):
-    """Artifact generation settings"""
+    """
+    Artifact generation settings
+
+    ⚠️ DEPRECATED (v0.5.0): Use unified.py::ArtifactConfig instead
+    This class is kept for backward compatibility and will be removed in v0.6.0
+
+    For new code, use:
+        from caas_framework.config import get_config
+        config = get_config()
+        artifact_config = config.artifacts
+    """
 
     model_config = SettingsConfigDict(
         extra="ignore",
@@ -490,17 +502,44 @@ class ArtifactSettings(BaseSettings):
         description="Enable artifact auto-generation",
     )
 
-    # Artifact types to generate
-    generate_project_proposal: bool = Field(default=True)
-    generate_requirements_spec: bool = Field(default=True)
-    generate_architecture_design: bool = Field(default=True)
-    generate_data_design: bool = Field(default=True)
-    generate_api_design: bool = Field(default=False)
-    generate_agent_design: bool = Field(default=True)
-    generate_test_plan: bool = Field(default=False)
-    generate_test_report: bool = Field(default=False)
-    generate_code_review: bool = Field(default=False)
-    generate_deployment_guide: bool = Field(default=False)
+    # ✅ v0.5.0: Dict-based type configuration
+    # ✅ Single Source: artifact_constants.py에서 import
+    types: Dict[str, bool] = Field(
+        default_factory=get_default_artifact_types,
+        description="타입별 생성 활성화 설정",
+    )
+
+    # ⚠️ DEPRECATED: Backward compatibility (v0.5.0)
+    generate_project_proposal: Optional[bool] = Field(
+        default=None, description="[DEPRECATED] Use types dict instead"
+    )
+    generate_requirements_spec: Optional[bool] = Field(
+        default=None, description="[DEPRECATED] Use types dict instead"
+    )
+    generate_architecture_design: Optional[bool] = Field(
+        default=None, description="[DEPRECATED] Use types dict instead"
+    )
+    generate_data_design: Optional[bool] = Field(
+        default=None, description="[DEPRECATED] Use types dict instead"
+    )
+    generate_api_design: Optional[bool] = Field(
+        default=None, description="[DEPRECATED] Use types dict instead"
+    )
+    generate_agent_design: Optional[bool] = Field(
+        default=None, description="[DEPRECATED] Use types dict instead"
+    )
+    generate_test_plan: Optional[bool] = Field(
+        default=None, description="[DEPRECATED] Use types dict instead"
+    )
+    generate_test_report: Optional[bool] = Field(
+        default=None, description="[DEPRECATED] Use types dict instead"
+    )
+    generate_code_review: Optional[bool] = Field(
+        default=None, description="[DEPRECATED] Use types dict instead"
+    )
+    generate_deployment_guide: Optional[bool] = Field(
+        default=None, description="[DEPRECATED] Use types dict instead"
+    )
 
     # Output settings
     output_format: str = Field(
@@ -514,6 +553,35 @@ class ArtifactSettings(BaseSettings):
     include_diagrams: bool = Field(default=True)
     include_code_samples: bool = Field(default=True)
     language: str = Field(default="ko")
+
+    def __init__(self, **data):
+        """
+        v0.5.0: Backward compatibility for old boolean fields
+        """
+        old_field_mapping = {
+            "generate_project_proposal": "project_proposal",
+            "generate_requirements_spec": "requirements_spec",
+            "generate_architecture_design": "architecture_design",
+            "generate_data_design": "data_design",
+            "generate_api_design": "api_design",
+            "generate_agent_design": "agent_design",
+            "generate_test_plan": "test_plan",
+            "generate_test_report": "test_report",
+            "generate_code_review": "code_review",
+            "generate_deployment_guide": "deployment_guide",
+        }
+
+        # If types not provided, create default
+        if "types" not in data:
+            # ✅ Single Source: artifact_constants.py에서 import
+            data["types"] = get_default_artifact_types()
+
+        # Merge old fields into types
+        for old_field, new_key in old_field_mapping.items():
+            if old_field in data and data[old_field] is not None:
+                data["types"][new_key] = data[old_field]
+
+        super().__init__(**data)
 
 
 class Settings(BaseSettings):

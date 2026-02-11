@@ -28,18 +28,26 @@ workflow:
 
 artifacts:
   enabled: true
-  generate_project_proposal: true
-  generate_requirements_spec: true
-  generate_architecture_design: true
-  generate_data_design: true
-  generate_api_design: false
-  generate_agent_design: true
-  generate_test_plan: false
-  generate_test_report: false
-  generate_code_review: false
-  generate_deployment_guide: false
+
+  # ✅ v0.5.0: Dict-based type configuration (10 bool fields → 1 dict)
+  # Extensible: add new types without code changes
+  types:
+    project_proposal: true
+    requirements_spec: true
+    architecture_design: true
+    data_design: true
+    api_design: true  # ✅ v0.5.0: Changed to true (generate all artifacts)
+    agent_design: true
+    test_plan: true  # ✅ v0.5.0: Changed to true (generate all artifacts)
+    test_report: true  # ✅ v0.5.0: Changed to true (generate all artifacts)
+    code_review: true
+    deployment_guide: true  # ✅ v0.5.0: Changed to true (generate all artifacts)
+
+  # Output settings
   output_format: markdown
   output_dir: ./artifacts
+
+  # Additional options
   include_diagrams: true
   include_code_samples: true
   language: ko

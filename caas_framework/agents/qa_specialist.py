@@ -101,56 +101,59 @@ class QASpecialistAgent(BaseExpertAgent):
         context: str,
     ) -> str:
         """Build LLM prompt for QA analysis."""
+        # ✅ v0.5.0: 한국어 출력 강제 (P0 수정)
         # Use base class template method
         output_format = {
             "qa_report": {
-                "overall_quality": "excellent|good|fair|poor",
+                "overall_quality": "excellent|good|fair|poor (우수|양호|보통|불량)",
                 "phase_assessments": {
-                    "discovery": {"score": "0-10", "issues": [], "strengths": []},
+                    "discovery": {"score": "0-10", "issues": ["문제점"], "strengths": ["강점"]},
                     "architecture": {
                         "score": "0-10",
-                        "issues": [],
-                        "strengths": [],
+                        "issues": ["문제점"],
+                        "strengths": ["강점"],
                     },
-                    "design": {"score": "0-10", "issues": [], "strengths": []},
-                    "delivery": {"score": "0-10", "issues": [], "strengths": []},
+                    "design": {"score": "0-10", "issues": ["문제점"], "strengths": ["강점"]},
+                    "delivery": {"score": "0-10", "issues": ["문제점"], "strengths": ["강점"]},
                 },
             },
             "compliance_check": {
                 "golden_data_alignment": "0-100",
                 "requirement_coverage": "0-100",
                 "completeness": "0-100",
-                "non_compliant_items": [],
+                "non_compliant_items": ["미준수 항목"],
             },
             "test_results": {
-                "unit_tests": "pass|fail|not_run",
-                "integration_tests": "pass|fail|not_run",
-                "e2e_tests": "pass|fail|not_run",
+                "unit_tests": "pass|fail|not_run (통과|실패|미실행)",
+                "integration_tests": "pass|fail|not_run (통과|실패|미실행)",
+                "e2e_tests": "pass|fail|not_run (통과|실패|미실행)",
                 "test_coverage": "0-100",
             },
             "security_assessment": {
-                "vulnerabilities": [],
+                "vulnerabilities": ["취약점 설명"],
                 "security_score": "0-10",
-                "recommendations": [],
+                "recommendations": ["보안 권장사항"],
             },
             "performance_assessment": {
                 "scalability": "0-10",
                 "efficiency": "0-10",
-                "bottlenecks": [],
+                "bottlenecks": ["성능 병목 지점"],
             },
             "recommendations": [
-                "Specific recommendation 1",
-                "Specific recommendation 2",
+                "구체적인 권장사항 1",
+                "구체적인 권장사항 2",
             ],
             "readiness_score": "0-100",
             "production_ready": "true|false",
         }
 
         guidelines = [
-            "Be thorough and critical",
-            "Identify all issues and provide actionable recommendations",
-            "Validate alignment with Golden Data specifications",
-            "Assess production readiness objectively",
+            "**중요: 모든 텍스트 값(issues, strengths, recommendations 등)을 한국어로 작성하세요**",
+            "JSON 키(key)는 영어로 유지하되, 값(value)은 반드시 한국어로 작성하세요",
+            "철저하고 비판적으로 분석하세요",
+            "모든 문제점을 식별하고 실행 가능한 권장사항을 제공하세요",
+            "Golden Data 명세와의 정렬을 검증하세요",
+            "프로덕션 준비 상태를 객관적으로 평가하세요",
         ]
 
         return self._build_standard_prompt(

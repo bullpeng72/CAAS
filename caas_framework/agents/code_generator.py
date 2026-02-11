@@ -53,6 +53,9 @@ class CodeGeneratorAgent(BaseExpertAgent):
     ):
         super().__init__(llm_plugin, golden_data, AgentPhase.DELIVERY)
         self.process_selector = ProcessSelector()
+        # ✅ P1-1: Initialize frontend config instance variables
+        self._current_enable_frontend = False
+        self._current_frontend_framework = "streamlit"
 
     @property
     def agent_name(self) -> str:
@@ -112,6 +115,14 @@ class CodeGeneratorAgent(BaseExpertAgent):
         if not agents or not tasks:
             return {}
 
+        # ✅ FIX #1: Extract frontend configuration from context
+        enable_frontend = context.get("enable_frontend") if context else None
+        frontend_framework = context.get("frontend_framework") if context else None
+
+        # ✅ P1-1: Store in instance variables for fallback access
+        self._current_enable_frontend = enable_frontend if enable_frontend is not None else False
+        self._current_frontend_framework = frontend_framework if frontend_framework else "streamlit"
+
         # Generate code using LLM
         generated_files = await self._generate_code_files(
             agents=agents,
@@ -119,6 +130,8 @@ class CodeGeneratorAgent(BaseExpertAgent):
             architecture=architecture,
             analysis=analysis,
             requirement=requirement,
+            enable_frontend=enable_frontend,  # ✅ FIX #1: Pass frontend config
+            frontend_framework=frontend_framework,  # ✅ FIX #1: Pass framework choice
         )
 
         # Evaluate code quality with LLM Judge (if enabled)
@@ -167,12 +180,14 @@ class CodeGeneratorAgent(BaseExpertAgent):
         architecture: Optional[Dict[str, Any]],
         analysis: Optional[Dict[str, Any]],
         requirement: Optional[str],
+        enable_frontend: Optional[bool] = None,  # ✅ FIX #1: Frontend override
+        frontend_framework: Optional[str] = None,  # ✅ FIX #1: Framework choice
     ) -> Dict[str, str]:
         """Generate actual code files using LLM."""
 
         # Build comprehensive prompt
         prompt = self._build_code_generation_prompt(
-            agents, tasks, architecture, analysis, requirement
+            agents, tasks, architecture, analysis, requirement, enable_frontend, frontend_framework
         )
 
         # Call LLM with retry logic from base class
@@ -196,7 +211,12 @@ class CodeGeneratorAgent(BaseExpertAgent):
         code_structure = await AgentOutputParser.parse_llm_json(
             response,
             expected_fields=["files"],
-            fallback_factory=lambda: self._create_fallback_code(agents, tasks),
+            fallback_factory=lambda: self._create_fallback_code(
+                agents,
+                tasks,
+                enable_frontend=self._current_enable_frontend,  # ✅ P1-1: Pass from instance
+                frontend_framework=self._current_frontend_framework  # ✅ P1-1: Pass from instance
+            ),
             agent_name=self.agent_name,
         )
 
@@ -213,7 +233,12 @@ class CodeGeneratorAgent(BaseExpertAgent):
         # If LLM didn't return files, use fallback
         if not code_structure or "files" not in code_structure:
             logger.warning("[CodeGenerator] No files in response, using fallback")
-            code_structure = self._create_fallback_code(agents, tasks)
+            code_structure = self._create_fallback_code(
+                agents,
+                tasks,
+                enable_frontend=self._current_enable_frontend,  # ✅ P1-1: Pass from instance
+                frontend_framework=self._current_frontend_framework  # ✅ P1-1: Pass from instance
+            )
             logger.info(
                 f"[CodeGenerator] Fallback generated {len(code_structure.get('files', {}))} files"
             )
@@ -237,7 +262,12 @@ class CodeGeneratorAgent(BaseExpertAgent):
                     "[CodeGenerator] LLM generated wrong format, forcing fallback"
                 )
                 # Force fallback with proper CrewAI code
-                fallback = self._create_fallback_code(agents, tasks)
+                fallback = self._create_fallback_code(
+                    agents,
+                    tasks,
+                    enable_frontend=self._current_enable_frontend,  # ✅ P1-1: Pass from instance
+                    frontend_framework=self._current_frontend_framework  # ✅ P1-1: Pass from instance
+                )
                 result_files = fallback.get("files", {})
                 logger.info(
                     f"[CodeGenerator] Forced fallback generated {len(result_files)} files"
@@ -247,6 +277,54 @@ class CodeGeneratorAgent(BaseExpertAgent):
         if result_files:
             result_files = self._autofix_generated_code(result_files, agents)
             logger.info("[CodeGenerator] Auto-fix validation complete")
+
+        # ✅ v0.4.2 (P0-2): Quality validation for frontend code
+        if result_files and self._current_enable_frontend:
+            from caas_framework.validation.code_quality_validator import CodeQualityValidator
+
+            validator = CodeQualityValidator()
+
+            app_code = result_files.get("app.py", "")
+            main_code = result_files.get("main.py", "")
+
+            if app_code and main_code:
+                logger.info("[CodeGenerator] Running frontend quality validation...")
+
+                validation_result = validator.validate_frontend(
+                    app_code=app_code,
+                    main_code=main_code,
+                    framework=self._current_frontend_framework or "streamlit"
+                )
+
+                # Log validation report
+                report = validator.format_validation_report(validation_result)
+                logger.info(report)
+
+                # If validation failed, use fallback
+                if validation_result.use_fallback:
+                    logger.warning(
+                        f"[CodeGenerator] Frontend quality validation FAILED "
+                        f"(score={validation_result.score:.1f}/10.0, "
+                        f"{len([i for i in validation_result.issues if i.severity == 'critical'])} critical issues)"
+                    )
+                    logger.warning("[CodeGenerator] Forcing fallback due to low quality")
+
+                    # Force fallback
+                    fallback = self._create_fallback_code(
+                        agents,
+                        tasks,
+                        enable_frontend=self._current_enable_frontend,
+                        frontend_framework=self._current_frontend_framework
+                    )
+                    result_files = fallback.get("files", {})
+                    logger.info(
+                        f"[CodeGenerator] Fallback generated {len(result_files)} files due to quality failure"
+                    )
+                else:
+                    logger.info(
+                        f"[CodeGenerator] Frontend quality validation PASSED "
+                        f"(score={validation_result.score:.1f}/10.0)"
+                    )
 
         # CRITICAL: Validate boundaries if specified
         boundaries_violations = []
@@ -337,6 +415,8 @@ class CodeGeneratorAgent(BaseExpertAgent):
         architecture: Optional[Dict[str, Any]],
         analysis: Optional[Dict[str, Any]],
         requirement: Optional[str],
+        enable_frontend: Optional[bool] = None,  # ✅ FIX #1: Frontend override
+        frontend_framework: Optional[str] = None,  # ✅ FIX #1: Framework choice
     ) -> str:
         """Build LLM prompt for code generation."""
 
@@ -346,17 +426,209 @@ class CodeGeneratorAgent(BaseExpertAgent):
         agents_data = ObjectAccessor.to_dict_list(agents)
         tasks_data = ObjectAccessor.to_dict_list(tasks)
 
+        # ✅ FIX #1: Build task description with frontend requirements
+        # ✅ v0.5.0: 한국어 주석/docstring 강제 (P0 수정)
+        task_description = """당신은 완전한 CrewAI 애플리케이션을 생성하는 전문 Python 개발자입니다.
+
+**중요: 모든 주석(comments)과 docstring을 한국어로 작성하세요.**
+- 함수/클래스의 docstring은 한국어로
+- 코드 내 주석(# ...)은 한국어로
+- 변수명, 함수명은 영어 snake_case 유지
+
+핵심 요구사항: CrewAI 프레임워크를 반드시 사용해야 합니다.
+- 항상 'from crewai import Crew, Agent, Task, Process' 사용
+- CrewAI 없이 단순 Python/FastAPI/Streamlit 코드 생성 금지
+- 요구사항 설명은 시스템이 무엇을 하는지이지만, CrewAI 에이전트와 태스크로 구현해야 함
+- CrewAI 에이전트가 작업을 조율하며, FastAPI나 Streamlit을 대체하는 것이 아님"""
+
+        # ✅ v0.4.2 (P0-1): Enhanced frontend prompt with examples and checklist
+        if enable_frontend:
+            framework_name = frontend_framework or "streamlit"
+
+            # Streamlit-specific enhanced prompt
+            if framework_name == "streamlit":
+                task_description += """
+
+═══════════════════════════════════════════════════════════════════
+📱 STREAMLIT UI 생성 MANDATORY REQUIREMENTS (v0.4.2)
+═══════════════════════════════════════════════════════════════════
+
+🎯 CRITICAL SUCCESS CRITERIA:
+
+1️⃣ INPUT WIDGETS 생성 (MANDATORY):
+   ✅ tasks.py를 분석하여 필요한 입력 자동 감지
+   ✅ 각 입력마다 st.text_input() 또는 적절한 위젯 생성
+   ✅ 예시: keyword = st.text_input("검색 키워드:", key="keyword")
+   ❌ 절대 빈 Input 섹션 생성 금지!
+
+2️⃣ INPUT VALIDATION (MANDATORY):
+   ✅ if not keyword: st.error("⚠️ 키워드를 입력하세요!")
+   ✅ 모든 필수 입력 검증
+   ❌ 빈 리스트 검증 금지: if any(not val for val in [])  # WRONG!
+
+3️⃣ MAIN 함수 호출 (CRITICAL):
+   ✅ inputs dict 준비: user_inputs = {"keyword": keyword}
+   ✅ result = main(inputs=user_inputs)  # CORRECT
+   ❌ result = main()  # WRONG - inputs 파라미터 없이 호출 금지!
+
+4️⃣ ERROR HANDLING (MANDATORY):
+   ✅ try-except로 crew.kickoff() 감싸기
+   ✅ st.error(f"❌ 오류: {e}") 표시
+
+5️⃣ RESULT DISPLAY (MANDATORY):
+   ✅ st.markdown(result.raw) if hasattr(result, 'raw')
+   ✅ 결과를 보기 좋게 포맷팅
+
+═══════════════════════════════════════════════════════════════════
+📝 COMPLETE EXAMPLE CODE (Follow this pattern exactly):
+═══════════════════════════════════════════════════════════════════
+
+```python
+\"\"\"
+AI 보고서 생성 시스템 - Streamlit UI
+\"\"\"
+import streamlit as st
+import sys
+from pathlib import Path
+
+# Add parent to path
+sys.path.insert(0, str(Path(__file__).parent))
+from main import main
+
+# Page config
+st.set_page_config(page_title="AI 시스템", page_icon="🤖", layout="wide")
+
+st.title("🤖 AI 보고서 생성 시스템")
+st.markdown("---")
+
+# Sidebar
+with st.sidebar:
+    st.header("ℹ️ About")
+    st.markdown(\"\"\"
+    CrewAI 기반 멀티 에이전트 시스템
+
+    **Powered by:**
+    - CrewAI Framework
+    - CAAS Generator
+    \"\"\")
+
+# Input section
+st.subheader("📝 입력")
+
+# ✅ CRITICAL: Create input widgets (detect from tasks)
+keyword = st.text_input("검색 키워드:", key="keyword",
+                        placeholder="예: AI 기술 동향")
+
+st.markdown("---")
+
+# Run button
+col1, col2, col3 = st.columns([1, 2, 1])
+with col2:
+    run_button = st.button("▶️ 실행", type="primary", use_container_width=True)
+
+# Execution
+if run_button:
+    # ✅ CRITICAL: Validate inputs
+    if not keyword:
+        st.error("⚠️ 키워드를 입력하세요!")
+    else:
+        with st.spinner("🔄 AI 에이전트가 작업 중입니다..."):
+            try:
+                # ✅ CRITICAL: Call main with inputs dict
+                user_inputs = {"keyword": keyword}
+                result = main(inputs=user_inputs)
+
+                # Success
+                st.success("✅ 보고서 생성 완료!")
+
+                st.markdown("---")
+                st.subheader("📊 결과")
+
+                # ✅ CRITICAL: Format result properly
+                if result:
+                    if isinstance(result, str):
+                        st.markdown(result)
+                    elif hasattr(result, 'raw'):
+                        st.markdown(result.raw)
+                    else:
+                        st.text(str(result))
+                else:
+                    st.info("결과가 생성되지 않았습니다")
+
+            except Exception as e:
+                st.error(f"❌ 오류 발생: {str(e)}")
+                with st.expander("🔍 상세 오류"):
+                    st.code(str(e))
+
+# Footer
+st.markdown("---")
+st.markdown("<div style='text-align: center; color: gray;'>"
+            "<small>Powered by CAAS Framework</small></div>",
+            unsafe_allow_html=True)
+```
+
+═══════════════════════════════════════════════════════════════════
+🚨 COMMON MISTAKES TO AVOID:
+═══════════════════════════════════════════════════════════════════
+
+❌ WRONG: Empty input section
+   # Input section
+
+
+❌ WRONG: result = main() without inputs
+
+❌ WRONG: if any(not val for val in []): # Empty list validation
+
+✅ CORRECT: Follow the example above exactly!
+
+═══════════════════════════════════════════════════════════════════
+
+ALSO UPDATE main.py TO ACCEPT inputs PARAMETER:
+
+```python
+def main(inputs=None):
+    \"\"\"
+    Main execution function.
+
+    Args:
+        inputs: Optional dict of user inputs. If None, prompts for CLI input.
+    \"\"\"
+    agents = create_agents()
+    tasks = create_tasks(agents)
+
+    # ✅ CRITICAL: Handle both CLI and Frontend modes
+    if inputs is None:
+        # CLI mode - prompt for input
+        user_inputs = {}
+        keyword = input("검색할 키워드를 입력하세요: ")
+        user_inputs["keyword"] = keyword
+    else:
+        # Frontend mode - use provided inputs
+        user_inputs = inputs
+
+    crew = Crew(agents=list(agents.values()), tasks=tasks,
+                process=Process.sequential, verbose=True)
+    result = crew.kickoff(inputs=user_inputs)  # ✅ Pass inputs!
+    return result
+```
+
+═══════════════════════════════════════════════════════════════════
+"""
+            else:
+                # Generic frontend prompt (React, Vue, etc.)
+                task_description += f"""
+
+FRONTEND UI REQUIREMENT:
+- MANDATORY: Generate a {framework_name} user interface
+- Create app.py with {framework_name} UI code that calls the CrewAI crew
+- Add {framework_name} to requirements.txt
+- Update main.py to support both CLI and {framework_name} modes
+- The {framework_name} app should provide an interactive interface for users
+"""
+
         builder = PromptBuilder(
             "generate production-ready Python code for a CrewAI multi-agent system"
-        ).add_task(
-            """You are an expert Python developer generating a complete CrewAI application.
-
-CRITICAL REQUIREMENT: You MUST generate code using the CrewAI framework.
-- ALWAYS use 'from crewai import Crew, Agent, Task, Process'
-- NEVER generate plain Python/FastAPI/Streamlit code without CrewAI
-- The requirement description mentions what the system DOES, but you must implement it using CrewAI agents and tasks
-- CrewAI agents orchestrate the work; they don't replace frameworks like FastAPI or Streamlit"""
-        )
+        ).add_task(task_description)
 
         # Add input data
         input_data = {
@@ -382,47 +654,77 @@ CRITICAL REQUIREMENT: You MUST generate code using the CrewAI framework.
             tech_stack = architecture.get("technology_stack", {})
             builder.add_context("Technology Stack", tech_stack, format_as_json=True)
 
-        # Define output format
+        # ✅ FIX #1: Define output format with optional frontend file
+        output_files = {
+            "main.py": "# Main crew execution script",
+            "agents.py": "# Agent definitions",
+            "tasks.py": "# Task definitions",
+            "requirements.txt": "# Dependencies",
+            "README.md": "# Documentation",
+            ".env.example": "# Environment variables template",
+        }
+
+        # ✅ FIX #1: Add frontend file if enabled
+        if enable_frontend:
+            framework_name = frontend_framework or "streamlit"
+            output_files["app.py"] = f"# {framework_name.capitalize()} UI application"
+
         builder.add_output_format(
-            {
-                "files": {
-                    "main.py": "# Main crew execution script",
-                    "agents.py": "# Agent definitions",
-                    "tasks.py": "# Task definitions",
-                    "requirements.txt": "# Dependencies",
-                    "README.md": "# Documentation",
-                    ".env.example": "# Environment variables template",
-                }
-            },
+            {"files": output_files},
             "Generate a complete CrewAI project with the following files:",
         )
 
-        # Add guidelines
-        builder.add_guidelines(
-            [
-                "MANDATORY: Use CrewAI framework - import Crew, Agent, Task from crewai",
-                "MANDATORY: agents.py MUST define Agent objects using crewai.Agent",
-                "MANDATORY: tasks.py MUST define Task objects using crewai.Task",
-                "MANDATORY: main.py MUST create a Crew and call crew.kickoff()",
-                "CRITICAL: Agent() constructor - DO NOT use 'id' parameter (it's auto-generated)",
-                "CRITICAL: Agent() tools parameter - use empty list [] if no tools, NEVER use string list",
-                "CRITICAL: If agents need tools, you MUST also generate tools.py with BaseTool classes",
-                "Create a working CrewAI application with all agents and tasks from the design",
-                "Include proper CrewAI imports: from crewai import Crew, Agent, Task, Process",
-                "Add crewai to requirements.txt with other dependencies",
-                "Add error handling and logging",
-                "Follow Python best practices and PEP 8",
-                "Include clear comments and docstrings",
-                "Create a README with setup and usage instructions",
-                "Use environment variables for sensitive data (OPENAI_API_KEY, etc.)",
-                "Make the code modular and maintainable",
+        # ✅ v0.4.2 (P0-1): Enhanced guidelines with frontend checklist
+        # ✅ v0.5.0: 한국어 주석/docstring 강제 (P0 수정)
+        guidelines = [
+            "**중요: 모든 주석(comments)과 docstring을 한국어로 작성하세요**",
+            "변수명, 함수명, 클래스명은 영어 snake_case/PascalCase 유지",
+            "MANDATORY: CrewAI 프레임워크 사용 - from crewai import Crew, Agent, Task",
+            "MANDATORY: agents.py는 crewai.Agent를 사용하여 Agent 객체 정의",
+            "MANDATORY: tasks.py는 crewai.Task를 사용하여 Task 객체 정의",
+            "MANDATORY: main.py는 Crew를 생성하고 crew.kickoff() 호출",
+            "CRITICAL: Agent() 생성자 - 'id' 파라미터 사용 금지 (자동 생성됨)",
+            "CRITICAL: Agent() tools 파라미터 - 도구 없으면 빈 리스트 [] 사용, 문자열 리스트 절대 금지",
+            "CRITICAL: 에이전트가 도구 필요 시, tools.py도 BaseTool 클래스로 생성 필수",
+            "설계된 모든 에이전트와 태스크가 포함된 작동하는 CrewAI 애플리케이션 생성",
+            "적절한 CrewAI import 포함: from crewai import Crew, Agent, Task, Process",
+            "requirements.txt에 crewai와 기타 의존성 추가",
+            "에러 핸들링과 로깅 추가",
+            "Python 모범 사례와 PEP 8 준수",
+            "명확한 주석과 docstring 포함 (한국어로)",
+            "설정 및 사용법이 포함된 README 생성",
+            "민감한 데이터는 환경변수 사용 (OPENAI_API_KEY 등)",
+            "모듈화되고 유지보수 가능한 코드 작성",
+        ]
+
+        # ✅ v0.4.2 (P0-1): Add frontend-specific guidelines
+        if enable_frontend:
+            frontend_guidelines = [
+                "🎯 FRONTEND CHECKLIST:",
+                "✅ app.py: Create actual input widgets (st.text_input, etc.) - NOT empty lines!",
+                "✅ app.py: Validate all inputs before calling main()",
+                "✅ app.py: Call main(inputs=user_inputs) with inputs dict - NOT main() alone!",
+                "✅ app.py: Wrap crew execution in try-except with st.error() for errors",
+                "✅ app.py: Display results with proper formatting (st.markdown, st.text)",
+                "✅ main.py: Define main(inputs=None) with optional inputs parameter",
+                "✅ main.py: if inputs is None: collect CLI inputs, else: use frontend inputs",
+                "✅ main.py: crew.kickoff(inputs=user_inputs) - pass inputs to kickoff!",
+                "❌ NEVER generate empty input sections in app.py",
+                "❌ NEVER call main() without inputs parameter in app.py",
+                "❌ NEVER validate empty lists: if any(not val for val in [])",
             ]
-        )
+            guidelines.extend(frontend_guidelines)
+
+        builder.add_guidelines(guidelines)
 
         return builder.build()
 
     def _create_fallback_code(
-        self, agents: List[Any], tasks: List[Any]
+        self,
+        agents: List[Any],
+        tasks: List[Any],
+        enable_frontend: bool = False,  # ✅ P0-1: Frontend support
+        frontend_framework: str = "streamlit",  # ✅ P0-1: Framework choice
     ) -> Dict[str, Any]:
         """Create basic code structure when LLM fails using AST-based generation."""
 
@@ -449,10 +751,15 @@ CRITICAL REQUIREMENT: You MUST generate code using the CrewAI framework.
         tasks_py = self._generate_tasks_file_ast(tasks_data)
 
         # Non-Python files using StaticFileGenerators
-        requirements_txt = StaticFileGenerators.generate_requirements()
+        requirements_txt = StaticFileGenerators.generate_requirements(
+            enable_frontend=enable_frontend,  # ✅ P0-1: Pass frontend flag
+            frontend_framework=frontend_framework  # ✅ P0-1: Pass framework
+        )
         readme_md = StaticFileGenerators.generate_readme(
             project_name=self.golden_data.project_name if self.golden_data else "CrewAI Project",
-            features=self.golden_data.features if self.golden_data else []
+            features=self.golden_data.features if self.golden_data else [],
+            enable_frontend=enable_frontend,  # ✅ P0-1: Pass frontend flag
+            frontend_framework=frontend_framework  # ✅ P0-1: Pass framework
         )
         env_example = StaticFileGenerators.generate_env_example()
 
@@ -470,7 +777,185 @@ CRITICAL REQUIREMENT: You MUST generate code using the CrewAI framework.
         if tools_py:
             files_dict["tools.py"] = tools_py
 
+        # ✅ P0-1: Generate frontend UI file if enabled
+        if enable_frontend:
+            logger.info(f"[Fallback] Generating {frontend_framework} UI file")
+            app_py = self._generate_streamlit_app(agents_data, tasks_data, frontend_framework)
+            files_dict["app.py"] = app_py
+
         return {"files": files_dict}
+
+    def _generate_streamlit_app(
+        self,
+        agents: List[Dict],
+        tasks: List[Dict],
+        framework: str = "streamlit"
+    ) -> str:
+        """
+        ✅ P0-3: Generate Streamlit app.py file.
+
+        Creates a user-friendly Streamlit interface that:
+        - Detects required inputs from tasks
+        - Generates appropriate input widgets
+        - Calls the main() function with user inputs
+        - Displays results in a formatted way
+        """
+        project_name = self.golden_data.project_name if self.golden_data else "CrewAI App"
+
+        # ✅ v0.4.2: Detect input requirements (deduplicated)
+        input_requirements = []
+        try:
+            from caas_framework.analysis.input_detector import InputDetector
+            # Use new unified method to avoid duplicates
+            input_requirements = InputDetector.detect_input_requirements_unified(tasks)
+        except Exception as e:
+            logger.warning(f"[Streamlit] Input detection failed: {e}, using default 'keyword'")
+            # Fallback to default keyword input
+            input_requirements = [{
+                "input_name": "keyword",
+                "input_type": "keyword",
+                "prompt_message": "검색 키워드"
+            }]
+
+        # Build input widgets for each requirement
+        input_widgets = []
+        input_dict_items = []
+        for req_spec in input_requirements:
+            input_name = req_spec["input_name"]
+            prompt_message = req_spec.get("prompt_message", input_name)
+
+            # Convert to user-friendly display name
+            display_name = prompt_message if prompt_message else input_name.replace("_", " ").title()
+
+            input_widgets.append(
+                f'{input_name} = st.text_input("{display_name}:", key="{input_name}", placeholder="예: AI 기술 동향")'
+            )
+            input_dict_items.append(f'"{input_name}": {input_name}')
+
+        # Join all widgets
+        widgets_code = "\n".join(input_widgets)
+        input_dict_code = "{" + ", ".join(input_dict_items) + "}"
+
+        # ✅ v0.4.2: Build validation list (variable names)
+        validation_vars = [req_spec["input_name"] for req_spec in input_requirements]
+        validation_list = ", ".join(validation_vars)
+
+        # Detect if main() needs inputs parameter
+        needs_inputs = len(input_requirements) > 0
+
+        if needs_inputs:
+            main_call = f"""# Prepare inputs
+                user_inputs = {input_dict_code}
+
+                # Call main with inputs
+                result = main(inputs=user_inputs)"""
+        else:
+            main_call = "result = main()"
+
+        return f'''"""
+{project_name} - Streamlit UI
+
+Auto-generated Streamlit interface for CrewAI multi-agent system.
+"""
+
+import streamlit as st
+import sys
+from pathlib import Path
+
+# Add parent directory to path to import main
+sys.path.insert(0, str(Path(__file__).parent))
+
+from main import main
+
+# Page configuration
+st.set_page_config(
+    page_title="{project_name}",
+    page_icon="🤖",
+    layout="wide"
+)
+
+# Title and description
+st.title("🤖 {project_name}")
+st.markdown("---")
+
+# Sidebar with info
+with st.sidebar:
+    st.header("ℹ️ About")
+    st.markdown("""
+    This is an AI-powered multi-agent system built with CrewAI.
+
+    **Powered by:**
+    - CrewAI Framework
+    - CAAS Generator
+    """)
+
+    st.markdown("---")
+    st.caption("Generated by CAAS Framework")
+
+# Main content
+st.subheader("📝 Input")
+st.markdown("Please provide the required information below:")
+
+# Input section
+{widgets_code}
+
+st.markdown("---")
+
+# Run button
+col1, col2, col3 = st.columns([1, 2, 1])
+with col2:
+    run_button = st.button("▶️ Run", type="primary", use_container_width=True)
+
+# Execution section
+if run_button:
+    # Validate inputs
+    if any(not val for val in [{validation_list}]):
+        st.error("⚠️ Please fill in all required fields!")
+    else:
+        with st.spinner("🔄 Processing... This may take a moment."):
+            try:
+                # Execute the crew
+                {main_call}
+
+                # Display success
+                st.success("✅ Completed successfully!")
+
+                # Display results
+                st.markdown("---")
+                st.subheader("📊 Results")
+
+                # Format output
+                if result:
+                    # If result is a string, display as markdown
+                    if isinstance(result, str):
+                        st.markdown(result)
+                    # If result has .raw attribute (CrewOutput)
+                    elif hasattr(result, 'raw'):
+                        st.markdown(result.raw)
+                    # Otherwise, display as text
+                    else:
+                        st.text(str(result))
+                else:
+                    st.info("No output generated")
+
+            except Exception as e:
+                st.error(f"❌ Error occurred: {{str(e)}}")
+
+                # Show detailed error in expander
+                with st.expander("🔍 Error Details"):
+                    st.code(str(e))
+
+# Footer
+st.markdown("---")
+st.markdown(
+    """
+    <div style='text-align: center; color: gray; padding: 20px;'>
+        <small>Powered by CAAS Framework | CrewAI Multi-Agent System</small>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+'''
 
     def _select_process(self, agents: List[Dict], tasks: List[Dict]) -> str:
         """
@@ -833,13 +1318,14 @@ def create_tasks(agents):
         # Select optimal process type
         process_type = self._select_process(agents, tasks)
 
-        # Detect if user input is needed
+        # ✅ v0.4.2: Detect if user input is needed (deduplicated)
         needs_input = False
         input_collection_code = ""
         try:
             from caas_framework.analysis.input_detector import InputDetector
 
-            input_requirements = InputDetector.detect_input_requirements(tasks)
+            # Use unified method to avoid duplicates
+            input_requirements = InputDetector.detect_input_requirements_unified(tasks)
             needs_input = len(input_requirements) > 0
 
             if needs_input:
@@ -904,14 +1390,41 @@ def create_tasks(agents):
         # Parse main function and add it
         main_func_ast = ast.parse(main_func_code).body[0]
 
-        # If needs input, inject input collection code into main function body
+        # ✅ v0.4.1: Inject input collection with frontend compatibility
         if needs_input and input_collection_code:
-            # Parse input collection code
+            # Parse input collection code (CLI mode)
             input_collection_ast = ast.parse(input_collection_code).body
+
+            # Create if/else block:
+            # if inputs is None:
+            #     # CLI mode - use input()
+            #     user_inputs = {}
+            #     keyword = input("...")
+            #     user_inputs["keyword"] = keyword
+            # else:
+            #     # Frontend mode - use provided inputs
+            #     user_inputs = inputs
+
+            # Build the if statement
+            if_inputs_none = ast.If(
+                test=ast.Compare(
+                    left=ast.Name(id="inputs", ctx=ast.Load()),
+                    ops=[ast.Is()],
+                    comparators=[ast.Constant(value=None)],
+                ),
+                body=input_collection_ast,  # CLI input collection code
+                orelse=[
+                    # else: user_inputs = inputs
+                    ast.Assign(
+                        targets=[ast.Name(id="user_inputs", ctx=ast.Store())],
+                        value=ast.Name(id="inputs", ctx=ast.Load()),
+                    )
+                ],
+            )
 
             # Insert after tasks creation (index 2 in main function body)
             main_func_ast.body = (
-                main_func_ast.body[:2] + input_collection_ast + main_func_ast.body[2:]
+                main_func_ast.body[:2] + [if_inputs_none] + main_func_ast.body[2:]
             )
 
         module_body.append(main_func_ast)

@@ -6,9 +6,11 @@ Artifact Types
 
 from datetime import datetime
 from enum import Enum
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from pydantic import BaseModel, Field
+
+from caas_framework.models.artifact_constants import get_default_artifact_types
 
 
 class ArtifactType(str, Enum):
@@ -85,34 +87,54 @@ class Artifact(BaseModel):
 
 
 class ArtifactGenerationConfig(BaseModel):
-    """산출물 생성 설정"""
+    """
+    산출물 생성 설정
+
+    v0.5.0: Dict 기반 타입 설정으로 리팩토링
+    - 10개 boolean 필드 → 1개 Dict 필드
+    - 확장 가능한 구조 (새로운 타입 추가 시 코드 수정 불필요)
+    """
 
     enabled: bool = Field(default=False, description="산출물 생성 활성화")
 
-    # 생성할 산출물 타입 선택
-    generate_project_proposal: bool = Field(
-        default=True, description="프로젝트 기획서 생성"
+    # ✅ v0.5.0: Dict 기반 타입 설정 (10개 bool 필드 통합)
+    # ✅ Single Source: artifact_constants.py에서 import
+    enabled_types: Dict[str, bool] = Field(
+        default_factory=get_default_artifact_types,
+        description="타입별 생성 활성화 설정 (Dict)",
     )
-    generate_requirements_spec: bool = Field(
-        default=True, description="요구사항 명세서 생성"
+
+    # ⚠️ DEPRECATED: Backward compatibility (v0.5.0)
+    # These fields are kept for backward compatibility and will be removed in v0.6.0
+    generate_project_proposal: Optional[bool] = Field(
+        default=None, description="[DEPRECATED] Use enabled_types instead"
     )
-    generate_architecture_design: bool = Field(
-        default=True, description="아키텍처 설계서 생성"
+    generate_requirements_spec: Optional[bool] = Field(
+        default=None, description="[DEPRECATED] Use enabled_types instead"
     )
-    generate_data_design: bool = Field(default=True, description="데이터 설계서 생성")
-    generate_api_design: bool = Field(default=False, description="API 설계서 생성")
-    generate_agent_design: bool = Field(
-        default=True, description="에이전트 설계서 생성"
+    generate_architecture_design: Optional[bool] = Field(
+        default=None, description="[DEPRECATED] Use enabled_types instead"
     )
-    generate_test_plan: bool = Field(default=False, description="테스트 계획서 생성")
-    generate_test_report: bool = Field(
-        default=False, description="테스트 결과 리포트 생성"
+    generate_data_design: Optional[bool] = Field(
+        default=None, description="[DEPRECATED] Use enabled_types instead"
     )
-    generate_code_review: bool = Field(
-        default=False, description="코드 리뷰 리포트 생성"
+    generate_api_design: Optional[bool] = Field(
+        default=None, description="[DEPRECATED] Use enabled_types instead"
     )
-    generate_deployment_guide: bool = Field(
-        default=False, description="배포 가이드 생성"
+    generate_agent_design: Optional[bool] = Field(
+        default=None, description="[DEPRECATED] Use enabled_types instead"
+    )
+    generate_test_plan: Optional[bool] = Field(
+        default=None, description="[DEPRECATED] Use enabled_types instead"
+    )
+    generate_test_report: Optional[bool] = Field(
+        default=None, description="[DEPRECATED] Use enabled_types instead"
+    )
+    generate_code_review: Optional[bool] = Field(
+        default=None, description="[DEPRECATED] Use enabled_types instead"
+    )
+    generate_deployment_guide: Optional[bool] = Field(
+        default=None, description="[DEPRECATED] Use enabled_types instead"
     )
 
     # 포맷 설정
@@ -126,33 +148,68 @@ class ArtifactGenerationConfig(BaseModel):
     include_code_samples: bool = Field(default=True, description="코드 샘플 포함")
     language: str = Field(default="ko", description="언어 (ko/en)")
 
+    def __init__(self, **data):
+        """
+        v0.5.0: Backward compatibility for old boolean fields
+
+        If old fields (generate_*) are provided, merge them into enabled_types.
+        """
+        # Check if any old fields are provided
+        old_field_mapping = {
+            "generate_project_proposal": "project_proposal",
+            "generate_requirements_spec": "requirements_spec",
+            "generate_architecture_design": "architecture_design",
+            "generate_data_design": "data_design",
+            "generate_api_design": "api_design",
+            "generate_agent_design": "agent_design",
+            "generate_test_plan": "test_plan",
+            "generate_test_report": "test_report",
+            "generate_code_review": "code_review",
+            "generate_deployment_guide": "deployment_guide",
+        }
+
+        # If enabled_types not provided, create default
+        # ✅ Single Source: artifact_constants.py에서 import
+        if "enabled_types" not in data:
+            data["enabled_types"] = get_default_artifact_types()
+
+        # Merge old fields into enabled_types
+        for old_field, new_key in old_field_mapping.items():
+            if old_field in data and data[old_field] is not None:
+                data["enabled_types"][new_key] = data[old_field]
+
+        super().__init__(**data)
+
+    def is_enabled(self, artifact_type: ArtifactType) -> bool:
+        """
+        특정 타입이 활성화되었는지 확인
+
+        Args:
+            artifact_type: 확인할 산출물 타입
+
+        Returns:
+            bool: 활성화 여부
+        """
+        if not self.enabled:
+            return False
+
+        type_key = artifact_type.value  # e.g., "project_proposal"
+        return self.enabled_types.get(type_key, False)
+
     def get_enabled_artifact_types(self) -> List[ArtifactType]:
-        """활성화된 산출물 타입 목록 반환"""
+        """
+        활성화된 산출물 타입 목록 반환
+
+        Returns:
+            List[ArtifactType]: 활성화된 타입 목록
+        """
         if not self.enabled:
             return []
 
         enabled_types = []
-
-        if self.generate_project_proposal:
-            enabled_types.append(ArtifactType.PROJECT_PROPOSAL)
-        if self.generate_requirements_spec:
-            enabled_types.append(ArtifactType.REQUIREMENTS_SPEC)
-        if self.generate_architecture_design:
-            enabled_types.append(ArtifactType.ARCHITECTURE_DESIGN)
-        if self.generate_data_design:
-            enabled_types.append(ArtifactType.DATA_DESIGN)
-        if self.generate_api_design:
-            enabled_types.append(ArtifactType.API_DESIGN)
-        if self.generate_agent_design:
-            enabled_types.append(ArtifactType.AGENT_DESIGN)
-        if self.generate_test_plan:
-            enabled_types.append(ArtifactType.TEST_PLAN)
-        if self.generate_test_report:
-            enabled_types.append(ArtifactType.TEST_REPORT)
-        if self.generate_code_review:
-            enabled_types.append(ArtifactType.CODE_REVIEW)
-        if self.generate_deployment_guide:
-            enabled_types.append(ArtifactType.DEPLOYMENT_GUIDE)
+        for artifact_type in ArtifactType:
+            if self.is_enabled(artifact_type):
+                enabled_types.append(artifact_type)
 
         return enabled_types
 

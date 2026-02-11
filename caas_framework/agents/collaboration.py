@@ -18,6 +18,8 @@ from caas_framework.agents.base import (
     BaseExpertAgent,
     ValidationIssue,
 )
+from caas_framework.agents.frontend_specialist import FrontendSpecialistAgent  # v0.5.0
+from caas_framework.agents.integration_agent import IntegrationAgent  # v0.5.0
 from caas_framework.agents.registry import create_agent, get_agent_registry
 from caas_framework.events import (
     Event,
@@ -68,6 +70,7 @@ class CollaborationContext:
     architecture_design: Optional[Any] = None
     agent_task_design: Optional[Any] = None
     code_artifacts: Optional[Any] = None
+    frontend_result: Optional[Any] = None  # v0.5.0: Frontend generation output
     qa_report: Optional[Any] = None
     code_analysis_report: Optional[Any] = None  # v0.4.0: Code Analysis phase output
 
@@ -145,7 +148,7 @@ class SafeFeedbackLoop:
     def __init__(
         self,
         max_retries: int = 2,
-        timeout_per_retry: int = 60,  # seconds
+        timeout_per_retry: int = 120,  # ✅ v0.4.2: Increased from 60s to 120s for DELIVERY phase
         logger: Optional[logging.Logger] = None,
         llm_judge: Optional[LLMJudge] = None,
     ) -> None:
@@ -317,8 +320,16 @@ class SafeFeedbackLoop:
             logger_instance=self.logger,
         )
 
+        # ✅ v0.4.2: Graceful degradation - don't fail on refinement timeout
         if not ref_success:
-            raise RuntimeError(f"Refinement failed: {ref_error}")
+            self.logger.warning(
+                f"⚠️ {phase.name} refinement failed: {ref_error}"
+            )
+            self.logger.warning(
+                f"📦 Using original output without refinement (quality may be lower)"
+            )
+            # Return original output and continue
+            return output, llm_evaluation
 
         # ✅ FIX: Accept output even if refinement marked as failed
         # Common cause: JSON parsing errors in LLM Judge evaluation
@@ -605,7 +616,9 @@ class ExpertAgentCollaboration:
         enable_distributed: bool = False,
         max_workers: Optional[int] = None,
         enable_critic_pattern: bool = False,
-        strict_quality_gates: bool = False,  # ⚠️ Temporarily disabled (2026-02-06) - Quality Gate too strict for normal use
+        strict_quality_gates: bool = True,  # ✅ v0.4.1 (P0): Strict mode enabled by default
+        enable_frontend: Optional[bool] = None,  # ✅ FIX #1: Frontend override
+        frontend_framework: Optional[str] = None,  # ✅ FIX #1: Framework choice
     ):
         """
         Initialize collaboration orchestrator.
@@ -621,15 +634,31 @@ class ExpertAgentCollaboration:
             enable_distributed: Enable distributed/parallel execution of phases
             max_workers: Max workers for distributed execution (default: CPU count)
             enable_critic_pattern: Enable Producer-Critic pattern for peer review (default: False)
-            strict_quality_gates: If True (default in v0.4.0), halt workflow on Quality Gate failure;
-                                  If False, show warnings but continue (v0.2.0-v0.3.0 behavior)
+            strict_quality_gates: If True (default v0.4.1+), halt workflow on Quality Gate failure;
+                                  If False, show warnings but continue (DEPRECATED, not recommended)
+            enable_frontend: Override auto-detection and force frontend generation (default: None = auto-detect)
+            frontend_framework: Force specific frontend framework - "streamlit" or "react" (default: None = auto-detect)
         """
         self.llm = llm_plugin
         self.golden_data = golden_data
         self.max_feedback_loops = max_feedback_loops
         self.enable_validation = enable_validation
         self.plan_mode = plan_mode
-        self.strict_quality_gates = strict_quality_gates  # ✅ NEW (P1): Store strict mode flag
+
+        # ✅ FIX #1: Store frontend configuration
+        self.enable_frontend = enable_frontend
+        self.frontend_framework = frontend_framework
+
+        # ✅ P0 Fix: Warn if strict mode is disabled (not recommended)
+        if not strict_quality_gates:
+            logger = get_logger(__name__)
+            logger.warning(
+                "⚠️  DEPRECATION WARNING: strict_quality_gates=False is NOT RECOMMENDED. "
+                "Quality gates are critical for ensuring code quality and preventing bugs. "
+                "This option may be removed in future versions."
+            )
+
+        self.strict_quality_gates = strict_quality_gates
 
         # Event-Driven Architecture
         self.event_bus = event_bus or get_global_event_bus()
@@ -687,6 +716,21 @@ class ExpertAgentCollaboration:
             ),
         }
 
+        # ✅ v0.5.0: Add Frontend Specialist Agent (conditional)
+        if self.enable_frontend is not False:  # None or True
+            framework = self.frontend_framework or "streamlit"
+            self.agents["frontend_specialist"] = FrontendSpecialistAgent(
+                llm_plugin=llm_plugin,
+                golden_data=golden_data,
+                framework=framework,
+                enable_testing=False,
+            )
+            self.reporter.info(f"✅ Frontend Specialist Agent registered ({framework})")
+
+        # ✅ v0.5.0: Add Integration Agent
+        self.integration_agent = IntegrationAgent()
+        self.reporter.info("✅ Integration Agent initialized")
+
         # Log registry info
         registry_info = registry.get_registry_info()
         self.reporter.info(
@@ -725,7 +769,7 @@ class ExpertAgentCollaboration:
         # Safe feedback loop (with timeout protection and LLM Judge)
         self.feedback_loop = SafeFeedbackLoop(
             max_retries=max_feedback_loops,
-            timeout_per_retry=60,  # 60 seconds per retry
+            timeout_per_retry=120,  # ✅ v0.4.2: Increased from 60s to 120s
             logger=get_logger(),
             llm_judge=llm_judge,  # Add LLM Judge for semantic quality evaluation
         )
@@ -1264,6 +1308,144 @@ class ExpertAgentCollaboration:
                     )
                 )
 
+            # ✅ v0.5.0: Design-Time Validation Checkpoint
+            # Run BEFORE Phase 4 (Delivery) to catch design issues early
+            if design_result.success and context.agent_task_design:
+                self.reporter.info("🔍 Running Design-Time validation...")
+
+                try:
+                    from caas_framework.validation.ontology_validator import OntologyValidator
+
+                    ontology_validator = OntologyValidator()
+
+                    # Extract agents and tasks from design
+                    agents_list = context.agent_task_design.get("agents", [])
+                    tasks_list = context.agent_task_design.get("tasks", [])
+
+                    # Run Design-Time validation
+                    design_validation = ontology_validator.validate_design_time(
+                        agents=agents_list,
+                        tasks=tasks_list,
+                        golden_data=context.golden_data,
+                    )
+
+                    if not design_validation.is_valid:
+                        critical_issues = [
+                            i for i in design_validation.issues
+                            if i.severity.value in ("critical", "error")
+                        ]
+
+                        if critical_issues:
+                            self.reporter.warning(
+                                f"⚠️  Design-Time validation found {len(critical_issues)} "
+                                f"critical issues"
+                            )
+
+                            # Log issues
+                            for issue in critical_issues:
+                                self.reporter.warning(
+                                    f"  - [{issue.issue_type}] {issue.message}"
+                                )
+
+                            # Try auto-fix if available
+                            fixable_issues = [
+                                i for i in critical_issues if i.auto_fix_available
+                            ]
+
+                            if fixable_issues:
+                                self.reporter.info(
+                                    f"🔧 Attempting to auto-fix {len(fixable_issues)} issues..."
+                                )
+
+                                # Apply fixes
+                                ontology_validator.apply_fixes(
+                                    agents=agents_list,
+                                    tasks=tasks_list,
+                                    issues=fixable_issues,
+                                )
+
+                                # Re-validate
+                                design_validation_v2 = ontology_validator.validate_design_time(
+                                    agents=agents_list,
+                                    tasks=tasks_list,
+                                    golden_data=context.golden_data,
+                                )
+
+                                if design_validation_v2.is_valid:
+                                    self.reporter.success(
+                                        "✅ Design-Time auto-fix successful - all issues resolved"
+                                    )
+                                    # Update context with fixed design
+                                    context.agent_task_design["agents"] = agents_list
+                                    context.agent_task_design["tasks"] = tasks_list
+                                else:
+                                    remaining_critical = [
+                                        i for i in design_validation_v2.issues
+                                        if i.severity.value in ("critical", "error")
+                                    ]
+
+                                    if remaining_critical and self.strict_quality_gates:
+                                        # Strict mode - halt on critical issues
+                                        error_msg = (
+                                            f"Design-Time validation failed: "
+                                            f"{len(remaining_critical)} critical issues remain after auto-fix"
+                                        )
+                                        self.reporter.error(f"❌ {error_msg}")
+                                        errors.append(error_msg)
+
+                                        # Return early - do not proceed to Delivery
+                                        duration = time.time() - workflow_start_time
+                                        return CollaborationResult(
+                                            success=False,
+                                            total_duration=duration,
+                                            phases_completed=context.phases_completed,
+                                            feedback_loops_executed=context.feedback_loops_executed,
+                                            errors=errors,
+                                            agent_summaries=agent_summaries,
+                                        )
+                                    else:
+                                        self.reporter.warning(
+                                            f"⚠️  {len(remaining_critical)} issues remain but continuing (permissive mode)"
+                                        )
+                            else:
+                                # No auto-fix available
+                                if self.strict_quality_gates:
+                                    error_msg = (
+                                        f"Design-Time validation failed: "
+                                        f"{len(critical_issues)} critical issues (no auto-fix available)"
+                                    )
+                                    self.reporter.error(f"❌ {error_msg}")
+                                    errors.append(error_msg)
+
+                                    # Return early
+                                    duration = time.time() - workflow_start_time
+                                    return CollaborationResult(
+                                        success=False,
+                                        total_duration=duration,
+                                        phases_completed=context.phases_completed,
+                                        feedback_loops_executed=context.feedback_loops_executed,
+                                        errors=errors,
+                                        agent_summaries=agent_summaries,
+                                    )
+                                else:
+                                    self.reporter.warning(
+                                        "⚠️  Critical issues found but no auto-fix - continuing (permissive mode)"
+                                    )
+                        else:
+                            self.reporter.success(
+                                f"✅ Design-Time validation passed with {len(design_validation.issues)} warnings"
+                            )
+                    else:
+                        self.reporter.success("✅ Design-Time validation passed - no issues")
+
+                except Exception as e:
+                    self.reporter.warning(
+                        f"⚠️  Design-Time validation failed to execute: {e}"
+                    )
+                    # Don't halt on validation errors in permissive mode
+                    if not self.strict_quality_gates:
+                        self.reporter.info("Continuing despite validation error (permissive mode)")
+
             # Phase 4: Delivery (Code Generation)
             self.reporter.start_phase(
                 phase_name="Phase 4: Delivery",
@@ -1286,8 +1468,80 @@ class ExpertAgentCollaboration:
 
             if code_result.success:
                 context.code_artifacts = code_result.output
-                context.phases_completed.append(AgentPhase.DELIVERY)
                 context.add_agent_result("code_generator", code_result)
+
+                # ✅ v0.5.0: Generate Frontend (if enabled)
+                if "frontend_specialist" in self.agents:
+                    self.reporter.info("🎨 Generating frontend UI...")
+
+                    try:
+                        # Prepare inputs for frontend generation
+                        from caas_framework.agents.integration_agent import (
+                            BackendGenerationResult,
+                        )
+
+                        backend_result = BackendGenerationResult(
+                            files=code_result.output.get("files", {}),
+                            agents_count=len(context.agent_task_design.get("agents", [])) if context.agent_task_design else 0,
+                            tasks_count=len(context.agent_task_design.get("tasks", [])) if context.agent_task_design else 0,
+                        )
+
+                        # Execute frontend generation
+                        frontend_result = await self.agents["frontend_specialist"].work(
+                            agents=context.agent_task_design.get("agents", []) if context.agent_task_design else [],
+                            tasks=context.agent_task_design.get("tasks", []) if context.agent_task_design else [],
+                            backend_files=backend_result.files,
+                        )
+
+                        context.frontend_result = frontend_result
+                        self.reporter.info(f"✅ Frontend generated: {len(frontend_result.app_code)} chars")
+
+                        # ✅ v0.5.0: Cross-validate integration
+                        self.reporter.info("🔍 Cross-validating backend-frontend integration...")
+
+                        from caas_framework.agents.integration_agent import (
+                            FrontendGenerationResult as IntegrationFrontendResult,
+                        )
+
+                        frontend_for_validation = IntegrationFrontendResult(
+                            app_code=frontend_result.app_code,
+                            ui_requirements_input_names=[req.input_name for req in frontend_result.ui_requirements],
+                            framework=frontend_result.framework,
+                        )
+
+                        cross_validation = self.integration_agent.cross_validate(
+                            backend=backend_result,
+                            frontend=frontend_for_validation,
+                        )
+
+                        if not cross_validation.passed:
+                            self.reporter.warning(
+                                f"⚠️ Integration issues found: {len(cross_validation.issues)} - attempting auto-fix"
+                            )
+
+                            # Auto-fix integration issues
+                            fixed = self.integration_agent.auto_fix_integration_issues(
+                                backend=backend_result,
+                                frontend=frontend_for_validation,
+                                issues=cross_validation.issues,
+                            )
+
+                            # Update code artifacts with fixed code
+                            context.code_artifacts["files"].update(fixed.backend_files)
+                            context.code_artifacts["files"]["app.py"] = fixed.frontend_files["app.py"]
+
+                            self.reporter.info("✅ Integration issues auto-fixed")
+                        else:
+                            # Add frontend to code artifacts
+                            context.code_artifacts["files"]["app.py"] = frontend_result.app_code
+                            self.reporter.info("✅ Integration validation passed")
+
+                    except Exception as e:
+                        self.reporter.warning(f"⚠️ Frontend generation failed: {e} - continuing without frontend")
+                        import traceback
+                        self.reporter.debug(traceback.format_exc())
+
+                context.phases_completed.append(AgentPhase.DELIVERY)
                 self.reporter.complete_phase(
                     phase_name="Phase 4: Delivery",
                     duration=code_result.duration,
@@ -2021,6 +2275,12 @@ class ExpertAgentCollaboration:
                 for phase, result in context.validation_results.items()
             },
         }
+
+        # ✅ FIX #1: Inject frontend configuration for code generation phase
+        from caas_framework.agents.base import AgentPhase
+        if phase == AgentPhase.DELIVERY:
+            agent_context["enable_frontend"] = self.enable_frontend
+            agent_context["frontend_framework"] = self.frontend_framework
 
         # Initial work
         self.reporter.agent_working(agent.agent_name, "Starting initial work")

@@ -179,7 +179,22 @@
 | Agent | 할당된 Tasks | 우선순위 |
 |-------|-------------|----------|
 {% for agent in agents %}
-| {{ agent.role or agent.id }} | {% if agent.assigned_tasks %}{{ agent.assigned_tasks | join(", ") }}{% else %}TBD{% endif %} | {{ agent.priority or "중" }} |
+| {{ agent.role or agent.id }} | {% set agent_tasks = [] %}{% for task in tasks %}{% if task.agent == agent.id or task.agent_id == agent.id %}{% set _ = agent_tasks.append(task.name or task.id) %}{% endif %}{% endfor %}{% if agent_tasks|length > 0 %}{{ agent_tasks | join(", ") }}{% elif agent.assigned_tasks %}{{ agent.assigned_tasks | join(", ") }}{% else %}{{ (tasks | selectattr('agent', 'equalto', agent.id) | list | length) or 0 }}개 태스크{% endif %} | {{ agent.priority or "중" }} |
+{% endfor %}
+
+**매핑 상세**:
+{% for agent in agents %}
+- **{{ agent.role }}**:
+{% set agent_tasks = [] %}
+{% for task in tasks %}
+{% if task.agent == agent.id or task.agent_id == agent.id %}
+  - `{{ task.id }}`: {{ task.description[:80] }}...
+{% set _ = agent_tasks.append(task.name or task.id) %}
+{% endif %}
+{% endfor %}
+{% if agent_tasks|length == 0 %}
+  - (태스크 할당 예정)
+{% endif %}
 {% endfor %}
 
 {% endif %}
@@ -188,7 +203,7 @@
 
 ## 5. Workflow 다이어그램
 
-{% if include_diagrams %}
+{% if include_diagrams or (tasks and tasks|length > 0) %}
 
 ```mermaid
 graph TD

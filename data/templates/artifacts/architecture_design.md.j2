@@ -76,13 +76,53 @@ CrewAI 기반 Multi-Agent 시스템으로 설계됩니다.
 **타입**: {{ component.type or "Service" }}
 
 **역할**:
-{{ component.description or component.role or "컴포넌트 역할 설명" }}
+{% if component.description %}
+{{ component.description }}
+{% elif component.role %}
+{{ component.role }}
+{% elif golden_data and golden_data.features %}
+{# ✅ FIX #2: Try to match component to a feature for better description #}
+{% set component_name_lower = (component.name or component)|string|lower %}
+{% set matched_feature = None %}
+{% for feature in golden_data.features %}
+{% set feature_name_lower = feature.name|lower if feature.name else "" %}
+{% if component_name_lower in feature_name_lower or feature_name_lower in component_name_lower %}
+{% set matched_feature = feature %}
+{% endif %}
+{% endfor %}
+{% if matched_feature %}
+{{ matched_feature.description }}
+{% else %}
+{{ component.name or component }}의 핵심 기능을 담당하는 컴포넌트
+{% endif %}
+{% else %}
+{{ component.name or component }}의 핵심 기능을 담당하는 컴포넌트
+{% endif %}
 
 **책임**:
 {% if component.responsibilities %}
 {% for resp in component.responsibilities %}
 - {{ resp }}
 {% endfor %}
+{% elif golden_data and golden_data.features %}
+{# ✅ FIX #2: Use matched feature's acceptance criteria as responsibilities #}
+{% set component_name_lower = (component.name or component)|string|lower %}
+{% set matched_feature = None %}
+{% for feature in golden_data.features %}
+{% set feature_name_lower = feature.name|lower if feature.name else "" %}
+{% if component_name_lower in feature_name_lower or feature_name_lower in component_name_lower %}
+{% set matched_feature = feature %}
+{% endif %}
+{% endfor %}
+{% if matched_feature and matched_feature.acceptance_criteria %}
+{% for criteria in matched_feature.acceptance_criteria %}
+- {{ criteria }}
+{% endfor %}
+{% else %}
+- {{ component.name or component }} 기능 처리
+- 데이터 검증 및 변환
+- 에러 핸들링
+{% endif %}
 {% else %}
 - 담당 기능 처리
 - 데이터 검증 및 변환
@@ -92,8 +132,29 @@ CrewAI 기반 Multi-Agent 시스템으로 설계됩니다.
 **인터페이스**:
 {% if component.interfaces %}
 {% for interface in component.interfaces %}
-- `{{ interface.name or interface }}`: {{ interface.description or "인터페이스 설명" }}
+- `{{ interface.name or interface }}`: {{ interface.description or (interface.name or interface) + " 인터페이스" }}
 {% endfor %}
+{% elif golden_data and golden_data.ui_components %}
+{# ✅ FIX #2: Try to find matching UI component for interface info #}
+{% set component_name_lower = (component.name or component)|string|lower %}
+{% set matched_ui = None %}
+{% for ui_comp in golden_data.ui_components %}
+{% set ui_name_lower = ui_comp.name|lower if ui_comp.name else "" %}
+{% if component_name_lower in ui_name_lower or ui_name_lower in component_name_lower %}
+{% set matched_ui = ui_comp %}
+{% endif %}
+{% endfor %}
+{% if matched_ui %}
+{% if matched_ui.inputs %}
+- 입력: {{ matched_ui.inputs|join(", ") }}
+{% endif %}
+{% if matched_ui.outputs %}
+- 출력: {{ matched_ui.outputs|join(", ") }}
+{% endif %}
+{% else %}
+- 입력: 요청 데이터
+- 출력: 처리 결과
+{% endif %}
 {% else %}
 - 입력: 요청 데이터
 - 출력: 처리 결과
@@ -111,6 +172,61 @@ CrewAI 기반 Multi-Agent 시스템으로 설계됩니다.
 ---
 
 {% endfor %}
+{% elif agents and agents|length > 0 %}
+{% for agent in agents %}
+
+### 3.{{ loop.index }} {{ agent.role }} 컴포넌트
+
+**타입**: Agent Service
+
+**역할**:
+{{ agent.goal }}
+
+**책임**:
+- {{ agent.role }}로서 전문적인 작업 수행
+{% if agent.tools and agent.tools|length > 0 %}
+- 도구 활용: {% for tool in agent.tools[:3] %}{{ tool }}{% if not loop.last %}, {% endif %}{% endfor %}
+{% endif %}
+- 태스크 결과 생성 및 전달
+
+**인터페이스**:
+- 입력: CrewAI Task 객체
+- 출력: Task 실행 결과
+- 통신: Agent 간 Context 공유
+
+**의존성**:
+{% if agent.tools and agent.tools|length > 0 %}
+{% for tool in agent.tools %}
+- {{ tool }}
+{% endfor %}
+{% else %}
+- CrewAI Framework
+- LLM Provider (OpenAI/Anthropic)
+{% endif %}
+
+---
+
+{% endfor %}
+
+### 3.{{ agents|length + 1 }} Orchestration Layer
+
+**타입**: Coordination Service
+
+**역할**:
+전체 Agent 워크플로우 조정 및 실행 관리
+
+**책임**:
+- Agent 간 태스크 의존성 관리
+- 실행 순서 제어
+- 결과 집계 및 반환
+
+**인터페이스**:
+- 입력: User Request
+- 출력: Final Result
+- API: RESTful or CLI
+
+---
+
 {% else %}
 
 ### 3.1 Agent Layer

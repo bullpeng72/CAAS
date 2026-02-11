@@ -186,7 +186,7 @@ class PerformanceProfiler:
             stats.items(), key=lambda x: x[1]["total_time_ms"], reverse=True
         )
 
-        print(
+        logger.info(
             f"\n{'Operation':<40} {'Count':>8} {'Total (ms)':>12} {'Avg (ms)':>12} {'Success Rate':>12}"
         )
         logger.info("-" * 80)
@@ -198,7 +198,7 @@ class PerformanceProfiler:
                 (s["success_count"] / s["count"] * 100) if s["count"] > 0 else 0
             )
 
-            print(
+            logger.info(
                 f"{name:<40} {s['count']:>8} "
                 f"{s['total_time_ms']:>12.2f} {s['avg_time_ms']:>12.2f} "
                 f"{success_rate:>11.1f}%"
@@ -344,10 +344,10 @@ class BottleneckAnalyzer:
 
         for i, b in enumerate(bottlenecks, 1):
             logger.info(f"\n🔴 Bottleneck #{i}: {b['operation']}")
-            print(
+            logger.info(
                 f"   Time: {b['total_time_ms']:.2f}ms ({b['percentage_of_total']:.1f}% of total)"
             )
-            print(
+            logger.info(
                 f"   Calls: {b['call_count']} (avg: {b['avg_time_ms']:.2f}ms per call)"
             )
             logger.info("   Recommendations:")

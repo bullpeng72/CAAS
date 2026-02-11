@@ -95,64 +95,67 @@ class RequirementAnalystAgent(BaseExpertAgent):
 
     def _build_analysis_prompt(self, requirement: str, context: str) -> str:
         """Build LLM prompt for requirement analysis."""
+        # ✅ v0.5.0: 한국어 출력 강제 (P0 수정)
         # Use base class template method with custom output format
         output_format = {
             "functional_requirements": [
                 {
                     "id": "FR1",
-                    "description": "functional requirement description",
-                    "priority": "high|medium|low",
-                    "source": "derived from which feature or requirement",
-                    "acceptance_criteria": ["criterion 1", "criterion 2"],
+                    "description": "기능 요구사항 상세 설명",
+                    "priority": "high|medium|low (높음|중간|낮음)",
+                    "source": "어떤 기능이나 요구사항에서 도출되었는지",
+                    "acceptance_criteria": ["수용 기준 1", "수용 기준 2"],
                 }
             ],
             "non_functional_requirements": {
-                "performance": ["requirement 1", "requirement 2"],
-                "security": ["requirement 1", "requirement 2"],
-                "scalability": ["requirement 1", "requirement 2"],
-                "usability": ["requirement 1", "requirement 2"],
-                "reliability": ["requirement 1", "requirement 2"],
+                "performance": ["성능 요구사항 1", "성능 요구사항 2"],
+                "security": ["보안 요구사항 1", "보안 요구사항 2"],
+                "scalability": ["확장성 요구사항 1", "확장성 요구사항 2"],
+                "usability": ["사용성 요구사항 1", "사용성 요구사항 2"],
+                "reliability": ["신뢰성 요구사항 1", "신뢰성 요구사항 2"],
             },
             "success_criteria": [
-                "Measurable success criterion 1",
-                "Measurable success criterion 2",
+                "측정 가능한 성공 기준 1",
+                "측정 가능한 성공 기준 2",
             ],
-            "constraints": ["Technical constraint 1", "Business constraint 2"],
+            "constraints": ["기술적 제약사항 1", "비즈니스 제약사항 2"],
             "risks": [
                 {
-                    "risk": "risk description",
-                    "impact": "high|medium|low",
-                    "mitigation": "mitigation strategy",
+                    "risk": "위험 설명",
+                    "impact": "high|medium|low (높음|중간|낮음)",
+                    "mitigation": "완화 전략",
                 }
             ],
-            "assumptions": ["Assumption 1", "Assumption 2"],
-            "dependencies": ["External dependency 1", "External dependency 2"],
+            "assumptions": ["가정사항 1", "가정사항 2"],
+            "dependencies": ["외부 의존성 1", "외부 의존성 2"],
             "boundaries": {
                 "always_allowed": [
-                    "Read files in project directory",
-                    "Write to project directory",
-                    "Install packages from requirements.txt",
+                    "프로젝트 디렉토리의 파일 읽기",
+                    "프로젝트 디렉토리에 쓰기",
+                    "requirements.txt에서 패키지 설치",
                 ],
                 "ask_first": [
-                    "Make API calls to external services",
-                    "Modify system configuration",
-                    "Delete files or directories",
+                    "외부 서비스에 API 호출",
+                    "시스템 설정 변경",
+                    "파일이나 디렉토리 삭제",
                 ],
                 "never_allowed": [
-                    "Execute shell commands with sudo",
-                    "Modify files outside project directory",
-                    "Disable security features",
+                    "sudo로 셸 명령 실행",
+                    "프로젝트 외부 파일 수정",
+                    "보안 기능 비활성화",
                 ],
             },
         }
 
         guidelines = [
-            "Be thorough and align with Golden Data features when provided",
-            "Ensure all functional requirements have clear acceptance criteria",
-            "Identify both technical and business constraints",
-            "CRITICAL: Define security boundaries based on the requirement's needs",
-            "Always set 'never_allowed' to prevent dangerous operations",
-            "Use 'ask_first' for operations that could be risky or costly",
+            "**중요: 모든 텍스트 값(description, acceptance_criteria, risk, mitigation 등)을 한국어로 작성하세요**",
+            "JSON 키(key)는 영어로 유지하되, 값(value)은 반드시 한국어로 작성하세요",
+            "Golden Data의 기능들과 철저히 정렬하세요",
+            "모든 기능 요구사항에 명확한 수용 기준을 포함하세요",
+            "기술적 제약사항과 비즈니스 제약사항을 모두 식별하세요",
+            "중요: 요구사항의 필요에 따라 보안 경계를 정의하세요",
+            "위험한 작업을 방지하기 위해 'never_allowed'를 항상 설정하세요",
+            "위험하거나 비용이 많이 드는 작업에는 'ask_first'를 사용하세요",
         ]
 
         # Use standardized template method from base class
