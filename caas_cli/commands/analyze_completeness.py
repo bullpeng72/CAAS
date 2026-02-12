@@ -110,9 +110,9 @@ def analyze_completeness(project, golden_data, output, detailed):
     • Re-run analysis to verify improvements
     """
     from caas_framework.agents.code_analysis_agent import CodeAnalysisAgent
-    from caas_framework.config.settings import load_config
+    from caas_framework.config.loader import load_config
     from caas_framework.models.specifications import ConcretizedRequirement
-    from caas_framework.plugins.factory import create_llm_plugin
+    from caas_framework.plugins.llm.factory import create_llm_plugin
 
     echo_progress("Initializing Code Analysis Agent...")
 

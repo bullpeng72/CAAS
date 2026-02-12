@@ -124,8 +124,8 @@ def fix_runtime_error(project, error_log, apply, backup, output):
     • Re-run 'caas validate' to ensure correctness
     """
     from caas_framework.agents.code_analysis_agent import CodeAnalysisAgent
-    from caas_framework.config.settings import load_config
-    from caas_framework.plugins.factory import create_llm_plugin
+    from caas_framework.config.loader import load_config
+    from caas_framework.plugins.llm.factory import create_llm_plugin
 
     echo_progress("Initializing Code Analysis Agent...")
 
