@@ -46,6 +46,7 @@ def generate_fallback_tools_code(
     fallback_warning: bool = False,
     include_helper_functions: bool = True,
     return_type: str = "str",  # "str" or "dict"
+    language: str = "ko",  # ✅ v0.5.1: Language for docstrings/comments ("ko" or "en")
 ) -> str:
     """
     Generate fallback tools.py code with stub implementations.
@@ -119,14 +120,30 @@ def generate_fallback_tools_code(
     # 1. Module docstring
     if include_header:
         if fallback_warning:
-            header = '''"""
+            if language == "ko":
+                header = '''"""
+커스텀 도구
+
+CrewAI 커스텀 도구 구현.
+⚠️  LLM 생성 실패로 fallback 사용
+"""'''
+            else:
+                header = '''"""
 Custom Tools
 
 CrewAI custom tool implementations.
 ⚠️  Generated using fallback (LLM generation failed)
 """'''
         else:
-            header = '''"""
+            if language == "ko":
+                header = '''"""
+CrewAI 에이전트용 커스텀 도구
+
+이 파일은 멀티 에이전트 시스템을 위한 도구 구현을 포함합니다.
+각 도구는 에이전트에게 특정 기능을 제공합니다.
+"""'''
+            else:
+                header = '''"""
 Custom Tools for CrewAI Agents
 
 This file contains tool implementations for the multi-agent system.
@@ -152,7 +169,17 @@ from pydantic import BaseModel, Field
     for class_name, original_name in sorted(sanitized_tools.items()):
         # Tool docstring
         if fallback_warning:
-            tool_doc = f'''
+            if language == "ko":
+                tool_doc = f'''
+class {class_name}(BaseTool):
+    """
+    {original_name} 도구 구현.
+
+    TODO: 이 도구의 실제 로직을 구현하세요.
+    이것은 LLM 생성 실패 시 생성된 fallback stub입니다.
+    """'''
+            else:
+                tool_doc = f'''
 class {class_name}(BaseTool):
     """
     {original_name} tool implementation.
@@ -161,7 +188,16 @@ class {class_name}(BaseTool):
     This is a fallback stub generated when LLM generation failed.
     """'''
         else:
-            tool_doc = f'''
+            if language == "ko":
+                tool_doc = f'''
+class {class_name}(BaseTool):
+    """
+    {original_name.replace('_', ' ').title()} 도구
+
+    에이전트에게 {original_name.replace('_', ' ')} 기능을 제공합니다.
+    """'''
+            else:
+                tool_doc = f'''
 class {class_name}(BaseTool):
     """
     {original_name.replace('_', ' ').title()} Tool
@@ -194,7 +230,28 @@ class {class_name}(BaseTool):
 '''
         else:  # return_type == "str"
             # String return style (CodeGeneratorAgent)
-            tool_impl = f'''
+            if language == "ko":
+                tool_impl = f'''
+    name: str = "{original_name}"
+    description: str = "{original_name.replace('_', ' ')} 작업을 위한 도구"
+
+    def _run(self, query: str) -> str:
+        """
+        도구를 실행합니다.
+
+        Args:
+            query: 도구에 전달할 입력 쿼리 또는 파라미터
+
+        Returns:
+            도구 실행 결과
+        """
+        # TODO: 여기에 실제 {original_name} 로직을 구현하세요
+        # 이것은 stub 구현입니다
+
+        return f"{{self.name}} 실행됨 (쿼리: {{query}})"
+'''
+            else:
+                tool_impl = f'''
     name: str = "{original_name}"
     description: str = "Tool for {original_name.replace('_', ' ')} operations"
 
@@ -222,7 +279,20 @@ class {class_name}(BaseTool):
         tool_classes = sorted(sanitized_tools.keys())
         tool_list_str = ",\n        ".join(f"{cls}()" for cls in tool_classes)
 
-        helper_code = f'''
+        if language == "ko":
+            helper_code = f'''
+# 모든 도구 내보내기
+def get_all_tools():
+    """사용 가능한 모든 도구 인스턴스 리스트를 반환합니다."""
+    return [
+        {tool_list_str}
+    ]
+
+
+# 개별 도구 인스턴스 (쉬운 import를 위함)
+'''
+        else:
+            helper_code = f'''
 # Export all tools
 def get_all_tools():
     """Get list of all available tool instances."""

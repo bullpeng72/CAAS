@@ -215,12 +215,38 @@ class AgentDesignerAgent(BaseExpertAgent):
 
         prompt_parts.append("당신은 CrewAI 멀티 에이전트 시스템 설계 전문가입니다.")
         prompt_parts.append("")
+        prompt_parts.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        prompt_parts.append("🚨 CRITICAL: 한국어 출력 필수 요구사항")
+        prompt_parts.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        prompt_parts.append("")
         prompt_parts.append(
-            "**중요: 모든 텍스트 값(role, goal, backstory, description, expected_output 등)을 한국어로 작성하세요.**"
+            "**MANDATORY: 모든 텍스트 값(role, goal, backstory, description, expected_output)을 한국어로 작성하세요.**"
+        )
+        prompt_parts.append("")
+        prompt_parts.append("✅ 특별 규칙:")
+        prompt_parts.append(
+            "1. Agent의 goal은 반드시 '한국어로 작성/출력/생성'을 명시해야 합니다"
         )
         prompt_parts.append(
-            "JSON 키(key)는 영어로 유지하되, 값(value)은 반드시 한국어로 작성하세요."
+            "   예: '인터넷에서 자료를 검색하고 한국어로 요약 보고서를 작성합니다'"
         )
+        prompt_parts.append(
+            "2. Task의 expected_output은 반드시 '한국어로 작성된...'으로 시작해야 합니다"
+        )
+        prompt_parts.append(
+            "   예: '한국어로 작성된 검색 결과 요약 보고서 (마크다운 형식)'"
+        )
+        prompt_parts.append(
+            "3. JSON 키(key)는 영어로 유지, 값(value)은 반드시 한국어로"
+        )
+        prompt_parts.append("")
+        prompt_parts.append("❌ 잘못된 예시:")
+        prompt_parts.append("  goal: 'Search the internet and create a summary report' ❌")
+        prompt_parts.append("  expected_output: 'Summary report in markdown format' ❌")
+        prompt_parts.append("")
+        prompt_parts.append("✅ 올바른 예시:")
+        prompt_parts.append("  goal: '인터넷에서 자료를 검색하고 한국어로 요약 보고서를 작성합니다' ✅")
+        prompt_parts.append("  expected_output: '한국어로 작성된 요약 보고서 (마크다운 형식)' ✅")
         prompt_parts.append("")
         prompt_parts.append("## 요구사항")
         prompt_parts.append(f"{requirement}")
@@ -364,10 +390,18 @@ class AgentDesignerAgent(BaseExpertAgent):
             "- 예: '키워드를 입력받고 검증' → '키워드의 유효성을 검증' (입력은 crew.kickoff로 전달)"
         )
         prompt_parts.append("")
+        prompt_parts.append("## 최종 체크리스트")
         prompt_parts.append(
-            "- **모든 role, goal, backstory, description, expected_output 값을 한국어로 작성하세요**"
+            "- 🔴 모든 role, goal, backstory, description, expected_output 값이 한국어인가?"
         )
-        prompt_parts.append("- 오직 유효한 JSON만 반환하세요")
+        prompt_parts.append(
+            "- 🔴 Agent의 goal에 '한국어로 작성/출력/생성'이 명시되어 있는가?"
+        )
+        prompt_parts.append(
+            "- 🔴 Task의 expected_output이 '한국어로 작성된...'으로 시작하는가?"
+        )
+        prompt_parts.append("- ✅ JSON 형식이 올바른가?")
+        prompt_parts.append("- ✅ 오직 유효한 JSON만 반환하세요 (설명 없이)")
 
         return "\n".join(prompt_parts)
 

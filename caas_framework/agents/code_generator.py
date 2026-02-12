@@ -427,13 +427,49 @@ class CodeGeneratorAgent(BaseExpertAgent):
         tasks_data = ObjectAccessor.to_dict_list(tasks)
 
         # ✅ FIX #1: Build task description with frontend requirements
-        # ✅ v0.5.0: 한국어 주석/docstring 강제 (P0 수정)
+        # ✅ v0.5.1: 한국어 주석/docstring 강제 (P0 수정 - 강화)
         task_description = """당신은 완전한 CrewAI 애플리케이션을 생성하는 전문 Python 개발자입니다.
 
-**중요: 모든 주석(comments)과 docstring을 한국어로 작성하세요.**
-- 함수/클래스의 docstring은 한국어로
-- 코드 내 주석(# ...)은 한국어로
-- 변수명, 함수명은 영어 snake_case 유지
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚨 CRITICAL REQUIREMENT #1: 한국어 주석/Docstring 필수 🚨
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+**MANDATORY: 모든 주석(comments)과 docstring을 반드시 한국어로 작성하세요!**
+
+✅ 반드시 따라야 할 규칙:
+- 함수/클래스의 docstring: 한국어로 (예: '''이 함수는...''')
+- 코드 내 모든 주석: 한국어로 (예: # 사용자 입력을 검증합니다)
+- README.md 내용: 한국어로
+- 변수명, 함수명, 클래스명: 영어 snake_case/PascalCase 유지
+
+❌ 절대 금지:
+- 영어 docstring (예: '''This function...''') ❌
+- 영어 주석 (예: # Validate user input) ❌
+- 영어 README ❌
+
+📝 올바른 예시:
+```python
+def process_keyword(keyword: str) -> dict:
+    '''
+    키워드를 처리하고 결과를 반환합니다.
+
+    Args:
+        keyword: 처리할 키워드 문자열
+
+    Returns:
+        처리 결과를 담은 딕셔너리
+    '''
+    # 키워드가 비어있는지 확인
+    if not keyword:
+        raise ValueError("키워드가 비어있습니다")
+
+    # 키워드를 소문자로 변환
+    normalized = keyword.lower()
+
+    return {"keyword": normalized, "status": "success"}
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 핵심 요구사항: CrewAI 프레임워크를 반드시 사용해야 합니다.
 - 항상 'from crewai import Crew, Agent, Task, Process' 사용
@@ -739,9 +775,10 @@ FRONTEND UI REQUIREMENT:
         )
 
         # ✅ v0.4.2 (P0-1): Enhanced guidelines with frontend checklist
-        # ✅ v0.5.0: 한국어 주석/docstring 강제 (P0 수정)
+        # ✅ v0.5.1: 한국어 주석/docstring 강제 (P0 수정 - 강화)
         guidelines = [
-            "**중요: 모든 주석(comments)과 docstring을 한국어로 작성하세요**",
+            "🚨 CRITICAL #1: 모든 주석(comments)과 docstring을 반드시 한국어로 작성 (영어 절대 금지)",
+            "🚨 CRITICAL #2: README.md 내용도 한국어로 작성 (영어 설명 금지)",
             "변수명, 함수명, 클래스명은 영어 snake_case/PascalCase 유지",
             "MANDATORY: CrewAI 프레임워크 사용 - from crewai import Crew, Agent, Task",
             "MANDATORY: agents.py는 crewai.Agent를 사용하여 Agent 객체 정의",
@@ -755,10 +792,11 @@ FRONTEND UI REQUIREMENT:
             "requirements.txt에 crewai와 기타 의존성 추가",
             "에러 핸들링과 로깅 추가",
             "Python 모범 사례와 PEP 8 준수",
-            "명확한 주석과 docstring 포함 (한국어로)",
-            "설정 및 사용법이 포함된 README 생성",
+            "명확한 주석과 docstring 포함 (반드시 한국어로! 영어 주석 절대 금지!)",
+            "설정 및 사용법이 포함된 README 생성 (반드시 한국어로!)",
             "민감한 데이터는 환경변수 사용 (OPENAI_API_KEY 등)",
             "모듈화되고 유지보수 가능한 코드 작성",
+            "🔴 최종 확인: 모든 주석/docstring/README가 한국어인지 재확인!",
         ]
 
         # ✅ v0.4.2 (P0-1): Add frontend-specific guidelines
@@ -1410,6 +1448,7 @@ def create_tasks(agents):
             fallback_warning=False,  # No warning for Expert Agent path
             include_helper_functions=True,  # Include get_all_tools() and instances
             return_type="str",  # Return string from _run method
+            language="ko",  # ✅ v0.5.1: Generate Korean docstrings/comments
         )
 
     def _generate_main_file_ast(self, agents: List[Dict], tasks: List[Dict]) -> str:
