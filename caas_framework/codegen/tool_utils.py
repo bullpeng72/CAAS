@@ -82,9 +82,10 @@ def generate_fallback_tools_code(
         ... )
 
     Call Paths:
-        This function is called by both code generation paths:
+        ✅ v0.5.1: This function is now called only by the Expert Agent path.
+        The Legacy LLM path has been removed.
 
-        Path 1 - Expert Agent Collaboration (DEFAULT, use_expert_agents=True):
+        Expert Agent Collaboration (ONLY PATH):
             SixPhaseEngine.run()
               → ExpertAgentCollaboration.collaborate()
               → CodeGeneratorAgent._do_work()
@@ -95,19 +96,6 @@ def generate_fallback_tools_code(
               - include_helper_functions=True (includes get_all_tools())
               - return_type="str" (string return from _run)
               - Output: files["tools.py"]
-
-        Path 2 - Legacy LLM Generation (use_expert_agents=False):
-            SixPhaseEngine.run()
-              → SixPhaseEngine._phase_5_delivery()
-              → CodeGenerationEngine.generate()
-              → LLMCodeGenerator.generate_custom_tools()
-              → LLMCodeGenerator._generate_fallback_tools()
-              → generate_fallback_tools_code() ← HERE
-            Configuration:
-              - fallback_warning=True (shows LLM failure message)
-              - include_helper_functions=False (no helpers)
-              - return_type="dict" (dict return from _run)
-              - Output: files["src/tools.py"]
 
     See Also:
         - sanitize_tool_name(): Converts tool names to PascalCase class names

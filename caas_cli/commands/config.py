@@ -42,7 +42,6 @@ def config(set_value, get_key, list_all, reset):
       • enable_validation    - Enable validation by default (true/false)
       • enable_auto_fix      - Enable auto-fix by default (true/false)
       • enable_tests         - Generate tests by default (true/false)
-      • use_expert_agents    - Use expert agent collaboration (true/false)
 
     \b
     💡 USAGE EXAMPLES:

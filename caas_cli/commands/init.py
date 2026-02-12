@@ -117,11 +117,7 @@ def init():
         )
         config.set("enable_tests", enable_tests)
 
-        use_expert_agents = click.confirm(
-            "Use expert agent collaboration?",
-            default=config.get("use_expert_agents", True),
-        )
-        config.set("use_expert_agents", use_expert_agents)
+        # ✅ v0.5.1: use_expert_agents removed (Expert Agent path is the only path)
 
     click.echo()
     echo_success("Configuration saved successfully!")

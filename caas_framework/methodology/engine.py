@@ -22,7 +22,7 @@ from caas_framework.methodology.completeness_validator import (
 from caas_framework.methodology.gap_filler import GapFiller, GapFillingResult
 from caas_framework.methodology.golden_data import GoldenDataPipeline
 from caas_framework.methodology.traceability import TraceabilityMatrix
-from caas_framework.codegen.engine import CodeGenerationEngine
+# ✅ v0.5.1: CodeGenerationEngine removed (Legacy path deleted)
 from caas_framework.config.settings import LLMConstants
 from caas_framework.events import Event, PhaseEvent, get_global_event_bus
 from caas_framework.models.artifact_constants import get_default_artifact_types
@@ -121,7 +121,7 @@ class SixPhaseEngine:
         llm_plugin: LLMPlugin,
         enable_validation: bool = True,
         enable_auto_fix: bool = True,
-        use_expert_agents: bool = True,
+        # ✅ v0.5.1: use_expert_agents removed - always use Expert Agent path
         progress_reporter: Optional[ProgressReporterProtocol] = None,
         verbosity: VerbosityLevel = VerbosityLevel.NORMAL,
         artifact_config: Optional[Any] = None,
@@ -134,11 +134,12 @@ class SixPhaseEngine:
         """
         Initialize CAAS 6-Phase Methodology Engine.
 
+        ✅ v0.5.1: Now exclusively uses Expert Agent Collaboration (Legacy LLM path removed)
+
         Args:
             llm_plugin: LLM plugin for generation
             enable_validation: Enable Golden Data validation
             enable_auto_fix: Enable automatic fixing
-            use_expert_agents: Use Expert Agent Collaboration (recommended)
             progress_reporter: Optional progress reporter (Protocol-based for UI independence)
             verbosity: Verbosity level for progress reporting
             artifact_config: Optional artifact generation configuration
@@ -151,7 +152,7 @@ class SixPhaseEngine:
         self.llm = llm_plugin
         self.enable_validation = enable_validation
         self.enable_auto_fix = enable_auto_fix
-        self.use_expert_agents = use_expert_agents
+        # ✅ v0.5.1: Always use Expert Agent path
         self.plan_mode = plan_mode
         self.distributed = distributed
         self.max_workers = max_workers
@@ -359,358 +360,95 @@ class SixPhaseEngine:
                     )
 
             # Use Expert Agent Collaboration if enabled
-            if self.use_expert_agents:
-                self.reporter.info("🤖 Using Expert Agent Collaboration")
+            # ✅ v0.5.1: Expert Agent Collaboration (single code path)
+            self.reporter.info("🤖 Using Expert Agent Collaboration")
 
-                # Initialize expert collaboration
-                self.expert_collaboration = ExpertAgentCollaboration(
-                    llm_plugin=self.llm,
-                    golden_data=result.golden_data,
-                    max_feedback_loops=3 if self.enable_auto_fix else 0,
-                    enable_validation=self.enable_validation,
-                    progress_reporter=self.reporter,
-                    plan_mode=self.plan_mode,
-                    event_bus=self.event_bus,  # Pass event bus for event-driven architecture
-                    enable_distributed=self.distributed,  # Enable distributed execution if configured
-                    max_workers=self.max_workers,  # Pass max workers for parallel execution
-                    enable_critic_pattern=self.enable_critic_pattern,  # Enable Producer-Critic peer review
-                    strict_quality_gates=self.strict_quality_gates,  # Strict Quality Gate mode
-                    enable_frontend=self._enable_frontend_override,  # ✅ FIX #1: Pass frontend override (now with auto-detection)
-                    frontend_framework=self._frontend_framework_override,  # ✅ FIX #1: Pass framework choice (now with auto-detection)
-                )
+            # Initialize expert collaboration
+            self.expert_collaboration = ExpertAgentCollaboration(
+                llm_plugin=self.llm,
+                golden_data=result.golden_data,
+                max_feedback_loops=3 if self.enable_auto_fix else 0,
+                enable_validation=self.enable_validation,
+                progress_reporter=self.reporter,
+                plan_mode=self.plan_mode,
+                event_bus=self.event_bus,  # Pass event bus for event-driven architecture
+                enable_distributed=self.distributed,  # Enable distributed execution if configured
+                max_workers=self.max_workers,  # Pass max workers for parallel execution
+                enable_critic_pattern=self.enable_critic_pattern,  # Enable Producer-Critic peer review
+                strict_quality_gates=self.strict_quality_gates,  # Strict Quality Gate mode
+                enable_frontend=self._enable_frontend_override,  # ✅ FIX #1: Pass frontend override (now with auto-detection)
+                frontend_framework=self._frontend_framework_override,  # ✅ FIX #1: Pass framework choice (now with auto-detection)
+            )
 
-                # Run collaboration
-                collab_result = await self.expert_collaboration.collaborate(requirement)
+            # Run collaboration
+            collab_result = await self.expert_collaboration.collaborate(requirement)
 
-                # Extract results from collaboration
-                if collab_result.success:
-                    ctx = collab_result.context
+            # Extract results from collaboration
+            if collab_result.success:
+                ctx = collab_result.context
 
-                    result.requirement_analysis = ctx.requirement_analysis
-                    result.architecture_design = ctx.architecture_design
+                result.requirement_analysis = ctx.requirement_analysis
+                result.architecture_design = ctx.architecture_design
 
-                    if ctx.agent_task_design:
-                        result.agent_specs = ctx.agent_task_design.get("agents", [])
-                        result.task_specs = ctx.agent_task_design.get("tasks", [])
+                if ctx.agent_task_design:
+                    result.agent_specs = ctx.agent_task_design.get("agents", [])
+                    result.task_specs = ctx.agent_task_design.get("tasks", [])
 
-                        # Register tasks in traceability (Phase 2 enhancement)
-                        if traceability and result.golden_data:
-                            self._register_tasks_in_traceability(
-                                traceability,
-                                result.task_specs,
-                                result.golden_data.features,
-                            )
-                            self.reporter.info(
-                                f"📊 Registered {len(result.task_specs)} tasks in traceability matrix"
-                            )
-
-                    result.generated_code = ctx.code_artifacts
-                    result.phases_completed = ctx.phases_completed
-
-                    # Extract metadata from generated code (if present)
-                    if isinstance(result.generated_code, dict):
-                        # Extract boundaries violations
-                        if "_boundaries_violations" in result.generated_code:
-                            result.boundaries_violations = result.generated_code.pop(
-                                "_boundaries_violations"
-                            )
-                            self.reporter.warning(
-                                f"⚠️  {len(result.boundaries_violations)} security boundary violations detected"
-                            )
-
-                        # Extract quality evaluation
-                        if "_quality_evaluation" in result.generated_code:
-                            result.quality_evaluation = result.generated_code.pop(
-                                "_quality_evaluation"
-                            )
-                            if result.quality_evaluation:
-                                score = result.quality_evaluation.get(
-                                    "overall_score", 0
-                                )
-                                passed = result.quality_evaluation.get("passed", False)
-                                if passed:
-                                    self.reporter.info(
-                                        f"✅ Code quality score: {score:.1f}/10"
-                                    )
-                                else:
-                                    self.reporter.warning(
-                                        f"⚠️  Code quality score: {score:.1f}/10 (below threshold)"
-                                    )
-
-                    # Convert to CAAS 6-Phase phases
-                    result.phases_completed = [Phase.CONCRETIZATION] + [
-                        self._agent_phase_to_bmad_phase(p) for p in ctx.phases_completed
-                    ]
-
-                    # Generate spec YAML from agents/tasks
-                    if result.agent_specs and result.task_specs:
-                        result.spec_yaml = await self._phase_4_development(
-                            result.agent_specs, result.task_specs, result.golden_data
-                        )
-
-                    # Register code in traceability (Phase 2 enhancement)
-                    if (
-                        traceability
-                        and result.generated_code
-                        and result.task_specs
-                        and result.golden_data
-                    ):
-                        self._register_code_in_traceability(
+                    # Register tasks in traceability (Phase 2 enhancement)
+                    if traceability and result.golden_data:
+                        self._register_tasks_in_traceability(
                             traceability,
-                            result.generated_code,
                             result.task_specs,
                             result.golden_data.features,
                         )
                         self.reporter.info(
-                            f"📊 Registered {len(result.generated_code)} code files in traceability matrix"
+                            f"📊 Registered {len(result.task_specs)} tasks in traceability matrix"
                         )
 
-                    # Generate artifacts for all phases (Expert Agent path)
-                    if result.requirement_analysis:
-                        await self._generate_artifact("REQUIREMENTS_SPEC", result, "Phase 1", requirement)
-                    if result.architecture_design:
-                        await self._generate_artifact("ARCHITECTURE_DESIGN", result, "Phase 2", requirement)
-                        await self._generate_artifact("DATA_DESIGN", result, "Phase 2", requirement)
-                    if result.agent_specs and result.task_specs:
-                        await self._generate_artifact("AGENT_DESIGN", result, "Phase 3", requirement)
-                        await self._generate_artifact("TEST_PLAN", result, "Phase 3", requirement)
-                    if result.generated_code:
-                        await self._generate_artifact("CODE_REVIEW", result, "Phase 5", requirement)
-                        await self._generate_artifact("TEST_REPORT", result, "Phase 5", requirement)
-                        await self._generate_artifact("DEPLOYMENT_GUIDE", result, "Phase 5", requirement)
+                result.generated_code = ctx.code_artifacts
+                result.phases_completed = ctx.phases_completed
 
-                    # Quality Validation: Syntax/Import checks (Phase 5 Post-Generation)
-                    if result.generated_code:
-                        await self._run_quality_validation(result)
-
-                    # Security Scanning: Vulnerability/Secret detection (Phase 5 Post-Generation)
-                    if result.generated_code:
-                        await self._run_security_scan(result)
-
-                    # Phase 3 Enhancement: Completeness Validation (for expert agent path)
-                    if (
-                        enable_completeness_validation
-                        and result.generated_code
-                        and result.golden_data
-                    ):
-                        await self._run_completeness_validation(
-                            result, traceability, enable_gap_filling
+                # Extract metadata from generated code (if present)
+                if isinstance(result.generated_code, dict):
+                    # Extract boundaries violations
+                    if "_boundaries_violations" in result.generated_code:
+                        result.boundaries_violations = result.generated_code.pop(
+                            "_boundaries_violations"
+                        )
+                        self.reporter.warning(
+                            f"⚠️  {len(result.boundaries_violations)} security boundary violations detected"
                         )
 
-                else:
-                    result.errors.extend(collab_result.errors)
-                    result.success = False
-
-            else:
-                # Legacy mode: Simple LLM-based generation without expert agents
-                self.reporter.warning("⚠️  Using legacy mode (without expert agents)")
-
-                # Initialize validator and fixer
-                if self.enable_validation:
-                    self.validator = ValidationOrchestrator(
-                        golden_data=result.golden_data
-                    )
-                if self.enable_auto_fix:
-                    self.fixer = AutoFixer(
-                        golden_data=result.golden_data, llm_plugin=self.llm
-                    )
-
-                # Phase 1: Discovery
-                phase_start = datetime.now()
-                self.reporter.start_phase(
-                    phase_name="Phase 1: Discovery",
-                    agent_name="LLM Analyzer",
-                    description="Analyzing requirements",
-                )
-                result.requirement_analysis = await self._phase_1_discovery(
-                    requirement, result.golden_data
-                )
-                self.reporter.complete_phase(
-                    phase_name="Phase 1: Discovery",
-                    duration=(datetime.now() - phase_start).total_seconds(),
-                    success=True,
-                )
-                result.phases_completed.append(Phase.DISCOVERY)
-
-                # Generate artifacts for Phase 1
-                await self._generate_artifact("REQUIREMENTS_SPEC", result, "Phase 1", requirement)
-
-                # Phase 2: Architecture
-                phase_start = datetime.now()
-                self.reporter.start_phase(
-                    phase_name="Phase 2: Architecture",
-                    agent_name="LLM Architect",
-                    description="Designing system architecture",
-                )
-                result.architecture_design = await self._phase_2_architecture(
-                    requirement, result.golden_data, result.requirement_analysis
-                )
-                self.reporter.complete_phase(
-                    phase_name="Phase 2: Architecture",
-                    duration=(datetime.now() - phase_start).total_seconds(),
-                    success=True,
-                )
-                result.phases_completed.append(Phase.ARCHITECTURE)
-
-                # Generate artifacts for Phase 2
-                await self._generate_artifact("ARCHITECTURE_DESIGN", result, "Phase 2", requirement)
-                await self._generate_artifact("DATA_DESIGN", result, "Phase 2", requirement)
-
-                # Phase 3: Design
-                phase_start = datetime.now()
-                self.reporter.start_phase(
-                    phase_name="Phase 3: Design",
-                    agent_name="LLM Designer",
-                    description="Designing agents and tasks",
-                )
-                agents, tasks = await self._phase_3_design(
-                    requirement, result.golden_data, result.architecture_design
-                )
-
-                # Validate and fix if enabled (legacy mode only)
-                if self.enable_validation and self.validator:
-                    self.reporter.validation_start(
-                        "Design Validation", len(agents) + len(tasks)
-                    )
-                    validation_result = self.validator.validate_design(
-                        agents=agents,
-                        tasks=tasks,
-                        validate_golden=True,
-                        validate_ontology=True,
-                        validate_dependencies=True,
-                    )
-                    result.validation_reports.append(
-                        {"phase": "design", "result": validation_result}
-                    )
-
-                    # Check for issues
-                    has_issues = (
-                        validation_result.golden_result
-                        and validation_result.golden_result.needs_fixing
-                    )
-                    issues_count = 0
-                    if validation_result.golden_result:
-                        issues_count = (
-                            len(validation_result.golden_result.missing_items)
-                            + len(validation_result.golden_result.extra_items)
-                            + len(validation_result.golden_result.mismatched_items)
+                    # Extract quality evaluation
+                    if "_quality_evaluation" in result.generated_code:
+                        result.quality_evaluation = result.generated_code.pop(
+                            "_quality_evaluation"
                         )
-                    self.reporter.validation_result(
-                        validator_name="Design Validator",
-                        passed=not has_issues,
-                        issues_count=issues_count,
-                    )
-
-                    # Auto-fix if needed
-                    if (
-                        self.enable_auto_fix
-                        and self.fixer
-                        and validation_result.golden_result
-                    ):
-                        if validation_result.golden_result.needs_fixing:
-                            self.reporter.info("Running auto-fix for design issues")
-                            fix_result = self.fixer.fix_design(
-                                agent_specs=agents,
-                                task_specs=tasks,
-                                validation_report=validation_result.golden_result,
-                                max_iterations=3,
+                        if result.quality_evaluation:
+                            score = result.quality_evaluation.get(
+                                "overall_score", 0
                             )
-                            if fix_result.success:
-                                agents = [
-                                    AgentSpecModel(**a)
-                                    for a in fix_result.fixed_output["agents"]
-                                ]
-                                tasks = [
-                                    TaskSpecModel(**t)
-                                    for t in fix_result.fixed_output["tasks"]
-                                ]
-                                self.reporter.info("Auto-fix completed successfully")
+                            passed = result.quality_evaluation.get("passed", False)
+                            if passed:
+                                self.reporter.info(
+                                    f"✅ Code quality score: {score:.1f}/10"
+                                )
+                            else:
+                                self.reporter.warning(
+                                    f"⚠️  Code quality score: {score:.1f}/10 (below threshold)"
+                                )
 
-                result.agent_specs = agents
-                result.task_specs = tasks
+                # Convert to CAAS 6-Phase phases
+                result.phases_completed = [Phase.CONCRETIZATION] + [
+                    self._agent_phase_to_bmad_phase(p) for p in ctx.phases_completed
+                ]
 
-                # Register tasks in traceability (Phase 2 enhancement)
-                if traceability and result.golden_data:
-                    self._register_tasks_in_traceability(
-                        traceability, result.task_specs, result.golden_data.features
-                    )
-                    self.reporter.info(
-                        f"📊 Registered {len(result.task_specs)} tasks in traceability matrix"
+                # Generate spec YAML from agents/tasks
+                if result.agent_specs and result.task_specs:
+                    result.spec_yaml = await self._phase_4_development(
+                        result.agent_specs, result.task_specs, result.golden_data
                     )
 
-                # Determine workflow type (sequential vs hierarchical)
-                if workflow_type:
-                    # Use user-specified workflow type
-                    final_workflow_type = workflow_type
-                    self.reporter.info(
-                        f"🔀 Using user-specified workflow type: {final_workflow_type}"
-                    )
-                else:
-                    # Auto-detect based on complexity
-                    agent_dicts = [a.model_dump() for a in agents]
-                    task_dicts = [t.model_dump() for t in tasks]
-
-                    recommendation = get_workflow_recommendation(
-                        requirement=requirement,
-                        agents=agent_dicts,
-                        tasks=task_dicts,
-                        domain=result.golden_data.domain
-                        if result.golden_data
-                        else domain,
-                    )
-
-                    final_workflow_type = recommendation["workflow_type"]
-                    complexity_score = recommendation["complexity_score"]
-                    reasons = recommendation["reasons"]
-
-                    self.reporter.info(
-                        f"🔀 Auto-selected workflow type: {final_workflow_type} (complexity: {complexity_score:.1f})"
-                    )
-                    if reasons:
-                        self.reporter.info(f"   Reasons: {', '.join(reasons)}")
-
-                # Store workflow type in golden data
-                if result.golden_data:
-                    result.golden_data.workflow_type = final_workflow_type
-
-                self.reporter.complete_phase(
-                    phase_name="Phase 3: Design",
-                    duration=(datetime.now() - phase_start).total_seconds(),
-                    success=True,
-                )
-                result.phases_completed.append(Phase.DESIGN)
-
-                # Generate artifacts for Phase 3
-                await self._generate_artifact("AGENT_DESIGN", result, "Phase 3", requirement)
-                await self._generate_artifact("TEST_PLAN", result, "Phase 3", requirement)
-
-                # Phase 4: Development (Spec Generation)
-                phase_start = datetime.now()
-                self.reporter.start_phase(
-                    phase_name="Phase 4: Development",
-                    agent_name="Spec Generator",
-                    description="Generating YAML specification",
-                )
-                result.spec_yaml = await self._phase_4_development(
-                    agents, tasks, result.golden_data
-                )
-                self.reporter.complete_phase(
-                    phase_name="Phase 4: Development",
-                    duration=(datetime.now() - phase_start).total_seconds(),
-                    success=True,
-                )
-                result.phases_completed.append(Phase.DEVELOPMENT)
-
-                # Phase 5: Delivery (Code Generation)
-                phase_start = datetime.now()
-                self.reporter.start_phase(
-                    phase_name="Phase 5: Delivery",
-                    agent_name="Code Generator",
-                    description="Generating production code",
-                )
-                result.generated_code = await self._phase_5_delivery(
-                    result.spec_yaml, result.golden_data, deployment_target
-                )
                 # Register code in traceability (Phase 2 enhancement)
                 if (
                     traceability
@@ -728,23 +466,42 @@ class SixPhaseEngine:
                         f"📊 Registered {len(result.generated_code)} code files in traceability matrix"
                     )
 
-                self.reporter.complete_phase(
-                    phase_name="Phase 5: Delivery",
-                    duration=(datetime.now() - phase_start).total_seconds(),
-                    success=True,
-                )
-                result.phases_completed.append(Phase.DELIVERY)
-
-                # Generate artifacts for Phase 5
-                await self._generate_artifact("CODE_REVIEW", result, "Phase 5", requirement)
-                await self._generate_artifact("TEST_REPORT", result, "Phase 5", requirement)
-                await self._generate_artifact("DEPLOYMENT_GUIDE", result, "Phase 5", requirement)
+                # Generate artifacts for all phases (Expert Agent path)
+                if result.requirement_analysis:
+                    await self._generate_artifact("REQUIREMENTS_SPEC", result, "Phase 1", requirement)
+                if result.architecture_design:
+                    await self._generate_artifact("ARCHITECTURE_DESIGN", result, "Phase 2", requirement)
+                    await self._generate_artifact("DATA_DESIGN", result, "Phase 2", requirement)
+                if result.agent_specs and result.task_specs:
+                    await self._generate_artifact("AGENT_DESIGN", result, "Phase 3", requirement)
+                    await self._generate_artifact("TEST_PLAN", result, "Phase 3", requirement)
+                if result.generated_code:
+                    await self._generate_artifact("CODE_REVIEW", result, "Phase 5", requirement)
+                    await self._generate_artifact("TEST_REPORT", result, "Phase 5", requirement)
+                    await self._generate_artifact("DEPLOYMENT_GUIDE", result, "Phase 5", requirement)
 
                 # Quality Validation: Syntax/Import checks (Phase 5 Post-Generation)
-                await self._run_quality_validation(result)
+                if result.generated_code:
+                    await self._run_quality_validation(result)
 
                 # Security Scanning: Vulnerability/Secret detection (Phase 5 Post-Generation)
-                await self._run_security_scan(result)
+                if result.generated_code:
+                    await self._run_security_scan(result)
+
+                # Phase 3 Enhancement: Completeness Validation (for expert agent path)
+                if (
+                    enable_completeness_validation
+                    and result.generated_code
+                    and result.golden_data
+                ):
+                    await self._run_completeness_validation(
+                        result, traceability, enable_gap_filling
+                    )
+
+            else:
+                result.errors.extend(collab_result.errors)
+                result.success = False
+
 
             # Phase 3 Enhancement: Completeness Validation (for legacy path)
             if (
@@ -977,69 +734,6 @@ JSON으로 반환하세요 (모든 텍스트 필드는 한국어로)."""
         return yaml.safe_dump(
             spec, default_flow_style=False, allow_unicode=True, sort_keys=False
         )
-
-    async def _phase_5_delivery(
-        self,
-        spec_yaml: str,
-        golden_data: ConcretizedRequirement,
-        deployment_target: str,
-    ) -> Dict[str, str]:
-        """Phase 5: Code Generation"""
-
-        # Get agents and tasks from spec_yaml
-        import yaml
-
-        spec_data = yaml.safe_load(spec_yaml)
-
-        agents = [AgentSpecModel(**a) for a in spec_data.get("agents", [])]
-        tasks = [TaskSpecModel(**t) for t in spec_data.get("tasks", [])]
-
-        # ✅ P1-1: Auto-detect UI requirements from Golden Data
-        enable_frontend, frontend_framework = self._detect_ui_requirements(golden_data)
-
-        if enable_frontend:
-            self.reporter.info(
-                f"🎨 UI 생성 자동 감지: {frontend_framework.value if frontend_framework else 'streamlit'}"
-            )
-
-        # ✅ P1-2: Auto-detect language from Golden Data
-        detected_language = self._detect_language(golden_data)
-        if detected_language == 'ko':
-            self.reporter.info("🌐 한국어 출력 모드 감지")
-
-        # ✅ P1-2: Inject language into Golden Data if not present
-        if hasattr(golden_data, 'code_style') and golden_data.code_style:
-            if isinstance(golden_data.code_style, dict):
-                if 'language' not in golden_data.code_style:
-                    golden_data.code_style['language'] = detected_language
-            elif not hasattr(golden_data.code_style, 'language'):
-                # If code_style is a Pydantic model, update it
-                golden_data.code_style.language = detected_language
-        else:
-            # If code_style doesn't exist, create it
-            golden_data.code_style = {'language': detected_language}
-
-        # Initialize code generation engine
-        code_gen_engine = CodeGenerationEngine(
-            llm_plugin=self.llm,
-            enable_error_handling=True,
-            enable_logging=True,
-            enable_tests=True,
-            enable_deployment=True,
-            enable_llm_generation=True,
-            enable_frontend=enable_frontend,  # ✅ P0-2: Enable frontend generation
-            frontend_framework=frontend_framework if frontend_framework else None,
-        )
-
-        # Generate production-ready code
-        gen_result = await code_gen_engine.generate(
-            golden_data=golden_data,
-            agents=agents,
-            tasks=tasks,
-            deployment_target=deployment_target,
-        )
-
-        return gen_result.files
 
     def _agent_phase_to_bmad_phase(self, agent_phase) -> Phase:
         """Convert AgentPhase to Phase."""

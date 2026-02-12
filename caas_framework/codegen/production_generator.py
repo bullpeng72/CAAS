@@ -1,7 +1,12 @@
 """
 Production Code Generator
 
-Comprehensive code generator that produces 100% production-ready code with:
+⚠️  DEPRECATED in v0.5.1
+
+This module was part of the Legacy code generation path (CodeGenerationEngine).
+It has been deprecated in favor of the Expert Agent Collaboration path.
+
+The Expert Agent path (CodeGeneratorAgent) now provides all production features:
 - Error handling (retry logic, circuit breakers)
 - Structured logging (JSON format)
 - Comprehensive tests (80%+ coverage goal)
@@ -9,6 +14,16 @@ Comprehensive code generator that produces 100% production-ready code with:
 - CI/CD pipelines (GitHub Actions/GitLab CI)
 - Deployment files (Docker/K8s)
 - Execution validation
+
+Use SixPhaseEngine.run() with Expert Agents instead:
+    >>> from caas_framework.methodology.engine import SixPhaseEngine
+    >>> engine = SixPhaseEngine(llm_plugin=llm)
+    >>> result = await engine.run(
+    ...     requirement="Build a chatbot",
+    ...     deployment_target="docker"
+    ... )
+
+This file will be removed in v0.6.0.
 """
 
 from dataclasses import dataclass, field
@@ -20,7 +35,8 @@ from caas_framework.codegen.doc_generator import (
     DocumentationConfig,
     DocumentationGenerator,
 )
-from caas_framework.codegen.engine import CodeGenerationEngine
+# ✅ v0.5.1: CodeGenerationEngine removed (Legacy path deprecated)
+# from caas_framework.codegen.engine import CodeGenerationEngine
 from caas_framework.codegen.execution_validator import (
     ExecutionValidationResult,
     ExecutionValidator,
@@ -32,6 +48,7 @@ from caas_framework.models.specifications import (
     ConcretizedRequirement,
     TaskSpecModel,
 )
+import warnings
 
 
 @dataclass
@@ -108,20 +125,27 @@ class ProductionCodeGenerator:
 
     def __init__(self, config: Optional[ProductionConfig] = None):
         """
-        Initialize production code generator.
+        ⚠️  DEPRECATED: This class is deprecated in v0.5.1.
+
+        Use SixPhaseEngine with Expert Agents instead for production code generation.
 
         Args:
             config: Production generation configuration
+
+        Raises:
+            DeprecationWarning: This class will be removed in v0.6.0
         """
+        warnings.warn(
+            "ProductionCodeGenerator is deprecated in v0.5.1 and will be removed in v0.6.0. "
+            "Use SixPhaseEngine.run() with Expert Agents instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
+
         self.config = config or ProductionConfig()
 
-        # Initialize components
-        self.base_generator = CodeGenerationEngine(
-            enable_error_handling=self.config.enable_error_handling,
-            enable_logging=self.config.enable_logging,
-            enable_tests=self.config.enable_tests,
-            enable_deployment=self.config.enable_deployment,
-        )
+        # ✅ v0.5.1: CodeGenerationEngine removed - base_generator no longer available
+        self.base_generator = None  # Deprecated
 
         # Enhanced injectors
         self.error_injector = (
@@ -163,7 +187,7 @@ class ProductionCodeGenerator:
         deployment_target: Optional[str] = None,
     ) -> ProductionCodeResult:
         """
-        Generate complete production-ready project.
+        ⚠️  DEPRECATED: This method is no longer functional in v0.5.1.
 
         Args:
             golden_data: Golden Data
@@ -173,24 +197,30 @@ class ProductionCodeGenerator:
 
         Returns:
             ProductionCodeResult: Complete generation result
+
+        Raises:
+            NotImplementedError: This class has been deprecated
         """
+        raise NotImplementedError(
+            "ProductionCodeGenerator.generate() has been removed in v0.5.1. "
+            "The Legacy code generation path (CodeGenerationEngine) has been deprecated. "
+            "\n\n"
+            "Please use SixPhaseEngine with Expert Agents instead:\n"
+            "  from caas_framework.methodology.engine import SixPhaseEngine\n"
+            "  engine = SixPhaseEngine(llm_plugin=llm_plugin)\n"
+            "  result = await engine.run(\n"
+            "      requirement='Your requirement',\n"
+            "      deployment_target='docker'\n"
+            "  )\n\n"
+            "This provides higher quality code generation via Expert Agent Collaboration."
+        )
+
+        # Old implementation removed - code below is unreachable
         result = ProductionCodeResult(success=True)
 
         try:
-            # Step 1: Generate base project
-            base_result = self.base_generator.generate(
-                golden_data=golden_data,
-                agents=agents,
-                tasks=tasks,
-                deployment_target=deployment_target or self.config.deployment_target,
-            )
-
-            if not base_result.success:
-                result.success = False
-                result.errors.extend(base_result.errors)
-                return result
-
-            result.files.update(base_result.files)
+            # Step 1: Generate base project (REMOVED - base_generator no longer exists)
+            pass
 
             # Step 2: Enhanced error handling injection
             if self.config.enable_error_handling and self.error_injector:

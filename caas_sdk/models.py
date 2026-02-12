@@ -31,7 +31,7 @@ class GenerationConfig:
     enable_auto_fix: bool = True
     enable_tests: bool = True
     enable_deployment: bool = True
-    use_expert_agents: bool = True
+    # ✅ v0.5.1: use_expert_agents removed (Expert Agent path is the only path)
     metadata: Dict[str, Any] = field(default_factory=dict)
 
 

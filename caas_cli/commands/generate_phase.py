@@ -250,7 +250,6 @@ async def _execute_phase_0(framework, requirement, domain, output_path, verbose)
         llm_plugin=framework.llm_plugin,
         enable_validation=True,
         enable_auto_fix=True,
-        use_expert_agents=True,
     )
 
     golden_data = await engine._phase_0_concretization(requirement, domain)
@@ -287,7 +286,6 @@ async def _execute_phase_1(framework, input_dir, output_path, verbose):
         llm_plugin=framework.llm_plugin,
         enable_validation=True,
         enable_auto_fix=True,
-        use_expert_agents=True,
     )
 
     # Extract requirement from golden data
@@ -331,7 +329,6 @@ async def _execute_phase_2(framework, input_dir, workflow_type, output_path, ver
         llm_plugin=framework.llm_plugin,
         enable_validation=True,
         enable_auto_fix=True,
-        use_expert_agents=True,
     )
 
     # Extract requirement from golden data
@@ -385,7 +382,6 @@ async def _execute_phase_3(framework, input_dir, output_path, verbose):
         llm_plugin=framework.llm_plugin,
         enable_validation=True,
         enable_auto_fix=True,
-        use_expert_agents=True,
     )
 
     # Extract requirement from golden data
@@ -437,7 +433,6 @@ async def _execute_phase_4(framework, input_dir, output_path, verbose):
         llm_plugin=framework.llm_plugin,
         enable_validation=True,
         enable_auto_fix=True,
-        use_expert_agents=True,
     )
 
     spec_yaml = await engine._phase_4_development(agents, tasks, golden_data)
@@ -500,7 +495,6 @@ async def _execute_phase_5(
         llm_plugin=framework.llm_plugin,
         enable_validation=True,
         enable_auto_fix=True,
-        use_expert_agents=True,
     )
 
     generated_code = await engine._phase_5_delivery(

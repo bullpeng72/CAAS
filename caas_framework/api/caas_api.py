@@ -52,7 +52,7 @@ class GenerationConfig:
     verbosity: str = "normal"  # quiet, minimal, normal, verbose, debug
 
     # Advanced
-    use_expert_agents: bool = True
+    # ✅ v0.5.1: use_expert_agents removed (Expert Agent path is the only path)
     use_bmad_workflow: bool = True
     enable_process_optimization: bool = True  # ProcessSelector
 

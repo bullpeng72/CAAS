@@ -348,7 +348,7 @@ class CrewAIFramework:
             llm_plugin=self._llm_plugin,
             enable_validation=self.config.validation.enabled,
             enable_auto_fix=self.config.validation.auto_fix,
-            use_expert_agents=True,
+            # ✅ v0.5.1: use_expert_agents removed (Expert Agent path is the only path)
             progress_reporter=progress_reporter,
             verbosity=verbosity_level,
             artifact_config=self.config.artifacts,
@@ -647,7 +647,20 @@ class CrewAIFramework:
         tdd_mode: bool = False,
     ) -> "CodeGenerationResult":
         """
-        Generate production-ready code from spec
+        ⚠️  DEPRECATED in v0.5.1: This method used the Legacy code generation path.
+
+        Use generate_from_requirement() instead, which uses the Expert Agent Collaboration
+        path for higher quality code generation.
+
+        Migration Example:
+            >>> # Old way (deprecated)
+            >>> result = await framework.generate_code(spec={...})
+
+            >>> # New way (recommended)
+            >>> result = await framework.generate_from_requirement(
+            ...     requirement="Your natural language requirement",
+            ...     deployment_target="docker"
+            ... )
 
         Args:
             spec: CrewAI spec (must contain agents, tasks, and optionally golden_data)
@@ -657,68 +670,21 @@ class CrewAIFramework:
 
         Returns:
             CodeGenerationResult
+
+        Raises:
+            NotImplementedError: This method has been removed in v0.5.1
         """
-        if not self._initialized:
-            await self.initialize()
-
-        from caas_framework.codegen.engine import CodeGenerationEngine
-        from caas_framework.models.specifications import (
-            AgentSpecModel,
-            ConcretizedRequirement,
-            TaskSpecModel,
+        raise NotImplementedError(
+            "generate_code() has been removed in CAAS v0.5.1. "
+            "The Legacy code generation path (CodeGenerationEngine) has been deprecated. "
+            "\n\n"
+            "Please use generate_from_requirement() instead:\n"
+            "  result = await framework.generate_from_requirement(\n"
+            "      requirement='Your requirement',\n"
+            "      deployment_target='docker'\n"
+            "  )\n\n"
+            "This uses the Expert Agent Collaboration path for higher quality code generation."
         )
-
-        # Parse spec
-        agents = [AgentSpecModel(**a) for a in spec.get("agents", [])]
-        tasks = [TaskSpecModel(**t) for t in spec.get("tasks", [])]
-
-        # Get golden_data if provided
-        golden_data_dict = spec.get("golden_data")
-        if golden_data_dict:
-            golden_data = ConcretizedRequirement(**golden_data_dict)
-        else:
-            # Create minimal golden data from spec
-            golden_data = ConcretizedRequirement(
-                project_name=spec.get("project_name", "my_crew_project"),
-                domain=spec.get("domain", "GENERAL"),
-                description=spec.get("description", "Auto-generated CrewAI project"),
-                features=[],
-                data_models=[],
-            )
-
-        # Initialize code generation engine with LLM plugin
-        code_gen_engine = CodeGenerationEngine(
-            llm_plugin=self._llm_plugin,
-            enable_error_handling=True,
-            enable_logging=True,
-            enable_tests=True,
-            enable_deployment=True,
-            enable_llm_generation=True,
-            tdd_mode=tdd_mode,  # Enable TDD if requested
-        )
-
-        # Generate production-ready code
-        gen_result = await code_gen_engine.generate(
-            golden_data=golden_data,
-            agents=agents,
-            tasks=tasks,
-            deployment_target=deployment_target,
-            tdd_mode=tdd_mode,  # Pass TDD mode to generation
-        )
-
-        # Write files if output_dir specified
-        if output_dir and gen_result.success:
-            from pathlib import Path
-
-            output_path = Path(output_dir)
-            output_path.mkdir(parents=True, exist_ok=True)
-
-            for file_path, content in gen_result.files.items():
-                file_full_path = output_path / file_path
-                file_full_path.parent.mkdir(parents=True, exist_ok=True)
-                file_full_path.write_text(content)
-
-        return gen_result
 
     async def close(self) -> None:
         """Close framework and cleanup resources"""

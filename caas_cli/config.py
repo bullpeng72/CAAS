@@ -53,7 +53,7 @@ class CLIConfig:
             "enable_validation": True,
             "enable_auto_fix": True,
             "enable_tests": True,
-            "use_expert_agents": True,
+            # ✅ v0.5.1: use_expert_agents removed (Expert Agent path is the only path)
             "output_dir": "./generated",
             "enable_critic_pattern": False,  # Producer-Critic peer review (default: disabled)
             "strict_quality_gates": True,    # Strict Quality Gate mode (default: enabled in v0.4.0)
