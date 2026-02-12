@@ -362,7 +362,13 @@ class ASTCodeGenerator:
         body.append(tasks_init)
 
         # 각 Task 생성 및 추가
-        for task in tasks:
+        # ✅ v0.5.1: Build task_id to variable mapping for context references
+        task_id_to_var = {}  # Map task IDs to tasks list indices
+        for idx, task in enumerate(tasks):
+            task_id = task.get("id", f"task_{idx}")
+            task_id_to_var[task_id] = idx
+
+        for task_idx, task in enumerate(tasks):
             agent_id = task.get("agent", "agent")
 
             # Agent 참조
@@ -372,27 +378,67 @@ class ASTCodeGenerator:
                 ctx=Load(),
             )
 
+            # ✅ v0.5.1: Build context list with Task object references (not strings!)
+            task_keywords = [
+                keyword(
+                    arg="description",
+                    value=Constant(value=task.get("description", "Execute task")),
+                ),
+                keyword(
+                    arg="expected_output",
+                    value=Constant(
+                        value=task.get("expected_output", "Task completed")
+                    ),
+                ),
+                keyword(arg="agent", value=agent_ref),
+            ]
+
+            # Add context parameter if present
+            context_ids = task.get("context", [])
+            if context_ids:
+                # Build context list with references to previously created tasks
+                context_elements = []
+                for ctx_id in context_ids:
+                    if ctx_id in task_id_to_var:
+                        # Reference tasks[idx] for the context task
+                        ctx_idx = task_id_to_var[ctx_id]
+                        context_ref = Subscript(
+                            value=Name(id="tasks", ctx=Load()),
+                            slice=Constant(value=ctx_idx),
+                            ctx=Load(),
+                        )
+                        context_elements.append(context_ref)
+
+                if context_elements:
+                    task_keywords.append(
+                        keyword(
+                            arg="context",
+                            value=AstList(elts=context_elements, ctx=Load())
+                        )
+                    )
+
+            # Add human_input parameter
+            task_keywords.append(
+                keyword(
+                    arg="human_input",
+                    value=Constant(value=task.get("human_input", False)),
+                )
+            )
+
+            # Add async_execution parameter if present
+            if task.get("async_execution", False):
+                task_keywords.append(
+                    keyword(
+                        arg="async_execution",
+                        value=Constant(value=True),
+                    )
+                )
+
             # Task 생성
             task_call = Call(
                 func=Name(id="Task", ctx=Load()),
                 args=[],
-                keywords=[
-                    keyword(
-                        arg="description",
-                        value=Constant(value=task.get("description", "Execute task")),
-                    ),
-                    keyword(
-                        arg="expected_output",
-                        value=Constant(
-                            value=task.get("expected_output", "Task completed")
-                        ),
-                    ),
-                    keyword(arg="agent", value=agent_ref),
-                    keyword(
-                        arg="human_input",
-                        value=Constant(value=task.get("human_input", False)),
-                    ),
-                ],
+                keywords=task_keywords,
             )
 
             # tasks.append(Task(...))

@@ -852,10 +852,13 @@ def generate(
                 artifact_settings = config.artifacts
 
                 # Convert ArtifactConfig to ArtifactGenerationConfig
+                # ✅ v0.5.1: Use output_path/artifacts instead of default ./artifacts
+                # to prevent duplicate artifact generation
+                artifacts_output_dir = output_path / "artifacts"
                 artifact_config = ArtifactGenerationConfig(
                     enabled=artifact_settings.enabled,
                     enabled_types=artifact_settings.types,  # ✅ This reads from .env via unified.py
-                    output_directory=str(artifact_settings.output_dir),
+                    output_directory=str(artifacts_output_dir),  # ✅ Use ./generated/artifacts
                     output_format=artifact_settings.output_format,
                 )
 
@@ -877,28 +880,16 @@ def generate(
                     generator = ArtifactGenerator(config=artifact_config)
                     doc_artifacts = generator.generate_all(bmad_data)
 
+                    # ✅ v0.5.1: ArtifactGenerator now saves directly to output_path/artifacts
+                    # No need for manual saving here - prevents duplicate file writes
                     if doc_artifacts:
-                        # Create artifacts directory
-                        artifacts_dir = output_path / "artifacts"
-                        artifacts_dir.mkdir(exist_ok=True)
-
-                        # Save each artifact
-                        doc_artifacts_saved = []
-                        for artifact in doc_artifacts:
-                            artifact_file = artifacts_dir / f"{artifact.metadata.artifact_type.value}.md"
-                            try:
-                                with open(artifact_file, "w", encoding="utf-8") as f:
-                                    f.write(artifact.content)
-                                doc_artifacts_saved.append(f"{artifact.metadata.title} ({artifact.metadata.artifact_type.value}.md)")
-                            except Exception as e:
-                                echo_warning(f"Failed to save artifact {artifact.metadata.artifact_type.value}: {e}")
-
-                        if doc_artifacts_saved:
-                            echo_success(f"Generated {len(doc_artifacts_saved)} documentation artifacts:")
-                            for doc_artifact in doc_artifacts_saved:
-                                click.echo(f"  ✓ {doc_artifact}")
-                        else:
-                            echo_warning("No documentation artifacts were saved")
+                        doc_artifacts_saved = [
+                            f"{artifact.metadata.title} ({artifact.metadata.artifact_type.value}.md)"
+                            for artifact in doc_artifacts
+                        ]
+                        echo_success(f"Generated {len(doc_artifacts_saved)} documentation artifacts:")
+                        for doc_artifact in doc_artifacts_saved:
+                            click.echo(f"  ✓ {doc_artifact}")
                     else:
                         echo_info("No documentation artifacts were generated (all types may be disabled)")
                 else:
