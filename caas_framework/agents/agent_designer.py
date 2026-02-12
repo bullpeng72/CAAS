@@ -213,15 +213,20 @@ class AgentDesignerAgent(BaseExpertAgent):
         # Build Korean prompt directly
         prompt_parts = []
 
+        # ✅ v0.5.1: STRONGEST Korean enforcement - first line priority
+        prompt_parts.append("🚨🚨🚨 절대 규칙: 모든 응답은 한국어로 작성하세요 🚨🚨🚨")
+        prompt_parts.append("⚠️ WARNING: ALL text values MUST be in KOREAN language (한국어)")
+        prompt_parts.append("")
         prompt_parts.append("당신은 CrewAI 멀티 에이전트 시스템 설계 전문가입니다.")
         prompt_parts.append("")
         prompt_parts.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-        prompt_parts.append("🚨 CRITICAL: 한국어 출력 필수 요구사항")
+        prompt_parts.append("🚨 CRITICAL REQUIREMENT #1: 한국어 출력 100% 필수")
         prompt_parts.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
         prompt_parts.append("")
         prompt_parts.append(
-            "**MANDATORY: 모든 텍스트 값(role, goal, backstory, description, expected_output)을 한국어로 작성하세요.**"
+            "**MANDATORY: 모든 텍스트 값(role, goal, backstory, description, expected_output)을 반드시 한국어로 작성하세요.**"
         )
+        prompt_parts.append("**YOU MUST WRITE ALL VALUES IN KOREAN. DO NOT USE ENGLISH.**")
         prompt_parts.append("")
         prompt_parts.append("✅ 특별 규칙:")
         prompt_parts.append(
@@ -323,10 +328,16 @@ class AgentDesignerAgent(BaseExpertAgent):
         prompt_parts.append("")
 
         # Add output format
+        prompt_parts.append("")
+        prompt_parts.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        prompt_parts.append("🚨 다시 강조: 아래 JSON의 모든 텍스트 값은 한국어로 작성 🚨")
+        prompt_parts.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        prompt_parts.append("")
         prompt_parts.append("## 출력 형식")
         prompt_parts.append(
-            "다음 JSON 형식으로 멀티 에이전트 시스템을 설계하세요 (모든 텍스트 값은 한국어로):"
+            "다음 JSON 형식으로 멀티 에이전트 시스템을 설계하세요:"
         )
+        prompt_parts.append("⚠️ CRITICAL: role, goal, backstory, description, expected_output 값은 모두 한국어로 작성하세요")
         prompt_parts.append("")
         prompt_parts.append(
             """{
@@ -390,7 +401,14 @@ class AgentDesignerAgent(BaseExpertAgent):
             "- 예: '키워드를 입력받고 검증' → '키워드의 유효성을 검증' (입력은 crew.kickoff로 전달)"
         )
         prompt_parts.append("")
-        prompt_parts.append("## 최종 체크리스트")
+        prompt_parts.append("## 최종 체크리스트 - 제출 전 필수 확인")
+        prompt_parts.append("")
+        prompt_parts.append("❌ 절대 금지 사항:")
+        prompt_parts.append("- ❌ role, goal, backstory를 영어로 작성하는 것")
+        prompt_parts.append("- ❌ description, expected_output을 영어로 작성하는 것")
+        prompt_parts.append("- ❌ 'To...', 'A comprehensive...', 'Search...' 같은 영어 문장")
+        prompt_parts.append("")
+        prompt_parts.append("✅ 필수 확인 사항:")
         prompt_parts.append(
             "- 🔴 모든 role, goal, backstory, description, expected_output 값이 한국어인가?"
         )
@@ -401,7 +419,9 @@ class AgentDesignerAgent(BaseExpertAgent):
             "- 🔴 Task의 expected_output이 '한국어로 작성된...'으로 시작하는가?"
         )
         prompt_parts.append("- ✅ JSON 형식이 올바른가?")
-        prompt_parts.append("- ✅ 오직 유효한 JSON만 반환하세요 (설명 없이)")
+        prompt_parts.append("")
+        prompt_parts.append("🚨 마지막 경고: 한국어가 아닌 값이 하나라도 있으면 잘못된 응답입니다!")
+        prompt_parts.append("✅ 오직 유효한 JSON만 반환하세요 (설명 없이)")
 
         return "\n".join(prompt_parts)
 

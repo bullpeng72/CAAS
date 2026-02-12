@@ -337,10 +337,12 @@ class SixPhaseEngine:
             )
             result.phases_completed.append(Phase.CONCRETIZATION)
 
-            # Generate artifacts for Phase 0
-            await self._generate_artifact(
-                "PROJECT_PROPOSAL", result, "Phase 0", requirement
-            )
+            # ✅ v0.5.1: Artifact generation disabled in SixPhaseEngine
+            # Artifacts are now generated exclusively by CLI (generate.py)
+            # to avoid duplication (previously saved to both ./artifacts/ and ./generated/artifacts/)
+            # await self._generate_artifact(
+            #     "PROJECT_PROPOSAL", result, "Phase 0", requirement
+            # )
 
             # Register features in traceability matrix (Phase 2 enhancement)
             if traceability and result.golden_data:
@@ -466,19 +468,24 @@ class SixPhaseEngine:
                         f"📊 Registered {len(result.generated_code)} code files in traceability matrix"
                     )
 
-                # Generate artifacts for all phases (Expert Agent path)
-                if result.requirement_analysis:
-                    await self._generate_artifact("REQUIREMENTS_SPEC", result, "Phase 1", requirement)
-                if result.architecture_design:
-                    await self._generate_artifact("ARCHITECTURE_DESIGN", result, "Phase 2", requirement)
-                    await self._generate_artifact("DATA_DESIGN", result, "Phase 2", requirement)
-                if result.agent_specs and result.task_specs:
-                    await self._generate_artifact("AGENT_DESIGN", result, "Phase 3", requirement)
-                    await self._generate_artifact("TEST_PLAN", result, "Phase 3", requirement)
-                if result.generated_code:
-                    await self._generate_artifact("CODE_REVIEW", result, "Phase 5", requirement)
-                    await self._generate_artifact("TEST_REPORT", result, "Phase 5", requirement)
-                    await self._generate_artifact("DEPLOYMENT_GUIDE", result, "Phase 5", requirement)
+                # ✅ v0.5.1: Artifact generation disabled in SixPhaseEngine
+                # All artifacts are now generated exclusively by CLI (generate.py:845-910)
+                # to prevent duplication - previously saved to both:
+                #   - ./artifacts/ (from SixPhaseEngine, with timestamps)
+                #   - ./generated/artifacts/ (from CLI, without timestamps)
+                # Only CLI generation is needed for proper output structure
+                # if result.requirement_analysis:
+                #     await self._generate_artifact("REQUIREMENTS_SPEC", result, "Phase 1", requirement)
+                # if result.architecture_design:
+                #     await self._generate_artifact("ARCHITECTURE_DESIGN", result, "Phase 2", requirement)
+                #     await self._generate_artifact("DATA_DESIGN", result, "Phase 2", requirement)
+                # if result.agent_specs and result.task_specs:
+                #     await self._generate_artifact("AGENT_DESIGN", result, "Phase 3", requirement)
+                #     await self._generate_artifact("TEST_PLAN", result, "Phase 3", requirement)
+                # if result.generated_code:
+                #     await self._generate_artifact("CODE_REVIEW", result, "Phase 5", requirement)
+                #     await self._generate_artifact("TEST_REPORT", result, "Phase 5", requirement)
+                #     await self._generate_artifact("DEPLOYMENT_GUIDE", result, "Phase 5", requirement)
 
                 # Quality Validation: Syntax/Import checks (Phase 5 Post-Generation)
                 if result.generated_code:

@@ -571,11 +571,9 @@ class ArtifactGenerator:
             Path to saved file or None if failed
         """
         try:
-            # Generate filename
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = (
-                f"{artifact_type.value}_{timestamp}.{self.config.output_format.value}"
-            )
+            # ✅ v0.5.1: Remove timestamp to prevent duplicates
+            # Generate filename without timestamp for clean artifact names
+            filename = f"{artifact_type.value}.{self.config.output_format.value}"
             file_path = self.output_dir / filename
 
             # Write content
