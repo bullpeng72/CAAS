@@ -1,8 +1,9 @@
 # CAAS 초보자 개발 가이드 🌱
 
-**CAAS 버전**: v0.5.1+ (CLI 명령어는 모든 버전 호환)
-**문서 버전**: v5.0.0 (v0.5.1 기준 업데이트)
+**CAAS 버전**: v0.4.1+ (문서는 v0.5.1 목표 기준 작성)
+**문서 버전**: v5.0.0 (v0.4.1 검증 완료)
 **최종 업데이트**: 2026-02-12
+**검증 상태**: ✅ CLI 명령어 검증 완료 (2026-02-12)
 **대상**: CAAS를 처음 사용하는 개발자
 
 ---
@@ -90,6 +91,15 @@ caas generate "금융 분석" --domain DATA_ANALYSIS
 ---
 
 ## 🚀 사전 준비
+
+### 💡 중요: 백엔드 서버 의존성
+
+일부 명령어는 CAAS 백엔드 서버 연결이 필요합니다:
+- `caas list` - 프로젝트 목록 조회
+- `caas status <id>` - 프로젝트 상태 확인
+- `caas download <id>` - 생성 코드 다운로드
+
+**로컬 전용 사용 시**: 이 명령어들은 생략 가능하며, 생성된 코드는 `--output` 디렉토리에서 직접 확인할 수 있습니다.
 
 ### 1. CAAS 설치
 
@@ -819,7 +829,9 @@ caas fix --level 3 \
   --output ./design_fixed/
 ```
 
-> ⚠️ **중요**: `caas validate`와 `caas fix` 명령어는 `--agents`, `--tasks`, `--golden-data` 파라미터가 모두 필요합니다.
+> ⚠️ **중요**:
+> - `caas validate`: `--agents`, `--tasks` 필수. `--golden-data`는 `--validator golden` 사용 시에만 필요
+> - `caas fix`: `--agents`, `--tasks`, `--golden-data` 모두 필수
 
 ### 📊 Step 8: 품질 메트릭 목표
 
