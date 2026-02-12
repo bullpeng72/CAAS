@@ -291,14 +291,20 @@ class InputDetector:
         """
         ✅ v0.5.0 Strategy 4: Match keywords in task descriptions.
 
-        Keywords: "입력", "검색", "키워드", "query", "input", "search"
+        Keywords: "키워드", "검색", "query", "search" (NOT generic "입력"/"input")
+
+        ⚠️ IMPORTANT: This is a FALLBACK strategy. Only use when template variables
+        are NOT found. Generic words like "입력" should NOT be used as they match
+        too broadly (e.g., "입력받다", "입력된" are common Korean verbs).
 
         Returns:
             List of input specifications
         """
         keywords_map = {
-            "keyword": ["키워드", "keyword", "검색", "query", "search"],
-            "text": ["텍스트", "text", "입력", "input"],
+            # ✅ Specific keywords only (no generic "입력"/"input")
+            "keyword": ["키워드", "keyword", "검색어", "search keyword", "검색 키워드"],
+            # ❌ REMOVED: "입력", "input" (too generic - matches "입력받다", "입력된", etc.)
+            # "text": ["텍스트", "text"],  # REMOVED entirely - let template variables handle it
             "file": ["파일", "file"],
             "url": ["URL", "url", "링크", "link"],
         }
@@ -310,7 +316,10 @@ class InputDetector:
             description = task.get("description", "").lower()
 
             for input_name, keywords in keywords_map.items():
-                if any(kw.lower() in description for kw in keywords):
+                # ✅ Require EXACT word boundary match (not substring)
+                import re
+                pattern = r'\b(' + '|'.join(re.escape(kw.lower()) for kw in keywords) + r')\b'
+                if re.search(pattern, description):
                     if input_name not in detected_inputs:
                         detected_inputs[input_name] = {
                             "input_type": input_name,

@@ -862,14 +862,15 @@ def generate(
                 if artifact_config.enabled:
                     echo_progress("Generating documentation artifacts...")
 
-                    # Prepare bmad_data for artifact generation
+                    # ✅ v0.5.0: Prepare bmad_data for artifact generation
+                    # Use correct MethodologyResult attribute names
                     bmad_data = {
-                        "requirement": result.requirement,
+                        "requirement": requirement,  # ✅ From function parameter
                         "golden_data": result.golden_data.__dict__ if result.golden_data else {},
                         "requirement_analysis": result.requirement_analysis,
-                        "architecture": result.architecture,
-                        "agents": [agent.__dict__ if hasattr(agent, '__dict__') else agent for agent in result.agents] if result.agents else [],
-                        "tasks": [task.__dict__ if hasattr(task, '__dict__') else task for task in result.tasks] if result.tasks else [],
+                        "architecture": result.architecture_design,  # ✅ Correct attribute name
+                        "agents": [agent.__dict__ if hasattr(agent, '__dict__') else agent for agent in result.agent_specs] if result.agent_specs else [],  # ✅ agent_specs
+                        "tasks": [task.__dict__ if hasattr(task, '__dict__') else task for task in result.task_specs] if result.task_specs else [],  # ✅ task_specs
                         "code": result.generated_code or {},
                     }
 

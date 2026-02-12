@@ -456,19 +456,36 @@ class CodeGeneratorAgent(BaseExpertAgent):
 🎯 CRITICAL SUCCESS CRITERIA:
 
 1️⃣ INPUT WIDGETS 생성 (MANDATORY):
-   ✅ tasks.py를 분석하여 필요한 입력 자동 감지
-   ✅ 각 입력마다 st.text_input() 또는 적절한 위젯 생성
-   ✅ 예시: keyword = st.text_input("검색 키워드:", key="keyword")
-   ❌ 절대 빈 Input 섹션 생성 금지!
 
-2️⃣ INPUT VALIDATION (MANDATORY):
-   ✅ if not keyword: st.error("⚠️ 키워드를 입력하세요!")
-   ✅ 모든 필수 입력 검증
+   🔍 STEP 1: PLACEHOLDER 탐지 (CRITICAL):
+   ✅ tasks.py의 모든 Task description을 분석
+   ✅ {placeholder} 패턴 추출 (예: {keyword}, {topic}, {query})
+   ✅ 발견된 플레이스홀더 이름을 리스트로 수집
+
+   🎨 STEP 2: INPUT WIDGET 생성 (ONLY FOR DETECTED PLACEHOLDERS):
+   ✅ 발견된 각 플레이스홀더마다 st.text_input() 생성
+   ✅ 예시: {keyword} 발견 → keyword = st.text_input("Keyword:", key="keyword")
+   ✅ 예시: {topic} 발견 → topic = st.text_input("Topic:", key="topic")
+
+   🚨 CRITICAL RULES:
+   ❌ 발견되지 않은 입력 추가 금지! (예: tasks.py에 {text} 없으면 text 입력 생성 금지)
+   ❌ 추측으로 입력 추가 금지! (예: "더 완전한 UI"를 위해 임의 입력 추가 금지)
+   ❌ 빈 Input 섹션 생성 금지!
+   ✅ ONLY 발견된 플레이스홀더만 사용!
+
+2️⃣ INPUT VALIDATION (MANDATORY - ONLY FOR DETECTED PLACEHOLDERS):
+   ✅ 발견된 플레이스홀더만 검증
+   ✅ 예시: {keyword} 발견 → if not keyword: st.error("⚠️ 키워드를 입력하세요!")
+   ✅ 예시: {keyword}, {topic} 발견 → if not keyword or not topic: st.error(...)
+   ❌ 존재하지 않는 입력 검증 금지! (예: tasks.py에 {text} 없으면 text 검증 금지)
    ❌ 빈 리스트 검증 금지: if any(not val for val in [])  # WRONG!
 
-3️⃣ MAIN 함수 호출 (CRITICAL):
-   ✅ inputs dict 준비: user_inputs = {"keyword": keyword}
+3️⃣ MAIN 함수 호출 (CRITICAL - ONLY FOR DETECTED PLACEHOLDERS):
+   ✅ user_inputs dict에 발견된 플레이스홀더만 포함
+   ✅ 예시: {keyword} 발견 → user_inputs = {"keyword": keyword}
+   ✅ 예시: {keyword}, {topic} 발견 → user_inputs = {"keyword": keyword, "topic": topic}
    ✅ result = main(inputs=user_inputs)  # CORRECT
+   ❌ 발견되지 않은 입력을 dict에 추가 금지! (예: tasks.py에 {text} 없으면 "text": text 추가 금지)
    ❌ result = main()  # WRONG - inputs 파라미터 없이 호출 금지!
 
 4️⃣ ERROR HANDLING (MANDATORY):
@@ -478,6 +495,34 @@ class CodeGeneratorAgent(BaseExpertAgent):
 5️⃣ RESULT DISPLAY (MANDATORY):
    ✅ st.markdown(result.raw) if hasattr(result, 'raw')
    ✅ 결과를 보기 좋게 포맷팅
+
+═══════════════════════════════════════════════════════════════════
+🔍 PLACEHOLDER 탐지 알고리즘 (FOLLOW THIS):
+═══════════════════════════════════════════════════════════════════
+
+STEP-BY-STEP PROCESS:
+
+1️⃣ tasks.py 파일 분석:
+   - 모든 Task의 description 필드 확인
+   - 정규식 {[a-zA-Z_]+} 패턴 매칭
+   - 예시: "Using the keyword '{keyword}', 검색..." → {keyword} 발견
+
+2️⃣ 발견된 플레이스홀더 리스트 생성:
+   - 예시: tasks.py에 {keyword}만 있음 → placeholders = ["keyword"]
+   - 예시: tasks.py에 {keyword}, {topic} 있음 → placeholders = ["keyword", "topic"]
+   - 예시: tasks.py에 플레이스홀더 없음 → placeholders = []
+
+3️⃣ app.py에 입력 위젯 생성:
+   - placeholders 리스트의 각 항목마다 st.text_input() 생성
+   - 예시: ["keyword"] → keyword = st.text_input("Keyword:", ...)만 생성
+   - 예시: ["keyword", "topic"] → keyword + topic 두 개 생성
+   - 예시: [] → 입력 위젯 생성하지 않음
+
+4️⃣ 검증 및 user_inputs dict:
+   - placeholders 리스트 기반으로만 검증 및 dict 구성
+   - 예시: ["keyword"] → if not keyword: ... + user_inputs = {"keyword": keyword}
+
+🚨 CRITICAL: 플레이스홀더 리스트 외의 입력은 절대 추가하지 마세요!
 
 ═══════════════════════════════════════════════════════════════════
 📝 COMPLETE EXAMPLE CODE (Follow this pattern exactly):
@@ -516,6 +561,8 @@ with st.sidebar:
 st.subheader("📝 입력")
 
 # ✅ CRITICAL: Create input widgets (detect from tasks)
+# ✅ EXAMPLE: tasks.py has only {keyword} → Create ONLY keyword input
+# ❌ DO NOT add text, query, or other inputs if not in tasks.py!
 keyword = st.text_input("검색 키워드:", key="keyword",
                         placeholder="예: AI 기술 동향")
 
@@ -528,13 +575,17 @@ with col2:
 
 # Execution
 if run_button:
-    # ✅ CRITICAL: Validate inputs
+    # ✅ CRITICAL: Validate ONLY detected placeholders
+    # ✅ EXAMPLE: tasks.py has only {keyword} → Validate ONLY keyword
+    # ❌ DO NOT validate text, query, or other inputs if not in tasks.py!
     if not keyword:
         st.error("⚠️ 키워드를 입력하세요!")
     else:
         with st.spinner("🔄 AI 에이전트가 작업 중입니다..."):
             try:
-                # ✅ CRITICAL: Call main with inputs dict
+                # ✅ CRITICAL: user_inputs contains ONLY detected placeholders
+                # ✅ EXAMPLE: tasks.py has only {keyword} → user_inputs = {"keyword": keyword}
+                # ❌ DO NOT add {"text": text} or other keys if not in tasks.py!
                 user_inputs = {"keyword": keyword}
                 result = main(inputs=user_inputs)
 
@@ -571,6 +622,17 @@ st.markdown("<div style='text-align: center; color: gray;'>"
 🚨 COMMON MISTAKES TO AVOID:
 ═══════════════════════════════════════════════════════════════════
 
+❌ WRONG: Adding inputs not found in tasks.py
+   # tasks.py only has {keyword}, but app.py creates BOTH:
+   keyword = st.text_input("Keyword:", ...)
+   text = st.text_input("Text:", ...)  # ❌ WRONG! {text} not in tasks.py!
+
+❌ WRONG: Validating inputs not in tasks.py
+   if any(not val for val in [keyword, text]):  # ❌ WRONG! text not needed!
+
+❌ WRONG: user_inputs with extra keys
+   user_inputs = {"keyword": keyword, "text": text}  # ❌ WRONG! text not needed!
+
 ❌ WRONG: Empty input section
    # Input section
 
@@ -579,6 +641,8 @@ st.markdown("<div style='text-align: center; color: gray;'>"
 
 ❌ WRONG: if any(not val for val in []): # Empty list validation
 
+✅ CORRECT: ONLY create inputs for placeholders found in tasks.py!
+✅ CORRECT: If tasks.py has {keyword} → Create ONLY keyword input!
 ✅ CORRECT: Follow the example above exactly!
 
 ═══════════════════════════════════════════════════════════════════
@@ -748,7 +812,8 @@ FRONTEND UI REQUIREMENT:
         # Use AST-based code generation for Python files
         main_py = self._generate_main_file_ast(agents_data, tasks_data)
         agents_py = self._generate_agents_file_ast(agents_data)
-        tasks_py = self._generate_tasks_file_ast(tasks_data)
+        # ✅ Use non-AST version for tasks.py (supports context references)
+        tasks_py = self._generate_tasks_file(tasks_data, agents_data)
 
         # Non-Python files using StaticFileGenerators
         requirements_txt = StaticFileGenerators.generate_requirements(
@@ -1234,22 +1299,60 @@ def create_agents():
             logger.warning(f"Input placeholder injection failed: {e}, using original tasks")
 
         tasks_code = []
-        for task in tasks:
-            task.get("id", "task")
+        task_variables = []  # Track task variable names for context references
+
+        for idx, task in enumerate(tasks):
+            task_id = task.get("id", f"task_{idx}")
+            task_var = task_id  # Use task ID as variable name
+            task_variables.append(task_var)
+
             description = task.get("description", "Execute task")
             expected_output = task.get("expected_output", "Task completed")
             agent_id = task.get("agent", agents[0].get("id") if agents else "agent")
             human_input = task.get("human_input", False)
+            async_execution = task.get("async_execution", False)
+            context_ids = task.get("context", [])
 
+            # Build context list with Task object references (not strings!)
+            context_refs = []
+            if context_ids:
+                for ctx_id in context_ids:
+                    # Find the task variable for this context ID
+                    if ctx_id in task_variables:
+                        context_refs.append(ctx_id)
+
+            # Build Task creation parameters
+            task_params = [
+                f'description="{description}"',
+                f'expected_output="{expected_output}"',
+                f'agent=agents["{agent_id}"]',
+            ]
+
+            # Add context parameter (Task object references)
+            if context_refs:
+                context_str = ", ".join(context_refs)
+                task_params.append(f"context=[{context_str}]")
+
+            # Add optional parameters
+            if human_input:
+                task_params.append(f"human_input={human_input}")
+
+            if async_execution:
+                task_params.append(f"async_execution={async_execution}")
+
+            # Format parameters with proper indentation
+            params_str = ",\n        ".join(task_params)
+
+            # Generate task variable assignment
             tasks_code.append(
                 f"""
-    tasks.append(Task(
-        description="{description}",
-        expected_output="{expected_output}",
-        agent=agents["{agent_id}"],
-        human_input={human_input}
-    ))"""
+    {task_var} = Task(
+        {params_str}
+    )"""
             )
+
+        # Return as list of task variables (for proper context referencing)
+        tasks_return = ", ".join(task_variables)
 
         return f'''"""
 Task definitions for CrewAI system.
@@ -1259,11 +1362,15 @@ from crewai import Task
 
 
 def create_tasks(agents):
-    """Create and return all tasks."""
-    tasks = []
+    """
+    Create and return all tasks.
+
+    Tasks are created as variables to enable proper context referencing.
+    Each task can reference previous tasks in its context parameter.
+    """
 {''.join(tasks_code)}
 
-    return tasks
+    return [{tasks_return}]
 '''
 
 
