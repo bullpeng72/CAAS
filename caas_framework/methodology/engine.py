@@ -192,37 +192,25 @@ class SixPhaseEngine:
         # Expert agent collaboration (initialized per run)
         self.expert_collaboration: Optional[ExpertAgentCollaboration] = None
 
-        # Artifact generator (optional)
+        # ✅ v0.5.1: Artifact generator disabled in SixPhaseEngine
+        # Artifacts are now generated exclusively by CLI (generate.py)
+        # to prevent duplicate directories and ensure clean output structure
+        #
+        # Previously, initializing ArtifactGenerator here would create ./artifacts/
+        # directory even when not used, causing empty folder creation.
+        #
+        # All artifact generation is handled by CLI at ./generated/artifacts/
         self.artifact_generator: Optional[Any] = None
-        if artifact_config and getattr(artifact_config, "enabled", False):
-            try:
-                from caas_framework.artifacts import ArtifactGenerator
-                from caas_framework.models import ArtifactGenerationConfig
 
-                # Create ArtifactGenerationConfig from artifact_config
-                # ✅ v0.5.0: Dict-based configuration (clean, extensible)
-                enabled_types = getattr(artifact_config, "types", {})
-
-                # Default types if not provided
-                # ✅ Single Source: artifact_constants.py에서 import
-                if not enabled_types:
-                    enabled_types = get_default_artifact_types()
-
-                gen_config = ArtifactGenerationConfig(
-                    enabled=True,
-                    output_directory=getattr(
-                        artifact_config, "output_dir", "./artifacts"
-                    ),
-                    output_format=getattr(artifact_config, "output_format", "markdown"),
-                    enabled_types=enabled_types,  # ✅ v0.5.0: Use Dict directly
-                )
-
-                self.artifact_generator = ArtifactGenerator(config=gen_config)
-                self.reporter.info("📄 Artifact generation enabled")
-            except ImportError as e:
-                self.reporter.warning(
-                    f"⚠️  Artifact generation requested but could not be loaded: {e}"
-                )
+        # Legacy code (disabled):
+        # if artifact_config and getattr(artifact_config, "enabled", False):
+        #     try:
+        #         from caas_framework.artifacts import ArtifactGenerator
+        #         from caas_framework.models import ArtifactGenerationConfig
+        #         ...
+        #         self.artifact_generator = ArtifactGenerator(config=gen_config)
+        #     except ImportError as e:
+        #         self.reporter.warning(f"⚠️  Could not load ArtifactGenerator: {e}")
 
     async def run(
         self,
