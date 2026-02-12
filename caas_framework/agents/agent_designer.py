@@ -355,8 +355,8 @@ class AgentDesignerAgent(BaseExpertAgent):
     "tasks": [
         {
             "id": "고유_작업_id",
-            "description": "상세한 작업 설명",
-            "expected_output": "기대되는 출력",
+            "description": "상세한 작업 설명 (사용자 입력 필요 시: '키워드 {keyword}를 사용하여...')",
+            "expected_output": "기대되는 출력 (예: '한국어로 작성된 {keyword}에 대한 요약 보고서')",
             "agent": "이_작업을_수행할_에이전트_id",
             "context": ["작업_id_1", "작업_id_2"],
             "async_execution": false,
@@ -367,6 +367,34 @@ class AgentDesignerAgent(BaseExpertAgent):
     "agent_collaboration_pattern": "에이전트들이 협업하는 방식에 대한 설명"
 }"""
         )
+        prompt_parts.append("")
+
+        # ✅ v0.5.1: Add critical guideline for user input systems
+        prompt_parts.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        prompt_parts.append("🚨 CRITICAL: 사용자 입력이 필요한 시스템 설계 규칙")
+        prompt_parts.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        prompt_parts.append("")
+        prompt_parts.append("**요구사항에 '입력받', '키워드', 'input', 'keyword' 등이 포함된 경우:**")
+        prompt_parts.append("")
+        prompt_parts.append("1. Task description에 반드시 '{input_name}' 플레이스홀더를 포함하세요!")
+        prompt_parts.append("   - 예: \"키워드 '{keyword}'를 사용하여 인터넷에서 자료를 검색합니다\"")
+        prompt_parts.append("   - 예: \"입력받은 텍스트 '{text}'를 분석하고 요약합니다\"")
+        prompt_parts.append("")
+        prompt_parts.append("2. 입력 변수명 규칙:")
+        prompt_parts.append("   - 검색어/키워드 → {keyword}")
+        prompt_parts.append("   - 텍스트 → {text}")
+        prompt_parts.append("   - 파일 → {file}")
+        prompt_parts.append("   - URL → {url}")
+        prompt_parts.append("")
+        prompt_parts.append("3. 첫 번째 Task부터 플레이스홀더를 사용하세요:")
+        prompt_parts.append("   - ❌ \"사용자가 입력한 키워드를 수집합니다\"")
+        prompt_parts.append("   - ✅ \"사용자가 입력한 키워드 '{keyword}'의 유효성을 검증합니다\"")
+        prompt_parts.append("")
+        prompt_parts.append("4. 모든 관련 Task에 플레이스홀더 전파:")
+        prompt_parts.append("   - ✅ \"검증된 키워드 '{keyword}'를 사용하여 인터넷 검색을 수행합니다\"")
+        prompt_parts.append("   - ✅ \"검색된 자료를 바탕으로 키워드 '{keyword}'에 대한 한국어 보고서를 작성합니다\"")
+        prompt_parts.append("")
+        prompt_parts.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
         prompt_parts.append("")
 
         # Add guidelines
@@ -407,6 +435,7 @@ class AgentDesignerAgent(BaseExpertAgent):
         prompt_parts.append("- ❌ role, goal, backstory를 영어로 작성하는 것")
         prompt_parts.append("- ❌ description, expected_output을 영어로 작성하는 것")
         prompt_parts.append("- ❌ 'To...', 'A comprehensive...', 'Search...' 같은 영어 문장")
+        prompt_parts.append("- ❌ 사용자 입력이 필요한데 Task description에 플레이스홀더가 없는 것")
         prompt_parts.append("")
         prompt_parts.append("✅ 필수 확인 사항:")
         prompt_parts.append(
@@ -418,9 +447,14 @@ class AgentDesignerAgent(BaseExpertAgent):
         prompt_parts.append(
             "- 🔴 Task의 expected_output이 '한국어로 작성된...'으로 시작하는가?"
         )
+        prompt_parts.append(
+            "- 🔴 사용자 입력이 필요하면 Task description에 '{keyword}' 같은 플레이스홀더가 있는가?"
+        )
         prompt_parts.append("- ✅ JSON 형식이 올바른가?")
         prompt_parts.append("")
-        prompt_parts.append("🚨 마지막 경고: 한국어가 아닌 값이 하나라도 있으면 잘못된 응답입니다!")
+        prompt_parts.append("🚨 마지막 경고:")
+        prompt_parts.append("  1. 한국어가 아닌 값이 하나라도 있으면 잘못된 응답입니다!")
+        prompt_parts.append("  2. 사용자 입력이 필요한데 플레이스홀더가 없으면 잘못된 응답입니다!")
         prompt_parts.append("✅ 오직 유효한 JSON만 반환하세요 (설명 없이)")
 
         return "\n".join(prompt_parts)
