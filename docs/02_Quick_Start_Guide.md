@@ -92,14 +92,75 @@ caas generate "금융 분석" --domain DATA_ANALYSIS
 
 ## 🚀 사전 준비
 
-### 💡 중요: 백엔드 서버 의존성
+### 🔌 백엔드 서버 의존성 (중요)
 
-일부 명령어는 CAAS 백엔드 서버 연결이 필요합니다:
-- `caas list` - 프로젝트 목록 조회
-- `caas status <id>` - 프로젝트 상태 확인
-- `caas download <id>` - 생성 코드 다운로드
+#### API 서버 필요 명령어 ⚠️
 
-**로컬 전용 사용 시**: 이 명령어들은 생략 가능하며, 생성된 코드는 `--output` 디렉토리에서 직접 확인할 수 있습니다.
+다음 명령어는 **CAAS API 서버** 연결이 필수입니다:
+
+| 명령어 | 기능 | API 엔드포인트 | 용도 |
+|--------|------|---------------|------|
+| `caas list` | 프로젝트 목록 조회 | `GET /api/v1/projects` | 원격 생성 프로젝트 관리 |
+| `caas status <id>` | 프로젝트 상태 확인 | `GET /api/v1/projects/{id}` | 실시간 진행률 모니터링 |
+| `caas download <id>` | 코드 다운로드 | `GET /api/v1/projects/{id}/result` | 원격 생성 코드 다운로드 |
+
+#### 로컬 전용 사용 (API 서버 없음) ✅
+
+**대부분의 사용자는 API 서버 없이 사용 가능합니다:**
+
+```bash
+# ✅ 로컬에서 즉시 사용 가능 (API 서버 불필요)
+caas generate "요구사항" --output ./project
+caas generate-phase --phase 0 --requirement "요구사항"
+caas validate --agents agents.json --tasks tasks.json
+caas fix --agents agents.json --tasks tasks.json
+
+# ❌ API 서버 필요 (로컬 전용 시 불필요)
+caas list
+caas status abc123
+caas download abc123
+```
+
+**로컬 전용 워크플로우** (권장):
+```bash
+# 1. 프로젝트 생성 (로컬)
+caas generate "금융 뉴스 분석" --output ./analyzer
+
+# 2. 생성된 코드는 즉시 ./analyzer 디렉토리에 저장됨
+cd ./analyzer
+ls -la  # → agents.py, tasks.py, main.py 등 확인
+
+# 3. 바로 실행
+pip install -r requirements.txt
+python main.py
+```
+
+> 💡 **핵심**: `caas generate` 명령어는 코드를 `--output` 디렉토리에 **즉시 저장**하므로,
+> `list`, `status`, `download` 명령어가 필요 없습니다.
+
+#### API 서버 사용 시나리오
+
+API 서버는 다음 상황에서 유용합니다:
+- ✅ 팀 협업: 여러 사용자가 프로젝트 공유
+- ✅ 원격 생성: 서버에서 코드 생성 후 다운로드
+- ✅ 이력 관리: 생성된 모든 프로젝트 추적
+
+**API 서버 설정 방법** (선택적):
+```bash
+# 방법 1: 환경 변수
+export CAAS_API_URL="http://localhost:8000"
+export CAAS_API_KEY="your_api_key"
+
+# 방법 2: 설정 파일
+caas config --set api_url http://localhost:8000
+caas config --set api_key your_api_key
+
+# 방법 3: CLI 옵션 (일회성)
+caas list --api-url http://localhost:8000 --api-key your_key
+```
+
+> ⚠️ **주의**: API 서버 미실행 시 `Connection refused` 오류가 발생하지만,
+> 로컬 전용 사용 시 이는 정상입니다. `generate` 명령어는 영향받지 않습니다.
 
 ### 1. CAAS 설치
 
