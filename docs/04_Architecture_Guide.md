@@ -2,8 +2,8 @@
 
 CAAS (CrewAI Agent Auto-generation System)의 전체 아키텍처를 설명하는 가이드입니다.
 
-**버전**: v0.4.1
-**최종 업데이트**: 2026-02-06
+**버전**: v0.5.1
+**최종 업데이트**: 2026-02-12
 
 ---
 
@@ -27,11 +27,11 @@ CAAS는 자연어 요구사항을 입력받아 **CrewAI 기반 멀티에이전�
 ### 핵심 특징
 
 - **Framework-First 아키텍처**: CLI, SDK, Python API를 통한 접근
-- **이중 코드 생성 전략**:
-  - **AGENT_BASED**: CrewAI 멀티에이전트 시스템 (CONTENT_CREATION, DATA_ANALYSIS 등)
-  - **CRUD_BASED**: FastAPI + SQLAlchemy 백엔드 (TASK_MANAGEMENT 등)
+- **Expert Agent Collaboration 단일 경로**: v0.5.1에서 Legacy LLM 경로 제거, Expert Agent만 사용
+  - **6개 전문가 에이전트**: Requirement Analyst, System Architect, Agent Designer, QA Specialist, Code Generator, Code Analysis Agent
+  - **통합 코드 생성**: CrewAI 멀티에이전트 시스템 전문 (17개 도메인 지원)
 - **CAAS 6-Phase 방법론**: 요구사항 분석부터 코드 생성, 품질 보증까지의 체계적인 워크플로우
-- **Expert Agent Collaboration**: 6명의 전문가 에이전트 협업 (v0.4.0에서 CodeAnalysisAgent 추가)
+- **코드 품질 대폭 향상**: v0.5.1에서 코드 중복률 60% 감소 (<8%), 구조화된 예외 처리, 한국어 출력 강화
 - **도메인 기반 분류**: 17개 주요 도메인 자동 분류 및 최적 전략 선택
 - **온톨로지 기반 추론**: 도메인 지식을 활용한 지능적 역할/도구 매핑
 - **이중 그래프 백엔드**: Neo4j (프로덕션) 또는 임베디드 (개발)
@@ -41,15 +41,16 @@ CAAS는 자연어 요구사항을 입력받아 **CrewAI 기반 멀티에이전�
 
 ### 프로덕션 규모
 
-- **코드량**: 86,000+ 라인 (caas_framework/)
+- **코드량**: 약 48,000 라인 (caas_framework/, v0.5.1에서 -17% 최적화)
 - **CLI 명령**: 28개 메인 명령
   - v0.4.0: `analyze-completeness`, `fix-runtime-error` 추가
-  - v0.4.1: 품질 보증 시스템 강화
-- **Expert Agents**: 6개 (v0.4.0에서 CodeAnalysisAgent 추가)
-- **도구 지원**: 40+ CrewAI 도구
-- **Validator**: 6개 타입
-- **산출물**: 10가지 자동 문서
-- **테스트**: 160 tests (v0.4.1)
+  - v0.5.1: Legacy 경로 제거로 코드베이스 단순화
+- **Expert Agents**: 6개 (Requirement Analyst, System Architect, Agent Designer, QA Specialist, Code Generator, Code Analysis Agent)
+- **도구 지원**: 40+ CrewAI 도구 (한국어 도구명 자동 번역)
+- **Validator**: 7개 타입 (Code Quality, CrewAI, Dependency, Golden Data, Ontology, Python311, Task)
+- **산출물**: 10가지 자동 문서 (Artifact 생성)
+- **테스트**: 160+ tests (v0.5.1)
+- **코드 품질**: 중복률 <8%, 구조화된 예외 처리 (17개 클래스)
 
 ---
 
