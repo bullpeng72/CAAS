@@ -307,7 +307,7 @@ class SixPhaseEngine:
                 data={
                     "workflow": "CAAS_6_Phase",
                     "total_phases": 6,
-                    "use_expert_agents": self.use_expert_agents,
+                    # ✅ v0.5.1: use_expert_agents removed (Expert Agent path is the only path)
                     "enable_validation": self.enable_validation,
                 },
                 source="SixPhaseEngine",
