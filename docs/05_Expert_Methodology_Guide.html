@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CAAS 전문가 방법론 가이드 v2.0</title>
+    
+    <!-- Mermaid.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    
     <style>
         * {
             margin: 0;
@@ -174,6 +178,22 @@
             border-bottom: 2px solid #3498db;
         }
         
+        /* Mermaid diagram styling */
+        .mermaid {
+            background-color: #ffffff;
+            border: 1px solid #e1e4e8;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 30px 0;
+            text-align: center;
+            overflow-x: auto;
+        }
+        
+        .mermaid svg {
+            max-width: 100%;
+            height: auto;
+        }
+        
         .alert {
             padding: 15px 20px;
             border-radius: 6px;
@@ -227,6 +247,30 @@
             color: white;
         }
         
+        /* Copy button styling */
+        .copy-btn {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            padding: 6px 12px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: background 0.3s;
+            z-index: 10;
+        }
+        
+        .copy-btn:hover {
+            background: #2980b9;
+        }
+        
+        .copy-btn.copied {
+            background: #27ae60;
+        }
+        
         @media print {
             body {
                 background-color: white;
@@ -239,6 +283,10 @@
             }
             
             pre {
+                page-break-inside: avoid;
+            }
+            
+            .mermaid {
                 page-break-inside: avoid;
             }
         }
@@ -259,6 +307,11 @@
             pre {
                 padding: 15px;
                 font-size: 0.85em;
+            }
+            
+            .mermaid {
+                padding: 15px;
+                overflow-x: scroll;
             }
         }
     </style>
@@ -707,24 +760,25 @@ Golden Data (Formal Specification)
 <p>"UI-독립적 코어를 먼저 구축하고, 다양한 인터페이스를 후에 추가한다."</p>
 </blockquote>
 <p><strong>아키텍처</strong>:</p>
-<div class="codehilite"><pre><span></span><code><span class="n">flowchart</span><span class="w"> </span><span class="n">TB</span>
-<span class="w">    </span><span class="n">subgraph</span><span class="w"> </span><span class="kr">interface</span><span class="p">[</span><span class="s">&quot;Interface Layer (선택적)&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="n">CLI</span><span class="p">[</span><span class="s">&quot;CLI&lt;br/&gt;(28 commands, 65 subcommands)&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="n">SDK</span><span class="p">[</span><span class="s">&quot;Python SDK&lt;br/&gt;(Async)&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="n">WebUI</span><span class="p">[</span><span class="s">&quot;Web UI&lt;br/&gt;(Future)&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="kd">end</span>
+<div class="mermaid">
+flowchart TB
+    subgraph interface["Interface Layer (선택적)"]
+        CLI["CLI<br/>(28 commands, 65 subcommands)"]
+        SDK["Python SDK<br/>(Async)"]
+        WebUI["Web UI<br/>(Future)"]
+    end
 
-<span class="w">    </span><span class="n">subgraph</span><span class="w"> </span><span class="n">framework</span><span class="p">[</span><span class="s">&quot;caas_framework (Core Engine)&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="n">components</span><span class="p">[</span><span class="s">&quot;• 6-Phase Methodology&lt;br/&gt;• 6 Expert Agents&lt;br/&gt;• Quality Assurance&lt;br/&gt;• Plugin System&lt;br/&gt;• Knowledge System&lt;br/&gt;• Data Models&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="kd">end</span>
+    subgraph framework["caas_framework (Core Engine)"]
+        components["• 6-Phase Methodology<br/>• 6 Expert Agents<br/>• Quality Assurance<br/>• Plugin System<br/>• Knowledge System<br/>• Data Models"]
+    end
 
-<span class="w">    </span><span class="n">CLI</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">framework</span>
-<span class="w">    </span><span class="n">SDK</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">framework</span>
-<span class="w">    </span><span class="n">WebUI</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">framework</span>
+    CLI --> framework
+    SDK --> framework
+    WebUI --> framework
 
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="kr">interface</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">e1f5e1</span><span class="p">,</span><span class="n">stroke</span><span class="o">:</span><span class="err">#</span><span class="mi">333</span><span class="p">,</span><span class="n">stroke</span><span class="o">-</span><span class="n">width</span><span class="o">:</span><span class="mi">2</span><span class="n">px</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">framework</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">cfe2ff</span><span class="p">,</span><span class="n">stroke</span><span class="o">:</span><span class="err">#</span><span class="mi">333</span><span class="p">,</span><span class="n">stroke</span><span class="o">-</span><span class="n">width</span><span class="o">:</span><span class="mi">2</span><span class="n">px</span>
-</code></pre></div>
+    style interface fill:#e1f5e1,stroke:#333,stroke-width:2px
+    style framework fill:#cfe2ff,stroke:#333,stroke-width:2px
+</div>
 
 <p><strong>설계 결정</strong>:<br />
 - <strong>caas_framework/</strong>: UI-독립적 비즈니스 로직<br />
@@ -986,60 +1040,61 @@ Phase 5-6: QA + Code Analysis (병렬 실행 ⚡⚡)
 <h2 id="12-6-layer">1.2 6-Layer 아키텍처 개요</h2>
 <h3 id="121">1.2.1 전체 아키텍처 다이어그램</h3>
 <p>CAAS는 <strong>6개의 Layer</strong>로 구성된 계층적 아키텍처를 채택합니다. 각 Layer는 명확한 책임을 가지며, 하위 Layer에만 의존합니다.</p>
-<div class="codehilite"><pre><span></span><code><span class="n">flowchart</span><span class="w"> </span><span class="n">TB</span>
-<span class="w">    </span><span class="n">subgraph</span><span class="w"> </span><span class="kr">interface</span><span class="p">[</span><span class="s">&quot;Interface Layer (다중 진입점)&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="n">CLI</span><span class="p">[</span><span class="s">&quot;CLI&lt;br/&gt;(28 commands, 65 subcommands)&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="n">SDK</span><span class="p">[</span><span class="s">&quot;Python SDK&lt;br/&gt;(Async)&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="n">UI</span><span class="p">[</span><span class="s">&quot;Web UI&lt;br/&gt;(Future)&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="kd">end</span>
+<div class="mermaid">
+flowchart TB
+    subgraph interface["Interface Layer (다중 진입점)"]
+        CLI["CLI<br/>(28 commands, 65 subcommands)"]
+        SDK["Python SDK<br/>(Async)"]
+        UI["Web UI<br/>(Future)"]
+    end
 
-<span class="w">    </span><span class="n">CLI</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">core</span>
-<span class="w">    </span><span class="n">SDK</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">core</span>
-<span class="w">    </span><span class="n">UI</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">core</span>
+    CLI --> core
+    SDK --> core
+    UI --> core
 
-<span class="w">    </span><span class="n">subgraph</span><span class="w"> </span><span class="n">core</span><span class="p">[</span><span class="s">&quot;caas_framework (Core Engine)&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="n">direction</span><span class="w"> </span><span class="n">TB</span>
+    subgraph core["caas_framework (Core Engine)"]
+        direction TB
 
-<span class="w">        </span><span class="n">subgraph</span><span class="w"> </span><span class="n">L1</span><span class="p">[</span><span class="s">&quot;Layer 1: Methodology Engine&quot;</span><span class="p">]</span>
-<span class="w">            </span><span class="n">L1A</span><span class="p">[</span><span class="s">&quot;• SixPhaseEngine&lt;br/&gt;• Phase 0-6 Orchestration&lt;br/&gt;• Checkpoint &amp; Recovery&lt;br/&gt;• Artifacts Management&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="kd">end</span>
+        subgraph L1["Layer 1: Methodology Engine"]
+            L1A["• SixPhaseEngine<br/>• Phase 0-6 Orchestration<br/>• Checkpoint & Recovery<br/>• Artifacts Management"]
+        end
 
-<span class="w">        </span><span class="n">subgraph</span><span class="w"> </span><span class="n">L2</span><span class="p">[</span><span class="s">&quot;Layer 2: Expert Agents System&quot;</span><span class="p">]</span>
-<span class="w">            </span><span class="n">L2A</span><span class="p">[</span><span class="s">&quot;• 6 Expert Agents&lt;br/&gt;• Collaboration Protocol&lt;br/&gt;• CollaborationContext&lt;br/&gt;• Parallel Execution&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="kd">end</span>
+        subgraph L2["Layer 2: Expert Agents System"]
+            L2A["• 6 Expert Agents<br/>• Collaboration Protocol<br/>• CollaborationContext<br/>• Parallel Execution"]
+        end
 
-<span class="w">        </span><span class="n">subgraph</span><span class="w"> </span><span class="n">L3</span><span class="p">[</span><span class="s">&quot;Layer 3: Quality Assurance&quot;</span><span class="p">]</span>
-<span class="w">            </span><span class="n">L3A</span><span class="p">[</span><span class="s">&quot;• 6 Validators&lt;br/&gt;• 3-Level Auto-Fixing&lt;br/&gt;• Quality Gate System&lt;br/&gt;• AutoMetricsCollector&lt;br/&gt;• LLM Judge&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="kd">end</span>
+        subgraph L3["Layer 3: Quality Assurance"]
+            L3A["• 6 Validators<br/>• 3-Level Auto-Fixing<br/>• Quality Gate System<br/>• AutoMetricsCollector<br/>• LLM Judge"]
+        end
 
-<span class="w">        </span><span class="n">subgraph</span><span class="w"> </span><span class="n">L4</span><span class="p">[</span><span class="s">&quot;Layer 4: Plugin System&quot;</span><span class="p">]</span>
-<span class="w">            </span><span class="n">L4A</span><span class="p">[</span><span class="s">&quot;• LLM Plugins&lt;br/&gt;• Graph DB&lt;br/&gt;• Vector DB&lt;br/&gt;• MCP Integration&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="kd">end</span>
+        subgraph L4["Layer 4: Plugin System"]
+            L4A["• LLM Plugins<br/>• Graph DB<br/>• Vector DB<br/>• MCP Integration"]
+        end
 
-<span class="w">        </span><span class="n">subgraph</span><span class="w"> </span><span class="n">L5</span><span class="p">[</span><span class="s">&quot;Layer 5: Knowledge System&quot;</span><span class="p">]</span>
-<span class="w">            </span><span class="n">L5A</span><span class="p">[</span><span class="s">&quot;• Ontology&lt;br/&gt;• Domain Patterns (17)&lt;br/&gt;• Templates (Jinja2)&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="kd">end</span>
+        subgraph L5["Layer 5: Knowledge System"]
+            L5A["• Ontology<br/>• Domain Patterns (17)<br/>• Templates (Jinja2)"]
+        end
 
-<span class="w">        </span><span class="n">subgraph</span><span class="w"> </span><span class="n">L6</span><span class="p">[</span><span class="s">&quot;Layer 6: Data Models&quot;</span><span class="p">]</span>
-<span class="w">            </span><span class="n">L6A</span><span class="p">[</span><span class="s">&quot;• Pydantic Models&lt;br/&gt;• JSON Schemas&lt;br/&gt;• Type Safety&lt;br/&gt;• Exception Hierarchy&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="kd">end</span>
+        subgraph L6["Layer 6: Data Models"]
+            L6A["• Pydantic Models<br/>• JSON Schemas<br/>• Type Safety<br/>• Exception Hierarchy"]
+        end
 
-<span class="w">        </span><span class="n">L1</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">L2</span>
-<span class="w">        </span><span class="n">L2</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">L3</span>
-<span class="w">        </span><span class="n">L3</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">L4</span>
-<span class="w">        </span><span class="n">L4</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">L5</span>
-<span class="w">        </span><span class="n">L5</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">L6</span>
-<span class="w">    </span><span class="kd">end</span>
+        L1 --> L2
+        L2 --> L3
+        L3 --> L4
+        L4 --> L5
+        L5 --> L6
+    end
 
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="kr">interface</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">e1f5e1</span><span class="p">,</span><span class="n">stroke</span><span class="o">:</span><span class="err">#</span><span class="mi">333</span><span class="p">,</span><span class="n">stroke</span><span class="o">-</span><span class="n">width</span><span class="o">:</span><span class="mi">2</span><span class="n">px</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">core</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">f0f0f0</span><span class="p">,</span><span class="n">stroke</span><span class="o">:</span><span class="err">#</span><span class="mi">333</span><span class="p">,</span><span class="n">stroke</span><span class="o">-</span><span class="n">width</span><span class="o">:</span><span class="mi">2</span><span class="n">px</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">L1</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">cfe2ff</span><span class="p">,</span><span class="n">stroke</span><span class="o">:</span><span class="err">#</span><span class="mi">333</span><span class="p">,</span><span class="n">stroke</span><span class="o">-</span><span class="n">width</span><span class="o">:</span><span class="mi">2</span><span class="n">px</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">L2</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">fff3cd</span><span class="p">,</span><span class="n">stroke</span><span class="o">:</span><span class="err">#</span><span class="mi">333</span><span class="p">,</span><span class="n">stroke</span><span class="o">-</span><span class="n">width</span><span class="o">:</span><span class="mi">2</span><span class="n">px</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">L3</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">d1ecf1</span><span class="p">,</span><span class="n">stroke</span><span class="o">:</span><span class="err">#</span><span class="mi">333</span><span class="p">,</span><span class="n">stroke</span><span class="o">-</span><span class="n">width</span><span class="o">:</span><span class="mi">2</span><span class="n">px</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">L4</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">e2e3e5</span><span class="p">,</span><span class="n">stroke</span><span class="o">:</span><span class="err">#</span><span class="mi">333</span><span class="p">,</span><span class="n">stroke</span><span class="o">-</span><span class="n">width</span><span class="o">:</span><span class="mi">2</span><span class="n">px</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">L5</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">f8d7da</span><span class="p">,</span><span class="n">stroke</span><span class="o">:</span><span class="err">#</span><span class="mi">333</span><span class="p">,</span><span class="n">stroke</span><span class="o">-</span><span class="n">width</span><span class="o">:</span><span class="mi">2</span><span class="n">px</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">L6</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">e7d5e8</span><span class="p">,</span><span class="n">stroke</span><span class="o">:</span><span class="err">#</span><span class="mi">333</span><span class="p">,</span><span class="n">stroke</span><span class="o">-</span><span class="n">width</span><span class="o">:</span><span class="mi">2</span><span class="n">px</span>
-</code></pre></div>
+    style interface fill:#e1f5e1,stroke:#333,stroke-width:2px
+    style core fill:#f0f0f0,stroke:#333,stroke-width:2px
+    style L1 fill:#cfe2ff,stroke:#333,stroke-width:2px
+    style L2 fill:#fff3cd,stroke:#333,stroke-width:2px
+    style L3 fill:#d1ecf1,stroke:#333,stroke-width:2px
+    style L4 fill:#e2e3e5,stroke:#333,stroke-width:2px
+    style L5 fill:#f8d7da,stroke:#333,stroke-width:2px
+    style L6 fill:#e7d5e8,stroke:#333,stroke-width:2px
+</div>
 
 <p><strong>설계 원칙</strong>:<br />
 1. <strong>계층적 의존성</strong>: 상위 Layer는 하위 Layer에만 의존 (역방향 의존성 없음)<br />
@@ -1599,94 +1654,95 @@ Phase 5-6: QA + Code Analysis (병렬 실행 ⚡⚡)
 <h2 id="13-end-to-end">1.3 데이터 흐름 (End-to-End)</h2>
 <h3 id="131-phase-0-phase-6">1.3.1 Phase 0 → Phase 6 전체 흐름</h3>
 <p>CAAS의 핵심 강점은 <strong>명확한 데이터 변환 파이프라인</strong>입니다. 자연어 요구사항이 입력되면, 6개의 Phase를 거쳐 프로덕션 코드로 변환됩니다.</p>
-<div class="codehilite"><pre><span></span><code><span class="n">flowchart</span><span class="w"> </span><span class="n">TD</span>
-<span class="w">    </span><span class="n">Start</span><span class="p">[</span><span class="s2">&quot;자연어 요구사항&lt;br/&gt;(User Input)&quot;</span><span class="p">]</span>
+<div class="mermaid">
+flowchart TD
+    Start["자연어 요구사항<br/>(User Input)"]
 
-<span class="w">    </span><span class="n">subgraph</span><span class="w"> </span><span class="n">Phase0</span><span class="p">[</span><span class="s2">&quot;Phase 0: Concretization&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="n">P0A</span><span class="p">[</span><span class="s2">&quot;RequirementConcretizer&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="n">P0B</span><span class="p">[</span><span class="s2">&quot;HierarchicalFeatureExtractor&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="n">P0C</span><span class="p">[</span><span class="s2">&quot;3-Strategy JSON Parsing&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">end</span>
+    subgraph Phase0["Phase 0: Concretization"]
+        P0A["RequirementConcretizer"]
+        P0B["HierarchicalFeatureExtractor"]
+        P0C["3-Strategy JSON Parsing"]
+    end
 
-<span class="w">    </span><span class="n">GD</span><span class="p">[</span><span class="s2">&quot;Golden Data&lt;br/&gt;(ConcretizedRequirement)&lt;br/&gt;&lt;br/&gt;• domain: CONVERSATIONAL_AI&lt;br/&gt;• features: [F1, F2, ..., F8]&lt;br/&gt;• boundaries: {&#39;{&#39;}always/ask/never{&#39;}&#39;}&lt;br/&gt;💾 artifacts/phase_0/golden_data.json&quot;</span><span class="p">]</span>
+    GD["Golden Data<br/>(ConcretizedRequirement)<br/><br/>• domain: CONVERSATIONAL_AI<br/>• features: [F1, F2, ..., F8]<br/>• boundaries: {'{'}always/ask/never{'}'}<br/>💾 artifacts/phase_0/golden_data.json"]
 
-<span class="w">    </span><span class="n">subgraph</span><span class="w"> </span><span class="n">Phase1</span><span class="p">[</span><span class="s2">&quot;Phase 1: Discovery (병렬 시작 ⚡)&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="n">P1A</span><span class="p">[</span><span class="s2">&quot;Requirement Analyst Agent&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="n">P1B</span><span class="p">[</span><span class="s2">&quot;Domain Classifier&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="n">P1C</span><span class="p">[</span><span class="s2">&quot;Feature Analyzer&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">end</span>
+    subgraph Phase1["Phase 1: Discovery (병렬 시작 ⚡)"]
+        P1A["Requirement Analyst Agent"]
+        P1B["Domain Classifier"]
+        P1C["Feature Analyzer"]
+    end
 
-<span class="w">    </span><span class="n">RS</span><span class="p">[</span><span class="s2">&quot;Requirements Spec + Domain Analysis&lt;br/&gt;&lt;br/&gt;• execution_pattern: AGENT_BASED&lt;br/&gt;• required_tools: [search, chat]&lt;br/&gt;• estimated_agents: 3&lt;br/&gt;💾 artifacts/phase_1/requirements_spec.md&quot;</span><span class="p">]</span>
+    RS["Requirements Spec + Domain Analysis<br/><br/>• execution_pattern: AGENT_BASED<br/>• required_tools: [search, chat]<br/>• estimated_agents: 3<br/>💾 artifacts/phase_1/requirements_spec.md"]
 
-<span class="w">    </span><span class="n">subgraph</span><span class="w"> </span><span class="n">Phase2</span><span class="p">[</span><span class="s2">&quot;Phase 2: Architecture (병렬 실행 ⚡)&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="n">P2A</span><span class="p">[</span><span class="s2">&quot;System Architect&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="n">P2B</span><span class="p">[</span><span class="s2">&quot;Traceability Builder&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="n">P2C</span><span class="p">[</span><span class="s2">&quot;Discovery 완료 시&lt;br/&gt;Architecture 개선&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">end</span>
+    subgraph Phase2["Phase 2: Architecture (병렬 실행 ⚡)"]
+        P2A["System Architect"]
+        P2B["Traceability Builder"]
+        P2C["Discovery 완료 시<br/>Architecture 개선"]
+    end
 
-<span class="w">    </span><span class="n">AD</span><span class="p">[</span><span class="s2">&quot;Architecture Design + Traceability Matrix&lt;br/&gt;&lt;br/&gt;• components: [Agent1, Agent2, Agent3]&lt;br/&gt;• traceability: F1 → Agent1, F2 → Agent2&lt;br/&gt;• data_flows: Agent1 → Agent2 → Agent3&lt;br/&gt;💾 artifacts/phase_2/architecture_design.md&lt;br/&gt;💾 artifacts/phase_2/traceability_matrix.json&quot;</span><span class="p">]</span>
+    AD["Architecture Design + Traceability Matrix<br/><br/>• components: [Agent1, Agent2, Agent3]<br/>• traceability: F1 → Agent1, F2 → Agent2<br/>• data_flows: Agent1 → Agent2 → Agent3<br/>💾 artifacts/phase_2/architecture_design.md<br/>💾 artifacts/phase_2/traceability_matrix.json"]
 
-<span class="w">    </span><span class="n">subgraph</span><span class="w"> </span><span class="n">Phase3</span><span class="p">[</span><span class="s2">&quot;Phase 3: Design&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="n">P3A</span><span class="p">[</span><span class="s2">&quot;Agent Designer Agent&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="n">P3B</span><span class="p">[</span><span class="s2">&quot;QA Specialist (Validate)&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="n">P3C</span><span class="p">[</span><span class="s2">&quot;Ontology-based Tool Assignment&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">end</span>
+    subgraph Phase3["Phase 3: Design"]
+        P3A["Agent Designer Agent"]
+        P3B["QA Specialist (Validate)"]
+        P3C["Ontology-based Tool Assignment"]
+    end
 
-<span class="w">    </span><span class="n">AS</span><span class="p">[</span><span class="s2">&quot;Agent/Task Specs + Validation Report&lt;br/&gt;&lt;br/&gt;• agents: [AgentSpecModel × 3]&lt;br/&gt;• tasks: [TaskSpecModel × 5]&lt;br/&gt;• validation_result: PASSED&lt;br/&gt;💾 artifacts/phase_3/agents.json&lt;br/&gt;💾 artifacts/phase_3/tasks.json&quot;</span><span class="p">]</span>
+    AS["Agent/Task Specs + Validation Report<br/><br/>• agents: [AgentSpecModel × 3]<br/>• tasks: [TaskSpecModel × 5]<br/>• validation_result: PASSED<br/>💾 artifacts/phase_3/agents.json<br/>💾 artifacts/phase_3/tasks.json"]
 
-<span class="w">    </span><span class="n">subgraph</span><span class="w"> </span><span class="n">Phase4</span><span class="p">[</span><span class="s2">&quot;Phase 4: Development&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="n">P4A</span><span class="p">[</span><span class="s2">&quot;Code Spec Generator&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="n">P4B</span><span class="p">[</span><span class="s2">&quot;Template Selection&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">end</span>
+    subgraph Phase4["Phase 4: Development"]
+        P4A["Code Spec Generator"]
+        P4B["Template Selection"]
+    end
 
-<span class="w">    </span><span class="n">CS</span><span class="p">[</span><span class="s2">&quot;Code Specification&lt;br/&gt;&lt;br/&gt;• main.py spec&lt;br/&gt;• agents.py spec&lt;br/&gt;• tasks.py spec&lt;br/&gt;• tools.py spec&lt;br/&gt;💾 artifacts/phase_4/code_spec.md&quot;</span><span class="p">]</span>
+    CS["Code Specification<br/><br/>• main.py spec<br/>• agents.py spec<br/>• tasks.py spec<br/>• tools.py spec<br/>💾 artifacts/phase_4/code_spec.md"]
 
-<span class="w">    </span><span class="n">subgraph</span><span class="w"> </span><span class="n">Phase5</span><span class="p">[</span><span class="s2">&quot;Phase 5: Delivery&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="n">P5A</span><span class="p">[</span><span class="s2">&quot;Code Generator Agent&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="n">P5B</span><span class="p">[</span><span class="s2">&quot;Jinja2 Template Rendering&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="n">P5C</span><span class="p">[</span><span class="s2">&quot;3-Level Auto-Fixing&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">end</span>
+    subgraph Phase5["Phase 5: Delivery"]
+        P5A["Code Generator Agent"]
+        P5B["Jinja2 Template Rendering"]
+        P5C["3-Level Auto-Fixing"]
+    end
 
-<span class="w">    </span><span class="n">PC</span><span class="p">[</span><span class="s2">&quot;Production Code (7 files)&lt;br/&gt;&lt;br/&gt;💾 main.py&lt;br/&gt;💾 agents.py&lt;br/&gt;💾 tasks.py&lt;br/&gt;💾 tools.py&lt;br/&gt;💾 requirements.txt&lt;br/&gt;💾 .env.example&lt;br/&gt;💾 tests/test_main.py&quot;</span><span class="p">]</span>
+    PC["Production Code (7 files)<br/><br/>💾 main.py<br/>💾 agents.py<br/>💾 tasks.py<br/>💾 tools.py<br/>💾 requirements.txt<br/>💾 .env.example<br/>💾 tests/test_main.py"]
 
-<span class="w">    </span><span class="n">subgraph</span><span class="w"> </span><span class="n">Phase6</span><span class="p">[</span><span class="s2">&quot;Phase 6: QA (병렬 실행 ⚡⚡)&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="n">P6A</span><span class="p">[</span><span class="s2">&quot;QA Specialist&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="n">P6B</span><span class="p">[</span><span class="s2">&quot;AutoMetricsCollector&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="n">P6C</span><span class="p">[</span><span class="s2">&quot;Quality Gate&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">end</span>
+    subgraph Phase6["Phase 6: QA (병렬 실행 ⚡⚡)"]
+        P6A["QA Specialist"]
+        P6B["AutoMetricsCollector"]
+        P6C["Quality Gate"]
+    end
 
-<span class="w">    </span><span class="n">QAR</span><span class="p">[</span><span class="s2">&quot;QA Report&lt;br/&gt;&lt;br/&gt;• code_quality: 8.5&lt;br/&gt;• test_coverage: 75%&lt;br/&gt;• security_score: 9.5&lt;br/&gt;💾 artifacts/qa_report.json&quot;</span><span class="p">]</span>
+    QAR["QA Report<br/><br/>• code_quality: 8.5<br/>• test_coverage: 75%<br/>• security_score: 9.5<br/>💾 artifacts/qa_report.json"]
 
-<span class="w">    </span><span class="n">subgraph</span><span class="w"> </span><span class="n">Phase7</span><span class="p">[</span><span class="s2">&quot;Phase 7: Code Analysis (병렬 실행 ⚡⚡)&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="n">P7A</span><span class="p">[</span><span class="s2">&quot;Code Analysis Agent&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="n">P7B</span><span class="p">[</span><span class="s2">&quot;Runtime Error Fix&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="n">P7C</span><span class="p">[</span><span class="s2">&quot;Traceability Verify&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">end</span>
+    subgraph Phase7["Phase 7: Code Analysis (병렬 실행 ⚡⚡)"]
+        P7A["Code Analysis Agent"]
+        P7B["Runtime Error Fix"]
+        P7C["Traceability Verify"]
+    end
 
-<span class="w">    </span><span class="n">CAR</span><span class="p">[</span><span class="s2">&quot;Code Analysis Report&lt;br/&gt;&lt;br/&gt;• runtime_errors_fixed: 2&lt;br/&gt;• traceability_verified: ✅&lt;br/&gt;• completeness: 98.7%&lt;br/&gt;💾 artifacts/code_analysis_report.json&quot;</span><span class="p">]</span>
+    CAR["Code Analysis Report<br/><br/>• runtime_errors_fixed: 2<br/>• traceability_verified: ✅<br/>• completeness: 98.7%<br/>💾 artifacts/code_analysis_report.json"]
 
-<span class="w">    </span><span class="n">Final</span><span class="p">[</span><span class="s2">&quot;Final Output&lt;br/&gt;&lt;br/&gt;• Production Code (수정 완료)&lt;br/&gt;• QA Report&lt;br/&gt;• Code Analysis Report&lt;br/&gt;• Traceability Matrix&quot;</span><span class="p">]</span>
+    Final["Final Output<br/><br/>• Production Code (수정 완료)<br/>• QA Report<br/>• Code Analysis Report<br/>• Traceability Matrix"]
 
-<span class="w">    </span><span class="n">Start</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Phase0</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">GD</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Phase1</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">RS</span>
-<span class="w">    </span><span class="n">RS</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Phase2</span>
-<span class="w">    </span><span class="n">RS</span><span class="w"> </span><span class="o">-.</span><span class="n">Phase</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="err">결과</span><span class="w"> </span><span class="err">활용</span><span class="o">.-&gt;</span><span class="w"> </span><span class="n">P2C</span>
-<span class="w">    </span><span class="n">Phase2</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">AD</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Phase3</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">AS</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Phase4</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">CS</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Phase5</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">PC</span>
-<span class="w">    </span><span class="n">PC</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Phase6</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">QAR</span>
-<span class="w">    </span><span class="n">PC</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Phase7</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">CAR</span>
-<span class="w">    </span><span class="n">QAR</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Final</span>
-<span class="w">    </span><span class="n">CAR</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Final</span>
+    Start --> Phase0 --> GD --> Phase1 --> RS
+    RS --> Phase2
+    RS -.Phase 1 결과 활용.-> P2C
+    Phase2 --> AD --> Phase3 --> AS --> Phase4 --> CS --> Phase5 --> PC
+    PC --> Phase6 --> QAR
+    PC --> Phase7 --> CAR
+    QAR --> Final
+    CAR --> Final
 
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">Start</span><span class="w"> </span><span class="n">fill</span><span class="p">:</span><span class="c1">#e1f5ff</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">GD</span><span class="w"> </span><span class="n">fill</span><span class="p">:</span><span class="c1">#fff4e6</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">RS</span><span class="w"> </span><span class="n">fill</span><span class="p">:</span><span class="c1">#fff4e6</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">AD</span><span class="w"> </span><span class="n">fill</span><span class="p">:</span><span class="c1">#fff4e6</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">AS</span><span class="w"> </span><span class="n">fill</span><span class="p">:</span><span class="c1">#fff4e6</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">CS</span><span class="w"> </span><span class="n">fill</span><span class="p">:</span><span class="c1">#fff4e6</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">PC</span><span class="w"> </span><span class="n">fill</span><span class="p">:</span><span class="c1">#e8f5e9</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">QAR</span><span class="w"> </span><span class="n">fill</span><span class="p">:</span><span class="c1">#f3e5f5</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">CAR</span><span class="w"> </span><span class="n">fill</span><span class="p">:</span><span class="c1">#f3e5f5</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">Final</span><span class="w"> </span><span class="n">fill</span><span class="p">:</span><span class="c1">#c8e6c9</span>
-</code></pre></div>
+    style Start fill:#e1f5ff
+    style GD fill:#fff4e6
+    style RS fill:#fff4e6
+    style AD fill:#fff4e6
+    style AS fill:#fff4e6
+    style CS fill:#fff4e6
+    style PC fill:#e8f5e9
+    style QAR fill:#f3e5f5
+    style CAR fill:#f3e5f5
+    style Final fill:#c8e6c9
+</div>
 
 <h3 id="_3">핵심 포인트</h3>
 <p><strong>1. Phase별 명확한 입출력</strong><br />
@@ -2210,56 +2266,57 @@ Phase 6 (Code Analysis): code_artifacts + golden_data 필요
 </table>
 <p><strong>총 소요 시간</strong>: 10-16분 (병렬 실행 시 7-11분)</p>
 <h3 id="phase-dependency-graph">Phase 간 의존성 (Dependency Graph)</h3>
-<div class="codehilite"><pre><span></span><code><span class="n">flowchart</span><span class="w"> </span><span class="n">TD</span>
-<span class="w">    </span><span class="n">P0</span><span class="p">[</span><span class="s">&quot;Phase 0: Concretization&lt;br/&gt;자연어 요구사항&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">GD</span><span class="p">[</span><span class="s">&quot;Golden Data&lt;br/&gt;구조화된 요구사항&quot;</span><span class="p">]</span>
+<div class="mermaid">
+flowchart TD
+    P0["Phase 0: Concretization<br/>자연어 요구사항"]
+    GD["Golden Data<br/>구조화된 요구사항"]
 
-<span class="w">    </span><span class="n">P1</span><span class="p">[</span><span class="s">&quot;Phase 1: Discovery ⚡&lt;br/&gt;요구사항 분석&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">P2</span><span class="p">[</span><span class="s">&quot;Phase 2: Architecture ⚡&lt;br/&gt;시스템 설계&quot;</span><span class="p">]</span>
+    P1["Phase 1: Discovery ⚡<br/>요구사항 분석"]
+    P2["Phase 2: Architecture ⚡<br/>시스템 설계"]
 
-<span class="w">    </span><span class="n">AD</span><span class="p">[</span><span class="s">&quot;Architecture Design&lt;br/&gt;시스템 아키텍처&quot;</span><span class="p">]</span>
+    AD["Architecture Design<br/>시스템 아키텍처"]
 
-<span class="w">    </span><span class="n">P3</span><span class="p">[</span><span class="s">&quot;Phase 3: Design&lt;br/&gt;Agent/Task 설계&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">ATS</span><span class="p">[</span><span class="s">&quot;Agent/Task Specs&lt;br/&gt;에이전트 명세&quot;</span><span class="p">]</span>
+    P3["Phase 3: Design<br/>Agent/Task 설계"]
+    ATS["Agent/Task Specs<br/>에이전트 명세"]
 
-<span class="w">    </span><span class="n">P4</span><span class="p">[</span><span class="s">&quot;Phase 4: Development&lt;br/&gt;코드 명세 생성&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">CS</span><span class="p">[</span><span class="s">&quot;Code Specification&lt;br/&gt;코드 구조&quot;</span><span class="p">]</span>
+    P4["Phase 4: Development<br/>코드 명세 생성"]
+    CS["Code Specification<br/>코드 구조"]
 
-<span class="w">    </span><span class="n">P5</span><span class="p">[</span><span class="s">&quot;Phase 5: Delivery&lt;br/&gt;프로덕션 코드 생성&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">PC</span><span class="p">[</span><span class="s">&quot;Production Code&lt;br/&gt;실행 가능 코드&quot;</span><span class="p">]</span>
+    P5["Phase 5: Delivery<br/>프로덕션 코드 생성"]
+    PC["Production Code<br/>실행 가능 코드"]
 
-<span class="w">    </span><span class="n">P6</span><span class="p">[</span><span class="s">&quot;Phase 6: QA ⚡⚡&lt;br/&gt;품질 검증&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">P7</span><span class="p">[</span><span class="s">&quot;Phase 7: Code Analysis ⚡⚡&lt;br/&gt;코드 분석&quot;</span><span class="p">]</span>
+    P6["Phase 6: QA ⚡⚡<br/>품질 검증"]
+    P7["Phase 7: Code Analysis ⚡⚡<br/>코드 분석"]
 
-<span class="w">    </span><span class="n">QR</span><span class="p">[</span><span class="s">&quot;QA Report&lt;br/&gt;품질 보고서&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">CAR</span><span class="p">[</span><span class="s">&quot;Code Analysis Report&lt;br/&gt;분석 보고서&quot;</span><span class="p">]</span>
+    QR["QA Report<br/>품질 보고서"]
+    CAR["Code Analysis Report<br/>분석 보고서"]
 
-<span class="w">    </span><span class="n">P0</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">GD</span>
-<span class="w">    </span><span class="n">GD</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">P1</span>
-<span class="w">    </span><span class="n">GD</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">P2</span>
-<span class="w">    </span><span class="n">P1</span><span class="w"> </span><span class="o">-</span><span class="p">.</span><span class="n">Discovery</span><span class="w"> </span><span class="err">결과</span><span class="p">.</span><span class="o">-&gt;</span><span class="w"> </span><span class="n">P2</span>
-<span class="w">    </span><span class="n">P2</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">AD</span>
-<span class="w">    </span><span class="n">AD</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">P3</span>
-<span class="w">    </span><span class="n">P3</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">ATS</span>
-<span class="w">    </span><span class="n">ATS</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">P4</span>
-<span class="w">    </span><span class="n">P4</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">CS</span>
-<span class="w">    </span><span class="n">CS</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">P5</span>
-<span class="w">    </span><span class="n">P5</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">PC</span>
-<span class="w">    </span><span class="n">PC</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">P6</span>
-<span class="w">    </span><span class="n">PC</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">P7</span>
-<span class="w">    </span><span class="n">P6</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">QR</span>
-<span class="w">    </span><span class="n">P7</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">CAR</span>
+    P0 --> GD
+    GD --> P1
+    GD --> P2
+    P1 -.Discovery 결과.-> P2
+    P2 --> AD
+    AD --> P3
+    P3 --> ATS
+    ATS --> P4
+    P4 --> CS
+    CS --> P5
+    P5 --> PC
+    PC --> P6
+    PC --> P7
+    P6 --> QR
+    P7 --> CAR
 
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">P0</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">e1f5e1</span><span class="p">,</span><span class="n">stroke</span><span class="o">:</span><span class="err">#</span><span class="mi">333</span><span class="p">,</span><span class="n">stroke</span><span class="o">-</span><span class="n">width</span><span class="o">:</span><span class="mi">2</span><span class="n">px</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">GD</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">fff3cd</span><span class="p">,</span><span class="n">stroke</span><span class="o">:</span><span class="err">#</span><span class="mi">333</span><span class="p">,</span><span class="n">stroke</span><span class="o">-</span><span class="n">width</span><span class="o">:</span><span class="mi">2</span><span class="n">px</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">P1</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">cfe2ff</span><span class="p">,</span><span class="n">stroke</span><span class="o">:</span><span class="err">#</span><span class="mi">333</span><span class="p">,</span><span class="n">stroke</span><span class="o">-</span><span class="n">width</span><span class="o">:</span><span class="mi">2</span><span class="n">px</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">P2</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">cfe2ff</span><span class="p">,</span><span class="n">stroke</span><span class="o">:</span><span class="err">#</span><span class="mi">333</span><span class="p">,</span><span class="n">stroke</span><span class="o">-</span><span class="n">width</span><span class="o">:</span><span class="mi">2</span><span class="n">px</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">P3</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">f8d7da</span><span class="p">,</span><span class="n">stroke</span><span class="o">:</span><span class="err">#</span><span class="mi">333</span><span class="p">,</span><span class="n">stroke</span><span class="o">-</span><span class="n">width</span><span class="o">:</span><span class="mi">2</span><span class="n">px</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">P4</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">f8d7da</span><span class="p">,</span><span class="n">stroke</span><span class="o">:</span><span class="err">#</span><span class="mi">333</span><span class="p">,</span><span class="n">stroke</span><span class="o">-</span><span class="n">width</span><span class="o">:</span><span class="mi">2</span><span class="n">px</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">P5</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">d1ecf1</span><span class="p">,</span><span class="n">stroke</span><span class="o">:</span><span class="err">#</span><span class="mi">333</span><span class="p">,</span><span class="n">stroke</span><span class="o">-</span><span class="n">width</span><span class="o">:</span><span class="mi">2</span><span class="n">px</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">P6</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">e2e3e5</span><span class="p">,</span><span class="n">stroke</span><span class="o">:</span><span class="err">#</span><span class="mi">333</span><span class="p">,</span><span class="n">stroke</span><span class="o">-</span><span class="n">width</span><span class="o">:</span><span class="mi">2</span><span class="n">px</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">P7</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">e2e3e5</span><span class="p">,</span><span class="n">stroke</span><span class="o">:</span><span class="err">#</span><span class="mi">333</span><span class="p">,</span><span class="n">stroke</span><span class="o">-</span><span class="n">width</span><span class="o">:</span><span class="mi">2</span><span class="n">px</span>
-</code></pre></div>
+    style P0 fill:#e1f5e1,stroke:#333,stroke-width:2px
+    style GD fill:#fff3cd,stroke:#333,stroke-width:2px
+    style P1 fill:#cfe2ff,stroke:#333,stroke-width:2px
+    style P2 fill:#cfe2ff,stroke:#333,stroke-width:2px
+    style P3 fill:#f8d7da,stroke:#333,stroke-width:2px
+    style P4 fill:#f8d7da,stroke:#333,stroke-width:2px
+    style P5 fill:#d1ecf1,stroke:#333,stroke-width:2px
+    style P6 fill:#e2e3e5,stroke:#333,stroke-width:2px
+    style P7 fill:#e2e3e5,stroke:#333,stroke-width:2px
+</div>
 
 <p><strong>병렬 실행 포인트</strong>:<br />
 - ⚡ <strong>Phase 1-2</strong>: Discovery와 Architecture는 병렬 시작 가능 (Discovery 결과가 Architecture를 개선)<br />
@@ -2644,91 +2701,92 @@ caas<span class="w"> </span>generate-phase<span class="w"> </span>--phase<span c
 <p><strong>목적</strong>: 도메인 분류 및 요구사항 상세 분석</p>
 <p><strong>이론: 17개 도메인 분류 기준</strong></p>
 <p><strong>도메인 분류 결정 트리</strong>:</p>
-<div class="codehilite"><pre><span></span><code><span class="n">flowchart</span><span class="w"> </span><span class="n">TD</span>
-<span class="w">    </span><span class="n">Start</span><span class="p">[</span><span class="s">&quot;질문 1: 주요 상호작용 방식은?&quot;</span><span class="p">]</span>
+<div class="mermaid">
+flowchart TD
+    Start["질문 1: 주요 상호작용 방식은?"]
 
-<span class="w">    </span><span class="n">Conv</span><span class="p">[</span><span class="s">&quot;대화형&lt;br/&gt;(Chat, Voice)&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">Conv_Q1</span><span class="p">{</span><span class="s">&quot;고객 지원?&quot;</span><span class="p">}</span>
-<span class="w">    </span><span class="n">Conv_Q2</span><span class="p">{</span><span class="s">&quot;일반 대화?&quot;</span><span class="p">}</span>
-<span class="w">    </span><span class="n">D1</span><span class="p">[</span><span class="s">&quot;CUSTOMER_SUPPORT&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">D2</span><span class="p">[</span><span class="s">&quot;CONVERSATIONAL_AI&quot;</span><span class="p">]</span>
+    Conv["대화형<br/>(Chat, Voice)"]
+    Conv_Q1{"고객 지원?"}
+    Conv_Q2{"일반 대화?"}
+    D1["CUSTOMER_SUPPORT"]
+    D2["CONVERSATIONAL_AI"]
 
-<span class="w">    </span><span class="n">Data</span><span class="p">[</span><span class="s">&quot;데이터 처리 중심&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">Data_Q1</span><span class="p">{</span><span class="s">&quot;분석/시각화?&quot;</span><span class="p">}</span>
-<span class="w">    </span><span class="n">Data_Q2</span><span class="p">{</span><span class="s">&quot;리포트 생성?&quot;</span><span class="p">}</span>
-<span class="w">    </span><span class="n">Data_Q3</span><span class="p">{</span><span class="s">&quot;대시보드?&quot;</span><span class="p">}</span>
-<span class="w">    </span><span class="n">D3</span><span class="p">[</span><span class="s">&quot;DATA_ANALYSIS&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">D4</span><span class="p">[</span><span class="s">&quot;REPORT_GENERATION&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">D5</span><span class="p">[</span><span class="s">&quot;DASHBOARD&quot;</span><span class="p">]</span>
+    Data["데이터 처리 중심"]
+    Data_Q1{"분석/시각화?"}
+    Data_Q2{"리포트 생성?"}
+    Data_Q3{"대시보드?"}
+    D3["DATA_ANALYSIS"]
+    D4["REPORT_GENERATION"]
+    D5["DASHBOARD"]
 
-<span class="w">    </span><span class="n">Content</span><span class="p">[</span><span class="s">&quot;콘텐츠 생성&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">Content_Q1</span><span class="p">{</span><span class="s">&quot;창작 콘텐츠?&quot;</span><span class="p">}</span>
-<span class="w">    </span><span class="n">Content_Q2</span><span class="p">{</span><span class="s">&quot;문서 처리?&quot;</span><span class="p">}</span>
-<span class="w">    </span><span class="n">Content_Q3</span><span class="p">{</span><span class="s">&quot;지식베이스?&quot;</span><span class="p">}</span>
-<span class="w">    </span><span class="n">D6</span><span class="p">[</span><span class="s">&quot;CONTENT_CREATION&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">D7</span><span class="p">[</span><span class="s">&quot;DOCUMENT_PROCESSING&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">D8</span><span class="p">[</span><span class="s">&quot;KNOWLEDGE_BASE&quot;</span><span class="p">]</span>
+    Content["콘텐츠 생성"]
+    Content_Q1{"창작 콘텐츠?"}
+    Content_Q2{"문서 처리?"}
+    Content_Q3{"지식베이스?"}
+    D6["CONTENT_CREATION"]
+    D7["DOCUMENT_PROCESSING"]
+    D8["KNOWLEDGE_BASE"]
 
-<span class="w">    </span><span class="n">Integration</span><span class="p">[</span><span class="s">&quot;통합/API&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">Int_Q1</span><span class="p">{</span><span class="s">&quot;API 연동?&quot;</span><span class="p">}</span>
-<span class="w">    </span><span class="n">Int_Q2</span><span class="p">{</span><span class="s">&quot;Webhook?&quot;</span><span class="p">}</span>
-<span class="w">    </span><span class="n">D9</span><span class="p">[</span><span class="s">&quot;API_INTEGRATION&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">D10</span><span class="p">[</span><span class="s">&quot;WEBHOOK_HANDLER&quot;</span><span class="p">]</span>
+    Integration["통합/API"]
+    Int_Q1{"API 연동?"}
+    Int_Q2{"Webhook?"}
+    D9["API_INTEGRATION"]
+    D10["WEBHOOK_HANDLER"]
 
-<span class="w">    </span><span class="n">Specialized</span><span class="p">[</span><span class="s">&quot;도메인 특화&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">Spec_Q1</span><span class="p">{</span><span class="s">&quot;전자상거래?&quot;</span><span class="p">}</span>
-<span class="w">    </span><span class="n">Spec_Q2</span><span class="p">{</span><span class="s">&quot;교육?&quot;</span><span class="p">}</span>
-<span class="w">    </span><span class="n">Spec_Q3</span><span class="p">{</span><span class="s">&quot;헬스케어?&quot;</span><span class="p">}</span>
-<span class="w">    </span><span class="n">Spec_Q4</span><span class="p">{</span><span class="s">&quot;금융?&quot;</span><span class="p">}</span>
-<span class="w">    </span><span class="n">Spec_Q5</span><span class="p">{</span><span class="s">&quot;기타&quot;</span><span class="p">}</span>
-<span class="w">    </span><span class="n">D11</span><span class="p">[</span><span class="s">&quot;E_COMMERCE&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">D12</span><span class="p">[</span><span class="s">&quot;EDUCATION&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">D13</span><span class="p">[</span><span class="s">&quot;HEALTHCARE&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">D14</span><span class="p">[</span><span class="s">&quot;FINANCE&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">D15</span><span class="p">[</span><span class="s">&quot;CUSTOM&quot;</span><span class="p">]</span>
+    Specialized["도메인 특화"]
+    Spec_Q1{"전자상거래?"}
+    Spec_Q2{"교육?"}
+    Spec_Q3{"헬스케어?"}
+    Spec_Q4{"금융?"}
+    Spec_Q5{"기타"}
+    D11["E_COMMERCE"]
+    D12["EDUCATION"]
+    D13["HEALTHCARE"]
+    D14["FINANCE"]
+    D15["CUSTOM"]
 
-<span class="w">    </span><span class="n">Start</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Conv</span>
-<span class="w">    </span><span class="n">Start</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="kt">Data</span>
-<span class="w">    </span><span class="n">Start</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Content</span>
-<span class="w">    </span><span class="n">Start</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Integration</span>
-<span class="w">    </span><span class="n">Start</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Specialized</span>
+    Start --> Conv
+    Start --> Data
+    Start --> Content
+    Start --> Integration
+    Start --> Specialized
 
-<span class="w">    </span><span class="n">Conv</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Conv_Q1</span><span class="w"> </span><span class="o">--&gt;|</span><span class="n">Yes</span><span class="o">|</span><span class="w"> </span><span class="n">D1</span>
-<span class="w">    </span><span class="n">Conv</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Conv_Q2</span><span class="w"> </span><span class="o">--&gt;|</span><span class="n">Yes</span><span class="o">|</span><span class="w"> </span><span class="n">D2</span>
+    Conv --> Conv_Q1 -->|Yes| D1
+    Conv --> Conv_Q2 -->|Yes| D2
 
-<span class="w">    </span><span class="kt">Data</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Data_Q1</span><span class="w"> </span><span class="o">--&gt;|</span><span class="n">Yes</span><span class="o">|</span><span class="w"> </span><span class="n">D3</span>
-<span class="w">    </span><span class="kt">Data</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Data_Q2</span><span class="w"> </span><span class="o">--&gt;|</span><span class="n">Yes</span><span class="o">|</span><span class="w"> </span><span class="n">D4</span>
-<span class="w">    </span><span class="kt">Data</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Data_Q3</span><span class="w"> </span><span class="o">--&gt;|</span><span class="n">Yes</span><span class="o">|</span><span class="w"> </span><span class="n">D5</span>
+    Data --> Data_Q1 -->|Yes| D3
+    Data --> Data_Q2 -->|Yes| D4
+    Data --> Data_Q3 -->|Yes| D5
 
-<span class="w">    </span><span class="n">Content</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Content_Q1</span><span class="w"> </span><span class="o">--&gt;|</span><span class="n">Yes</span><span class="o">|</span><span class="w"> </span><span class="n">D6</span>
-<span class="w">    </span><span class="n">Content</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Content_Q2</span><span class="w"> </span><span class="o">--&gt;|</span><span class="n">Yes</span><span class="o">|</span><span class="w"> </span><span class="n">D7</span>
-<span class="w">    </span><span class="n">Content</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Content_Q3</span><span class="w"> </span><span class="o">--&gt;|</span><span class="n">Yes</span><span class="o">|</span><span class="w"> </span><span class="n">D8</span>
+    Content --> Content_Q1 -->|Yes| D6
+    Content --> Content_Q2 -->|Yes| D7
+    Content --> Content_Q3 -->|Yes| D8
 
-<span class="w">    </span><span class="n">Integration</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Int_Q1</span><span class="w"> </span><span class="o">--&gt;|</span><span class="n">Yes</span><span class="o">|</span><span class="w"> </span><span class="n">D9</span>
-<span class="w">    </span><span class="n">Integration</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Int_Q2</span><span class="w"> </span><span class="o">--&gt;|</span><span class="n">Yes</span><span class="o">|</span><span class="w"> </span><span class="n">D10</span>
+    Integration --> Int_Q1 -->|Yes| D9
+    Integration --> Int_Q2 -->|Yes| D10
 
-<span class="w">    </span><span class="n">Specialized</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Spec_Q1</span><span class="w"> </span><span class="o">--&gt;|</span><span class="n">Yes</span><span class="o">|</span><span class="w"> </span><span class="n">D11</span>
-<span class="w">    </span><span class="n">Specialized</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Spec_Q2</span><span class="w"> </span><span class="o">--&gt;|</span><span class="n">Yes</span><span class="o">|</span><span class="w"> </span><span class="n">D12</span>
-<span class="w">    </span><span class="n">Specialized</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Spec_Q3</span><span class="w"> </span><span class="o">--&gt;|</span><span class="n">Yes</span><span class="o">|</span><span class="w"> </span><span class="n">D13</span>
-<span class="w">    </span><span class="n">Specialized</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Spec_Q4</span><span class="w"> </span><span class="o">--&gt;|</span><span class="n">Yes</span><span class="o">|</span><span class="w"> </span><span class="n">D14</span>
-<span class="w">    </span><span class="n">Specialized</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Spec_Q5</span><span class="w"> </span><span class="o">--&gt;|</span><span class="n">Yes</span><span class="o">|</span><span class="w"> </span><span class="n">D15</span>
+    Specialized --> Spec_Q1 -->|Yes| D11
+    Specialized --> Spec_Q2 -->|Yes| D12
+    Specialized --> Spec_Q3 -->|Yes| D13
+    Specialized --> Spec_Q4 -->|Yes| D14
+    Specialized --> Spec_Q5 -->|Yes| D15
 
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">D1</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">e3f2fd</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">D2</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">e3f2fd</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">D3</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">f3e5f5</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">D4</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">f3e5f5</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">D5</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">f3e5f5</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">D6</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">fff3e0</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">D7</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">fff3e0</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">D8</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">fff3e0</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">D9</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">e8f5e9</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">D10</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">e8f5e9</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">D11</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">fce4ec</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">D12</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">fce4ec</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">D13</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">fce4ec</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">D14</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">fce4ec</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">D15</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">f1f8e9</span>
-</code></pre></div>
+    style D1 fill:#e3f2fd
+    style D2 fill:#e3f2fd
+    style D3 fill:#f3e5f5
+    style D4 fill:#f3e5f5
+    style D5 fill:#f3e5f5
+    style D6 fill:#fff3e0
+    style D7 fill:#fff3e0
+    style D8 fill:#fff3e0
+    style D9 fill:#e8f5e9
+    style D10 fill:#e8f5e9
+    style D11 fill:#fce4ec
+    style D12 fill:#fce4ec
+    style D13 fill:#fce4ec
+    style D14 fill:#fce4ec
+    style D15 fill:#f1f8e9
+</div>
 
 <p><strong>Execution Pattern 선택</strong>:</p>
 <table>
@@ -3695,41 +3753,42 @@ Level 3: LLM-based Fix
 - 최소한의 Agent/Task<br />
 - 빠른 개발 및 배포</p>
 <p><strong>예시: FAQ 챗봇</strong></p>
-<div class="codehilite"><pre><span></span><code><span class="n">flowchart</span><span class="w"> </span><span class="n">TD</span>
-<span class="w">    </span><span class="n">subgraph</span><span class="w"> </span><span class="n">Features</span><span class="p">[</span><span class="s">&quot;Features (3개)&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="n">F1</span><span class="p">[</span><span class="s">&quot;F1: FAQ 검색&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="n">F2</span><span class="p">[</span><span class="s">&quot;F2: 답변 생성&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="n">F3</span><span class="p">[</span><span class="s">&quot;F3: 대화 이력 저장&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="kd">end</span>
+<div class="mermaid">
+flowchart TD
+    subgraph Features["Features (3개)"]
+        F1["F1: FAQ 검색"]
+        F2["F2: 답변 생성"]
+        F3["F3: 대화 이력 저장"]
+    end
 
-<span class="w">    </span><span class="n">subgraph</span><span class="w"> </span><span class="n">Agents</span><span class="p">[</span><span class="s">&quot;Agent 구성&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="n">A1</span><span class="p">[</span><span class="s">&quot;ConversationAgent&lt;br/&gt;(F1, F2)&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="n">A2</span><span class="p">[</span><span class="s">&quot;HistoryManagerAgent&lt;br/&gt;(F3)&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="kd">end</span>
+    subgraph Agents["Agent 구성"]
+        A1["ConversationAgent<br/>(F1, F2)"]
+        A2["HistoryManagerAgent<br/>(F3)"]
+    end
 
-<span class="w">    </span><span class="n">subgraph</span><span class="w"> </span><span class="n">Tasks</span><span class="p">[</span><span class="s">&quot;Task 구성&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="n">T1</span><span class="p">[</span><span class="s">&quot;Task1: FAQ 검색&lt;br/&gt;(F1)&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="n">T2</span><span class="p">[</span><span class="s">&quot;Task2: 답변 생성&lt;br/&gt;(F2)&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="n">T3</span><span class="p">[</span><span class="s">&quot;Task3: 이력 저장&lt;br/&gt;(F3)&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="kd">end</span>
+    subgraph Tasks["Task 구성"]
+        T1["Task1: FAQ 검색<br/>(F1)"]
+        T2["Task2: 답변 생성<br/>(F2)"]
+        T3["Task3: 이력 저장<br/>(F3)"]
+    end
 
-<span class="w">    </span><span class="n">F1</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">A1</span>
-<span class="w">    </span><span class="n">F2</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">A1</span>
-<span class="w">    </span><span class="n">F3</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">A2</span>
+    F1 --> A1
+    F2 --> A1
+    F3 --> A2
 
-<span class="w">    </span><span class="n">A1</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">T1</span>
-<span class="w">    </span><span class="n">A1</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">T2</span>
-<span class="w">    </span><span class="n">A2</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">T3</span>
+    A1 --> T1
+    A1 --> T2
+    A2 --> T3
 
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">F1</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">e3f2fd</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">F2</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">e3f2fd</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">F3</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">e3f2fd</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">A1</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">f3e5f5</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">A2</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">f3e5f5</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">T1</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">fff3e0</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">T2</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">fff3e0</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">T3</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">fff3e0</span>
-</code></pre></div>
+    style F1 fill:#e3f2fd
+    style F2 fill:#e3f2fd
+    style F3 fill:#e3f2fd
+    style A1 fill:#f3e5f5
+    style A2 fill:#f3e5f5
+    style T1 fill:#fff3e0
+    style T2 fill:#fff3e0
+    style T3 fill:#fff3e0
+</div>
 
 <p><strong>CAAS 사용법</strong>:</p>
 <div class="codehilite"><pre><span></span><code><span class="c1"># 단일 명령어로 생성</span>
@@ -3747,76 +3806,77 @@ caas<span class="w"> </span>generate<span class="w"> </span><span class="s2">&qu
 - 모듈별 Agent 그룹화<br />
 - 명확한 책임 분리</p>
 <p><strong>예시: Customer Support 시스템</strong></p>
-<div class="codehilite"><pre><span></span><code><span class="n">flowchart</span><span class="w"> </span><span class="n">TD</span>
-<span class="w">    </span><span class="n">subgraph</span><span class="w"> </span><span class="n">Features</span><span class="p">[</span><span class="s">&quot;Features (10개)&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="n">subgraph</span><span class="w"> </span><span class="n">M1</span><span class="p">[</span><span class="s">&quot;Module 1: 대화 관리 (F1-F3)&quot;</span><span class="p">]</span>
-<span class="w">            </span><span class="n">F1</span><span class="p">[</span><span class="s">&quot;F1: FAQ 검색&quot;</span><span class="p">]</span>
-<span class="w">            </span><span class="n">F2</span><span class="p">[</span><span class="s">&quot;F2: 자연어 이해&quot;</span><span class="p">]</span>
-<span class="w">            </span><span class="n">F3</span><span class="p">[</span><span class="s">&quot;F3: 답변 생성&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="kd">end</span>
+<div class="mermaid">
+flowchart TD
+    subgraph Features["Features (10개)"]
+        subgraph M1["Module 1: 대화 관리 (F1-F3)"]
+            F1["F1: FAQ 검색"]
+            F2["F2: 자연어 이해"]
+            F3["F3: 답변 생성"]
+        end
 
-<span class="w">        </span><span class="n">subgraph</span><span class="w"> </span><span class="n">M2</span><span class="p">[</span><span class="s">&quot;Module 2: 티켓 관리 (F4-F6)&quot;</span><span class="p">]</span>
-<span class="w">            </span><span class="n">F4</span><span class="p">[</span><span class="s">&quot;F4: 티켓 생성&quot;</span><span class="p">]</span>
-<span class="w">            </span><span class="n">F5</span><span class="p">[</span><span class="s">&quot;F5: 담당자 할당&quot;</span><span class="p">]</span>
-<span class="w">            </span><span class="n">F6</span><span class="p">[</span><span class="s">&quot;F6: 상태 추적&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="kd">end</span>
+        subgraph M2["Module 2: 티켓 관리 (F4-F6)"]
+            F4["F4: 티켓 생성"]
+            F5["F5: 담당자 할당"]
+            F6["F6: 상태 추적"]
+        end
 
-<span class="w">        </span><span class="n">subgraph</span><span class="w"> </span><span class="n">M3</span><span class="p">[</span><span class="s">&quot;Module 3: 감정 분석 (F7-F8)&quot;</span><span class="p">]</span>
-<span class="w">            </span><span class="n">F7</span><span class="p">[</span><span class="s">&quot;F7: 감정 점수 계산&quot;</span><span class="p">]</span>
-<span class="w">            </span><span class="n">F8</span><span class="p">[</span><span class="s">&quot;F8: 우선순위 설정&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="kd">end</span>
+        subgraph M3["Module 3: 감정 분석 (F7-F8)"]
+            F7["F7: 감정 점수 계산"]
+            F8["F8: 우선순위 설정"]
+        end
 
-<span class="w">        </span><span class="n">subgraph</span><span class="w"> </span><span class="n">M4</span><span class="p">[</span><span class="s">&quot;Module 4: 리포팅 (F9-F10)&quot;</span><span class="p">]</span>
-<span class="w">            </span><span class="n">F9</span><span class="p">[</span><span class="s">&quot;F9: 통계 생성&quot;</span><span class="p">]</span>
-<span class="w">            </span><span class="n">F10</span><span class="p">[</span><span class="s">&quot;F10: 리포트 발송&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="kd">end</span>
-<span class="w">    </span><span class="kd">end</span>
+        subgraph M4["Module 4: 리포팅 (F9-F10)"]
+            F9["F9: 통계 생성"]
+            F10["F10: 리포트 발송"]
+        end
+    end
 
-<span class="w">    </span><span class="n">subgraph</span><span class="w"> </span><span class="n">Agents</span><span class="p">[</span><span class="s">&quot;Agent 구성 (6개)&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="n">A1</span><span class="p">[</span><span class="s">&quot;ConversationAgent&lt;br/&gt;(F1-F3)&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="n">A2</span><span class="p">[</span><span class="s">&quot;TicketCreatorAgent&lt;br/&gt;(F4)&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="n">A3</span><span class="p">[</span><span class="s">&quot;TicketManagerAgent&lt;br/&gt;(F5-F6)&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="n">A4</span><span class="p">[</span><span class="s">&quot;SentimentAgent&lt;br/&gt;(F7-F8)&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="n">A5</span><span class="p">[</span><span class="s">&quot;StatisticsAgent&lt;br/&gt;(F9)&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="n">A6</span><span class="p">[</span><span class="s">&quot;ReportAgent&lt;br/&gt;(F10)&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="kd">end</span>
+    subgraph Agents["Agent 구성 (6개)"]
+        A1["ConversationAgent<br/>(F1-F3)"]
+        A2["TicketCreatorAgent<br/>(F4)"]
+        A3["TicketManagerAgent<br/>(F5-F6)"]
+        A4["SentimentAgent<br/>(F7-F8)"]
+        A5["StatisticsAgent<br/>(F9)"]
+        A6["ReportAgent<br/>(F10)"]
+    end
 
-<span class="w">    </span><span class="n">subgraph</span><span class="w"> </span><span class="n">Tasks</span><span class="p">[</span><span class="s">&quot;Task 구성 (12개)&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="n">T1</span><span class="p">[</span><span class="s">&quot;Task1-3:&lt;br/&gt;대화 관리 Tasks&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="n">T2</span><span class="p">[</span><span class="s">&quot;Task4-6:&lt;br/&gt;티켓 관리 Tasks&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="n">T3</span><span class="p">[</span><span class="s">&quot;Task7-8:&lt;br/&gt;감정 분석 Tasks&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="n">T4</span><span class="p">[</span><span class="s">&quot;Task9-10:&lt;br/&gt;리포팅 Tasks&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="kd">end</span>
+    subgraph Tasks["Task 구성 (12개)"]
+        T1["Task1-3:<br/>대화 관리 Tasks"]
+        T2["Task4-6:<br/>티켓 관리 Tasks"]
+        T3["Task7-8:<br/>감정 분석 Tasks"]
+        T4["Task9-10:<br/>리포팅 Tasks"]
+    end
 
-<span class="w">    </span><span class="n">F1</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">A1</span>
-<span class="w">    </span><span class="n">F2</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">A1</span>
-<span class="w">    </span><span class="n">F3</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">A1</span>
-<span class="w">    </span><span class="n">F4</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">A2</span>
-<span class="w">    </span><span class="n">F5</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">A3</span>
-<span class="w">    </span><span class="n">F6</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">A3</span>
-<span class="w">    </span><span class="n">F7</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">A4</span>
-<span class="w">    </span><span class="n">F8</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">A4</span>
-<span class="w">    </span><span class="n">F9</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">A5</span>
-<span class="w">    </span><span class="n">F10</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">A6</span>
+    F1 --> A1
+    F2 --> A1
+    F3 --> A1
+    F4 --> A2
+    F5 --> A3
+    F6 --> A3
+    F7 --> A4
+    F8 --> A4
+    F9 --> A5
+    F10 --> A6
 
-<span class="w">    </span><span class="n">A1</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">T1</span>
-<span class="w">    </span><span class="n">A2</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">T2</span>
-<span class="w">    </span><span class="n">A3</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">T2</span>
-<span class="w">    </span><span class="n">A4</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">T3</span>
-<span class="w">    </span><span class="n">A5</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">T4</span>
-<span class="w">    </span><span class="n">A6</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">T4</span>
+    A1 --> T1
+    A2 --> T2
+    A3 --> T2
+    A4 --> T3
+    A5 --> T4
+    A6 --> T4
 
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">M1</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">e3f2fd</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">M2</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">f3e5f5</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">M3</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">fff3e0</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">M4</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">e8f5e9</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">A1</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">ffebee</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">A2</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">f3e5f5</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">A3</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">f3e5f5</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">A4</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">fff9c4</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">A5</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">e0f2f1</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">A6</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">e0f2f1</span>
-</code></pre></div>
+    style M1 fill:#e3f2fd
+    style M2 fill:#f3e5f5
+    style M3 fill:#fff3e0
+    style M4 fill:#e8f5e9
+    style A1 fill:#ffebee
+    style A2 fill:#f3e5f5
+    style A3 fill:#f3e5f5
+    style A4 fill:#fff9c4
+    style A5 fill:#e0f2f1
+    style A6 fill:#e0f2f1
+</div>
 
 <p><strong>CAAS 사용법</strong>:</p>
 <div class="codehilite"><pre><span></span><code><span class="c1"># Golden Data에 모듈 구조 명시</span>
@@ -4022,52 +4082,53 @@ caas<span class="w"> </span>generate<span class="w"> </span>./ai_features.json<s
 <hr />
 <h3 id="313">3.1.3 의사결정 트리</h3>
 <p><strong>복잡도 관리 의사결정 트리</strong>:</p>
-<div class="codehilite"><pre><span></span><code><span class="n">flowchart</span><span class="w"> </span><span class="n">TD</span>
-<span class="w">    </span><span class="n">Start</span><span class="p">[</span><span class="s">&quot;Step 1: Feature 개수는?&quot;</span><span class="p">]</span>
+<div class="mermaid">
+flowchart TD
+    Start["Step 1: Feature 개수는?"]
 
-<span class="w">    </span><span class="n">F1_5</span><span class="p">[</span><span class="s">&quot;1-5개&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">F6_15</span><span class="p">[</span><span class="s">&quot;6-15개&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">F16_30</span><span class="p">[</span><span class="s">&quot;16-30개&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">F31</span><span class="p">[</span><span class="s">&quot;31+개&quot;</span><span class="p">]</span>
+    F1_5["1-5개"]
+    F6_15["6-15개"]
+    F16_30["16-30개"]
+    F31["31+개"]
 
-<span class="w">    </span><span class="n">Result1</span><span class="p">[</span><span class="s">&quot;단일 프로젝트 ✅&quot;</span><span class="p">]</span>
+    Result1["단일 프로젝트 ✅"]
 
-<span class="w">    </span><span class="n">Step2</span><span class="p">[</span><span class="s">&quot;Step 2: Agent 개수는?&lt;br/&gt;(6-15개 Feature)&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">A3_7</span><span class="p">[</span><span class="s">&quot;3-7개&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">A8</span><span class="p">[</span><span class="s">&quot;8+개&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">Result2</span><span class="p">[</span><span class="s">&quot;모듈화 설계 ✅&quot;</span><span class="p">]</span>
+    Step2["Step 2: Agent 개수는?<br/>(6-15개 Feature)"]
+    A3_7["3-7개"]
+    A8["8+개"]
+    Result2["모듈화 설계 ✅"]
 
-<span class="w">    </span><span class="n">Step3</span><span class="p">[</span><span class="s">&quot;Step 3: 도메인 다양성은?&lt;br/&gt;(16-30개 Feature)&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">D_Single</span><span class="p">[</span><span class="s">&quot;단일 도메인&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">D_Multi</span><span class="p">[</span><span class="s">&quot;다중 도메인&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">Result3</span><span class="p">[</span><span class="s">&quot;다단계 생성 ✅&quot;</span><span class="p">]</span>
+    Step3["Step 3: 도메인 다양성은?<br/>(16-30개 Feature)"]
+    D_Single["단일 도메인"]
+    D_Multi["다중 도메인"]
+    Result3["다단계 생성 ✅"]
 
-<span class="w">    </span><span class="n">Step4</span><span class="p">[</span><span class="s">&quot;Step 4: Bounded Context는?&lt;br/&gt;(31+개 Feature)&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">BC_Clear</span><span class="p">[</span><span class="s">&quot;명확히 분리 가능&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">BC_Hard</span><span class="p">[</span><span class="s">&quot;분리 어려움&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">Result4</span><span class="p">[</span><span class="s">&quot;시스템 분할 ✅&lt;br/&gt;(Microservices)&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">Result5</span><span class="p">[</span><span class="s">&quot;모놀리식 +&lt;br/&gt;다단계 생성&quot;</span><span class="p">]</span>
+    Step4["Step 4: Bounded Context는?<br/>(31+개 Feature)"]
+    BC_Clear["명확히 분리 가능"]
+    BC_Hard["분리 어려움"]
+    Result4["시스템 분할 ✅<br/>(Microservices)"]
+    Result5["모놀리식 +<br/>다단계 생성"]
 
-<span class="w">    </span><span class="n">Start</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">F1_5</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Result1</span>
-<span class="w">    </span><span class="n">Start</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">F6_15</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Step2</span>
-<span class="w">    </span><span class="n">Start</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">F16_30</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Step3</span>
-<span class="w">    </span><span class="n">Start</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">F31</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Step4</span>
+    Start --> F1_5 --> Result1
+    Start --> F6_15 --> Step2
+    Start --> F16_30 --> Step3
+    Start --> F31 --> Step4
 
-<span class="w">    </span><span class="n">Step2</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">A3_7</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Result2</span>
-<span class="w">    </span><span class="n">Step2</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">A8</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Step3</span>
+    Step2 --> A3_7 --> Result2
+    Step2 --> A8 --> Step3
 
-<span class="w">    </span><span class="n">Step3</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">D_Single</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Result3</span>
-<span class="w">    </span><span class="n">Step3</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">D_Multi</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Step4</span>
+    Step3 --> D_Single --> Result3
+    Step3 --> D_Multi --> Step4
 
-<span class="w">    </span><span class="n">Step4</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">BC_Clear</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Result4</span>
-<span class="w">    </span><span class="n">Step4</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">BC_Hard</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Result5</span>
+    Step4 --> BC_Clear --> Result4
+    Step4 --> BC_Hard --> Result5
 
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">Result1</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">c8e6c9</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">Result2</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">c8e6c9</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">Result3</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">c8e6c9</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">Result4</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">c8e6c9</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">Result5</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">fff9c4</span>
-</code></pre></div>
+    style Result1 fill:#c8e6c9
+    style Result2 fill:#c8e6c9
+    style Result3 fill:#c8e6c9
+    style Result4 fill:#c8e6c9
+    style Result5 fill:#fff9c4
+</div>
 
 <p><strong>의사결정 예시</strong>:</p>
 <p><strong>Case 1: Blog 시스템</strong></p>
@@ -4110,62 +4171,63 @@ Bounded Context: CRM, ERP, BI, AI (4개)
 - 동일한 용어가 다른 의미를 가질 수 있는 경계<br />
 - 독립적인 데이터베이스 및 비즈니스 로직</p>
 <p><strong>예시: E-Commerce 플랫폼</strong></p>
-<div class="codehilite"><pre><span></span><code><span class="n">flowchart</span><span class="w"> </span><span class="n">TB</span>
-<span class="w">    </span><span class="n">subgraph</span><span class="w"> </span><span class="n">BC</span><span class="p">[</span><span class="s">&quot;Bounded Context 식별&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="n">subgraph</span><span class="w"> </span><span class="n">PC</span><span class="p">[</span><span class="s">&quot;Product Catalog Context&quot;</span><span class="p">]</span>
-<span class="w">            </span><span class="n">PC1</span><span class="p">[</span><span class="s">&quot;용어: Product, Category, Inventory&quot;</span><span class="p">]</span>
-<span class="w">            </span><span class="n">PC2</span><span class="p">[</span><span class="s">&quot;책임: 제품 관리, 카테고리, 재고&quot;</span><span class="p">]</span>
-<span class="w">            </span><span class="n">PC3</span><span class="p">[</span><span class="s">&quot;CAAS Project 1&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="kd">end</span>
+<div class="mermaid">
+flowchart TB
+    subgraph BC["Bounded Context 식별"]
+        subgraph PC["Product Catalog Context"]
+            PC1["용어: Product, Category, Inventory"]
+            PC2["책임: 제품 관리, 카테고리, 재고"]
+            PC3["CAAS Project 1"]
+        end
 
-<span class="w">        </span><span class="n">subgraph</span><span class="w"> </span><span class="n">OM</span><span class="p">[</span><span class="s">&quot;Order Management Context&quot;</span><span class="p">]</span>
-<span class="w">            </span><span class="n">OM1</span><span class="p">[</span><span class="s">&quot;용어: Order, Payment, Shipping&quot;</span><span class="p">]</span>
-<span class="w">            </span><span class="n">OM2</span><span class="p">[</span><span class="s">&quot;책임: 주문 처리, 결제, 배송&quot;</span><span class="p">]</span>
-<span class="w">            </span><span class="n">OM3</span><span class="p">[</span><span class="s">&quot;CAAS Project 2&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="kd">end</span>
+        subgraph OM["Order Management Context"]
+            OM1["용어: Order, Payment, Shipping"]
+            OM2["책임: 주문 처리, 결제, 배송"]
+            OM3["CAAS Project 2"]
+        end
 
-<span class="w">        </span><span class="n">subgraph</span><span class="w"> </span><span class="n">CS</span><span class="p">[</span><span class="s">&quot;Customer Service Context&quot;</span><span class="p">]</span>
-<span class="w">            </span><span class="n">CS1</span><span class="p">[</span><span class="s">&quot;용어: Ticket, Inquiry, Support&quot;</span><span class="p">]</span>
-<span class="w">            </span><span class="n">CS2</span><span class="p">[</span><span class="s">&quot;책임: 고객 지원, 티켓 관리&quot;</span><span class="p">]</span>
-<span class="w">            </span><span class="n">CS3</span><span class="p">[</span><span class="s">&quot;CAAS Project 3&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="kd">end</span>
+        subgraph CS["Customer Service Context"]
+            CS1["용어: Ticket, Inquiry, Support"]
+            CS2["책임: 고객 지원, 티켓 관리"]
+            CS3["CAAS Project 3"]
+        end
 
-<span class="w">        </span><span class="n">subgraph</span><span class="w"> </span><span class="n">AN</span><span class="p">[</span><span class="s">&quot;Analytics Context&quot;</span><span class="p">]</span>
-<span class="w">            </span><span class="n">AN1</span><span class="p">[</span><span class="s">&quot;용어: Report, Metrics, Dashboard&quot;</span><span class="p">]</span>
-<span class="w">            </span><span class="n">AN2</span><span class="p">[</span><span class="s">&quot;책임: 데이터 분석, 리포팅&quot;</span><span class="p">]</span>
-<span class="w">            </span><span class="n">AN3</span><span class="p">[</span><span class="s">&quot;CAAS Project 4&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="kd">end</span>
-<span class="w">    </span><span class="kd">end</span>
+        subgraph AN["Analytics Context"]
+            AN1["용어: Report, Metrics, Dashboard"]
+            AN2["책임: 데이터 분석, 리포팅"]
+            AN3["CAAS Project 4"]
+        end
+    end
 
-<span class="w">    </span><span class="n">subgraph</span><span class="w"> </span><span class="n">Integration</span><span class="p">[</span><span class="s">&quot;통합&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="n">GW</span><span class="p">[</span><span class="s">&quot;API Gateway&lt;br/&gt;(Kong/NGINX)&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="n">EB</span><span class="p">[</span><span class="s">&quot;Event Bus&lt;br/&gt;(Kafka/RabbitMQ)&quot;</span><span class="p">]</span>
-<span class="w">        </span><span class="n">DB</span><span class="p">[</span><span class="s">&quot;Shared Database&lt;br/&gt;(선택적)&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="kd">end</span>
+    subgraph Integration["통합"]
+        GW["API Gateway<br/>(Kong/NGINX)"]
+        EB["Event Bus<br/>(Kafka/RabbitMQ)"]
+        DB["Shared Database<br/>(선택적)"]
+    end
 
-<span class="w">    </span><span class="n">PC</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">GW</span>
-<span class="w">    </span><span class="n">OM</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">GW</span>
-<span class="w">    </span><span class="n">CS</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">GW</span>
-<span class="w">    </span><span class="n">AN</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">GW</span>
+    PC --> GW
+    OM --> GW
+    CS --> GW
+    AN --> GW
 
-<span class="w">    </span><span class="n">PC</span><span class="w"> </span><span class="o">-</span><span class="p">.</span><span class="o">-&gt;</span><span class="w"> </span><span class="n">EB</span>
-<span class="w">    </span><span class="n">OM</span><span class="w"> </span><span class="o">-</span><span class="p">.</span><span class="o">-&gt;</span><span class="w"> </span><span class="n">EB</span>
-<span class="w">    </span><span class="n">CS</span><span class="w"> </span><span class="o">-</span><span class="p">.</span><span class="o">-&gt;</span><span class="w"> </span><span class="n">EB</span>
-<span class="w">    </span><span class="n">AN</span><span class="w"> </span><span class="o">-</span><span class="p">.</span><span class="o">-&gt;</span><span class="w"> </span><span class="n">EB</span>
+    PC -.-> EB
+    OM -.-> EB
+    CS -.-> EB
+    AN -.-> EB
 
-<span class="w">    </span><span class="n">PC</span><span class="w"> </span><span class="o">-</span><span class="p">.</span><span class="o">-&gt;</span><span class="w"> </span><span class="n">DB</span>
-<span class="w">    </span><span class="n">OM</span><span class="w"> </span><span class="o">-</span><span class="p">.</span><span class="o">-&gt;</span><span class="w"> </span><span class="n">DB</span>
-<span class="w">    </span><span class="n">CS</span><span class="w"> </span><span class="o">-</span><span class="p">.</span><span class="o">-&gt;</span><span class="w"> </span><span class="n">DB</span>
-<span class="w">    </span><span class="n">AN</span><span class="w"> </span><span class="o">-</span><span class="p">.</span><span class="o">-&gt;</span><span class="w"> </span><span class="n">DB</span>
+    PC -.-> DB
+    OM -.-> DB
+    CS -.-> DB
+    AN -.-> DB
 
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">PC</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">e3f2fd</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">OM</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">f3e5f5</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">CS</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">fff3e0</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">AN</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">e8f5e9</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">GW</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">ffebee</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">EB</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">fce4ec</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">DB</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">f1f8e9</span>
-</code></pre></div>
+    style PC fill:#e3f2fd
+    style OM fill:#f3e5f5
+    style CS fill:#fff3e0
+    style AN fill:#e8f5e9
+    style GW fill:#ffebee
+    style EB fill:#fce4ec
+    style DB fill:#f1f8e9
+</div>
 
 <p><strong>Bounded Context 식별 방법</strong>:<br />
 1. <strong>Ubiquitous Language 분석</strong>: 동일 용어의 다른 의미 찾기<br />
@@ -5033,51 +5095,52 @@ Type 3: 조건 의존성
 <li><strong>추적성</strong>: 어느 Phase에서 품질 문제가 발생했는지 명확히 기록</li>
 </ol>
 <p><strong>Quality Gate 실행 지점</strong>:</p>
-<div class="codehilite"><pre><span></span><code><span class="n">flowchart</span><span class="w"> </span><span class="n">TD</span>
-<span class="w">    </span><span class="n">P0</span><span class="p">[</span><span class="s">&quot;Phase 0&lt;br/&gt;(Concretization)&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">QG0</span><span class="p">[</span><span class="s">&quot;Quality Gate 0&lt;br/&gt;Golden Data 완전성 검증&quot;</span><span class="p">]</span>
+<div class="mermaid">
+flowchart TD
+    P0["Phase 0<br/>(Concretization)"]
+    QG0["Quality Gate 0<br/>Golden Data 완전성 검증"]
 
-<span class="w">    </span><span class="n">P1</span><span class="p">[</span><span class="s">&quot;Phase 1&lt;br/&gt;(Discovery)&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">QG1</span><span class="p">[</span><span class="s">&quot;Quality Gate 1&lt;br/&gt;요구사항 분석 품질 검증&quot;</span><span class="p">]</span>
+    P1["Phase 1<br/>(Discovery)"]
+    QG1["Quality Gate 1<br/>요구사항 분석 품질 검증"]
 
-<span class="w">    </span><span class="n">P2</span><span class="p">[</span><span class="s">&quot;Phase 2&lt;br/&gt;(Architecture)&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">QG2</span><span class="p">[</span><span class="s">&quot;Quality Gate 2&lt;br/&gt;아키텍처 설계 품질 검증&quot;</span><span class="p">]</span>
+    P2["Phase 2<br/>(Architecture)"]
+    QG2["Quality Gate 2<br/>아키텍처 설계 품질 검증"]
 
-<span class="w">    </span><span class="n">P3</span><span class="p">[</span><span class="s">&quot;Phase 3&lt;br/&gt;(Design)&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">QG3</span><span class="p">[</span><span class="s">&quot;Quality Gate 3&lt;br/&gt;Agent/Task 설계 완전성 검증&quot;</span><span class="p">]</span>
+    P3["Phase 3<br/>(Design)"]
+    QG3["Quality Gate 3<br/>Agent/Task 설계 완전성 검증"]
 
-<span class="w">    </span><span class="n">P4</span><span class="p">[</span><span class="s">&quot;Phase 4&lt;br/&gt;(Development)&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">QG4</span><span class="p">[</span><span class="s">&quot;Quality Gate 4&lt;br/&gt;명세 생성 품질 검증&quot;</span><span class="p">]</span>
+    P4["Phase 4<br/>(Development)"]
+    QG4["Quality Gate 4<br/>명세 생성 품질 검증"]
 
-<span class="w">    </span><span class="n">P5</span><span class="p">[</span><span class="s">&quot;Phase 5&lt;br/&gt;(Delivery)&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">QG5</span><span class="p">[</span><span class="s">&quot;Quality Gate 5&lt;br/&gt;생성된 코드 품질 검증&quot;</span><span class="p">]</span>
+    P5["Phase 5<br/>(Delivery)"]
+    QG5["Quality Gate 5<br/>생성된 코드 품질 검증"]
 
-<span class="w">    </span><span class="n">P6</span><span class="p">[</span><span class="s">&quot;Phase 6&lt;br/&gt;(Code Analysis)&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">QG6</span><span class="p">[</span><span class="s">&quot;Quality Gate 6&lt;br/&gt;런타임 안정성 및 추적성 검증&quot;</span><span class="p">]</span>
+    P6["Phase 6<br/>(Code Analysis)"]
+    QG6["Quality Gate 6<br/>런타임 안정성 및 추적성 검증"]
 
-<span class="w">    </span><span class="n">P0</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">QG0</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">P1</span>
-<span class="w">    </span><span class="n">P1</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">QG1</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">P2</span>
-<span class="w">    </span><span class="n">P2</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">QG2</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">P3</span>
-<span class="w">    </span><span class="n">P3</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">QG3</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">P4</span>
-<span class="w">    </span><span class="n">P4</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">QG4</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">P5</span>
-<span class="w">    </span><span class="n">P5</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">QG5</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">P6</span>
-<span class="w">    </span><span class="n">P6</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">QG6</span>
+    P0 --> QG0 --> P1
+    P1 --> QG1 --> P2
+    P2 --> QG2 --> P3
+    P3 --> QG3 --> P4
+    P4 --> QG4 --> P5
+    P5 --> QG5 --> P6
+    P6 --> QG6
 
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">P0</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">e3f2fd</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">P1</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">e3f2fd</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">P2</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">e3f2fd</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">P3</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">e3f2fd</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">P4</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">e3f2fd</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">P5</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">e3f2fd</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">P6</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">e3f2fd</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">QG0</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">ffebee</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">QG1</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">ffebee</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">QG2</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">ffebee</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">QG3</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">ffebee</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">QG4</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">ffebee</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">QG5</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">ffebee</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">QG6</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">ffebee</span>
-</code></pre></div>
+    style P0 fill:#e3f2fd
+    style P1 fill:#e3f2fd
+    style P2 fill:#e3f2fd
+    style P3 fill:#e3f2fd
+    style P4 fill:#e3f2fd
+    style P5 fill:#e3f2fd
+    style P6 fill:#e3f2fd
+    style QG0 fill:#ffebee
+    style QG1 fill:#ffebee
+    style QG2 fill:#ffebee
+    style QG3 fill:#ffebee
+    style QG4 fill:#ffebee
+    style QG5 fill:#ffebee
+    style QG6 fill:#ffebee
+</div>
 
 <hr />
 <h3 id="412-qualitygatesystem">4.1.2 QualityGateSystem 동작 원리</h3>
@@ -6010,72 +6073,74 @@ Level 3: LLM-based
   "tools": [...]<br />
 }}<br />
 """</p>
-<div class="codehilite"><pre><span></span><code><span class="o">**</span><span class="err">효과</span><span class="o">**:</span>
-<span class="o">-</span><span class="w"> </span><span class="err">✅</span><span class="w"> </span><span class="err">속도</span><span class="o">:</span><span class="w"> </span><span class="o">**</span><span class="mi">10</span><span class="o">-</span><span class="mi">30</span><span class="err">초</span><span class="o">**</span><span class="w"> </span><span class="p">(</span><span class="n">LLM</span><span class="w"> </span><span class="err">호출</span><span class="p">)</span>
-<span class="o">-</span><span class="w"> </span><span class="err">✅</span><span class="w"> </span><span class="err">비용</span><span class="o">:</span><span class="w"> </span><span class="o">**</span><span class="err">$</span><span class="mf">0.001</span><span class="o">-</span><span class="mf">0.01</span><span class="o">**</span><span class="w"> </span><span class="p">(</span><span class="n">API</span><span class="w"> </span><span class="err">비용</span><span class="p">)</span>
-<span class="o">-</span><span class="w"> </span><span class="err">✅</span><span class="w"> </span><span class="err">성공률</span><span class="o">:</span><span class="w"> </span><span class="o">**</span><span class="mi">95</span><span class="o">-</span><span class="mi">99</span><span class="o">%**</span><span class="w"> </span><span class="p">(</span><span class="err">복잡한</span><span class="w"> </span><span class="err">문제</span><span class="w"> </span><span class="err">해결</span><span class="p">)</span>
+<div class="codehilite"><pre><span></span><code><span class="o">**</span><span class="n">효과</span><span class="o">**</span><span class="err">:</span>
+<span class="o">-</span><span class="w"> </span><span class="err">✅</span><span class="w"> </span><span class="nl">속도</span><span class="p">:</span><span class="w"> </span><span class="o">**</span><span class="mi">10</span><span class="o">-</span><span class="mi">30</span><span class="n">초</span><span class="o">**</span><span class="w"> </span><span class="p">(</span><span class="n">LLM</span><span class="w"> </span><span class="n">호출</span><span class="p">)</span>
+<span class="o">-</span><span class="w"> </span><span class="err">✅</span><span class="w"> </span><span class="nl">비용</span><span class="p">:</span><span class="w"> </span><span class="o">**</span><span class="err">$</span><span class="mf">0.001</span><span class="o">-</span><span class="mf">0.01</span><span class="o">**</span><span class="w"> </span><span class="p">(</span><span class="n">API</span><span class="w"> </span><span class="n">비용</span><span class="p">)</span>
+<span class="o">-</span><span class="w"> </span><span class="err">✅</span><span class="w"> </span><span class="nl">성공률</span><span class="p">:</span><span class="w"> </span><span class="o">**</span><span class="mi">95</span><span class="o">-</span><span class="mi">99</span><span class="o">%**</span><span class="w"> </span><span class="p">(</span><span class="n">복잡한</span><span class="w"> </span><span class="n">문제</span><span class="w"> </span><span class="n">해결</span><span class="p">)</span>
 
-<span class="o">---</span>
+<span class="c1">---</span>
 
-<span class="cp">### 4.2.5 Auto-Fixing 전략 선택</span>
+<span class="err">###</span><span class="w"> </span><span class="mf">4.2.5</span><span class="w"> </span><span class="n">Auto</span><span class="o">-</span><span class="n">Fixing</span><span class="w"> </span><span class="n">전략</span><span class="w"> </span><span class="n">선택</span>
 
-<span class="o">**</span><span class="err">의사결정</span><span class="w"> </span><span class="err">트리</span><span class="o">**:</span>
+<span class="o">**</span><span class="n">의사결정</span><span class="w"> </span><span class="n">트리</span><span class="o">**</span><span class="err">:</span>
 
-<span class="err">```</span><span class="n">mermaid</span>
+<span class="o">&lt;</span><span class="n">div</span><span class="w"> </span><span class="k">class</span><span class="o">=</span><span class="ss">&quot;mermaid&quot;</span><span class="o">&gt;</span>
 <span class="n">flowchart</span><span class="w"> </span><span class="n">TD</span>
-<span class="w">    </span><span class="n">Start</span><span class="p">[</span><span class="s">&quot;문제 유형 분석&quot;</span><span class="p">]</span>
+<span class="w">    </span><span class="k">Start</span><span class="o">[</span><span class="n">&quot;문제 유형 분석&quot;</span><span class="o">]</span>
 
-<span class="w">    </span><span class="n">Q1</span><span class="p">{</span><span class="s">&quot;단순 패턴?&lt;br/&gt;(필드 누락, 간단한 템플릿)&quot;</span><span class="p">}</span>
-<span class="w">    </span><span class="n">L1</span><span class="p">[</span><span class="s">&quot;Level 1&lt;br/&gt;(Template-based)&lt;br/&gt;⚡⚡⚡&quot;</span><span class="p">]</span>
+<span class="w">    </span><span class="n">Q1</span><span class="err">{</span><span class="ss">&quot;단순 패턴?&lt;br/&gt;(필드 누락, 간단한 템플릿)&quot;</span><span class="err">}</span>
+<span class="w">    </span><span class="n">L1</span><span class="o">[</span><span class="n">&quot;Level 1&lt;br/&gt;(Template-based)&lt;br/&gt;⚡⚡⚡&quot;</span><span class="o">]</span>
 
-<span class="w">    </span><span class="n">Q2</span><span class="p">{</span><span class="s">&quot;중간 복잡도?&lt;br/&gt;(Tool 교체, Dependency 재정렬)&quot;</span><span class="p">}</span>
-<span class="w">    </span><span class="n">L2</span><span class="p">[</span><span class="s">&quot;Level 2&lt;br/&gt;(Rule-based)&lt;br/&gt;⚡⚡&quot;</span><span class="p">]</span>
+<span class="w">    </span><span class="n">Q2</span><span class="err">{</span><span class="ss">&quot;중간 복잡도?&lt;br/&gt;(Tool 교체, Dependency 재정렬)&quot;</span><span class="err">}</span>
+<span class="w">    </span><span class="n">L2</span><span class="o">[</span><span class="n">&quot;Level 2&lt;br/&gt;(Rule-based)&lt;br/&gt;⚡⚡&quot;</span><span class="o">]</span>
 
-<span class="w">    </span><span class="n">Q3</span><span class="p">{</span><span class="s">&quot;복잡한 로직?&lt;br/&gt;(의미적 일관성, 모호한 명세)&quot;</span><span class="p">}</span>
-<span class="w">    </span><span class="n">L3</span><span class="p">[</span><span class="s">&quot;Level 3&lt;br/&gt;(LLM-based)&lt;br/&gt;⚡&quot;</span><span class="p">]</span>
+<span class="w">    </span><span class="n">Q3</span><span class="err">{</span><span class="ss">&quot;복잡한 로직?&lt;br/&gt;(의미적 일관성, 모호한 명세)&quot;</span><span class="err">}</span>
+<span class="w">    </span><span class="n">L3</span><span class="o">[</span><span class="n">&quot;Level 3&lt;br/&gt;(LLM-based)&lt;br/&gt;⚡&quot;</span><span class="o">]</span>
 
-<span class="w">    </span><span class="n">Start</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Q1</span>
-<span class="w">    </span><span class="n">Q1</span><span class="w"> </span><span class="o">--&gt;|</span><span class="n">Yes</span><span class="o">|</span><span class="w"> </span><span class="n">L1</span>
-<span class="w">    </span><span class="n">Q1</span><span class="w"> </span><span class="o">--&gt;|</span><span class="n">No</span><span class="o">|</span><span class="w"> </span><span class="n">Q2</span>
-<span class="w">    </span><span class="n">Q2</span><span class="w"> </span><span class="o">--&gt;|</span><span class="n">Yes</span><span class="o">|</span><span class="w"> </span><span class="n">L2</span>
-<span class="w">    </span><span class="n">Q2</span><span class="w"> </span><span class="o">--&gt;|</span><span class="n">No</span><span class="o">|</span><span class="w"> </span><span class="n">Q3</span>
-<span class="w">    </span><span class="n">Q3</span><span class="w"> </span><span class="o">--&gt;|</span><span class="n">Yes</span><span class="o">|</span><span class="w"> </span><span class="n">L3</span>
+<span class="w">    </span><span class="k">Start</span><span class="w"> </span><span class="c1">--&gt; Q1</span>
+<span class="w">    </span><span class="n">Q1</span><span class="w"> </span><span class="c1">--&gt;|Yes| L1</span>
+<span class="w">    </span><span class="n">Q1</span><span class="w"> </span><span class="c1">--&gt;|No| Q2</span>
+<span class="w">    </span><span class="n">Q2</span><span class="w"> </span><span class="c1">--&gt;|Yes| L2</span>
+<span class="w">    </span><span class="n">Q2</span><span class="w"> </span><span class="c1">--&gt;|No| Q3</span>
+<span class="w">    </span><span class="n">Q3</span><span class="w"> </span><span class="c1">--&gt;|Yes| L3</span>
 
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">L1</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">c8e6c9</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">L2</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">fff9c4</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">L3</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">ffccbc</span>
-</code></pre></div>
+<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">L1</span><span class="w"> </span><span class="nl">fill</span><span class="p">:</span><span class="n">#c8e6c9</span>
+<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">L2</span><span class="w"> </span><span class="nl">fill</span><span class="p">:</span><span class="n">#fff9c4</span>
+<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">L3</span><span class="w"> </span><span class="nl">fill</span><span class="p">:</span><span class="n">#ffccbc</span>
+<span class="o">&lt;/</span><span class="n">div</span><span class="o">&gt;</span>
 
-<p><strong>Best Practice</strong>:</p>
-<p><strong>① 항상 Level 1부터 시도</strong></p>
-<div class="codehilite"><pre><span></span><code><span class="c1"># caas_framework/fixing/auto_fixer.py</span>
+<span class="o">**</span><span class="n">Best</span><span class="w"> </span><span class="n">Practice</span><span class="o">**</span><span class="err">:</span>
 
-<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">fix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">issues</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Issue</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">FixResult</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Hierarchical fixing strategy</span>
+<span class="o">**</span><span class="n">①</span><span class="w"> </span><span class="n">항상</span><span class="w"> </span><span class="k">Level</span><span class="w"> </span><span class="mi">1</span><span class="n">부터</span><span class="w"> </span><span class="n">시도</span><span class="o">**</span>
+<span class="err">```</span><span class="n">python</span>
+<span class="err">#</span><span class="w"> </span><span class="n">caas_framework</span><span class="o">/</span><span class="n">fixing</span><span class="o">/</span><span class="n">auto_fixer</span><span class="p">.</span><span class="n">py</span>
 
-<span class="sd">    Try Level 1 → Level 2 → Level 3 in sequence</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">for</span> <span class="n">issue</span> <span class="ow">in</span> <span class="n">issues</span><span class="p">:</span>
-        <span class="c1"># Try Level 1</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">fixed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">template_fixer</span><span class="o">.</span><span class="n">fix</span><span class="p">(</span><span class="n">issue</span><span class="p">)</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_fix</span><span class="p">(</span><span class="n">fixed</span><span class="p">):</span>
-                <span class="k">return</span> <span class="n">fixed</span>
-        <span class="k">except</span> <span class="n">FixingError</span><span class="p">:</span>
-            <span class="k">pass</span>
+<span class="n">async</span><span class="w"> </span><span class="n">def</span><span class="w"> </span><span class="n">fix</span><span class="p">(</span><span class="n">self</span><span class="p">,</span><span class="w"> </span><span class="nl">issues</span><span class="p">:</span><span class="w"> </span><span class="n">List</span><span class="o">[</span><span class="n">Issue</span><span class="o">]</span><span class="p">)</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="nl">FixResult</span><span class="p">:</span>
+<span class="w">    </span><span class="ss">&quot;&quot;&quot;</span>
+<span class="ss">    Hierarchical fixing strategy</span>
 
-        <span class="c1"># Try Level 2</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">fixed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rule_fixer</span><span class="o">.</span><span class="n">fix</span><span class="p">(</span><span class="n">issue</span><span class="p">)</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_fix</span><span class="p">(</span><span class="n">fixed</span><span class="p">):</span>
-                <span class="k">return</span> <span class="n">fixed</span>
-        <span class="k">except</span> <span class="n">FixingError</span><span class="p">:</span>
-            <span class="k">pass</span>
+<span class="ss">    Try Level 1 → Level 2 → Level 3 in sequence</span>
+<span class="ss">    &quot;&quot;&quot;</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="n">issue</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="nl">issues</span><span class="p">:</span>
+<span class="w">        </span><span class="err">#</span><span class="w"> </span><span class="k">Try</span><span class="w"> </span><span class="k">Level</span><span class="w"> </span><span class="mi">1</span>
+<span class="w">        </span><span class="k">try</span><span class="err">:</span>
+<span class="w">            </span><span class="n">fixed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">self</span><span class="p">.</span><span class="n">template_fixer</span><span class="p">.</span><span class="n">fix</span><span class="p">(</span><span class="n">issue</span><span class="p">)</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="n">self</span><span class="p">.</span><span class="n">_validate_fix</span><span class="p">(</span><span class="n">fixed</span><span class="p">)</span><span class="err">:</span>
+<span class="w">                </span><span class="k">return</span><span class="w"> </span><span class="n">fixed</span>
+<span class="w">        </span><span class="ow">except</span><span class="w"> </span><span class="nl">FixingError</span><span class="p">:</span>
+<span class="w">            </span><span class="n">pass</span>
 
-        <span class="c1"># Try Level 3 (last resort)</span>
-        <span class="n">fixed</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">llm_fixer</span><span class="o">.</span><span class="n">fix</span><span class="p">(</span><span class="n">issue</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">fixed</span>
+<span class="w">        </span><span class="err">#</span><span class="w"> </span><span class="k">Try</span><span class="w"> </span><span class="k">Level</span><span class="w"> </span><span class="mi">2</span>
+<span class="w">        </span><span class="k">try</span><span class="err">:</span>
+<span class="w">            </span><span class="n">fixed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">self</span><span class="p">.</span><span class="n">rule_fixer</span><span class="p">.</span><span class="n">fix</span><span class="p">(</span><span class="n">issue</span><span class="p">)</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="n">self</span><span class="p">.</span><span class="n">_validate_fix</span><span class="p">(</span><span class="n">fixed</span><span class="p">)</span><span class="err">:</span>
+<span class="w">                </span><span class="k">return</span><span class="w"> </span><span class="n">fixed</span>
+<span class="w">        </span><span class="ow">except</span><span class="w"> </span><span class="nl">FixingError</span><span class="p">:</span>
+<span class="w">            </span><span class="n">pass</span>
+
+<span class="w">        </span><span class="err">#</span><span class="w"> </span><span class="k">Try</span><span class="w"> </span><span class="k">Level</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="p">(</span><span class="k">last</span><span class="w"> </span><span class="n">resort</span><span class="p">)</span>
+<span class="w">        </span><span class="n">fixed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">await</span><span class="w"> </span><span class="n">self</span><span class="p">.</span><span class="n">llm_fixer</span><span class="p">.</span><span class="n">fix</span><span class="p">(</span><span class="n">issue</span><span class="p">)</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">fixed</span>
 </code></pre></div>
 
 <p><strong>② 비용 최적화</strong>: Level 1, 2는 무료 → 가능한 한 많이 활용</p>
@@ -7271,43 +7336,44 @@ kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> <
 </code></pre></div>
 
 <p><strong>피드백 루프 다이어그램</strong>:</p>
-<div class="codehilite"><pre><span></span><code><span class="n">flowchart</span><span class="w"> </span><span class="n">TB</span>
-<span class="w">    </span><span class="n">Deploy</span><span class="p">[</span><span class="s">&quot;1. Deploy &amp; Run&lt;br/&gt;프로덕션 배포&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">System</span><span class="p">[</span><span class="s">&quot;CAAS Generated System&lt;br/&gt;(main.py, agents.py, tasks.py)&quot;</span><span class="p">]</span>
+<div class="mermaid">
+flowchart TB
+    Deploy["1. Deploy & Run<br/>프로덕션 배포"]
+    System["CAAS Generated System<br/>(main.py, agents.py, tasks.py)"]
 
-<span class="w">    </span><span class="n">Monitor</span><span class="p">[</span><span class="s">&quot;2. Monitor &amp; Collect&lt;br/&gt;관찰 가능성&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">Logs</span><span class="p">[</span><span class="s">&quot;Logs&lt;br/&gt;로그&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">Metrics</span><span class="p">[</span><span class="s">&quot;Metrics&lt;br/&gt;메트릭&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">Feedback</span><span class="p">[</span><span class="s">&quot;User Feedback&lt;br/&gt;사용자 피드백&quot;</span><span class="p">]</span>
+    Monitor["2. Monitor & Collect<br/>관찰 가능성"]
+    Logs["Logs<br/>로그"]
+    Metrics["Metrics<br/>메트릭"]
+    Feedback["User Feedback<br/>사용자 피드백"]
 
-<span class="w">    </span><span class="n">Analyze</span><span class="p">[</span><span class="s">&quot;3. Analyze &amp; Diagnose&lt;br/&gt;분석 및 진단&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">Issues</span><span class="p">[</span><span class="s">&quot;• Performance bottlenecks&lt;br/&gt;• Error patterns&lt;br/&gt;• Missing features&lt;br/&gt;• User pain points&quot;</span><span class="p">]</span>
+    Analyze["3. Analyze & Diagnose<br/>분석 및 진단"]
+    Issues["• Performance bottlenecks<br/>• Error patterns<br/>• Missing features<br/>• User pain points"]
 
-<span class="w">    </span><span class="n">Improve</span><span class="p">[</span><span class="s">&quot;4. Improve &amp; Regenerate&lt;br/&gt;개선 및 재생성&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">Update</span><span class="p">[</span><span class="s">&quot;Golden Data Update&lt;br/&gt;• Add missing features&lt;br/&gt;• Fix business rules&lt;br/&gt;• Optimize design&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">Regen</span><span class="p">[</span><span class="s">&quot;CAAS Regeneration&lt;br/&gt;개선된 코드 생성&quot;</span><span class="p">]</span>
+    Improve["4. Improve & Regenerate<br/>개선 및 재생성"]
+    Update["Golden Data Update<br/>• Add missing features<br/>• Fix business rules<br/>• Optimize design"]
+    Regen["CAAS Regeneration<br/>개선된 코드 생성"]
 
-<span class="w">    </span><span class="n">Deploy</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">System</span>
-<span class="w">    </span><span class="n">System</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Monitor</span>
-<span class="w">    </span><span class="n">Monitor</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Logs</span>
-<span class="w">    </span><span class="n">Monitor</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Metrics</span>
-<span class="w">    </span><span class="n">Monitor</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Feedback</span>
-<span class="w">    </span><span class="n">Logs</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Analyze</span>
-<span class="w">    </span><span class="n">Metrics</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Analyze</span>
-<span class="w">    </span><span class="n">Feedback</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Analyze</span>
-<span class="w">    </span><span class="n">Analyze</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Issues</span>
-<span class="w">    </span><span class="n">Issues</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Improve</span>
-<span class="w">    </span><span class="n">Improve</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Update</span>
-<span class="w">    </span><span class="n">Update</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Regen</span>
-<span class="w">    </span><span class="n">Regen</span><span class="w"> </span><span class="o">-</span><span class="p">.</span><span class="err">반복</span><span class="p">.</span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Deploy</span>
+    Deploy --> System
+    System --> Monitor
+    Monitor --> Logs
+    Monitor --> Metrics
+    Monitor --> Feedback
+    Logs --> Analyze
+    Metrics --> Analyze
+    Feedback --> Analyze
+    Analyze --> Issues
+    Issues --> Improve
+    Improve --> Update
+    Update --> Regen
+    Regen -.반복.-> Deploy
 
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">Deploy</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">e1f5e1</span><span class="p">,</span><span class="n">stroke</span><span class="o">:</span><span class="err">#</span><span class="mi">333</span><span class="p">,</span><span class="n">stroke</span><span class="o">-</span><span class="n">width</span><span class="o">:</span><span class="mi">2</span><span class="n">px</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">Monitor</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">cfe2ff</span><span class="p">,</span><span class="n">stroke</span><span class="o">:</span><span class="err">#</span><span class="mi">333</span><span class="p">,</span><span class="n">stroke</span><span class="o">-</span><span class="n">width</span><span class="o">:</span><span class="mi">2</span><span class="n">px</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">Analyze</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">fff3cd</span><span class="p">,</span><span class="n">stroke</span><span class="o">:</span><span class="err">#</span><span class="mi">333</span><span class="p">,</span><span class="n">stroke</span><span class="o">-</span><span class="n">width</span><span class="o">:</span><span class="mi">2</span><span class="n">px</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">Improve</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">f8d7da</span><span class="p">,</span><span class="n">stroke</span><span class="o">:</span><span class="err">#</span><span class="mi">333</span><span class="p">,</span><span class="n">stroke</span><span class="o">-</span><span class="n">width</span><span class="o">:</span><span class="mi">2</span><span class="n">px</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">Update</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">d1ecf1</span><span class="p">,</span><span class="n">stroke</span><span class="o">:</span><span class="err">#</span><span class="mi">333</span><span class="p">,</span><span class="n">stroke</span><span class="o">-</span><span class="n">width</span><span class="o">:</span><span class="mi">2</span><span class="n">px</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">Regen</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">e2e3e5</span><span class="p">,</span><span class="n">stroke</span><span class="o">:</span><span class="err">#</span><span class="mi">333</span><span class="p">,</span><span class="n">stroke</span><span class="o">-</span><span class="n">width</span><span class="o">:</span><span class="mi">2</span><span class="n">px</span>
-</code></pre></div>
+    style Deploy fill:#e1f5e1,stroke:#333,stroke-width:2px
+    style Monitor fill:#cfe2ff,stroke:#333,stroke-width:2px
+    style Analyze fill:#fff3cd,stroke:#333,stroke-width:2px
+    style Improve fill:#f8d7da,stroke:#333,stroke-width:2px
+    style Update fill:#d1ecf1,stroke:#333,stroke-width:2px
+    style Regen fill:#e2e3e5,stroke:#333,stroke-width:2px
+</div>
 
 <p><strong>사이클 타임라인</strong>:<br />
 - <strong>1주차</strong>: v1.0 배포 → 모니터링 → 문제 식별<br />
@@ -7429,38 +7495,39 @@ kubectl<span class="w"> </span><span class="nb">set</span><span class="w"> </spa
 <h3 id="523-ab">5.2.3 A/B 테스트 전략</h3>
 <p><strong>목적</strong>: 두 버전의 에이전트를 동시 운영하여 성능 비교</p>
 <p><strong>A/B 테스트 시나리오</strong>:</p>
-<div class="codehilite"><pre><span></span><code><span class="n">flowchart</span><span class="w"> </span><span class="n">TD</span>
-<span class="w">    </span><span class="n">Start</span><span class="p">[</span><span class="s">&quot;전체 트래픽 100%&quot;</span><span class="p">]</span>
+<div class="mermaid">
+flowchart TD
+    Start["전체 트래픽 100%"]
 
-<span class="w">    </span><span class="n">V1</span><span class="p">[</span><span class="s">&quot;v1.0&lt;br/&gt;(Control)&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">V2</span><span class="p">[</span><span class="s">&quot;v2.0&lt;br/&gt;(Experiment)&quot;</span><span class="p">]</span>
+    V1["v1.0<br/>(Control)"]
+    V2["v2.0<br/>(Experiment)"]
 
-<span class="w">    </span><span class="n">T1</span><span class="p">[</span><span class="s">&quot;50% Traffic&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">T2</span><span class="p">[</span><span class="s">&quot;50% Traffic&quot;</span><span class="p">]</span>
+    T1["50% Traffic"]
+    T2["50% Traffic"]
 
-<span class="w">    </span><span class="n">M1</span><span class="p">[</span><span class="s">&quot;Metrics Collection&lt;br/&gt;(v1.0)&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="n">M2</span><span class="p">[</span><span class="s">&quot;Metrics Collection&lt;br/&gt;(v2.0)&quot;</span><span class="p">]</span>
+    M1["Metrics Collection<br/>(v1.0)"]
+    M2["Metrics Collection<br/>(v2.0)"]
 
-<span class="w">    </span><span class="n">Compare</span><span class="p">[</span><span class="s">&quot;Compare &amp; Decide&lt;br/&gt;(메트릭 비교 분석)&quot;</span><span class="p">]</span>
+    Compare["Compare & Decide<br/>(메트릭 비교 분석)"]
 
-<span class="w">    </span><span class="n">Winner</span><span class="p">[</span><span class="s">&quot;Winner deployed to 100%&quot;</span><span class="p">]</span>
+    Winner["Winner deployed to 100%"]
 
-<span class="w">    </span><span class="n">Start</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">V1</span>
-<span class="w">    </span><span class="n">Start</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">V2</span>
+    Start --> V1
+    Start --> V2
 
-<span class="w">    </span><span class="n">V1</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">T1</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">M1</span>
-<span class="w">    </span><span class="n">V2</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">T2</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">M2</span>
+    V1 --> T1 --> M1
+    V2 --> T2 --> M2
 
-<span class="w">    </span><span class="n">M1</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Compare</span>
-<span class="w">    </span><span class="n">M2</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Compare</span>
+    M1 --> Compare
+    M2 --> Compare
 
-<span class="w">    </span><span class="n">Compare</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Winner</span>
+    Compare --> Winner
 
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">V1</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">e3f2fd</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">V2</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">f3e5f5</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">Compare</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">fff9c4</span>
-<span class="w">    </span><span class="n">style</span><span class="w"> </span><span class="n">Winner</span><span class="w"> </span><span class="n">fill</span><span class="o">:</span><span class="err">#</span><span class="n">c8e6c9</span>
-</code></pre></div>
+    style V1 fill:#e3f2fd
+    style V2 fill:#f3e5f5
+    style Compare fill:#fff9c4
+    style Winner fill:#c8e6c9
+</div>
 
 <p><strong>Kubernetes 기반 A/B 테스트</strong>:</p>
 <div class="codehilite"><pre><span></span><code><span class="c1"># k8s/canary-deployment.yaml</span>
@@ -8655,6 +8722,35 @@ kubectl<span class="w"> </span>autoscale<span class="w"> </span>deployment<span 
     </div>
     
     <script>
+        // Initialize Mermaid with custom configuration
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            securityLevel: 'loose',
+            themeVariables: {
+                primaryColor: '#3498db',
+                primaryTextColor: '#2c3e50',
+                primaryBorderColor: '#2980b9',
+                lineColor: '#34495e',
+                secondaryColor: '#ecf0f1',
+                tertiaryColor: '#f8f9fa',
+                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
+            },
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis'
+            },
+            sequence: {
+                useMaxWidth: true,
+                boxMargin: 10
+            },
+            gantt: {
+                useMaxWidth: true,
+                fontSize: 12
+            }
+        });
+        
         // Smooth scroll for anchor links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
@@ -8669,23 +8765,37 @@ kubectl<span class="w"> </span>autoscale<span class="w"> </span>deployment<span 
             });
         });
         
-        // Add copy button to code blocks
+        // Add copy button to code blocks (excluding mermaid)
         document.querySelectorAll('pre code').forEach((block) => {
+            const pre = block.parentElement;
+            
+            // Skip if already has a button or is inside mermaid
+            if (pre.querySelector('.copy-btn') || pre.closest('.mermaid')) {
+                return;
+            }
+            
             const button = document.createElement('button');
             button.className = 'copy-btn';
             button.textContent = '복사';
-            button.style.cssText = 'position: absolute; right: 10px; top: 10px; padding: 5px 10px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.85em;';
             
-            const pre = block.parentElement;
             pre.style.position = 'relative';
             pre.appendChild(button);
             
             button.addEventListener('click', () => {
-                navigator.clipboard.writeText(block.textContent);
-                button.textContent = '복사완료!';
-                setTimeout(() => button.textContent = '복사', 2000);
+                navigator.clipboard.writeText(block.textContent).then(() => {
+                    button.textContent = '복사완료!';
+                    button.classList.add('copied');
+                    setTimeout(() => {
+                        button.textContent = '복사';
+                        button.classList.remove('copied');
+                    }, 2000);
+                });
             });
         });
+        
+        // Log Mermaid rendering status
+        console.log('📊 Mermaid diagrams initialized');
+        console.log('🎨 Total diagrams:', document.querySelectorAll('.mermaid').length);
     </script>
 </body>
 </html>
