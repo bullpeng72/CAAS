@@ -730,6 +730,141 @@ JSON으로 반환하세요 (모든 텍스트 필드는 한국어로)."""
             spec, default_flow_style=False, allow_unicode=True, sort_keys=False
         )
 
+    async def _phase_5_delivery(
+        self,
+        input_dir: Optional[Path] = None,
+        output_dir: Optional[Path] = None,
+    ) -> Dict[str, Any]:
+        """
+        Execute Phase 5: Delivery (Production Code Generation).
+
+        ✅ v0.4.2 (Bug #2): Implement complete Phase 5 execution.
+
+        Loads design artifacts (golden_data.json, agents.json, tasks.json),
+        generates production-ready code, validates syntax, and saves to output directory.
+
+        Args:
+            input_dir: Directory containing design artifacts (default: current directory)
+            output_dir: Directory to save generated code (default: ./output)
+
+        Returns:
+            Dict containing:
+                - files: Generated code files (Dict[str, str])
+                - validation_passed: Whether Python syntax validation passed
+                - file_count: Number of files generated
+                - output_dir: Path where files were saved
+
+        Raises:
+            FileNotFoundError: If required design artifacts not found
+            ValidationError: If generated code has syntax errors
+        """
+        from pathlib import Path
+        import json
+        from caas_framework.models.specifications import (
+            ConcretizedRequirement,
+            AgentSpecModel,
+            TaskSpecModel,
+        )
+        from caas_framework.agents.code_generator import CodeGeneratorAgent
+
+        # Set default directories
+        if input_dir is None:
+            input_dir = Path.cwd()
+        if output_dir is None:
+            output_dir = Path.cwd() / "output"
+
+        input_dir = Path(input_dir)
+        output_dir = Path(output_dir)
+
+        self.logger.info(f"📦 Phase 5: Delivery - Loading design artifacts from {input_dir}")
+
+        # 1. Load design artifacts
+        golden_data_path = input_dir / "golden_data.json"
+        agents_path = input_dir / "agents.json"
+        tasks_path = input_dir / "tasks.json"
+
+        if not golden_data_path.exists():
+            raise FileNotFoundError(f"Golden data not found: {golden_data_path}")
+        if not agents_path.exists():
+            raise FileNotFoundError(f"Agents design not found: {agents_path}")
+        if not tasks_path.exists():
+            raise FileNotFoundError(f"Tasks design not found: {tasks_path}")
+
+        # Load JSON files
+        with open(golden_data_path, "r", encoding="utf-8") as f:
+            golden_data_dict = json.load(f)
+        with open(agents_path, "r", encoding="utf-8") as f:
+            agents_dict = json.load(f)
+        with open(tasks_path, "r", encoding="utf-8") as f:
+            tasks_dict = json.load(f)
+
+        # Parse into Pydantic models
+        golden_data = ConcretizedRequirement(**golden_data_dict)
+        agents = [AgentSpecModel(**a) for a in agents_dict.get("agents", [])]
+        tasks = [TaskSpecModel(**t) for t in tasks_dict.get("tasks", [])]
+
+        self.logger.info(
+            f"✅ Loaded: {len(agents)} agents, {len(tasks)} tasks, "
+            f"{len(golden_data.features)} features"
+        )
+
+        # 2. Initialize Code Generator
+        code_generator = CodeGeneratorAgent(
+            llm_plugin=self.llm_plugin,
+            golden_data=golden_data,
+        )
+
+        # 3. Generate production code
+        self.logger.info("🔧 Generating production code...")
+        code_result = await code_generator.work(
+            agents=agents,
+            tasks=tasks,
+            output_dir=output_dir,
+        )
+
+        if not code_result.success:
+            raise ValueError(f"Code generation failed: {code_result.message}")
+
+        # 4. Validate Python syntax
+        self.logger.info("🔍 Validating Python syntax...")
+        validation_passed = True
+        invalid_files = []
+
+        files_dict = code_result.output.get("files", {})
+        for file_path, content in files_dict.items():
+            if file_path.endswith(".py"):
+                try:
+                    compile(content, file_path, "exec")
+                except SyntaxError as e:
+                    validation_passed = False
+                    invalid_files.append(f"{file_path}: {e}")
+                    self.logger.error(f"❌ Syntax error in {file_path}: {e}")
+
+        if not validation_passed:
+            error_msg = "\n".join(invalid_files)
+            raise ValueError(f"Generated code has syntax errors:\n{error_msg}")
+
+        self.logger.info(f"✅ Syntax validation passed for {len(files_dict)} files")
+
+        # 5. Save files to output directory
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        for file_path, content in files_dict.items():
+            full_path = output_dir / file_path
+            full_path.parent.mkdir(parents=True, exist_ok=True)
+            full_path.write_text(content, encoding="utf-8")
+            self.logger.debug(f"💾 Saved: {full_path}")
+
+        self.logger.info(f"🎉 Phase 5 complete! {len(files_dict)} files saved to {output_dir}")
+
+        # 6. Return result
+        return {
+            "files": files_dict,
+            "validation_passed": validation_passed,
+            "file_count": len(files_dict),
+            "output_dir": str(output_dir),
+        }
+
     def _agent_phase_to_bmad_phase(self, agent_phase) -> Phase:
         """Convert AgentPhase to Phase."""
         from caas_framework.agents.base import AgentPhase

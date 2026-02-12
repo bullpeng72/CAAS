@@ -809,6 +809,50 @@ class ExpertAgentCollaboration:
                 "🔍 Producer-Critic pattern enabled for Design and Delivery phases"
             )
 
+    def _normalize_code_artifacts(self, artifacts: Any) -> Dict[str, str]:
+        """
+        Normalize code artifacts to consistent flat structure.
+
+        Handles two structures:
+        - Flat: {"main.py": "...", "agents.py": "..."}
+        - Nested: {"files": {"main.py": "...", "agents.py": "..."}}
+
+        Returns:
+            Dict[str, str]: Flat file dictionary
+        """
+        if artifacts is None:
+            return {}
+        if isinstance(artifacts, dict):
+            if "files" in artifacts and isinstance(artifacts["files"], dict):
+                return artifacts["files"]
+            return artifacts
+        return {}
+
+    def _get_or_create_files_dict(self, artifacts: Dict) -> Dict[str, str]:
+        """
+        Get files dictionary from artifacts, creating if needed.
+
+        Ensures artifacts has "files" key with flat dictionary.
+
+        Args:
+            artifacts: Code artifacts dictionary (may be flat or nested)
+
+        Returns:
+            Dict[str, str]: Files dictionary (creates "files" key if missing)
+        """
+        if not isinstance(artifacts, dict):
+            return {}
+
+        normalized = self._normalize_code_artifacts(artifacts)
+
+        # Ensure "files" key exists in artifacts
+        if "files" not in artifacts:
+            artifacts["files"] = normalized
+        elif not isinstance(artifacts["files"], dict):
+            artifacts["files"] = {}
+
+        return artifacts["files"]
+
     async def collaborate(self, requirement: str) -> CollaborationResult:
         """
         Execute full collaboration workflow.
@@ -1467,7 +1511,9 @@ class ExpertAgentCollaboration:
             )
 
             if code_result.success:
-                context.code_artifacts = code_result.output
+                # ✅ v0.4.2 (Bug #1): Normalize code artifacts to ensure consistent structure
+                raw_artifacts = code_result.output
+                context.code_artifacts = {"files": self._normalize_code_artifacts(raw_artifacts)}
                 context.add_agent_result("code_generator", code_result)
 
                 # ✅ v0.5.0: Generate Frontend (if enabled)
@@ -1526,14 +1572,16 @@ class ExpertAgentCollaboration:
                                 issues=cross_validation.issues,
                             )
 
-                            # Update code artifacts with fixed code
-                            context.code_artifacts["files"].update(fixed.backend_files)
-                            context.code_artifacts["files"]["app.py"] = fixed.frontend_files["app.py"]
+                            # ✅ v0.4.2 (Bug #1): Safe dictionary access to prevent KeyError
+                            files_dict = self._get_or_create_files_dict(context.code_artifacts)
+                            files_dict.update(fixed.backend_files)
+                            files_dict["app.py"] = fixed.frontend_files["app.py"]
 
                             self.reporter.info("✅ Integration issues auto-fixed")
                         else:
-                            # Add frontend to code artifacts
-                            context.code_artifacts["files"]["app.py"] = frontend_result.app_code
+                            # ✅ v0.4.2 (Bug #1): Safe dictionary access to prevent KeyError
+                            files_dict = self._get_or_create_files_dict(context.code_artifacts)
+                            files_dict["app.py"] = frontend_result.app_code
                             self.reporter.info("✅ Integration validation passed")
 
                     except Exception as e:
