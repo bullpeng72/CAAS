@@ -810,7 +810,7 @@ JSON으로 반환하세요 (모든 텍스트 필드는 한국어로)."""
 
         # 2. Initialize Code Generator
         code_generator = CodeGeneratorAgent(
-            llm_plugin=self.llm_plugin,
+            llm_plugin=self.llm,  # ✅ v0.5.1: Fix attribute name (self.llm not self.llm_plugin)
             golden_data=golden_data,
         )
 

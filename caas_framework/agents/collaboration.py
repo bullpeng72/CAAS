@@ -832,26 +832,35 @@ class ExpertAgentCollaboration:
         """
         Get files dictionary from artifacts, creating if needed.
 
+        ✅ v0.5.1 (Test Fix #1): Prevent recursive structure in flat dictionaries
+
         Ensures artifacts has "files" key with flat dictionary.
 
         Args:
             artifacts: Code artifacts dictionary (may be flat or nested)
 
         Returns:
-            Dict[str, str]: Files dictionary (creates "files" key if missing)
+            Dict[str, str]: Files dictionary (read-only reference for flat structures)
         """
         if not isinstance(artifacts, dict):
             return {}
 
+        # Case 1: Already nested structure with "files" key
+        if "files" in artifacts:
+            if isinstance(artifacts["files"], dict):
+                return artifacts["files"]
+            else:
+                # Invalid structure - return empty
+                return {}
+
+        # Case 2: Flat structure - return normalized WITHOUT modifying original
+        # ✅ FIX: Don't modify artifacts in-place to prevent recursion
+        # When artifacts = {"main.py": "code"}, we return {"main.py": "code"}
+        # NOT artifacts["files"] = ..., which would create recursion
         normalized = self._normalize_code_artifacts(artifacts)
 
-        # Ensure "files" key exists in artifacts
-        if "files" not in artifacts:
-            artifacts["files"] = normalized
-        elif not isinstance(artifacts["files"], dict):
-            artifacts["files"] = {}
-
-        return artifacts["files"]
+        # Only return the normalized dict, don't add "files" key to flat structure
+        return normalized
 
     async def collaborate(self, requirement: str) -> CollaborationResult:
         """

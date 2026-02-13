@@ -12,14 +12,11 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from caas_framework.methodology.engine import SixPhaseEngine, Phase
 from caas_framework.models.specifications import ConcretizedRequirement
 
+# ✅ v0.5.1: Use factories for consistent test data
+from tests.factories import GoldenDataFactory, AgentFactory, TaskFactory
 
-@pytest.fixture
-def mock_llm_plugin():
-    """Mock LLM plugin for testing"""
-    llm = MagicMock()
-    llm.ainvoke = AsyncMock(return_value='{"result": "success"}')
-    return llm
 
+# Note: mock_llm_plugin is now provided by conftest.py fixture
 
 @pytest.fixture
 def sample_requirement():
@@ -48,14 +45,10 @@ class TestPhaseByPhaseExecution:
             enable_validation=False,
         )
 
-        # Mock golden data pipeline
-        from caas_framework.models.specifications import SystemScope
-
-        mock_golden_data = ConcretizedRequirement(
-            system_scope=SystemScope(
-                project_name="todo_app",
-                purpose=sample_requirement,
-            ),
+        # ✅ v0.5.1: Use factory for golden data
+        golden_data_dict = GoldenDataFactory.create(
+            project_name="todo_app",
+            purpose=sample_requirement,
             features=[
                 {
                     "id": "feat_add_task",
@@ -65,18 +58,24 @@ class TestPhaseByPhaseExecution:
                 }
             ],
         )
+        mock_golden_data = ConcretizedRequirement(**golden_data_dict)
 
+        # ✅ FIX: Correct method name is 'generate' (not 'generate_golden_data')
         with patch.object(
             engine.golden_pipeline,
-            "generate_golden_data",
+            "generate",
             return_value=mock_golden_data,
         ):
             # Execute Phase 0
-            result = await engine._phase_0_concretization(sample_requirement)
+            # ✅ v0.5.1: Add required domain parameter
+            result = await engine._phase_0_concretization(
+                sample_requirement, domain="TASK_MANAGEMENT"
+            )
 
             # Assertions
             assert isinstance(result, ConcretizedRequirement)
-            assert result.requirement == sample_requirement
+            # ✅ v0.5.1: ConcretizedRequirement has system_scope.purpose, not requirement
+            assert result.system_scope.purpose == sample_requirement
             assert len(result.features) > 0
 
     @pytest.mark.asyncio
@@ -92,11 +91,11 @@ class TestPhaseByPhaseExecution:
         input_dir = tmp_path / "phase_inputs"
         input_dir.mkdir()
 
-        # Create golden_data.json
-        golden_data = {
-            "requirement": "TODO app",
-            "domain": "TASK_MANAGEMENT",
-            "features": [
+        # ✅ v0.5.1: Create golden_data.json using factory
+        golden_data = GoldenDataFactory.create(
+            project_name="todo_app",
+            purpose="TODO application",
+            features=[
                 {
                     "id": "feat1",
                     "name": "Feature 1",
@@ -104,11 +103,7 @@ class TestPhaseByPhaseExecution:
                     "acceptance_criteria": ["Criteria 1"],
                 }
             ],
-            "business_rules": [],
-            "data_entities": [],
-            "technical_constraints": [],
-            "deployment_requirements": {},
-        }
+        )
         with open(input_dir / "golden_data.json", "w") as f:
             json.dump(golden_data, f)
 
@@ -126,13 +121,14 @@ class TestPhaseByPhaseExecution:
             json.dump({"agents": agents}, f)
 
         # Create tasks.json
+        # ✅ v0.5.1: Use factory for tasks
         tasks = [
-            {
-                "id": "task1",
-                "description": "Add a new task",
-                "expected_output": "Task added",
-                "agent_id": "agent1",
-            }
+            TaskFactory.create(
+                task_id="task1",
+                description="Add a new task",
+                expected_output="Task added",
+                agent="agent1",  # ✅ Correct field name
+            )
         ]
         with open(input_dir / "tasks.json", "w") as f:
             json.dump({"tasks": tasks}, f)
@@ -207,16 +203,13 @@ class TestPhaseByPhaseExecution:
         for d in output_dirs.values():
             d.mkdir(parents=True, exist_ok=True)
 
-        # Mock data
-        mock_golden_data = ConcretizedRequirement(
-            requirement=sample_requirement,
-            domain="TASK_MANAGEMENT",
+        # ✅ v0.5.1: Use factory for golden data (includes required system_scope)
+        golden_data_dict = GoldenDataFactory.create(
+            project_name="test_app",
+            purpose=sample_requirement,
             features=[{"id": "f1", "name": "F1", "description": "D1", "acceptance_criteria": ["C1"]}],
-            business_rules=[],
-            data_entities=[],
-            technical_constraints=[],
-            deployment_requirements={},
         )
+        mock_golden_data = ConcretizedRequirement(**golden_data_dict)
 
         mock_agents = [
             {
@@ -228,22 +221,27 @@ class TestPhaseByPhaseExecution:
             }
         ]
 
+        # ✅ v0.5.1: Use factory for tasks (correct 'agent' field)
         mock_tasks = [
-            {
-                "id": "t1",
-                "description": "Task",
-                "expected_output": "Output",
-                "agent_id": "a1",
-            }
+            TaskFactory.create(
+                task_id="t1",
+                description="Task",
+                expected_output="Output",
+                agent="a1",  # ✅ Correct field name
+            )
         ]
 
         # Phase 0: Concretization
+        # ✅ v0.5.1: Fix mock method name (generate, not generate_golden_data)
         with patch.object(
             engine.golden_pipeline,
-            "generate_golden_data",
+            "generate",
             return_value=mock_golden_data,
         ):
-            phase0_result = await engine._phase_0_concretization(sample_requirement)
+            # ✅ v0.5.1: Add required domain parameter
+            phase0_result = await engine._phase_0_concretization(
+                sample_requirement, domain="TASK_MANAGEMENT"
+            )
             assert phase0_result is not None
 
             # Save golden_data.json for Phase 5
@@ -331,15 +329,8 @@ class TestPhase5ErrorHandling:
         input_dir = tmp_path / "input"
         input_dir.mkdir()
 
-        golden_data = {
-            "requirement": "Test",
-            "domain": "CUSTOM",
-            "features": [],
-            "business_rules": [],
-            "data_entities": [],
-            "technical_constraints": [],
-            "deployment_requirements": {},
-        }
+        # ✅ v0.5.1: Use factory for golden data
+        golden_data = GoldenDataFactory.create_minimal()
         with open(input_dir / "golden_data.json", "w") as f:
             json.dump(golden_data, f)
 
@@ -379,15 +370,8 @@ class TestPhase5ErrorHandling:
         input_dir = tmp_path / "input"
         input_dir.mkdir()
 
-        golden_data = {
-            "requirement": "Test",
-            "domain": "CUSTOM",
-            "features": [],
-            "business_rules": [],
-            "data_entities": [],
-            "technical_constraints": [],
-            "deployment_requirements": {},
-        }
+        # ✅ v0.5.1: Use factory for golden data
+        golden_data = GoldenDataFactory.create_minimal()
         with open(input_dir / "golden_data.json", "w") as f:
             json.dump(golden_data, f)
 

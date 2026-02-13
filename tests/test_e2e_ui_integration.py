@@ -11,34 +11,11 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from caas_framework.agents.collaboration import ExpertAgentCollaboration, CollaborationContext
 from caas_framework.models.specifications import ConcretizedRequirement
 
-
-@pytest.fixture
-def mock_llm_plugin():
-    """Mock LLM plugin for testing"""
-    llm = MagicMock()
-    llm.ainvoke = AsyncMock(return_value='{"result": "success"}')
-    return llm
+# ✅ v0.5.1: Use factories for test data
+from tests.factories import GoldenDataFactory, TaskFactory
 
 
-@pytest.fixture
-def sample_golden_data():
-    """Sample Golden Data for testing"""
-    from caas_framework.models.specifications import SystemScope
-
-    return ConcretizedRequirement(
-        system_scope=SystemScope(
-            project_name="todo_app",
-            purpose="Simple TODO app with UI",
-        ),
-        features=[
-            {
-                "id": "feat_add_task",
-                "name": "Add Task",
-                "description": "User can add new tasks",
-                "acceptance_criteria": ["Task input field exists", "Add button works"],
-            }
-        ],
-    )
+# Note: mock_llm_plugin and sample_golden_data are now provided by conftest.py fixtures
 
 
 class TestUIIntegrationE2E:
@@ -164,11 +141,13 @@ class TestUIIntegrationE2E:
         assert collaboration._normalize_code_artifacts(None) == {}
         assert collaboration._normalize_code_artifacts({}) == {}
 
-        # Test Case 4: get_or_create_files_dict creates "files" key
+        # Test Case 4: get_or_create_files_dict returns normalized dict (v0.5.1 fix)
+        # ✅ FIX: No longer modifies flat structure in-place (prevents recursion)
         artifacts = {"main.py": "code"}
         files_dict = collaboration._get_or_create_files_dict(artifacts)
-        assert "files" in artifacts, "'files' key should be created"
-        assert artifacts["files"] == {"main.py": "code"}
+        assert files_dict == {"main.py": "code"}, "Should return normalized dict"
+        # ✅ NEW BEHAVIOR: Flat structure NOT modified (no "files" key added)
+        assert "files" not in artifacts, "Flat structure should not be modified"
 
     @pytest.mark.asyncio
     async def test_frontend_integration_safe_access(
@@ -285,34 +264,37 @@ class TestPhase5IndividualExecution:
         input_dir = tmp_path / "input"
         input_dir.mkdir()
 
+        # ✅ v0.5.1: Use factories for test data
+        from tests.factories import AgentFactory
+
         # Create golden_data.json
         with open(input_dir / "golden_data.json", "w") as f:
             json.dump(sample_golden_data.model_dump(), f)
 
-        # Create agents.json
+        # Create agents.json (using factory)
         agents_data = {
             "agents": [
-                {
-                    "id": "agent1",
-                    "role": "Test Agent",
-                    "goal": "Test goal",
-                    "backstory": "Test backstory",
-                    "tools": [],
-                }
+                AgentFactory.create(
+                    agent_id="agent1",
+                    role="Test Agent",
+                    goal="Test goal",
+                    backstory="Test backstory",
+                )
             ]
         }
         with open(input_dir / "agents.json", "w") as f:
             json.dump(agents_data, f)
 
-        # Create tasks.json
+        # Create tasks.json (using factory)
+        # ✅ FIX: Use 'agent' field (not 'agent_id')
         tasks_data = {
             "tasks": [
-                {
-                    "id": "task1",
-                    "description": "Test task",
-                    "expected_output": "Test output",
-                    "agent_id": "agent1",
-                }
+                TaskFactory.create(
+                    task_id="task1",
+                    description="Test task",
+                    expected_output="Test output",
+                    agent="agent1",  # ✅ Correct field name
+                )
             ]
         }
         with open(input_dir / "tasks.json", "w") as f:
