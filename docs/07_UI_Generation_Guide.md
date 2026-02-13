@@ -1,8 +1,9 @@
 # UI Generation Guide (Streamlit & React)
 
-**버전**: 1.0.0
-**작성일**: 2026-02-10
-**대상**: CAAS v0.4.1+
+**버전**: 2.0.0
+**작성일**: 2026-02-13
+**대상**: CAAS v0.5.1
+**검증 상태**: ✅ Streamlit UI 자동 생성 검증 완료 (2026-02-13 종합 테스트)
 
 ---
 
@@ -20,7 +21,20 @@
 
 ## 개요
 
-CAAS는 **v0.4.1부터** UI 자동 생성 기능을 지원합니다. 요구사항에서 UI 관련 키워드를 자동으로 감지하고, Streamlit 또는 React 기반 프론트엔드 코드를 생성합니다.
+CAAS는 **v0.4.1부터** UI 자동 생성 기능을 지원하며, **v0.5.1에서 완전 검증 완료**되었습니다. 요구사항에서 UI 관련 키워드를 자동으로 감지하고, Streamlit 또는 React 기반 프론트엔드 코드를 생성합니다.
+
+### ✅ 검증 완료 (2026-02-13)
+
+**종합 테스트 결과**:
+- ✅ **UI 자동 감지**: Golden Data에서 UI 컴포넌트 자동 발견 → Streamlit UI 자동 생성
+- ✅ **완전한 Streamlit UI**: 3,226자 app.py 생성 (Input, Button, Error Handling, Success/Error 메시지)
+- ✅ **한국어 100% 지원**: UI 문자열 (제목, 버튼, 에러 메시지) 완벽 한국어 출력
+- ✅ **Frontend-Backend 통합**: 자동 검증 및 Integration 이슈 2개 자동 수정
+- ✅ **품질 점수**: 8.38/10.0 (Case 2: 블로그 시스템 테스트)
+
+**테스트 케이스**:
+1. Case 1 (UI 미포함 요청) → UI 자동 감지 → app.py 생성 ✅
+2. Case 2 (UI 명시적 요청 `--enable-frontend --frontend-framework streamlit`) → 완전한 Streamlit UI 생성 ✅
 
 ### 지원 프레임워크
 

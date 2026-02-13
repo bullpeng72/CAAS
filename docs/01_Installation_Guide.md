@@ -107,7 +107,7 @@ NEO4J_USER=neo4j
 NEO4J_PASSWORD=password
 ```
 
-> 💡 **Ollama 사용**: Ollama를 사용하면 API 키 없이 로컬에서 LLM을 실행할 수 있습니다. 자세한 내용은 [15_Ollama_Setup_Guide.md](15_Ollama_Setup_Guide.md)를 참조하세요.
+> 💡 **Ollama 사용**: Ollama를 사용하면 API 키 없이 로컬에서 LLM을 실행할 수 있습니다. 자세한 내용은 [09_Ollama_Setup_Guide.md](09_Ollama_Setup_Guide.md)를 참조하세요.
 
 #### 5단계: 설치 확인
 
@@ -225,7 +225,7 @@ ollama pull llama3
 echo "OLLAMA_API_BASE=http://localhost:11434/v1" >> .env
 ```
 
-**자세한 내용**: [15_Ollama_Setup_Guide.md](15_Ollama_Setup_Guide.md)
+**자세한 내용**: [09_Ollama_Setup_Guide.md](09_Ollama_Setup_Guide.md)
 
 ### Redis (선택 - 다중 서버 설정)
 
@@ -309,7 +309,7 @@ pip install -e . --force-reinstall
 **옵션 2: Ollama 사용 (API 키 불필요)** ✨ NEW
 1. Ollama 설치 및 실행: `ollama serve`
 2. `.env`에 추가: `OLLAMA_API_BASE=http://localhost:11434/v1`
-3. 자세한 내용: [15_Ollama_Setup_Guide.md](15_Ollama_Setup_Guide.md)
+3. 자세한 내용: [09_Ollama_Setup_Guide.md](09_Ollama_Setup_Guide.md)
 
 ---
 
@@ -461,7 +461,7 @@ tests/              - 테스트 스위트 (160+ tests, v0.4.1: +60개)
 2. **CLI 가이드**: [04_CLI_Usage_Guide.md](04_CLI_Usage_Guide.md)에서 CLI 28개 명령어 확인
 3. **아키텍처**: [06_Architecture_Guide.md](06_Architecture_Guide.md)에서 시스템 설계 확인
 4. **개발 방법론**: [05_Expert_Methodology_Guide.md](05_Expert_Methodology_Guide.md)에서 CAAS 6-Phase Methodology 확인
-5. **Ollama 설정**: [15_Ollama_Setup_Guide.md](15_Ollama_Setup_Guide.md)에서 로컬 LLM 설정 확인 ✨ NEW
+5. **Ollama 설정**: [09_Ollama_Setup_Guide.md](09_Ollama_Setup_Guide.md)에서 로컬 LLM 설정 확인 ✨ NEW
 
 ---
 

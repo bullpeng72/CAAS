@@ -8,6 +8,7 @@ Expert agent responsible for Phase 5 (Delivery):
 - Integrates error handling and logging
 """
 
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from caas_framework.agents.base import AgentPhase, BaseExpertAgent, ValidationIssue
@@ -169,6 +170,50 @@ class CodeGeneratorAgent(BaseExpertAgent):
                 "issues": quality_evaluation.issues,
                 "recommendations": quality_evaluation.recommendations,
             }
+
+        # ✅ P0 Fix (Bug 2): Write files to disk
+        output_dir = None
+        if context and "output_dir" in context:
+            output_dir = Path(context["output_dir"])
+        elif context and "project_path" in context:
+            output_dir = Path(context["project_path"])
+
+        if output_dir:
+            try:
+                # Extract files dict (handle both direct files and nested structure)
+                files_to_write = (
+                    result.get("files")
+                    if isinstance(result, dict) and "files" in result
+                    else result_files
+                )
+
+                if files_to_write:
+                    written_files = self._write_files_to_disk(files_to_write, output_dir)
+                    result["_written_files"] = {
+                        str(filename): str(path)
+                        for filename, path in written_files.items()
+                    }
+                    result["_output_dir"] = str(output_dir)
+
+                    logger.info(
+                        f"[CodeGenerator] ✅ Generated and written {len(written_files)} files"
+                    )
+                else:
+                    logger.warning(
+                        "[CodeGenerator] No files to write to disk (empty files dict)"
+                    )
+            except CodeGenerationError as e:
+                logger.error(
+                    f"[CodeGenerator] File write failed: {e}",
+                    exc_info=True
+                )
+                result["_write_error"] = str(e)
+                # Don't fail the entire generation - files JSON still available
+        else:
+            logger.warning(
+                "[CodeGenerator] No output_dir in context - files saved to JSON only"
+            )
+            result["_write_warning"] = "Files not written to disk (no output_dir)"
 
         # Return the generated files with all metadata
         return result
@@ -712,6 +757,49 @@ def main(inputs=None):
     return result
 ```
 
+ALSO UPDATE tasks.py TO USE TASK OBJECT REFERENCES IN context PARAMETER:
+
+```python
+def create_tasks(agents):
+    \"\"\"
+    태스크를 생성합니다.
+
+    Args:
+        agents: 에이전트의 딕셔너리
+
+    Returns:
+        list: 생성된 태스크의 리스트
+    \"\"\"
+    # Task 1 - 첫 번째 Task (context 없음)
+    task1 = Task(
+        description="사용자가 입력한 키워드 '{keyword}'의 유효성을 검증합니다.",
+        expected_output="한국어로 작성된 키워드 유효성 검증 결과",
+        agent=agents["keyword_input_agent"]
+    )
+
+    # Task 2 - 이전 Task를 context로 참조
+    task2 = Task(
+        description="검증된 키워드 '{keyword}'를 사용하여 인터넷에서 정보를 검색합니다.",
+        expected_output="한국어로 작성된 '{keyword}'에 대한 검색 결과",
+        agent=agents["data_retrieval_agent"],
+        context=[task1]  # ✅ CORRECT: Task 객체 참조 (문자열 아님!)
+    )
+
+    # Task 3 - 이전 Task를 context로 참조
+    task3 = Task(
+        description="검색된 정보를 바탕으로 키워드 '{keyword}'에 대한 요약을 생성합니다.",
+        expected_output="한국어로 작성된 '{keyword}'에 대한 요약 결과",
+        agent=agents["summary_generation_agent"],
+        context=[task2]  # ✅ CORRECT: Task 객체 참조
+    )
+
+    return [task1, task2, task3]
+```
+
+🚨 CRITICAL: context 파라미터는 Task 객체 리스트여야 합니다!
+❌ WRONG: context=["task1", "task2"]  # 문자열 리스트
+✅ CORRECT: context=[task1, task2]    # Task 객체 리스트
+
 ═══════════════════════════════════════════════════════════════════
 """
             else:
@@ -787,6 +875,10 @@ FRONTEND UI REQUIREMENT:
             "CRITICAL: Agent() 생성자 - 'id' 파라미터 사용 금지 (자동 생성됨)",
             "CRITICAL: Agent() tools 파라미터 - 도구 없으면 빈 리스트 [] 사용, 문자열 리스트 절대 금지",
             "CRITICAL: 에이전트가 도구 필요 시, tools.py도 BaseTool 클래스로 생성 필수",
+            "🚨 CRITICAL #3: Task() context 파라미터 - Task 객체 리스트 사용 (문자열 리스트 절대 금지!)",
+            "🚨 올바른 예시: context=[task1, task2] (Task 변수 직접 참조)",
+            "🚨 잘못된 예시: context=['task1', 'task2'] (문자열 리스트 절대 금지!)",
+            "🚨 tasks.py 예시: task2 = Task(..., context=[task1]) - 이전 Task 변수를 직접 참조",
             "설계된 모든 에이전트와 태스크가 포함된 작동하는 CrewAI 애플리케이션 생성",
             "적절한 CrewAI import 포함: from crewai import Crew, Agent, Task, Process",
             "requirements.txt에 crewai와 기타 의존성 추가",
@@ -1809,6 +1901,86 @@ def create_tasks(agents):
                 "Code quality evaluation failed",
                 details={"error": str(e), "file_count": len(code_files)}
             ) from e
+
+    def _write_files_to_disk(
+        self,
+        files: Dict[str, str],
+        output_dir: Path,
+    ) -> Dict[str, Path]:
+        """
+        Write generated code files to disk.
+
+        Args:
+            files: Dictionary of filename -> content
+            output_dir: Output directory path
+
+        Returns:
+            Dictionary of filename -> absolute path
+
+        Raises:
+            CodeGenerationError: If file writing fails
+        """
+        written_files = {}
+        failed_files = []
+
+        # Ensure output directory exists
+        try:
+            output_dir.mkdir(parents=True, exist_ok=True)
+            logger.info(f"[CodeGenerator] Output directory: {output_dir}")
+        except Exception as e:
+            raise CodeGenerationError(
+                f"Failed to create output directory: {output_dir}",
+                details={"error": str(e)}
+            ) from e
+
+        # Filter out metadata keys
+        code_files = {
+            filename: content
+            for filename, content in files.items()
+            if not filename.startswith("_") and isinstance(content, str)
+        }
+
+        logger.info(f"[CodeGenerator] Writing {len(code_files)} files to disk...")
+
+        # Write each file
+        for filename, content in code_files.items():
+            try:
+                # Handle subdirectories (e.g., "src/main.py")
+                file_path = output_dir / filename
+                file_path.parent.mkdir(parents=True, exist_ok=True)
+
+                # Write file with UTF-8 encoding
+                with open(file_path, 'w', encoding='utf-8') as f:
+                    f.write(content)
+
+                written_files[filename] = file_path
+                file_size = len(content)
+                logger.info(
+                    f"[CodeGenerator] ✅ {filename:20s} ({file_size:6,d} bytes) → {file_path}"
+                )
+
+            except Exception as e:
+                failed_files.append(filename)
+                logger.error(
+                    f"[CodeGenerator] ❌ Failed to write {filename}: {e}",
+                    exc_info=True
+                )
+
+        # Report summary
+        if failed_files:
+            raise CodeGenerationError(
+                f"Failed to write {len(failed_files)} files",
+                details={
+                    "failed_files": failed_files,
+                    "written_files": list(written_files.keys())
+                }
+            )
+
+        logger.info(
+            f"[CodeGenerator] ✅ Successfully written {len(written_files)} files to {output_dir}"
+        )
+
+        return written_files
 
     async def _refine_implementation(
         self,

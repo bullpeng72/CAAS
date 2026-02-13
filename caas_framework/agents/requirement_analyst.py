@@ -16,6 +16,9 @@ from caas_framework.agents.registry import register_agent
 from caas_framework.models.specifications import ConcretizedRequirement
 from caas_framework.plugins.llm.base import LLMPlugin
 from caas_framework.utils import PromptBuilder
+from caas_framework.utils.logger import get_logger
+
+logger = get_logger()
 
 
 @register_agent(phase=AgentPhase.DISCOVERY)
@@ -86,6 +89,21 @@ class RequirementAnalystAgent(BaseExpertAgent):
             ],
             fallback_factory=lambda: self._create_fallback_analysis(requirement),
         )
+
+        # ✅ P0 Fix (Bug 1): Deduplicate features before enhancement
+        if "functional_requirements" in analysis and analysis["functional_requirements"]:
+            original_count = len(analysis["functional_requirements"])
+            analysis["functional_requirements"] = self._deduplicate_features(
+                analysis["functional_requirements"]
+            )
+            deduplicated_count = len(analysis["functional_requirements"])
+
+            if deduplicated_count < original_count:
+                logger.info(
+                    f"[RequirementAnalyst] Feature deduplication: "
+                    f"{original_count} → {deduplicated_count} features "
+                    f"(-{original_count - deduplicated_count} duplicates)"
+                )
 
         # Enhance with Golden Data traceability
         if self.golden_data:
@@ -191,6 +209,102 @@ class RequirementAnalystAgent(BaseExpertAgent):
             "assumptions": [],
             "dependencies": [],
         }
+
+    def _deduplicate_features(self, features: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
+        Remove duplicate features based on semantic similarity.
+
+        Deduplication strategy:
+        1. Exact name match → Remove duplicates
+        2. Semantic similarity (name + description) → Keep highest priority
+        3. If features have similar acceptance criteria → Merge
+
+        Args:
+            features: List of feature dictionaries
+
+        Returns:
+            Deduplicated list of features
+
+        Example:
+            Input: [{"name": "Keyword Input", "priority": "high"},
+                    {"name": "Keyword Input", "priority": "medium"}]
+            Output: [{"name": "Keyword Input", "priority": "high"}]
+        """
+        if not features:
+            return []
+
+        from difflib import SequenceMatcher
+
+        def calculate_similarity(str1: str, str2: str) -> float:
+            """Calculate string similarity using SequenceMatcher."""
+            return SequenceMatcher(None, str1.lower(), str2.lower()).ratio()
+
+        unique_features = []
+        duplicate_count = 0
+
+        for feature in features:
+            # Check for exact name match
+            exact_match = next(
+                (f for f in unique_features if f.get("name") == feature.get("name")),
+                None
+            )
+
+            if exact_match:
+                # Exact duplicate found - merge or skip
+                duplicate_count += 1
+                logger.debug(
+                    f"[RequirementAnalyst] Duplicate feature '{feature.get('name')}' - "
+                    f"keeping higher priority"
+                )
+
+                # Keep higher priority feature
+                priority_map = {"high": 3, "medium": 2, "low": 1}
+                current_priority = priority_map.get(feature.get("priority", "medium"), 2)
+                existing_priority = priority_map.get(exact_match.get("priority", "medium"), 2)
+
+                if current_priority > existing_priority:
+                    # Replace with higher priority
+                    unique_features.remove(exact_match)
+                    unique_features.append(feature)
+                continue
+
+            # Check for semantic similarity (name + description)
+            is_duplicate = False
+            feature_name = feature.get("name", "")
+            feature_desc = feature.get("description", "")
+
+            for existing in unique_features:
+                existing_name = existing.get("name", "")
+                existing_desc = existing.get("description", "")
+
+                # Calculate similarity
+                name_similarity = calculate_similarity(feature_name, existing_name)
+                desc_similarity = calculate_similarity(feature_desc, existing_desc)
+
+                # Combined similarity (weighted: name 60%, description 40%)
+                combined_similarity = (name_similarity * 0.6) + (desc_similarity * 0.4)
+
+                # 85% threshold for semantic duplicates
+                if combined_similarity > 0.85:
+                    is_duplicate = True
+                    duplicate_count += 1
+                    logger.debug(
+                        f"[RequirementAnalyst] Semantic duplicate detected: "
+                        f"'{feature_name}' similar to '{existing_name}' "
+                        f"(similarity: {combined_similarity:.2f})"
+                    )
+                    break
+
+            if not is_duplicate:
+                unique_features.append(feature)
+
+        if duplicate_count > 0:
+            logger.info(
+                f"[RequirementAnalyst] Removed {duplicate_count} duplicate features "
+                f"({len(features)} → {len(unique_features)})"
+            )
+
+        return unique_features
 
     def _enhance_with_golden_data(self, analysis: Dict[str, Any]) -> Dict[str, Any]:
         """Enhance analysis with Golden Data traceability."""

@@ -337,7 +337,6 @@ caas generate --help
 - **문서**: [01_README_KO.md](01_README_KO.md) - 전체 문서 색인
 - **예제**: `tests/test_e2e_*.py` 디렉토리 확인
 - **추가 가이드**:
-  - [02_Installation_Guide.md](02_Installation_Guide.md) - 설치 가이드
-  - [03_Quick_Start_Guide.md](03_Quick_Start_Guide.md) - 빠른 시작
-  - [14_Code_Analysis_Guide.md](14_Code_Analysis_Guide.md) - 코드 분석 ✨ NEW
-  - [15_Ollama_Setup_Guide.md](15_Ollama_Setup_Guide.md) - Ollama 설정 ✨ NEW
+  - [01_Installation_Guide.md](01_Installation_Guide.md) - 설치 가이드
+  - [02_Quick_Start_Guide.md](02_Quick_Start_Guide.md) - 빠른 시작
+  - [09_Ollama_Setup_Guide.md](09_Ollama_Setup_Guide.md) - Ollama 설정 ✨ NEW

@@ -123,8 +123,26 @@ class CodeAnalysisAgent(BaseExpertAgent):
         # Extract features from Golden Data
         features = golden_data.features
 
-        # Scan project files
-        project_files = self._scan_project_files(project_path)
+        # ✅ P0 Fix (Bug 3): Load code artifacts from files JSON first
+        project_files = self._load_code_artifacts(project_path)
+
+        if project_files:
+            logger.info(
+                f"[CodeAnalyst] ✅ Using files JSON for analysis "
+                f"({len(project_files)} files)"
+            )
+        else:
+            # Fallback: Scan file system if files JSON not found
+            logger.info(
+                f"[CodeAnalyst] files JSON not found - scanning file system instead"
+            )
+            project_files = self._scan_project_files(project_path)
+
+            if not project_files:
+                logger.warning(
+                    f"[CodeAnalyst] ⚠️ No project files found in {project_path} "
+                    f"- analysis may be inaccurate"
+                )
 
         # Analyze each feature
         traceability_results = []
@@ -297,17 +315,109 @@ class CodeAnalysisAgent(BaseExpertAgent):
 
     # ==================== Helper Methods ====================
 
+    def _load_code_artifacts(self, project_path: Path) -> Optional[Dict[str, str]]:
+        """
+        Load code artifacts from files JSON (Phase 5 output).
+
+        This method reads the 'files' JSON file that contains generated code.
+        This prevents hallucination by analyzing actual generated code.
+
+        Args:
+            project_path: Path to generated project
+
+        Returns:
+            Dictionary of filename -> content, or None if not found
+
+        Example:
+            files_json = project_path / "files"
+            if files_json.exists():
+                return {"main.py": "...", "agents.py": "..."}
+        """
+        files_json_path = project_path / "files"
+
+        if not files_json_path.exists():
+            logger.debug(
+                f"[CodeAnalyst] files JSON not found at {files_json_path} "
+                f"- will scan file system instead"
+            )
+            return None
+
+        try:
+            import json
+
+            with open(files_json_path, 'r', encoding='utf-8') as f:
+                code_artifacts = json.load(f)
+
+            # Filter out metadata keys (starting with _)
+            code_files = {
+                filename: content
+                for filename, content in code_artifacts.items()
+                if not filename.startswith("_") and isinstance(content, str)
+            }
+
+            if code_files:
+                logger.info(
+                    f"[CodeAnalyst] ✅ Loaded {len(code_files)} files from files JSON: "
+                    f"{list(code_files.keys())}"
+                )
+                return code_files
+            else:
+                logger.warning(
+                    f"[CodeAnalyst] files JSON exists but contains no code files"
+                )
+                return None
+
+        except json.JSONDecodeError as e:
+            logger.error(
+                f"[CodeAnalyst] Failed to parse files JSON: {e}",
+                exc_info=True
+            )
+            return None
+        except Exception as e:
+            logger.error(
+                f"[CodeAnalyst] Failed to load files JSON: {e}",
+                exc_info=True
+            )
+            return None
+
     def _scan_project_files(self, project_path: Path) -> Dict[str, str]:
-        """Scan project files and return file contents."""
+        """
+        Scan project files from file system (fallback method).
+
+        This method scans the actual file system when files JSON is not available.
+        Use _load_code_artifacts() first to avoid hallucination.
+
+        Args:
+            project_path: Path to project directory
+
+        Returns:
+            Dictionary of relative_path -> content
+        """
         files = {}
+        scanned_count = 0
+
         for ext in ["*.py", "*.md", "*.json", "*.yaml", "*.yml"]:
             for file_path in project_path.rglob(ext):
+                # Skip virtual environments and cache
                 if ".venv" in str(file_path) or "__pycache__" in str(file_path):
                     continue
+
                 try:
-                    files[str(file_path.relative_to(project_path))] = file_path.read_text()
+                    relative_path = str(file_path.relative_to(project_path))
+                    files[relative_path] = file_path.read_text(encoding='utf-8')
+                    scanned_count += 1
                 except Exception as e:
-                    logger.warning(f"Could not read {file_path}: {e}")
+                    logger.warning(f"[CodeAnalyst] Could not read {file_path}: {e}")
+
+        if scanned_count > 0:
+            logger.info(
+                f"[CodeAnalyst] Scanned {scanned_count} files from file system"
+            )
+        else:
+            logger.warning(
+                f"[CodeAnalyst] No files found in {project_path} - project may be empty"
+            )
+
         return files
 
     async def _analyze_feature_traceability(
