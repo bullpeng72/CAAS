@@ -13,6 +13,7 @@ from rich.text import Text
 from caas_cli.commands import (  # Phase 1: Core Features; Phase 2: Advanced Features; Phase 2 Enhancement: Monitoring & Performance; Phase 3: Management Features; Phase 4: Production Ready
     analyze_completeness,
     analyze_gaps,
+    analyze_requirement,
     auto_deploy_cmd,
     cache_cmd,
     codegen_cmd,
@@ -920,6 +921,7 @@ cli.add_command(status.status)
 cli.add_command(list_projects.list_cmd)
 cli.add_command(download.download)
 cli.add_command(analyze_gaps.analyze_gaps, name="analyze-gaps")
+cli.add_command(analyze_requirement.analyze_requirement_cmd, name="analyze-requirement")
 cli.add_command(expand_requirement.expand)
 cli.add_command(interactive_questions.questions)
 cli.add_command(traceability.traceability)
