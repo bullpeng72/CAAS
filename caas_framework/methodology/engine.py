@@ -776,7 +776,7 @@ JSON으로 반환하세요 (모든 텍스트 필드는 한국어로)."""
         input_dir = Path(input_dir)
         output_dir = Path(output_dir)
 
-        self.logger.info(f"📦 Phase 5: Delivery - Loading design artifacts from {input_dir}")
+        self.reporter.info(f"📦 Phase 5: Delivery - Loading design artifacts from {input_dir}")
 
         # 1. Load design artifacts
         golden_data_path = input_dir / "golden_data.json"
@@ -803,7 +803,7 @@ JSON으로 반환하세요 (모든 텍스트 필드는 한국어로)."""
         agents = [AgentSpecModel(**a) for a in agents_dict.get("agents", [])]
         tasks = [TaskSpecModel(**t) for t in tasks_dict.get("tasks", [])]
 
-        self.logger.info(
+        self.reporter.info(
             f"✅ Loaded: {len(agents)} agents, {len(tasks)} tasks, "
             f"{len(golden_data.features)} features"
         )
@@ -815,7 +815,7 @@ JSON으로 반환하세요 (모든 텍스트 필드는 한국어로)."""
         )
 
         # 3. Generate production code
-        self.logger.info("🔧 Generating production code...")
+        self.reporter.info("🔧 Generating production code...")
         code_result = await code_generator.work(
             agents=agents,
             tasks=tasks,
@@ -826,7 +826,7 @@ JSON으로 반환하세요 (모든 텍스트 필드는 한국어로)."""
             raise ValueError(f"Code generation failed: {code_result.message}")
 
         # 4. Validate Python syntax
-        self.logger.info("🔍 Validating Python syntax...")
+        self.reporter.info("🔍 Validating Python syntax...")
         validation_passed = True
         invalid_files = []
 
@@ -838,13 +838,13 @@ JSON으로 반환하세요 (모든 텍스트 필드는 한국어로)."""
                 except SyntaxError as e:
                     validation_passed = False
                     invalid_files.append(f"{file_path}: {e}")
-                    self.logger.error(f"❌ Syntax error in {file_path}: {e}")
+                    self.reporter.error(f"❌ Syntax error in {file_path}: {e}")
 
         if not validation_passed:
             error_msg = "\n".join(invalid_files)
             raise ValueError(f"Generated code has syntax errors:\n{error_msg}")
 
-        self.logger.info(f"✅ Syntax validation passed for {len(files_dict)} files")
+        self.reporter.info(f"✅ Syntax validation passed for {len(files_dict)} files")
 
         # 5. Save files to output directory
         output_dir.mkdir(parents=True, exist_ok=True)
@@ -853,9 +853,9 @@ JSON으로 반환하세요 (모든 텍스트 필드는 한국어로)."""
             full_path = output_dir / file_path
             full_path.parent.mkdir(parents=True, exist_ok=True)
             full_path.write_text(content, encoding="utf-8")
-            self.logger.debug(f"💾 Saved: {full_path}")
+            self.reporter.debug(f"💾 Saved: {full_path}")
 
-        self.logger.info(f"🎉 Phase 5 complete! {len(files_dict)} files saved to {output_dir}")
+        self.reporter.info(f"🎉 Phase 5 complete! {len(files_dict)} files saved to {output_dir}")
 
         # 6. Return result
         return {
