@@ -114,7 +114,9 @@ async def _analyze_requirement(
     # Initialize
     try:
         config = load_config()
-        llm = OpenAIPlugin(config=config)
+        # Convert Pydantic model to dict
+        llm_config = config.llm.model_dump() if hasattr(config.llm, 'model_dump') else config.llm.dict()
+        llm = OpenAIPlugin(name="openai", config=llm_config)
         await llm.initialize()
     except Exception as e:
         console.print(f"[red]❌ Failed to initialize LLM: {e}[/red]")
