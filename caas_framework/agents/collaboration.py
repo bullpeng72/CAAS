@@ -10,6 +10,7 @@ import logging
 import os
 from dataclasses import dataclass, field
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from caas_framework.agents.base import (
@@ -64,6 +65,7 @@ class CollaborationContext:
 
     golden_data: ConcretizedRequirement
     requirement: str
+    output_dir: Optional[Path] = None  # ✅ v0.5.1: Output directory for file generation
 
     # Phase outputs
     requirement_analysis: Optional[Any] = None
@@ -608,6 +610,7 @@ class ExpertAgentCollaboration:
         self,
         llm_plugin: LLMPlugin,
         golden_data: ConcretizedRequirement,
+        output_dir: Optional[Path] = None,  # ✅ v0.5.1: Output directory for file generation
         max_feedback_loops: int = 3,
         enable_validation: bool = True,
         progress_reporter: Optional[ProgressReporterProtocol] = None,
@@ -626,6 +629,7 @@ class ExpertAgentCollaboration:
         Args:
             llm_plugin: LLM plugin for agents
             golden_data: Golden Data as reference
+            output_dir: Output directory for generated files (v0.5.1)
             max_feedback_loops: Max feedback iterations per phase
             enable_validation: Enable validation and feedback
             progress_reporter: Optional progress reporter (Protocol-based for UI independence)
@@ -641,6 +645,7 @@ class ExpertAgentCollaboration:
         """
         self.llm = llm_plugin
         self.golden_data = golden_data
+        self.output_dir = output_dir  # ✅ v0.5.1: Store output directory
         self.max_feedback_loops = max_feedback_loops
         self.enable_validation = enable_validation
         self.plan_mode = plan_mode
@@ -882,7 +887,10 @@ class ExpertAgentCollaboration:
         start_time = datetime.now()
 
         context = CollaborationContext(
-            golden_data=self.golden_data, requirement=requirement, start_time=start_time
+            golden_data=self.golden_data,
+            requirement=requirement,
+            start_time=start_time,
+            output_dir=self.output_dir,  # ✅ v0.5.1: Pass output_dir to context
         )
 
         errors = []

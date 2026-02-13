@@ -433,6 +433,7 @@ def generate(
                     golden_data=golden_data_dict,
                     deployment_target=deployment,
                     workflow_type=selected_workflow_type,
+                    output_dir=Path(output) if output else None,  # ✅ v0.5.1: Pass output directory
                     enable_traceability=not no_traceability,
                     enable_completeness_validation=not no_completeness,
                     enable_gap_filling=gap_filling,
@@ -475,7 +476,13 @@ def generate(
             click.echo(f"  Agents generated:  {len(result.agent_specs)}")
             click.echo(f"  Tasks generated:   {len(result.task_specs)}")
             if result.generated_code:
-                click.echo(f"  Files generated:   {len(result.generated_code)}")
+                # ✅ v0.5.1: Count actual files (handle nested structure)
+                files_dict = result.generated_code
+                if isinstance(files_dict, dict) and "files" in files_dict:
+                    files_dict = files_dict["files"]
+                # Count only non-metadata files
+                file_count = sum(1 for k in files_dict.keys() if not k.startswith("_"))
+                click.echo(f"  Files generated:   {file_count}")
             click.echo(f"  Generation time:   {generation_time:.2f}s")
 
             # Phase 2: Traceability
@@ -538,17 +545,25 @@ def generate(
             if result.generated_code:
                 echo_progress(f"Saving code to {output}...")
 
-                for file_path, content in result.generated_code.items():
+                # ✅ v0.5.1: Extract files dict if nested structure
+                files_dict = result.generated_code
+                if isinstance(files_dict, dict) and "files" in files_dict:
+                    files_dict = files_dict["files"]
+
+                for file_path, content in files_dict.items():
+                    # ✅ v0.5.1: Skip metadata fields (start with underscore)
+                    if file_path.startswith("_"):
+                        continue
+
+                    # ✅ v0.5.1: Skip non-string content (invalid file entries)
+                    if not isinstance(content, str):
+                        import logging
+                        logger = logging.getLogger(__name__)
+                        logger.warning(f"Skipping non-string content for: {file_path}")
+                        continue
+
                     file_full_path = output_path / file_path
                     file_full_path.parent.mkdir(parents=True, exist_ok=True)
-
-                    # Convert content to string if it's a dict
-                    if isinstance(content, dict):
-                        import json
-
-                        content = json.dumps(content, indent=2, ensure_ascii=False)
-                    elif not isinstance(content, str):
-                        content = str(content)
 
                     with open(file_full_path, "w", encoding="utf-8") as f:
                         f.write(content)

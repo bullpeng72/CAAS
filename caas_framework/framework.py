@@ -235,6 +235,7 @@ class CrewAIFramework:
         golden_data: Optional[Dict[str, Any]] = None,
         deployment_target: str = "docker",
         workflow_type: Optional[str] = None,
+        output_dir: Optional[Path] = None,  # ✅ v0.5.1: Output directory for file generation
         enable_traceability: bool = True,
         enable_completeness_validation: bool = True,
         enable_gap_filling: bool = False,
@@ -257,6 +258,7 @@ class CrewAIFramework:
             golden_data: Pre-existing golden data (optional)
             deployment_target: Deployment target (docker, kubernetes, terraform)
             workflow_type: Workflow process type - "sequential", "hierarchical", or None for auto-selection
+            output_dir: Output directory for generated files (v0.5.1)
             enable_traceability: Enable Phase 2 traceability tracking (default: True)
             enable_completeness_validation: Enable Phase 3 completeness validation (default: True)
             enable_gap_filling: Enable automatic gap filling for missing features (default: False)
@@ -366,6 +368,7 @@ class CrewAIFramework:
             golden_data=golden_req,
             deployment_target=deployment_target,
             workflow_type=workflow_type,
+            output_dir=output_dir,  # ✅ v0.5.1: Pass output directory for file generation
             enable_traceability=enable_traceability,
             enable_completeness_validation=enable_completeness_validation,
             enable_gap_filling=enable_gap_filling,

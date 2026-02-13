@@ -180,12 +180,14 @@ class CodeGeneratorAgent(BaseExpertAgent):
 
         if output_dir:
             try:
-                # Extract files dict (handle both direct files and nested structure)
-                files_to_write = (
-                    result.get("files")
-                    if isinstance(result, dict) and "files" in result
-                    else result_files
-                )
+                # ✅ v0.5.1: Extract files dict safely (handle both nested and flat structures)
+                if isinstance(result, dict):
+                    if "files" in result:
+                        files_to_write = result["files"]  # Nested: {"files": {...}}
+                    else:
+                        files_to_write = result  # Flat: {"main.py": "..."}
+                else:
+                    files_to_write = {}
 
                 if files_to_write:
                     written_files = self._write_files_to_disk(files_to_write, output_dir)

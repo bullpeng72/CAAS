@@ -219,6 +219,7 @@ class SixPhaseEngine:
         golden_data: Optional[ConcretizedRequirement] = None,
         deployment_target: str = "docker",
         workflow_type: Optional[str] = None,
+        output_dir: Optional[Path] = None,  # ✅ v0.5.1: Output directory for file generation
         enable_traceability: bool = True,
         enable_completeness_validation: bool = True,
         enable_gap_filling: bool = False,
@@ -237,6 +238,7 @@ class SixPhaseEngine:
             golden_data: Optional pre-existing Golden Data
             deployment_target: Deployment target
             workflow_type: Workflow process type - "sequential", "hierarchical", or None for auto-selection
+            output_dir: Output directory for generated files (v0.5.1)
             enable_traceability: Enable feature-to-code traceability tracking (default: True)
             enable_completeness_validation: Enable completeness validation (Phase 3) (default: True)
             enable_gap_filling: Enable automatic gap filling for missing features (default: False)
@@ -357,6 +359,7 @@ class SixPhaseEngine:
             self.expert_collaboration = ExpertAgentCollaboration(
                 llm_plugin=self.llm,
                 golden_data=result.golden_data,
+                output_dir=output_dir,  # ✅ v0.5.1: Pass output directory for file generation
                 max_feedback_loops=3 if self.enable_auto_fix else 0,
                 enable_validation=self.enable_validation,
                 progress_reporter=self.reporter,
