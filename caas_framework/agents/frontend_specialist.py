@@ -20,6 +20,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from caas_framework.agents.base import AgentPhase, AgentWorkResult, BaseExpertAgent
+from caas_framework.utils.json_parser import parse_llm_json  # ✅ v0.4.3 (Bug #3)
 from caas_framework.analysis.input_detector import InputDetector
 from caas_framework.models.specifications import (
     AgentSpecModel,
@@ -510,8 +511,8 @@ Return ONLY valid JSON, no explanations."""
                 max_tokens=2000,
             )
 
-            # Parse JSON response
-            layout_dict = json.loads(response)
+            # ✅ v0.4.3 (Bug #3): Safe JSON parsing with LLM response support
+            layout_dict = parse_llm_json(response, default={"sections": []})
 
             # Convert to UILayout
             sections = []

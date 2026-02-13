@@ -167,7 +167,36 @@ class AgentOutputParser:
     Standard output parsers for agent responses.
 
     Consolidates parsing logic to reduce duplication.
+    ✅ v0.4.3 (Bug #3): Enhanced with LLM response parsing support
     """
+
+    @staticmethod
+    def parse_json_safe(output: Any, default: Optional[Dict] = None) -> Dict:
+        """
+        Safe JSON parsing with LLM response support.
+
+        ✅ v0.4.3 (Bug #3): Replaces old parse_json_safe with enhanced
+        LLM response handling using LLMResponseParser.
+
+        Handles:
+        - LLMResponse objects
+        - Raw JSON strings
+        - Markdown-wrapped JSON
+        - Malformed JSON with automatic repair
+
+        Args:
+            output: LLM response (any type)
+            default: Default value if parsing fails
+
+        Returns:
+            Parsed dictionary or default
+
+        Example:
+            >>> from caas_framework.agents.utils import AgentOutputParser
+            >>> result = AgentOutputParser.parse_json_safe(llm_response)
+        """
+        from caas_framework.utils.json_parser import LLMResponseParser
+        return LLMResponseParser.parse_json_safe(output, default=default)
 
     @staticmethod
     async def parse_llm_json(
