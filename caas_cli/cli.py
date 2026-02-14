@@ -10,12 +10,13 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
 
-from caas_cli.commands import (  # Phase 1: Core Features; Phase 2: Advanced Features; Phase 2 Enhancement: Monitoring & Performance; Phase 3: Management Features; Phase 4: Production Ready; Phase 5: TDD Integration; Phase 6: SDD YAML Export; Phase 7: TDD Code Gen
+from caas_cli.commands import (  # Phase 1: Core Features; Phase 2: Advanced Features; Phase 2 Enhancement: Monitoring & Performance; Phase 3: Management Features; Phase 4: Production Ready; Phase 5: TDD Integration; Phase 6: SDD YAML Export; Phase 7: TDD Code Gen; Phase 8: Human Checkpoints
     analyze_completeness,
     analyze_gaps,
     analyze_requirement,
     auto_deploy_cmd,
     cache_cmd,
+    checkpoint_cmd,
     codegen_cmd,
     config,
     download,
@@ -978,6 +979,9 @@ cli.add_command(export_specs.export_specs_cmd, name="export-specs")
 
 # Phase 7: TDD Code Generation (Week 4 - Task 4.2)
 cli.add_command(generate_tdd.generate_tdd_cmd, name="generate-tdd")
+
+# Phase 8: Human Checkpoints (Week 5 - Task 5.3)
+cli.add_command(checkpoint_cmd.checkpoint_group)
 
 
 def main():
