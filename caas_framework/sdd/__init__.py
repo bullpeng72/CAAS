@@ -18,6 +18,10 @@ from caas_framework.sdd.engine import (
     ValidationError,
     ValidationResult,
 )
+from caas_framework.sdd.yaml_exporter import (
+    YAMLExporter,
+    export_specifications,
+)
 
 __all__ = [
     # Models
@@ -36,4 +40,7 @@ __all__ = [
     "SpecGenerator",
     # Engine
     "SDDEngine",
+    # YAML Exporter (v0.6.1 - Week 4)
+    "YAMLExporter",
+    "export_specifications",
 ]
