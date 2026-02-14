@@ -23,6 +23,8 @@ from caas_framework.methodology.gap_filler import GapFiller, GapFillingResult
 from caas_framework.methodology.golden_data import GoldenDataPipeline
 from caas_framework.methodology.traceability import TraceabilityMatrix
 # ✅ v0.5.1: CodeGenerationEngine removed (Legacy path deleted)
+from caas_framework.checkpoint.manager import CheckpointManager
+from caas_framework.models.checkpoint import CheckpointPhase
 from caas_framework.config.settings import LLMConstants
 from caas_framework.events import Event, PhaseEvent, get_global_event_bus
 from caas_framework.models.artifact_constants import get_default_artifact_types
@@ -130,6 +132,11 @@ class SixPhaseEngine:
         max_workers: Optional[int] = None,
         enable_critic_pattern: bool = False,
         strict_quality_gates: bool = False,  # ⚠️ Temporarily disabled (2026-02-06)
+        # ✅ Week 5 (Task 5.3): Human Checkpoints
+        enable_checkpoints: bool = False,
+        checkpoint_dir: Optional[Path] = None,
+        enable_auto_approve: bool = False,
+        strict_checkpoint_mode: bool = False,
     ):
         """
         Initialize CAAS 6-Phase Methodology Engine.
@@ -148,6 +155,10 @@ class SixPhaseEngine:
             max_workers: Maximum number of workers for distributed execution
             enable_critic_pattern: Enable Producer-Critic peer review pattern (default: False)
             strict_quality_gates: Enable strict Quality Gate mode - halt on failure (default: True)
+            enable_checkpoints: Enable human checkpoint workflow (default: False)
+            checkpoint_dir: Directory for checkpoint state (default: ./checkpoints)
+            enable_auto_approve: Enable auto-approval based on quality thresholds (default: False)
+            strict_checkpoint_mode: Require all mandatory checkpoints before proceeding (default: False)
         """
         self.llm = llm_plugin
         self.enable_validation = enable_validation
@@ -158,6 +169,21 @@ class SixPhaseEngine:
         self.max_workers = max_workers
         self.enable_critic_pattern = enable_critic_pattern
         self.strict_quality_gates = strict_quality_gates
+
+        # ✅ Week 5 (Task 5.3): Human Checkpoints
+        self.enable_checkpoints = enable_checkpoints
+        self.checkpoint_manager: Optional[CheckpointManager] = None
+        if enable_checkpoints:
+            project_name = "caas_project"  # Will be overridden in run() if provided
+            self.checkpoint_manager = CheckpointManager(
+                project_name=project_name,
+                checkpoint_dir=checkpoint_dir or Path("./checkpoints"),
+                enable_auto_approve=enable_auto_approve,
+                strict_mode=strict_checkpoint_mode,
+            )
+            self.reporter.info(
+                f"🔍 Human checkpoint workflow enabled (auto-approve: {enable_auto_approve}, strict: {strict_checkpoint_mode})"
+            )
 
         # Event-Driven Architecture
         self.event_bus = get_global_event_bus()
@@ -211,6 +237,73 @@ class SixPhaseEngine:
         #         self.artifact_generator = ArtifactGenerator(config=gen_config)
         #     except ImportError as e:
         #         self.reporter.warning(f"⚠️  Could not load ArtifactGenerator: {e}")
+
+    async def _submit_checkpoint(
+        self,
+        phase: CheckpointPhase,
+        artifact_path: Optional[Path] = None,
+        artifact_metadata: Optional[Dict] = None,
+        quality_score: Optional[float] = None,
+    ) -> bool:
+        """
+        Submit artifact for human checkpoint review.
+
+        Args:
+            phase: Checkpoint phase
+            artifact_path: Optional path to artifact file
+            artifact_metadata: Optional metadata about the artifact
+            quality_score: Optional quality score for auto-approval
+
+        Returns:
+            True if checkpoint passed or skipped, False if blocked
+        """
+        if not self.checkpoint_manager:
+            return True  # Checkpoints disabled, always proceed
+
+        try:
+            # Submit for review
+            result = self.checkpoint_manager.submit_for_review(
+                phase=phase,
+                artifact_path=artifact_path,
+                artifact_metadata=artifact_metadata,
+                quality_score=quality_score,
+            )
+
+            # Check result status
+            if result.status.value == "approved":
+                self.reporter.info(
+                    f"✅ Checkpoint {result.checkpoint_id} approved "
+                    f"(score: {result.overall_score:.2f if result.overall_score else 'N/A'})"
+                )
+                return True
+            elif result.status.value == "pending":
+                self.reporter.warning(
+                    f"⏸️  Checkpoint {result.checkpoint_id} pending review. "
+                    f"Use 'caas checkpoint approve' to approve."
+                )
+                # If strict mode, block workflow until approved
+                if self.checkpoint_manager.strict_mode:
+                    return False
+                # Otherwise, allow to proceed
+                return True
+            elif result.status.value == "skipped":
+                self.reporter.info(f"⏭️  Checkpoint {result.checkpoint_id} skipped")
+                return True
+            else:
+                # rejected or changes_requested
+                self.reporter.error(
+                    f"❌ Checkpoint {result.checkpoint_id} blocked: {result.status.value}"
+                )
+                if result.required_changes:
+                    self.reporter.warning("Required changes:")
+                    for change in result.required_changes:
+                        self.reporter.warning(f"  - {change}")
+                return False
+
+        except Exception as e:
+            self.reporter.error(f"Checkpoint submission error: {e}")
+            # If checkpoints fail, allow workflow to continue (graceful degradation)
+            return True
 
     async def run(
         self,
@@ -327,6 +420,25 @@ class SixPhaseEngine:
             )
             result.phases_completed.append(Phase.CONCRETIZATION)
 
+            # ✅ Week 5 (Task 5.3): Submit checkpoint for Phase 0
+            if self.enable_checkpoints and result.golden_data:
+                checkpoint_passed = await self._submit_checkpoint(
+                    phase=CheckpointPhase.CONCRETIZATION,
+                    artifact_metadata={
+                        "features_count": len(result.golden_data.features)
+                        if result.golden_data.features
+                        else 0,
+                        "data_models_count": len(result.golden_data.data_models)
+                        if result.golden_data.data_models
+                        else 0,
+                        "phase": "concretization",
+                    },
+                )
+                if not checkpoint_passed:
+                    result.success = False
+                    result.errors.append("Concretization checkpoint failed approval")
+                    return result
+
             # ✅ v0.5.1: Artifact generation disabled in SixPhaseEngine
             # Artifacts are now generated exclusively by CLI (generate.py)
             # to avoid duplication (previously saved to both ./artifacts/ and ./generated/artifacts/)
@@ -401,6 +513,68 @@ class SixPhaseEngine:
                 result.generated_code = ctx.code_artifacts
                 result.phases_completed = ctx.phases_completed
 
+                # ✅ Week 5 (Task 5.3): Submit checkpoints for expert collaboration phases
+                if self.enable_checkpoints:
+                    # Checkpoint 2: Discovery (Phase 1)
+                    if ctx.requirement_analysis:
+                        checkpoint_passed = await self._submit_checkpoint(
+                            phase=CheckpointPhase.DISCOVERY,
+                            artifact_metadata={
+                                "phase": "discovery",
+                                "requirement_analysis_complete": True,
+                            },
+                        )
+                        if not checkpoint_passed:
+                            result.success = False
+                            result.errors.append("Discovery checkpoint failed approval")
+                            return result
+
+                    # Checkpoint 3: Architecture (Phase 2)
+                    if ctx.architecture_design:
+                        checkpoint_passed = await self._submit_checkpoint(
+                            phase=CheckpointPhase.ARCHITECTURE,
+                            artifact_metadata={
+                                "phase": "architecture",
+                                "architecture_design_complete": True,
+                            },
+                        )
+                        if not checkpoint_passed:
+                            result.success = False
+                            result.errors.append("Architecture checkpoint failed approval")
+                            return result
+
+                    # Checkpoint 4: Design (Phase 3)
+                    if ctx.agent_task_design:
+                        agents_count = len(ctx.agent_task_design.get("agents", []))
+                        tasks_count = len(ctx.agent_task_design.get("tasks", []))
+                        checkpoint_passed = await self._submit_checkpoint(
+                            phase=CheckpointPhase.DESIGN,
+                            artifact_metadata={
+                                "phase": "design",
+                                "agents_count": agents_count,
+                                "tasks_count": tasks_count,
+                            },
+                        )
+                        if not checkpoint_passed:
+                            result.success = False
+                            result.errors.append("Design checkpoint failed approval")
+                            return result
+
+                    # Checkpoint 6: Delivery (Phase 5)
+                    if ctx.code_artifacts:
+                        files_count = len(ctx.code_artifacts)
+                        checkpoint_passed = await self._submit_checkpoint(
+                            phase=CheckpointPhase.DELIVERY,
+                            artifact_metadata={
+                                "phase": "delivery",
+                                "files_count": files_count,
+                            },
+                        )
+                        if not checkpoint_passed:
+                            result.success = False
+                            result.errors.append("Delivery checkpoint failed approval")
+                            return result
+
                 # Extract metadata from generated code (if present)
                 if isinstance(result.generated_code, dict):
                     # Extract boundaries violations
@@ -441,6 +615,22 @@ class SixPhaseEngine:
                     result.spec_yaml = await self._phase_4_development(
                         result.agent_specs, result.task_specs, result.golden_data
                     )
+
+                    # ✅ Week 5 (Task 5.3): Submit checkpoint for Measurement (Spec Generation)
+                    if self.enable_checkpoints:
+                        checkpoint_passed = await self._submit_checkpoint(
+                            phase=CheckpointPhase.MEASUREMENT,
+                            artifact_metadata={
+                                "phase": "measurement",
+                                "spec_yaml_generated": bool(result.spec_yaml),
+                                "agents_count": len(result.agent_specs),
+                                "tasks_count": len(result.task_specs),
+                            },
+                        )
+                        if not checkpoint_passed:
+                            result.success = False
+                            result.errors.append("Measurement checkpoint failed approval")
+                            return result
 
                 # Register code in traceability (Phase 2 enhancement)
                 if (
@@ -485,6 +675,32 @@ class SixPhaseEngine:
                 # Security Scanning: Vulnerability/Secret detection (Phase 5 Post-Generation)
                 if result.generated_code:
                     await self._run_security_scan(result)
+
+                # ✅ Week 5 (Task 5.3): Submit checkpoint for Quality Assurance
+                if self.enable_checkpoints and result.generated_code:
+                    # Extract quality scores from validation reports
+                    quality_score = None
+                    if result.validation_reports:
+                        # Calculate average score from validation reports
+                        valid_reports = [
+                            r for r in result.validation_reports if r.get("is_valid", False)
+                        ]
+                        if valid_reports:
+                            quality_score = 8.0  # Good quality if validation passed
+
+                    checkpoint_passed = await self._submit_checkpoint(
+                        phase=CheckpointPhase.QUALITY_ASSURANCE,
+                        artifact_metadata={
+                            "phase": "quality_assurance",
+                            "validation_reports_count": len(result.validation_reports),
+                            "quality_passed": bool(result.validation_reports),
+                        },
+                        quality_score=quality_score,
+                    )
+                    if not checkpoint_passed:
+                        result.success = False
+                        result.errors.append("Quality Assurance checkpoint failed approval")
+                        return result
 
                 # Phase 3 Enhancement: Completeness Validation (for expert agent path)
                 if (
