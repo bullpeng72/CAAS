@@ -29,7 +29,7 @@ from caas_framework.framework import CrewAIFramework
 #     ConcretizedRequirement,
 # )
 
-__version__ = "0.4.1"
+__version__ = "0.6.3"
 __all__ = [
     "CrewAIFramework",
     "FrameworkConfig",

@@ -2,7 +2,7 @@
 CLI Commands
 """
 
-from caas_cli.commands import (  # Phase 1: Core Features; Phase 2: Advanced Features; Phase 2 Enhancement: Monitoring & Performance; Phase 3: Management Features; Phase 4: Production Ready; Phase 5: TDD Integration; Phase 6: SDD YAML Export; Phase 7: TDD Code Gen; Phase 8: Human Checkpoints
+from caas_cli.commands import (  # Phase 1: Core Features; Phase 2: Advanced Features; Phase 2 Enhancement: Monitoring & Performance; Phase 3: Management Features; Phase 4: Production Ready; Phase 5: TDD Integration; Phase 6: SDD YAML Export; Phase 7: TDD Code Gen; Phase 8: Human Checkpoints; Phase 9: QA Enhancements
     analyze_completeness,
     analyze_gaps,
     analyze_requirement,
@@ -29,6 +29,7 @@ from caas_cli.commands import (  # Phase 1: Core Features; Phase 2: Advanced Fea
     monitor_cmd,
     plugins_cmd,
     profile_cmd,
+    qa_cmd,
     session_cmd,
     status,
     tdd,
@@ -82,4 +83,6 @@ __all__ = [
     "generate_tdd",
     # Phase 8: Human Checkpoints (Week 5 - Task 5.3)
     "checkpoint_cmd",
+    # Phase 9: QA Enhancements (Week 6 - Task 6.1)
+    "qa_cmd",
 ]

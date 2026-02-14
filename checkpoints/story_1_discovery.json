@@ -1,0 +1,14 @@
+{
+  "story_id": "story_1",
+  "phase": "discovery",
+  "timestamp": "2026-02-14T21:45:04.857889",
+  "data": {
+    "features": [
+      "feature1",
+      "feature2"
+    ],
+    "agents": [
+      "agent1"
+    ]
+  }
+}

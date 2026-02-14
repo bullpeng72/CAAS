@@ -4,4 +4,4 @@ CAAS CLI
 Command-line interface for CAAS (CrewAI Agent Auto-generation System).
 """
 
-__version__ = "0.4.1"
+__version__ = "0.6.3"
