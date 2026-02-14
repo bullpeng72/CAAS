@@ -116,7 +116,7 @@ def show_comprehensive_help():
     method_text.append(
         "   • Refactor: Improve quality while maintaining tests\n", style="dim"
     )
-    method_text.append("   • Coverage: Ensure 80%+ test coverage\n", style="dim")
+    method_text.append("   • Coverage: Ensure 80%+ test coverage", style="dim")
 
     console.print(
         Panel(method_text, border_style="yellow", title="Methodologies", padding=(1, 2))
@@ -165,7 +165,7 @@ def show_comprehensive_help():
 
     quick_start.append("From example template:\n", style="bold")
     quick_start.append("  $ caas examples list\n", style="green")
-    quick_start.append("  $ caas generate --from-example web_app\n", style="green")
+    quick_start.append("  $ caas generate --from-example web_app", style="green")
 
     console.print(
         Panel(quick_start, border_style="green", title="Quick Start", padding=(1, 2))
@@ -318,7 +318,7 @@ def show_comprehensive_help():
     console.print("[bold cyan]ℹ️  UTILITIES[/bold cyan]")
     console.print("  [green]status[/green]           Check system status")
     console.print("  [green]download[/green]         Download generation results")
-    console.print("  [green]list[/green]             List projects\n")
+    console.print("  [green]list[/green]             List projects")
 
     console.print("\n")
 
@@ -410,7 +410,7 @@ def show_comprehensive_help():
         "  5. QASpecialist: Validates quality at each phase\n", style="dim"
     )
     deep_dive.append(
-        "  6. CodeAnalyst: Analyzes completeness & fixes errors (v0.4.0)\n", style="dim"
+        "  6. CodeAnalyst: Analyzes completeness & fixes errors (v0.4.0)", style="dim"
     )
 
     console.print(
@@ -426,12 +426,11 @@ def show_comprehensive_help():
     footer.append("caas questions\n", style="green")
     footer.append("📚 Documentation: ", style="bold")
     footer.append(
-        "https://github.com/bullpeng72/CrewAI-Agent-Autogeneration-System\n",
+        "https://github.com/bullpeng72/CrewAI-Agent-Autogeneration-System",
         style="cyan underline",
     )
 
     console.print(Panel(footer, border_style="cyan", padding=(0, 2)))
-    console.print("\n")
 
 
 def show_brief_help():
@@ -575,7 +574,7 @@ def show_brief_help():
     brief_text.append("For detailed help: ", style="bold")
     brief_text.append("caas --help\n", style="bold green")
     brief_text.append("For command help: ", style="bold")
-    brief_text.append("caas <command> --help\n", style="bold green")
+    brief_text.append("caas <command> --help", style="bold green")
 
     console.print(Panel(brief_text, border_style="cyan", padding=(1, 2)))
 
@@ -852,7 +851,6 @@ def cli(ctx):
     \b
     🔧 COMMON OPTIONS
     ═══════════════════════════════════════════════════════════════════════
-
     --plan-mode              Enable Plan Mode (3 approval gates)
     --critic-pattern         Enable Producer-Critic peer review
     --enable-validation      Enable multi-layer quality validation
@@ -862,10 +860,7 @@ def cli(ctx):
     --format {json|yaml}     Output format for specifications
     --verbose                Show detailed progress information
 
-    \b
     📚 METHODOLOGY DEEP DIVE
-    ═══════════════════════════════════════════════════════════════════════
-
     Golden Data (Spec-Driven Development)
       CAAS generates a "Golden Data" specification that serves as the
       single source of truth. This includes:
