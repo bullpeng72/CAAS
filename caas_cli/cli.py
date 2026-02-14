@@ -10,7 +10,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
 
-from caas_cli.commands import (  # Phase 1: Core Features; Phase 2: Advanced Features; Phase 2 Enhancement: Monitoring & Performance; Phase 3: Management Features; Phase 4: Production Ready
+from caas_cli.commands import (  # Phase 1: Core Features; Phase 2: Advanced Features; Phase 2 Enhancement: Monitoring & Performance; Phase 3: Management Features; Phase 4: Production Ready; Phase 5: TDD Integration
     analyze_completeness,
     analyze_gaps,
     analyze_requirement,
@@ -36,6 +36,7 @@ from caas_cli.commands import (  # Phase 1: Core Features; Phase 2: Advanced Fea
     profile_cmd,
     session_cmd,
     status,
+    tdd,
     test_cmd,
     traceability,
     validate_cmd,
@@ -230,6 +231,18 @@ def show_comprehensive_help():
     )
     console.print(
         "  [green]fix-runtime-error[/green]    Auto-fix Python runtime errors\n"
+    )
+
+    # TDD Integration (NEW in Week 3)
+    console.print("[bold cyan]🧪 TDD INTEGRATION (Week 3)[/bold cyan]")
+    console.print(
+        "  [green]tdd generate-tests[/green]   Generate pytest tests from Golden Data (Phase 4.5 RED)"
+    )
+    console.print(
+        "  [green]tdd analyze-code[/green]     Analyze code for smells & refactorings (Phase 5.5 REFACTOR)"
+    )
+    console.print(
+        "  [green]tdd workflow[/green]         Complete TDD workflow (RED → GREEN → REFACTOR)\n"
     )
 
     # Advanced Features
@@ -954,6 +967,9 @@ cli.add_command(auto_deploy_cmd.auto_deploy)
 # Code Analysis & Quality Assurance (v0.4.0)
 cli.add_command(analyze_completeness.analyze_completeness, name="analyze-completeness")
 cli.add_command(fix_runtime_error.fix_runtime_error, name="fix-runtime-error")
+
+# Phase 5: TDD Integration (Week 3)
+cli.add_command(tdd.tdd_group)
 
 
 def main():
