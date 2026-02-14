@@ -129,7 +129,32 @@ class RequirementConcretizer:
             "name": "기능 이름",
             "description": "상세한 설명",
             "priority": "low|medium|high|critical",
-            "acceptance_criteria": ["기준 1", "기준 2"]
+            "acceptance_criteria": ["기준 1", "기준 2"],
+            "api_contract": {{
+                "endpoint": "GET /api/resource",
+                "inputs": {{"param1": "type (설명)", "param2": "type (설명)"}},
+                "outputs": {{"result": "type (설명)", "status": "string"}},
+                "error_cases": ["400: 잘못된 파라미터", "404: 리소스 없음"]
+            }},
+            "data_model": {{
+                "entity": "엔티티 이름 (예: User, Product)",
+                "schema": {{
+                    "id": "UUID (primary key)",
+                    "name": "str (required, max: 100)",
+                    "created_at": "datetime (auto)"
+                }},
+                "validation_rules": ["규칙 1", "규칙 2"]
+            }},
+            "business_rules": ["비즈니스 규칙 1", "비즈니스 규칙 2"],
+            "test_scenarios": [
+                {{
+                    "type": "unit|integration|edge_case",
+                    "description": "테스트 설명",
+                    "given": "전제 조건",
+                    "when": "실행 동작",
+                    "then": "예상 결과"
+                }}
+            ]
         }}
     ],
     "data_models": [
@@ -188,6 +213,11 @@ class RequirementConcretizer:
 - 데이터 엔티티와 관계를 식별하세요
 - 해당되는 경우 UI 컴포넌트를 결정하세요
 - 언급된 경우 비기능적 요구사항을 명시하세요
+- **각 기능에 대해 SDD (Spec-Driven Development) 필드를 추가하세요**:
+  * api_contract: API 엔드포인트, 입력/출력 파라미터, 에러 케이스
+  * data_model: 엔티티 스키마, 검증 규칙
+  * business_rules: 명시적인 비즈니스 규칙 (측정 가능하고 테스트 가능하게)
+  * test_scenarios: Given-When-Then 형식의 테스트 시나리오 (unit, integration, edge_case)
 - **보안 경계(boundaries)는 반드시 설정하세요** - 이것은 매우 중요합니다!
   * always_allowed: 항상 허용되는 안전한 작업
   * ask_first: 사용자 승인이 필요한 작업
@@ -207,7 +237,7 @@ class RequirementConcretizer:
     ) -> ConcretizedRequirement:
         """Parse LLM response into ConcretizedRequirement."""
 
-        # Parse features
+        # Parse features (enhanced with SDD fields in v0.6.0)
         features = []
         for i, f_data in enumerate(data.get("features", [])):
             feature = FeatureSpec(
@@ -216,6 +246,11 @@ class RequirementConcretizer:
                 description=f_data.get("description", ""),
                 priority=f_data.get("priority", "medium"),
                 acceptance_criteria=f_data.get("acceptance_criteria", []),
+                # SDD fields (v0.6.0)
+                api_contract=f_data.get("api_contract"),
+                data_model=f_data.get("data_model"),
+                business_rules=f_data.get("business_rules", []),
+                test_scenarios=f_data.get("test_scenarios", []),
             )
             features.append(feature)
 
