@@ -10,7 +10,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
 
-from caas_cli.commands import (  # Phase 1: Core Features; Phase 2: Advanced Features; Phase 2 Enhancement: Monitoring & Performance; Phase 3: Management Features; Phase 4: Production Ready; Phase 5: TDD Integration; Phase 6: SDD YAML Export
+from caas_cli.commands import (  # Phase 1: Core Features; Phase 2: Advanced Features; Phase 2 Enhancement: Monitoring & Performance; Phase 3: Management Features; Phase 4: Production Ready; Phase 5: TDD Integration; Phase 6: SDD YAML Export; Phase 7: TDD Code Gen
     analyze_completeness,
     analyze_gaps,
     analyze_requirement,
@@ -28,6 +28,7 @@ from caas_cli.commands import (  # Phase 1: Core Features; Phase 2: Advanced Fea
     generate,
     generate_code_cmd,
     generate_phase,
+    generate_tdd,
     init,
     interactive_questions,
     list_projects,
@@ -972,8 +973,11 @@ cli.add_command(fix_runtime_error.fix_runtime_error, name="fix-runtime-error")
 # Phase 5: TDD Integration (Week 3)
 cli.add_command(tdd.tdd_group)
 
-# Phase 6: SDD YAML Export (Week 4)
+# Phase 6: SDD YAML Export (Week 4 - Task 4.1)
 cli.add_command(export_specs.export_specs_cmd, name="export-specs")
+
+# Phase 7: TDD Code Generation (Week 4 - Task 4.2)
+cli.add_command(generate_tdd.generate_tdd_cmd, name="generate-tdd")
 
 
 def main():

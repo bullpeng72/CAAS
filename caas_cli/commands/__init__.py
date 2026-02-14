@@ -2,7 +2,7 @@
 CLI Commands
 """
 
-from caas_cli.commands import (  # Phase 1: Core Features; Phase 2: Advanced Features; Phase 2 Enhancement: Monitoring & Performance; Phase 3: Management Features; Phase 4: Production Ready; Phase 5: TDD Integration; Phase 6: SDD YAML Export
+from caas_cli.commands import (  # Phase 1: Core Features; Phase 2: Advanced Features; Phase 2 Enhancement: Monitoring & Performance; Phase 3: Management Features; Phase 4: Production Ready; Phase 5: TDD Integration; Phase 6: SDD YAML Export; Phase 7: TDD Code Gen
     analyze_completeness,
     analyze_gaps,
     analyze_requirement,
@@ -20,6 +20,7 @@ from caas_cli.commands import (  # Phase 1: Core Features; Phase 2: Advanced Fea
     generate,
     generate_code_cmd,
     generate_phase,
+    generate_tdd,
     init,
     interactive_questions,
     list_projects,
@@ -74,6 +75,8 @@ __all__ = [
     "fix_runtime_error",
     # Phase 5: TDD Integration
     "tdd",
-    # Phase 6: SDD YAML Export (Week 4)
+    # Phase 6: SDD YAML Export (Week 4 - Task 4.1)
     "export_specs",
+    # Phase 7: TDD Code Generation (Week 4 - Task 4.2)
+    "generate_tdd",
 ]
