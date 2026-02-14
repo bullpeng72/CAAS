@@ -2,12 +2,13 @@
 CLI Commands
 """
 
-from caas_cli.commands import (  # Phase 1: Core Features; Phase 2: Advanced Features; Phase 2 Enhancement: Monitoring & Performance; Phase 3: Management Features; Phase 4: Production Ready; Phase 5: TDD Integration; Phase 6: SDD YAML Export; Phase 7: TDD Code Gen
+from caas_cli.commands import (  # Phase 1: Core Features; Phase 2: Advanced Features; Phase 2 Enhancement: Monitoring & Performance; Phase 3: Management Features; Phase 4: Production Ready; Phase 5: TDD Integration; Phase 6: SDD YAML Export; Phase 7: TDD Code Gen; Phase 8: Human Checkpoints
     analyze_completeness,
     analyze_gaps,
     analyze_requirement,
     auto_deploy_cmd,
     cache_cmd,
+    checkpoint_cmd,
     codegen_cmd,
     config,
     download,
@@ -79,4 +80,6 @@ __all__ = [
     "export_specs",
     # Phase 7: TDD Code Generation (Week 4 - Task 4.2)
     "generate_tdd",
+    # Phase 8: Human Checkpoints (Week 5 - Task 5.3)
+    "checkpoint_cmd",
 ]

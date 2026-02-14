@@ -42,6 +42,16 @@ from caas_framework.models.code_analysis import (
     RuntimeErrorInfo,
     TraceabilityResult,
 )
+from caas_framework.models.checkpoint import (
+    ApprovalStatus,
+    CheckpointCriteria,
+    CheckpointDefinition,
+    CheckpointPhase,
+    CheckpointResult,
+    CheckpointReviewComment,
+    CheckpointSession,
+    SEVEN_CHECKPOINTS,
+)
 from caas_framework.models.domain_types import (
     DomainClassification,
     DomainType,
@@ -135,4 +145,13 @@ __all__ = [
     "ImplementationGap",
     "TraceabilityResult",
     "ImplementationAnalysisResult",
+    # Checkpoint models (v0.6.2 - Week 5)
+    "CheckpointPhase",
+    "ApprovalStatus",
+    "CheckpointCriteria",
+    "CheckpointDefinition",
+    "CheckpointReviewComment",
+    "CheckpointResult",
+    "CheckpointSession",
+    "SEVEN_CHECKPOINTS",
 ]
