@@ -86,7 +86,15 @@ class SystemScope(BaseModel):
 
 
 class FeatureSpec(BaseModel):
-    """Feature specification from requirements"""
+    """
+    Feature specification from requirements
+
+    Enhanced with SDD (Spec-Driven Development) fields (v0.6.0):
+    - api_contract: API endpoint specification
+    - data_model: Entity schema with validation
+    - business_rules: Explicit business rules
+    - test_scenarios: Given-When-Then test cases
+    """
 
     id: str
     name: str
@@ -95,6 +103,24 @@ class FeatureSpec(BaseModel):
     acceptance_criteria: List[str] = Field(default_factory=list)
     functional_requirements: List[str] = Field(default_factory=list)
     user_stories: List[str] = Field(default_factory=list)
+
+    # SDD Fields (v0.6.0 - CAAS-E)
+    api_contract: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description="API contract with endpoint, inputs, outputs, and error cases"
+    )
+    data_model: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description="Data model with entity schema and validation rules"
+    )
+    business_rules: List[str] = Field(
+        default_factory=list,
+        description="Explicit business rules for this feature"
+    )
+    test_scenarios: List[Dict[str, Any]] = Field(
+        default_factory=list,
+        description="Test scenarios in Given-When-Then format"
+    )
 
     @model_validator(mode="before")
     @classmethod
@@ -106,6 +132,7 @@ class FeatureSpec(BaseModel):
                 "acceptance_criteria",
                 "functional_requirements",
                 "user_stories",
+                "business_rules",  # Added in v0.6.0 (SDD)
             ]:
                 if field_name in values and isinstance(values[field_name], str):
                     # If it's a non-empty string, wrap it in a list

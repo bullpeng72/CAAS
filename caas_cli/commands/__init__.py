@@ -2,9 +2,10 @@
 CLI Commands
 """
 
-from caas_cli.commands import (  # Phase 1: Core Features; Phase 2: Advanced Features; Phase 2 Enhancement: Monitoring & Performance; Phase 3: Management Features; Phase 4: Production Ready
+from caas_cli.commands import (  # Phase 1: Core Features; Phase 2: Advanced Features; Phase 2 Enhancement: Monitoring & Performance; Phase 3: Management Features; Phase 4: Production Ready; Phase 5: TDD Integration
     analyze_completeness,
     analyze_gaps,
+    analyze_requirement,
     auto_deploy_cmd,
     cache_cmd,
     codegen_cmd,
@@ -27,6 +28,7 @@ from caas_cli.commands import (  # Phase 1: Core Features; Phase 2: Advanced Fea
     profile_cmd,
     session_cmd,
     status,
+    tdd,
     test_cmd,
     traceability,
     validate_cmd,
@@ -42,6 +44,7 @@ __all__ = [
     "list_projects",
     "download",
     "analyze_gaps",
+    "analyze_requirement",
     "expand_requirement",
     "interactive_questions",
     "traceability",
@@ -66,5 +69,8 @@ __all__ = [
     # Phase 4
     "auto_deploy_cmd",
     "analyze_completeness",
+    "analyze_requirement",
     "fix_runtime_error",
+    # Phase 5: TDD Integration
+    "tdd",
 ]
