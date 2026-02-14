@@ -30,6 +30,7 @@ class RefactoringType(Enum):
     """Types of refactorings"""
     EXTRACT_METHOD = "extract_method"
     EXTRACT_VARIABLE = "extract_variable"
+    PARAMETER_OBJECT = "parameter_object"
     SIMPLIFY_CONDITIONAL = "simplify_conditional"
     REMOVE_DUPLICATION = "remove_duplication"
     INTRODUCE_CONSTANT = "introduce_constant"
@@ -393,7 +394,7 @@ class RefactoringEngine:
         func_name = func_name_match.group(1)
 
         return RefactoringSuggestion(
-            refactoring_type=RefactoringType.EXTRACT_VARIABLE,
+            refactoring_type=RefactoringType.PARAMETER_OBJECT,
             target=func_name,
             reason=f"Too many parameters ({smell.description})",
             before_code=f"def {func_name}(param1, param2, param3, param4, param5, param6):\n    pass",
