@@ -17,7 +17,7 @@ Installation:
 """
 
 import os
-from typing import Any, AsyncIterator, Dict
+from typing import Any, AsyncIterator, Dict, List, Optional
 
 from caas_framework.plugins.llm.base import LLMPlugin
 
@@ -65,13 +65,13 @@ class OllamaPlugin(LLMPlugin):
 
     def _build_request_params(
         self,
-        messages: list[dict[str, str]],
-        temperature: float | None = None,
-        max_tokens: int | None = None,
-        response_format: str | None = None,
+        messages: List[Dict[str, str]],
+        temperature: Optional[float] = None,
+        max_tokens: Optional[int] = None,
+        response_format: Optional[str] = None,
         stream: bool = False,
         **kwargs,
-    ) -> dict[str, Any]:
+    ) -> Dict[str, Any]:
         """
         Build Ollama-specific request parameters.
 
