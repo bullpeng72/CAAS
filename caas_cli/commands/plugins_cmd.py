@@ -18,7 +18,6 @@ from caas_cli.utils import (
 @click.group()
 def plugins():
     """Manage plugins"""
-    pass
 
 
 @plugins.command(name="list")

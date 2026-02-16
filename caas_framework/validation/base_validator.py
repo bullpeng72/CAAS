@@ -115,7 +115,6 @@ class BaseValidator(ABC):
         Returns:
             ValidationReport with issues and score
         """
-        pass
 
     def create_issue(
         self,

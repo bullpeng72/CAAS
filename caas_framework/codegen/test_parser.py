@@ -9,7 +9,7 @@ Part of CAAS-E Week 4 implementation (Task 4.2).
 
 import ast
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional, Set
 from dataclasses import dataclass, field
 
 from caas_framework.utils.logger import get_logger

@@ -8,22 +8,18 @@ Expert agent responsible for code quality assurance:
 - Provides traceability analysis
 """
 
-import ast
-import json
 import logging
 import re
-from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from caas_framework.agents.base import AgentPhase, BaseExpertAgent
 from caas_framework.agents.executors import RefinementExecutor
 from caas_framework.agents.registry import register_agent
-from caas_framework.agents.utils import AgentErrorHandler, AgentOutputParser
+from caas_framework.agents.utils import AgentErrorHandler
 from caas_framework.models.validation import ValidationIssue
 from caas_framework.models.code_analysis import (
     BusinessRuleViolation,
-    CodeAnalysisReport,
     CodeFix,
     ErrorCategory,
     ErrorSeverity,

@@ -12,7 +12,7 @@ Features:
 
 import re
 from dataclasses import dataclass
-from typing import Dict, List, Optional
+from typing import List, Optional
 
 from caas_framework.utils.logger import get_logger
 

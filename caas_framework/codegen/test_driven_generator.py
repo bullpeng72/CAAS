@@ -6,7 +6,6 @@ Generates code that passes given tests using LLM and iterative refinement.
 Part of CAAS-E Week 4 implementation (Task 4.2).
 """
 
-import asyncio
 import subprocess
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
@@ -15,7 +14,6 @@ from dataclasses import dataclass
 from caas_framework.codegen.test_parser import (
     ParsedTestFile,
     TestParser,
-    TestFunction,
 )
 from caas_framework.plugins.llm.base import LLMPlugin
 from caas_framework.utils.logger import get_logger

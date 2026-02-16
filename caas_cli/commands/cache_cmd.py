@@ -57,7 +57,6 @@ def cache():
       $ caas cache config --set default_ttl 7200
       $ caas cache config --set enabled true
     """
-    pass
 
 
 @cache.command(name="stats")

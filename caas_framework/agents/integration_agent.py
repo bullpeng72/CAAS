@@ -17,7 +17,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Set
 
-from caas_framework.models.validation import ValidationIssue, ValidationSeverity
+from caas_framework.models.validation import ValidationSeverity
 from caas_framework.utils.logger import get_logger
 
 logger = get_logger("agents.integration_agent")

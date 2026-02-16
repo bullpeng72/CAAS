@@ -57,7 +57,6 @@ def models():
       $ caas models strategy phase_based
       $ caas models strategy cost_optimized
     """
-    pass
 
 
 @models.command(name="list")
