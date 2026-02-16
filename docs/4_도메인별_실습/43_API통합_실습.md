@@ -23,8 +23,11 @@
 caas generate "결제 API 통합 시스템. 결제 처리, 환불, 내역 조회, Webhook 수신" \
   --domain api_integration \
   --output ./payment-integration \
-  --ui streamlit
+  --enable-frontend \
+  --frontend-framework streamlit
 ```
+
+> **참고**: `--enable-frontend` 플래그는 선택적입니다. CAAS는 요구사항에서 "결제", "대시보드", "관리" 등의 키워드를 자동으로 감지하여 프론트엔드를 생성합니다.
 
 ### 생성 결과 (2-3분)
 ```
@@ -285,10 +288,12 @@ vim ./payment-integration/golden_data.json
 }
 ```
 
-**Step 2: Tools 재생성**
+**Step 2: Tools 재생성 (Phase 5: Delivery)**
 ```bash
-caas generate-phase --phase 5 "기존 요구사항 + 환불 자동 승인" \
-  --output ./payment-integration --force
+caas generate-phase --phase 5 \
+  --input ./payment-integration \
+  --requirement "기존 요구사항 + 환불 자동 승인" \
+  --output ./payment-integration
 ```
 
 **결과**: `tools.py`에 `RefundApprovalTool` 자동 추가
