@@ -131,7 +131,7 @@ class SixPhaseEngine:
         distributed: bool = False,
         max_workers: Optional[int] = None,
         enable_critic_pattern: bool = False,
-        strict_quality_gates: bool = False,  # ⚠️ Temporarily disabled (2026-02-06)
+        strict_quality_gates: bool = True,  # ✅ v0.4.1: Strict mode enabled by default (matches collaboration.py)
         # ✅ Week 5 (Task 5.3): Human Checkpoints
         enable_checkpoints: bool = False,
         checkpoint_dir: Optional[Path] = None,
