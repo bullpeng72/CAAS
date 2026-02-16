@@ -15,7 +15,6 @@ from caas_framework.agents.executors import GoldenDataEnhancer, RefinementExecut
 from caas_framework.agents.registry import register_agent
 from caas_framework.models.specifications import ConcretizedRequirement
 from caas_framework.plugins.llm.base import LLMPlugin
-from caas_framework.utils import PromptBuilder
 from caas_framework.utils.logger import get_logger
 
 logger = get_logger()

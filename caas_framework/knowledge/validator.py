@@ -6,7 +6,7 @@ Agent Designer UI에서 사용할 수 있는 검증 결과를 제공합니다.
 """
 
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple
 
 from pydantic import BaseModel, Field
 

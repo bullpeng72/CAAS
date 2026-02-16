@@ -15,13 +15,12 @@ Part of CAAS-E Week 4 implementation (Task 4.1).
 
 import yaml
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 from datetime import datetime
 
 from caas_framework.models.specifications import (
     AgentSpecModel,
     TaskSpecModel,
-    FeatureSpec,
     ConcretizedRequirement,
 )
 from caas_framework.utils.logger import get_logger

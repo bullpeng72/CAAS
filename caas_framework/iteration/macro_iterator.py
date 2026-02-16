@@ -16,7 +16,6 @@ import logging
 
 from caas_framework.models.iteration import (
     MacroIteration,
-    MicroIteration,
     IterationAttempt,
     IterationStatus,
     FailureReason,

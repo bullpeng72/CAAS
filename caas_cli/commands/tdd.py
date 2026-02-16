@@ -13,15 +13,13 @@ from pathlib import Path
 from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
-from rich.text import Text
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from typing import Optional, List
 
 from caas_framework.methodology.tdd_test_generator import TDDRedEngine
 from caas_framework.methodology.tdd_refactor_engine import (
     TDDRefactorEngine,
-    RefactorReport,
-    SmellSeverity
+    RefactorReport
 )
 from caas_framework.models.specifications import ConcretizedRequirement
 
@@ -38,7 +36,6 @@ def tdd_group():
     - analyze-code: Phase 5.5 (TDD REFACTOR) - Analyze code quality
     - workflow: Complete TDD workflow (RED → GREEN → REFACTOR)
     """
-    pass
 
 
 @tdd_group.command("generate-tests")

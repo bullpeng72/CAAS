@@ -56,7 +56,6 @@ def profile():
     Performance comparison:
       $ caas profile compare session1 session2
     """
-    pass
 
 
 @profile.command(name="run")

@@ -11,7 +11,6 @@ from pathlib import Path
 from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
-from rich.text import Text
 
 from caas_framework.methodology.story_decomposer import StoryDecomposer, topological_sort
 from caas_framework.config.loader import load_config

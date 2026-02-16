@@ -10,7 +10,7 @@ Version: 0.6.0 (CAAS-E Implementation)
 
 import ast
 import re
-from typing import List, Dict, Any, Optional, Set
+from typing import List, Dict, Any, Optional
 from dataclasses import dataclass, field
 from enum import Enum
 import logging

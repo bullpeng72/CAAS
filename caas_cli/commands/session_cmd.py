@@ -19,7 +19,6 @@ from caas_cli.utils import (
 @click.group()
 def session():
     """Manage workflow sessions"""
-    pass
 
 
 @session.command()

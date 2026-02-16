@@ -27,7 +27,6 @@ from caas_framework.checkpoint.manager import CheckpointManager
 from caas_framework.models.checkpoint import CheckpointPhase
 from caas_framework.config.settings import LLMConstants
 from caas_framework.events import Event, PhaseEvent, get_global_event_bus
-from caas_framework.models.artifact_constants import get_default_artifact_types
 from caas_framework.fixing.auto_fixer import AutoFixer
 from caas_framework.models.specifications import (
     AgentSpecModel,
@@ -41,7 +40,6 @@ from caas_framework.reporting import (
     VerbosityLevel,
 )
 from caas_framework.utils import ResponseParser
-from caas_framework.utils.workflow_selector import get_workflow_recommendation
 from caas_framework.validation.orchestrator import ValidationOrchestrator
 
 

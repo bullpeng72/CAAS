@@ -5,9 +5,8 @@ Validates task dependencies including circular dependencies, orphan tasks,
 and dependency depth.
 """
 
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from typing import Dict, List, Optional, Set, Tuple
 
-from pydantic import BaseModel
 
 from caas_framework.models.validation import DependencyIssue
 from caas_framework.utils.safe_access import safe_get_value as _safe_get

@@ -10,7 +10,6 @@ from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
-from caas_framework.exceptions import ValidationError
 from caas_framework.models.specifications import ConcretizedRequirement
 
 from caas_framework.utils.logger import get_logger

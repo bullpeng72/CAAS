@@ -15,7 +15,7 @@ from caas_framework.agents.registry import register_agent
 from caas_framework.config.settings import LLMConstants
 from caas_framework.models.specifications import ConcretizedRequirement
 from caas_framework.plugins.llm.base import LLMPlugin
-from caas_framework.utils import GoldenDataMatcher, PromptBuilder, ResponseParser
+from caas_framework.utils import GoldenDataMatcher, ResponseParser
 
 
 @register_agent(phase=AgentPhase.QUALITY_ASSURANCE)

@@ -7,7 +7,7 @@ checkpoints, and resumption capabilities.
 
 from typing import Any, Dict, Optional
 
-from caas_framework.exceptions import WorkflowError, PhaseExecutionError
+from caas_framework.exceptions import WorkflowError
 from caas_framework.methodology.engine import SixPhaseEngine, MethodologyResult
 from caas_framework.session.manager import Session
 from caas_framework.workflow.orchestrator import (

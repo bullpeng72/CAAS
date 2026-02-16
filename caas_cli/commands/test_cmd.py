@@ -21,7 +21,6 @@ from caas_cli.utils import (
 @click.group()
 def test():
     """Execute tests on generated code"""
-    pass
 
 
 @test.command()

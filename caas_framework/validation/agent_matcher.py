@@ -5,7 +5,7 @@ Consolidates duplicate agent-task matching logic found across validators.
 Eliminates 3+ instances of nested loop patterns for finding suitable agents.
 """
 
-from typing import Any, Dict, List, Optional, Union
+from typing import Dict, List, Optional, Union
 
 from pydantic import BaseModel
 

@@ -5,8 +5,6 @@ Phase 0: Requirement Concretization
 Converts natural language requirements into structured Golden Data.
 """
 
-import json
-import re
 from typing import Any, Dict, Optional
 
 from caas_framework.models.specifications import (
