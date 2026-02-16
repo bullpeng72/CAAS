@@ -461,6 +461,11 @@ class AgentDesignerAgent(BaseExpertAgent):
 
     def _create_fallback_design(self) -> Dict[str, Any]:
         """Create design based on Golden Data features when LLM fails."""
+        # ✅ Week 2-1: Use base helper for consistent fallback logging
+        self._log_fallback_usage(
+            reason="LLM generation failed - using golden data or basic design",
+            fallback_type="agent_task_design_fallback"
+        )
 
         # Try to create meaningful agents and tasks from Golden Data
         if self.golden_data and self.golden_data.features:

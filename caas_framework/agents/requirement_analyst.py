@@ -186,6 +186,12 @@ class RequirementAnalystAgent(BaseExpertAgent):
 
     def _create_fallback_analysis(self, requirement: str) -> Dict[str, Any]:
         """Create basic analysis structure when LLM fails."""
+        # ✅ Week 2-1: Use base helper for consistent fallback logging
+        self._log_fallback_usage(
+            reason="LLM generation failed - using basic analysis structure",
+            fallback_type="requirement_analysis_fallback"
+        )
+
         return {
             "functional_requirements": [
                 {

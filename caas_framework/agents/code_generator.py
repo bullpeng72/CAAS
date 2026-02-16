@@ -923,6 +923,11 @@ FRONTEND UI REQUIREMENT:
         frontend_framework: str = "streamlit",  # ✅ P0-1: Framework choice
     ) -> Dict[str, Any]:
         """Create basic code structure when LLM fails using AST-based generation."""
+        # ✅ Week 2-1: Use base helper for consistent fallback logging
+        self._log_fallback_usage(
+            reason="LLM generation failed - using AST-based code generation",
+            fallback_type="code_generation_fallback"
+        )
 
         # Convert to dicts if needed
         from caas_framework.utils import ObjectAccessor
