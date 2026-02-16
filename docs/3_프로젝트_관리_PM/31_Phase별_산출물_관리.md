@@ -103,7 +103,10 @@ graph LR
 
 ```bash
 # Golden Data 검증
-caas validate --validator golden-data --golden ./project/golden_data.json
+caas validate --validator golden \
+  --golden-data ./project/golden_data.json \
+  --agents ./project/agents.json \
+  --tasks ./project/tasks.json
 
 # 출력 예시:
 # ✅ Features: 8 (≥3)
@@ -117,8 +120,9 @@ caas validate --validator golden-data --golden ./project/golden_data.json
 
 **문제**: Features 개수 < 3
 ```bash
-# 해결: 요구사항 추가 입력
-caas refine "기존 요구사항" --with-golden
+# 해결: 요구사항 확장
+caas expand "기존 요구사항" \
+  --golden-data ./project/golden_data.json
 ```
 
 **문제**: Description 누락
@@ -235,8 +239,10 @@ cat ./project/requirement_analysis.json | jq '.domain_confidence'
 
 ```bash
 # Traceability 검증 (가장 중요!)
-caas validate --validator traceability \
-  --arch ./project/architecture_design.json
+caas traceability \
+  --golden-data ./project/golden_data.json \
+  --agents ./project/agents.json \
+  --tasks ./project/tasks.json
 
 # 출력 예시:
 # Feature f1 (할일 추가) → TodoCRUDTool.create ✅
@@ -348,10 +354,10 @@ cat ./project/architecture_design.json | jq '.traceability'
 caas validate --validator dependency --tasks ./project/tasks.json
 
 # Completeness 검증 (가장 중요!)
-caas validate --validator completeness \
-  --golden ./project/golden_data.json \
-  --agents ./project/agents.json \
-  --tasks ./project/tasks.json
+caas analyze-completeness \
+  --project ./project \
+  --golden-data ./project/golden_data.json \
+  --detailed
 
 # 출력 예시:
 # Feature f1 (할일 추가) → task_1 (입력 수집) ✅
@@ -511,7 +517,10 @@ ls -d ./project/tests/
 
 ```bash
 # 전체 검증
-caas validate --validator all --project ./project
+caas validate --validator all \
+  --agents ./project/agents.json \
+  --tasks ./project/tasks.json \
+  --golden-data ./project/golden_data.json
 
 # 출력 예시:
 # ✅ Files: 8/8
@@ -527,7 +536,10 @@ caas validate --validator all --project ./project
 
 ```bash
 # 코드 품질 검증
-caas validate --validator code-quality --project ./project
+caas validate --validator all \
+  --agents ./project/agents.json \
+  --tasks ./project/tasks.json \
+  --golden-data ./project/golden_data.json
 
 # 출력 예시:
 # 🔍 Code Quality Validator
@@ -593,7 +605,7 @@ caas qa security-scan --project ./project --owasp
 ### 프로젝트 전체 품질 보고서
 
 ```bash
-# 통합 QA 보고서 생성
+# 통합 QA 보고서 생성 (HTML)
 caas qa report --project ./my-project --output ./qa_report.html
 ```
 
@@ -662,11 +674,14 @@ graph TD
 # 1. 프로젝트 상태 확인
 caas status proj_1
 
-# 2. Phase 진행 상황
-caas phase status --project ./my-project
+# 2. Phase 진행 상황 (체크포인트 확인)
+caas checkpoint status
 
 # 3. Quality Metrics 확인
-caas validate --validator all --project ./my-project
+caas validate --validator all \
+  --agents ./my-project/agents.json \
+  --tasks ./my-project/tasks.json \
+  --golden-data ./my-project/golden_data.json
 
 # 4. 테스트 실행
 cd ./my-project && pytest tests/ -v
@@ -813,12 +828,10 @@ caas validate --validator all --project ./my-project
 # QA 보고서 생성
 caas qa report \
   --project ./my-project \
-  --format pdf \
-  --output ./final_qa_report.pdf
+  --output ./final_qa_report.html
 
-# 프로젝트 아카이브
-caas export proj_1 --format json --output ./metadata.json
-caas download proj_1 ./production_release_v1.0.zip
+# 프로젝트 다운로드
+caas download proj_1 ./production_release_v1.0
 ```
 
 ### 승인 등급

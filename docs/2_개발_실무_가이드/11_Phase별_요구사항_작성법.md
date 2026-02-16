@@ -488,12 +488,25 @@ graph TD
 
 ## 10. 실전 팁
 
-### Tip 1: CAAS refine 활용
+### Tip 1: CAAS expand 활용 (요구사항 확장)
 ```bash
-# 요구사항 자동 구체화
-caas refine "블로그 시스템"
+# 요구사항 자동 구체화 및 갭 채우기
+# 1단계: Golden Data 생성
+caas generate-phase --phase 0 "블로그 시스템" --output ./project
+
+# 2단계: 갭 분석
+caas analyze-gaps "블로그 시스템" \
+  --golden-data ./project/golden_data.json \
+  --output gaps.json
+
+# 3단계: 갭 채우기 (자동 확장)
+caas expand "블로그 시스템" \
+  --golden-data ./project/golden_data.json \
+  --gaps gaps.json \
+  --output expanded_golden.json
 
 # 출력:
+# expanded_golden.json에 확장된 요구사항 저장
 # "블로그 콘텐츠 관리 시스템. 게시글 작성, 조회, 수정, 삭제,
 # 댓글 관리, 사용자 인증, 태그 분류, 검색 기능"
 ```
@@ -509,10 +522,11 @@ ls data/golden_examples/
 cat data/golden_examples/task_management.json | jq '.features'
 ```
 
-### Tip 3: Phase별 재시도
+### Tip 3: Phase별 재실행
 ```bash
 # Phase 0 재실행 (Golden Data 재생성)
-caas generate-phase --phase 0 "개선된 요구사항" --output ./project --force
+# 동일한 출력 디렉토리 사용하면 자동으로 덮어씀
+caas generate-phase --phase 0 "개선된 요구사항" --output ./project
 ```
 
 ### Tip 4: 도메인 명시

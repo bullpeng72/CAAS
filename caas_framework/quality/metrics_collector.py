@@ -8,8 +8,7 @@ Used by Quality Gate System to reduce manual metric collection.
 import ast
 import logging
 import re
-from pathlib import Path
-from typing import Dict, List, Optional, Any
+from typing import Dict
 
 logger = logging.getLogger(__name__)
 

@@ -18,8 +18,6 @@ from caas_framework.models.iteration import (
     IterationLevel,
     IterationResult,
     IterationMetrics,
-    IterationStatus,
-    FailureReason,
 )
 from caas_framework.iteration.nano_iterator import NanoIterator
 from caas_framework.iteration.micro_iterator import MicroIterator

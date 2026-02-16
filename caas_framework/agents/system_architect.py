@@ -15,7 +15,6 @@ from caas_framework.agents.executors import GoldenDataEnhancer, RefinementExecut
 from caas_framework.agents.registry import register_agent
 from caas_framework.models.specifications import ConcretizedRequirement
 from caas_framework.plugins.llm.base import LLMPlugin
-from caas_framework.utils import PromptBuilder
 
 
 @register_agent(phase=AgentPhase.ARCHITECTURE)
@@ -186,6 +185,12 @@ class SystemArchitectAgent(BaseExpertAgent):
 
     def _create_fallback_architecture(self) -> Dict[str, Any]:
         """Create basic architecture when LLM fails."""
+        # ✅ Week 2-1: Use base helper for consistent fallback logging
+        self._log_fallback_usage(
+            reason="LLM generation failed - using basic architecture structure",
+            fallback_type="architecture_fallback"
+        )
+
         return {
             "components": [
                 {

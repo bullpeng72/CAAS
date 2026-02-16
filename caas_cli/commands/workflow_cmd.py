@@ -19,7 +19,6 @@ from caas_cli.utils import (
 @click.group()
 def workflow():
     """Control workflow execution"""
-    pass
 
 
 @workflow.command()

@@ -386,7 +386,6 @@ Return ONLY valid JSON, no additional text."""
                 )
 
                 # Parse response
-                import json
 
                 # ✅ Use consolidated JsonExtractor (P1-30)
                 llm_output = JsonExtractor.safe_parse(

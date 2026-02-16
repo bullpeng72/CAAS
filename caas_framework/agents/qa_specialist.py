@@ -15,7 +15,7 @@ from caas_framework.agents.registry import register_agent
 from caas_framework.config.settings import LLMConstants
 from caas_framework.models.specifications import ConcretizedRequirement
 from caas_framework.plugins.llm.base import LLMPlugin
-from caas_framework.utils import GoldenDataMatcher, PromptBuilder, ResponseParser
+from caas_framework.utils import GoldenDataMatcher, ResponseParser
 
 
 @register_agent(phase=AgentPhase.QUALITY_ASSURANCE)
@@ -166,6 +166,12 @@ class QASpecialistAgent(BaseExpertAgent):
 
     def _create_fallback_qa_report(self) -> Dict[str, Any]:
         """Create basic QA report when LLM fails."""
+        # ✅ Week 2-1: Use base helper for consistent fallback logging
+        self._log_fallback_usage(
+            reason="LLM generation failed - using basic QA report structure",
+            fallback_type="qa_report_fallback"
+        )
+
         return {
             "qa_report": {"overall_quality": "unknown", "phase_assessments": {}},
             "compliance_check": {

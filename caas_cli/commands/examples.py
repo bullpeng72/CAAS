@@ -56,7 +56,6 @@ def examples_group():
     5️⃣  View statistics:
        $ caas examples stats
     """
-    pass
 
 
 @examples_group.command(name="list")

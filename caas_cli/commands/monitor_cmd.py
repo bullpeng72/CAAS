@@ -66,7 +66,6 @@ def monitor():
       $ caas monitor export --format prometheus
       $ caas monitor export --format json --output metrics.json
     """
-    pass
 
 
 @monitor.command(name="metrics")

@@ -13,7 +13,6 @@ All new code should use:
     from caas_framework.config import get_config
 """
 
-import warnings
 
 # Import from unified module (NEW - Single Source of Truth)
 from caas_framework.config.unified import (  # Main config class; Primary entry points; Helper functions; Backward compatibility aliases

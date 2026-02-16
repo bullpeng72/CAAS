@@ -12,7 +12,6 @@ import json
 import logging
 from typing import Any, Callable, Dict, List, Optional, TypeVar
 
-from caas_framework.config.settings import LLMConstants
 from caas_framework.models.specifications import ConcretizedRequirement
 from caas_framework.utils import PromptBuilder, ResponseParser
 

@@ -11,7 +11,6 @@ Part of CAAS-E Week 6 implementation (Task 6.1).
 """
 
 import click
-import asyncio
 from pathlib import Path
 from rich.console import Console
 from rich.table import Table
@@ -36,7 +35,6 @@ logger = logging.getLogger(__name__)
 @click.group("qa")
 def qa_group():
     """Quality Assurance commands for generated code"""
-    pass
 
 
 @qa_group.command("compliance")

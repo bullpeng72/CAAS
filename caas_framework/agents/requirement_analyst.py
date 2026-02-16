@@ -15,7 +15,6 @@ from caas_framework.agents.executors import GoldenDataEnhancer, RefinementExecut
 from caas_framework.agents.registry import register_agent
 from caas_framework.models.specifications import ConcretizedRequirement
 from caas_framework.plugins.llm.base import LLMPlugin
-from caas_framework.utils import PromptBuilder
 from caas_framework.utils.logger import get_logger
 
 logger = get_logger()
@@ -186,6 +185,12 @@ class RequirementAnalystAgent(BaseExpertAgent):
 
     def _create_fallback_analysis(self, requirement: str) -> Dict[str, Any]:
         """Create basic analysis structure when LLM fails."""
+        # ✅ Week 2-1: Use base helper for consistent fallback logging
+        self._log_fallback_usage(
+            reason="LLM generation failed - using basic analysis structure",
+            fallback_type="requirement_analysis_fallback"
+        )
+
         return {
             "functional_requirements": [
                 {

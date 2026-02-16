@@ -29,10 +29,9 @@ graph LR
 
 | 기능 | 명령어 | 설명 |
 |------|--------|------|
-| **테스트 생성** | `caas tdd generate` | Golden Data 기반 테스트 자동 생성 |
-| **리팩토링** | `caas tdd refactor` | 테스트 통과 보장하며 코드 개선 |
-| **E2E 생성** | `caas tdd e2e` | 엔드투엔드 테스트 자동 생성 |
-| **커버리지 분석** | `caas tdd coverage` | 테스트 커버리지 측정 및 개선 |
+| **테스트 생성** | `caas tdd generate-tests` | Golden Data 기반 테스트 자동 생성 (RED phase) |
+| **코드 분석** | `caas tdd analyze-code` | 코드 스멜 및 리팩토링 기회 분석 (REFACTOR phase) |
+| **전체 워크플로우** | `caas tdd workflow` | RED-GREEN-REFACTOR 전체 사이클 실행 |
 
 ---
 
@@ -42,10 +41,8 @@ graph LR
 
 ```bash
 # Golden Data 기반 테스트 자동 생성
-caas tdd generate \
-  --project ./todo-system \
-  --golden-data ./todo-system/golden_data.json \
-  --output tests/
+caas tdd generate-tests ./todo-system/golden_data.json \
+  --output-dir ./todo-system/tests
 ```
 
 **생성 결과**:
@@ -196,14 +193,11 @@ TOTAL                  161     18    89%
 
 ## 2. 자동 리팩토링 (10분)
 
-### 2.1 리팩토링 실행
+### 2.1 코드 분석 및 리팩토링 제안
 
 ```bash
-# TDD 기반 자동 리팩토링
-caas tdd refactor \
-  --project ./todo-system \
-  --apply \
-  --backup
+# 코드 스멜 분석 및 리팩토링 기회 탐지
+caas tdd analyze-code ./todo-system
 ```
 
 **실행 과정**:
@@ -296,15 +290,13 @@ class TodoValidator:
 
 ---
 
-## 3. E2E 테스트 자동화 (5분)
+## 3. 전체 TDD 워크플로우 (5분)
 
-### 3.1 E2E 테스트 생성
+### 3.1 RED-GREEN-REFACTOR 사이클 실행
 
 ```bash
-# 엔드투엔드 테스트 자동 생성
-caas tdd e2e \
-  --project ./todo-system \
-  --scenarios user_journey
+# 전체 TDD 워크플로우 자동 실행
+caas tdd workflow ./todo-system
 ```
 
 **생성 결과**: `tests/test_e2e_user_journey.py`
@@ -492,13 +484,13 @@ jobs:
 
       - name: Run TDD tests
         run: |
-          caas tdd generate --project . --golden-data golden_data.json
+          caas tdd generate-tests ./golden_data.json --output-dir ./tests
           pytest tests/ --cov=. --cov-fail-under=90
 
-      - name: Refactor if needed
+      - name: Analyze code if needed
         if: failure()
         run: |
-          caas tdd refactor --project . --apply
+          caas tdd analyze-code .
           pytest tests/ --cov=. --cov-fail-under=90
 
       - name: Upload coverage
@@ -540,19 +532,19 @@ echo "✅ All TDD checks passed!"
 
 ### ✅ DO
 
-1. **Golden Data 기반 테스트**
+1. **Golden Data 기반 테스트 생성**
    ```bash
-   caas tdd generate --golden-data golden_data.json
+   caas tdd generate-tests ./golden_data.json --output-dir ./tests
    ```
 
-2. **리팩토링 전 테스트 통과 확인**
+2. **코드 분석 및 개선 제안**
    ```bash
-   pytest tests/ && caas tdd refactor --apply
+   pytest tests/ && caas tdd analyze-code .
    ```
 
-3. **커버리지 목표 설정**
+3. **전체 TDD 워크플로우 실행**
    ```bash
-   caas tdd coverage --target 90
+   caas tdd workflow .
    ```
 
 ### ❌ DON'T

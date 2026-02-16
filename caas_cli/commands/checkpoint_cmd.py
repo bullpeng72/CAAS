@@ -10,10 +10,9 @@ import click
 from pathlib import Path
 from rich.console import Console
 from rich.table import Table
-from rich.panel import Panel
 
 from caas_framework.checkpoint.manager import CheckpointManager
-from caas_framework.models.checkpoint import CheckpointPhase, ApprovalStatus
+from caas_framework.models.checkpoint import ApprovalStatus
 
 console = Console()
 
@@ -25,7 +24,6 @@ def checkpoint_group():
 
     Manage review checkpoints for CAAS-E methodology (7 checkpoints).
     """
-    pass
 
 
 @checkpoint_group.command("status")

@@ -19,12 +19,11 @@ from caas_framework.agents.code_gen_helpers import (
 )
 from caas_framework.agents.process_selector import ProcessSelector
 from caas_framework.agents.registry import register_agent
-from caas_framework.agents.utils import AgentErrorHandler, AgentOutputParser
+from caas_framework.agents.utils import AgentOutputParser
 from caas_framework.config.settings import LLMConstants
 from caas_framework.exceptions import (
     AgentExecutionError,
     CodeGenerationError,
-    TemplateRenderingError,
 )
 from caas_framework.models.specifications import (
     AgentSpecModel,
@@ -32,7 +31,7 @@ from caas_framework.models.specifications import (
     TaskSpecModel,
 )
 from caas_framework.plugins.llm.base import LLMPlugin
-from caas_framework.utils import PromptBuilder, ResponseParser
+from caas_framework.utils import PromptBuilder
 from caas_framework.utils.logger import get_logger
 
 logger = get_logger()
@@ -410,7 +409,6 @@ class CodeGeneratorAgent(BaseExpertAgent):
         Returns:
             Fixed files dictionary
         """
-        import re
 
         from caas_framework.utils import ObjectAccessor
 
@@ -923,6 +921,11 @@ FRONTEND UI REQUIREMENT:
         frontend_framework: str = "streamlit",  # ✅ P0-1: Framework choice
     ) -> Dict[str, Any]:
         """Create basic code structure when LLM fails using AST-based generation."""
+        # ✅ Week 2-1: Use base helper for consistent fallback logging
+        self._log_fallback_usage(
+            reason="LLM generation failed - using AST-based code generation",
+            fallback_type="code_generation_fallback"
+        )
 
         # Convert to dicts if needed
         from caas_framework.utils import ObjectAccessor

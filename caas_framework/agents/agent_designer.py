@@ -13,7 +13,7 @@ from typing import Any, Dict, List, Optional
 from caas_framework.agents.base import AgentPhase, BaseExpertAgent, ValidationIssue
 from caas_framework.agents.executors import GoldenDataEnhancer, RefinementExecutor
 from caas_framework.agents.registry import register_agent
-from caas_framework.agents.utils import AgentErrorHandler, AgentOutputParser
+from caas_framework.agents.utils import AgentOutputParser
 from caas_framework.config.settings import LLMConstants
 from caas_framework.models.specifications import (
     AgentSpecModel,
@@ -21,7 +21,7 @@ from caas_framework.models.specifications import (
     TaskSpecModel,
 )
 from caas_framework.plugins.llm.base import LLMPlugin
-from caas_framework.utils import ObjectAccessor, PromptBuilder, ResponseParser
+from caas_framework.utils import ObjectAccessor
 from caas_framework.utils.logger import get_logger
 
 
@@ -461,6 +461,11 @@ class AgentDesignerAgent(BaseExpertAgent):
 
     def _create_fallback_design(self) -> Dict[str, Any]:
         """Create design based on Golden Data features when LLM fails."""
+        # ✅ Week 2-1: Use base helper for consistent fallback logging
+        self._log_fallback_usage(
+            reason="LLM generation failed - using golden data or basic design",
+            fallback_type="agent_task_design_fallback"
+        )
 
         # Try to create meaningful agents and tasks from Golden Data
         if self.golden_data and self.golden_data.features:

@@ -267,10 +267,14 @@ vim ./project/golden_data.json
 }
 
 # 3. 검증
-caas validate --validator golden-data --golden ./project/golden_data.json
+caas validate --validator golden --golden-data ./project/golden_data.json \
+  --agents ./project/agents.json --tasks ./project/tasks.json
 
 # 4. Architecture 재생성 (Traceability 반영)
-caas generate-phase --phase 2 "기존 요구사항" --output ./project --force
+# 이전 Phase 결과를 입력으로 사용
+caas generate-phase --phase 2 \
+  --input ./project \
+  --output ./project
 ```
 
 ### 2.2 Entity 수정
@@ -323,7 +327,10 @@ vim ./new-project/golden_data.json
 # 일부 Feature 수정 또는 추가
 
 # 4. 이어서 Phase 1-5 실행
-caas generate-phase --phase 1 "..." --output ./new-project --continue
+# Phase 0 결과를 입력으로 Phase 1 실행
+caas generate-phase --phase 1 \
+  --input ./new-project \
+  --output ./new-project
 ```
 
 ### 3.2 도메인별 베스트 프랙티스 템플릿

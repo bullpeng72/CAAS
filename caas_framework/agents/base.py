@@ -621,3 +621,102 @@ class BaseExpertAgent(ABC):
             operation=operation,
             error=error,
         )
+
+    # ========================================================================
+    # Fallback Helper Methods (Week 2-1: Common Pattern Extraction)
+    # ========================================================================
+
+    def _log_fallback_usage(
+        self,
+        reason: str,
+        fallback_type: str = "default_structure",
+    ) -> None:
+        """
+        Log when fallback mechanism is used.
+
+        Provides consistent logging when agents fall back to default structures
+        instead of LLM-generated outputs.
+
+        Args:
+            reason: Why fallback was triggered (e.g., "LLM generation failed")
+            fallback_type: Type of fallback used (e.g., "minimal", "golden_data_based")
+
+        Example:
+            >>> self._log_fallback_usage(
+            ...     reason="OpenAI API timeout",
+            ...     fallback_type="minimal_structure"
+            ... )
+        """
+        import logging
+
+        logger = logging.getLogger(f"{__name__}.{self.__class__.__name__}")
+        logger.warning(
+            f"⚠️ [{self.agent_name}] Using fallback ({fallback_type}): {reason}"
+        )
+
+    @staticmethod
+    def _get_default_value_for_type(value_type: type) -> Any:
+        """
+        Get default value for a given Python type.
+
+        Useful for creating fallback data structures with correct types.
+
+        Args:
+            value_type: Python type (str, int, list, dict, etc.)
+
+        Returns:
+            Default value for the type
+
+        Example:
+            >>> BaseExpertAgent._get_default_value_for_type(list)
+            []
+            >>> BaseExpertAgent._get_default_value_for_type(dict)
+            {}
+            >>> BaseExpertAgent._get_default_value_for_type(str)
+            ""
+        """
+        type_defaults = {
+            str: "",
+            int: 0,
+            float: 0.0,
+            bool: False,
+            list: [],
+            dict: {},
+            set: set(),
+            tuple: (),
+        }
+        return type_defaults.get(value_type, None)
+
+    def _create_minimal_structure(
+        self,
+        base_fields: Dict[str, type],
+        fallback_reason: str = "LLM generation failed",
+    ) -> Dict[str, Any]:
+        """
+        Create minimal fallback structure from field schema.
+
+        Generates a dictionary with default values for each field type.
+        Logs the fallback usage for monitoring.
+
+        Args:
+            base_fields: Mapping of field names to their types
+                Example: {"name": str, "items": list, "metadata": dict}
+            fallback_reason: Why this fallback was created
+
+        Returns:
+            Dictionary with default values
+
+        Example:
+            >>> schema = {"name": str, "items": list, "count": int}
+            >>> self._create_minimal_structure(schema)
+            {"name": "", "items": [], "count": 0}
+        """
+        self._log_fallback_usage(
+            reason=fallback_reason,
+            fallback_type="minimal_structure",
+        )
+
+        return {
+            field_name: self._get_default_value_for_type(field_type)
+            for field_name, field_type in base_fields.items()
+        }

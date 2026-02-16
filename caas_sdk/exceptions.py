@@ -6,13 +6,11 @@ CAAS SDK Exceptions
 class CAASError(Exception):
     """Base exception for CAAS SDK"""
 
-    pass
 
 
 class AuthenticationError(CAASError):
     """Authentication failed"""
 
-    pass
 
 
 class RateLimitError(CAASError):
@@ -26,7 +24,6 @@ class RateLimitError(CAASError):
 class ValidationError(CAASError):
     """Validation error"""
 
-    pass
 
 
 class APIError(CAASError):
@@ -40,10 +37,8 @@ class APIError(CAASError):
 class TimeoutError(CAASError):
     """Request timeout"""
 
-    pass
 
 
 class NetworkError(CAASError):
     """Network error"""
 
-    pass

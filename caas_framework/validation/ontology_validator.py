@@ -5,9 +5,8 @@ Validates agent and task configurations using ontology rules.
 Provides automatic fixing suggestions.
 """
 
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple
 
-from pydantic import BaseModel
 
 from caas_framework.knowledge.ontology import OntologyManager
 from caas_framework.models.validation import (
