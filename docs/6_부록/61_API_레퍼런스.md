@@ -221,7 +221,7 @@ caas generate <REQUIREMENT> [OPTIONS]
 --domain DOMAIN        # 도메인 명시 (기본: 자동 감지)
 --ui {none,streamlit,gradio}  # UI 타입 (기본: none)
 --model {gpt-4,gpt-3.5-turbo,claude-3-5-sonnet,haiku,opus}
---parallel             # 병렬 처리 활성화
+--distributed          # 분산 병렬 실행 활성화
 --workers INT          # Worker 수 (기본: 4)
 --cache / --no-cache   # LLM 캐싱 (기본: true)
 --streaming            # 대규모 프로젝트 스트리밍 모드
@@ -235,8 +235,8 @@ caas generate "할일 관리 시스템"
 # 도메인 지정 + UI 포함
 caas generate "챗봇" --domain conversational_ai --ui streamlit
 
-# 병렬 처리 + 커스텀 모델
-caas generate "데이터 분석" --parallel --model haiku --output ./analytics
+# 분산 병렬 처리 + 커스텀 모델
+caas generate "데이터 분석" --distributed --model haiku --output ./analytics
 ```
 
 ---
@@ -278,31 +278,40 @@ caas validate --validator <VALIDATOR> [OPTIONS]
 
 **Validator 종류**:
 - `all`: 모든 검증 실행
-- `code-quality`: 코드 품질
-- `crewai`: CrewAI 호환성
-- `dependency`: Task 의존성
-- `golden-data`: Golden Data 완전성
-- `traceability`: Traceability 100%
-- `python311`: Python 3.11+ 호환성
+- `ontology`: Agent/Task 온톨로지 구조 검증
+- `golden`: Golden Data 완전성 검증
+- `dependency`: Task 의존성 검증
+- `python311`: Python 3.11+ 호환성 검증
+- `crewai`: CrewAI 프레임워크 준수 검증
 
 **옵션**:
 ```bash
 --project PATH         # 프로젝트 디렉토리
 --agents PATH          # agents.json 경로
 --tasks PATH           # tasks.json 경로
---golden PATH          # golden_data.json 경로
---arch PATH            # architecture_design.json 경로
+--golden-data PATH     # golden_data.json 경로
+--output PATH          # 검증 리포트 JSON 파일 경로
+--verbose, -v          # 상세 검증 출력
 ```
 
 **예시**:
 ```bash
 # 전체 검증
-caas validate --validator all --project ./todo-system
+caas validate --validator all \
+  --agents ./todo/agents.json \
+  --tasks ./todo/tasks.json
 
-# Traceability만 검증
-caas validate --validator traceability \
-  --arch ./todo/architecture_design.json \
-  --golden ./todo/golden_data.json
+# Golden Data 검증
+caas validate --validator golden \
+  --agents ./todo/agents.json \
+  --tasks ./todo/tasks.json \
+  --golden-data ./todo/golden_data.json
+
+# Traceability 검증 (독립 명령어)
+caas traceability \
+  --golden-data ./todo/golden_data.json \
+  --agents ./todo/agents.json \
+  --tasks ./todo/tasks.json
 ```
 
 ---
@@ -339,68 +348,67 @@ caas fix --level 3 --security --project ./todo --apply
 
 ### 2.5 TDD 자동화
 
-**caas tdd generate**
+**caas tdd generate-tests**
 ```bash
-caas tdd generate [OPTIONS]
+caas tdd generate-tests <GOLDEN_DATA_PATH> [OPTIONS]
 ```
 
 **옵션**:
 ```bash
---project PATH         # 프로젝트 디렉토리
---golden-data PATH     # Golden Data 경로
---output PATH          # 테스트 출력 디렉토리 (기본: tests/)
+--output-dir PATH      # 테스트 출력 디렉토리 (기본: ./tests)
+--test-framework TEXT  # 테스트 프레임워크 (기본: pytest)
 ```
 
-**caas tdd refactor**
+**예시**:
 ```bash
-caas tdd refactor [OPTIONS]
+caas tdd generate-tests ./golden_data.json --output-dir ./tests
 ```
 
-**옵션**:
+**caas tdd analyze-code**
 ```bash
---project PATH
---apply                # 리팩토링 적용
---backup               # 백업 생성
-```
-
-**caas tdd coverage**
-```bash
-caas tdd coverage [OPTIONS]
+caas tdd analyze-code <PROJECT_DIR> [OPTIONS]
 ```
 
 **옵션**:
 ```bash
---project PATH
---target PERCENTAGE    # 목표 커버리지 (예: 90)
---suggest              # 개선 제안
---auto-generate        # 누락 테스트 자동 생성
+--detailed             # 상세 분석 리포트
+```
+
+**예시**:
+```bash
+caas tdd analyze-code ./todo-system --detailed
+```
+
+**caas tdd workflow**
+```bash
+caas tdd workflow <PROJECT_DIR> <GOLDEN_DATA_PATH> [OPTIONS]
+```
+
+**설명**: 완전한 TDD 워크플로우 실행 (RED → GREEN → REFACTOR)
+
+**예시**:
+```bash
+caas tdd workflow ./todo ./golden_data.json
 ```
 
 ---
 
 ### 2.6 QA 자동화
 
-**caas qa security-scan**
+**caas qa security**
 ```bash
-caas qa security-scan [OPTIONS]
+caas qa security [OPTIONS]
 ```
 
 **옵션**:
 ```bash
---project PATH
---owasp                # OWASP Top 10 검사
---output PATH          # 리포트 출력 경로
+--project PATH         # 프로젝트 디렉토리  [required]
+--output PATH          # JSON 리포트 출력 경로
 ```
 
-**caas qa code-quality**
+**예시**:
 ```bash
-caas qa code-quality [OPTIONS]
-```
-
-**옵션**:
-```bash
---project PATH
---detailed             # 상세 리포트
+caas qa security --project ./todo --output security_report.json
 ```
 
 **caas qa performance**
@@ -410,99 +418,155 @@ caas qa performance [OPTIONS]
 
 **옵션**:
 ```bash
---project PATH
---scenarios PATH       # 시나리오 YAML 파일
---optimize             # 최적화 제안
+--project PATH         # 프로젝트 디렉토리  [required]
+--output PATH          # JSON 리포트 출력 경로
 ```
 
-**caas qa validate-all**
+**예시**:
 ```bash
-caas qa validate-all [OPTIONS]
+caas qa performance --project ./todo --output perf_report.json
+```
+
+**caas qa compliance**
+```bash
+caas qa compliance [OPTIONS]
 ```
 
 **옵션**:
 ```bash
---project PATH
---output PATH          # HTML 리포트 경로
---fail-on-critical     # Critical 이슈 시 실패 (CI/CD용)
+--project PATH         # 프로젝트 디렉토리  [required]
+--output PATH          # JSON 리포트 출력 경로
+```
+
+**예시**:
+```bash
+caas qa compliance --project ./todo --output compliance_report.json
+```
+
+**caas qa report**
+```bash
+caas qa report [OPTIONS]
+```
+
+**옵션**:
+```bash
+--project PATH         # 프로젝트 디렉토리  [required]
+--output PATH          # HTML 또는 JSON 리포트 출력 경로
+```
+
+**설명**: 모든 QA 검사를 통합 실행 (보안, 성능, 컴플라이언스)
+
+**예시**:
+```bash
+# 통합 리포트 생성
+caas qa report --project ./todo --output qa_report.html
 ```
 
 ---
 
 ### 2.7 Checkpoint 관리
 
-**caas checkpoint save**
-```bash
-caas checkpoint save [OPTIONS]
-```
+**CAAS-E Human Approval Checkpoint** (v0.6.2)
 
-**옵션**:
-```bash
---project PATH
---name NAME            # 체크포인트 이름
---description TEXT     # 설명
---tag TAG              # 태그 (쉼표 구분)
-```
-
-**caas checkpoint restore**
-```bash
-caas checkpoint restore [OPTIONS]
-```
-
-**옵션**:
-```bash
---project PATH
---checkpoint ID        # 체크포인트 ID 또는 이름
-```
+7개의 Human Checkpoint (CP-1 ~ CP-7)를 관리하는 PM 승인 워크플로우 명령어입니다.
 
 **caas checkpoint list**
 ```bash
 caas checkpoint list [OPTIONS]
 ```
 
-**옵션**:
+**설명**: 7개 CAAS-E 체크포인트 목록 표시
+
+**예시**:
 ```bash
---project PATH
---detailed             # 상세 정보
+caas checkpoint list
+# 출력:
+# CP-1: Phase 0 (Concretization) - Golden Data 검토
+# CP-2: Phase 1 (Discovery) - 요구사항 분석 승인
+# CP-3: Phase 2 (Architecture) - 아키텍처 설계 승인
+# ...
 ```
 
-**caas checkpoint diff**
+**caas checkpoint approve**
 ```bash
-caas checkpoint diff [OPTIONS]
+caas checkpoint approve [OPTIONS]
 ```
 
 **옵션**:
 ```bash
---checkpoint-a ID
---checkpoint-b ID
---metrics LIST         # 비교 메트릭 (쉼표 구분)
+-p, --project TEXT        # 프로젝트 이름  [required]
+-c, --checkpoint-id TEXT  # 체크포인트 ID (CP-1 ~ CP-7)  [required]
+-r, --reviewer TEXT       # 검토자 이름  [required]
+-m, --comment TEXT        # 검토 코멘트 (repeatable)
 ```
+
+**예시**:
+```bash
+# CP-3 (Architecture) 승인
+caas checkpoint approve \
+  --project todo-system \
+  --checkpoint-id CP-3 \
+  --reviewer "김PM" \
+  --comment "아키텍처 설계 검토 완료. 승인합니다."
+```
+
+**참고**:
+- **Version Control Checkpoint** (save/restore/diff/export) 기능은 v0.7.0+에서 계획 중
+- 현재는 Human Approval Checkpoint만 지원 (PM 승인 워크플로우)
+- 자세한 내용: [52_Checkpoint_활용법.md](../5_엔터프라이즈_기능/52_Checkpoint_활용법.md)
 
 ---
 
 ### 2.8 설정 관리
 
-**caas config set**
+**caas config**
 ```bash
-caas config set <KEY>=<VALUE>
+caas config [OPTIONS]
+```
+
+**옵션**:
+```bash
+--set <KEY VALUE>...   # 설정 값 지정 (여러 번 사용 가능)
+--get KEY              # 특정 설정 값 조회
+--list                 # 모든 설정 목록 표시
+--reset                # 설정 초기화
 ```
 
 **예시**:
 ```bash
-caas config set llm.provider=ollama
-caas config set llm.cache=true
-caas config set checkpoint.auto_save=true
+# 값 설정
+caas config --set llm_provider ollama
+caas config --set default_domain FINANCE
+caas config --set enable_validation true
+
+# 여러 값 동시 설정
+caas config \
+  --set llm_provider ollama \
+  --set default_domain HEALTHCARE \
+  --set enable_validation true
+
+# 값 조회
+caas config --get llm_provider
+caas config --get default_domain
+
+# 전체 설정 목록
+caas config --list
+# 또는
+caas config  # (--list와 동일)
+
+# 설정 초기화
+caas config --reset
 ```
 
-**caas config get**
-```bash
-caas config get <KEY>
-```
-
-**caas config list**
-```bash
-caas config list
-```
+**사용 가능한 설정 키**:
+- `api_url`: API 서버 URL
+- `api_key`: API 인증 키
+- `default_domain`: 기본 도메인
+- `default_deployment`: 기본 배포 대상
+- `output_dir`: 기본 출력 디렉토리
+- `enable_validation`: 검증 기본 활성화
+- `enable_auto_fix`: 자동 수정 기본 활성화
+- `enable_tests`: 테스트 생성 기본 활성화
 
 ---
 

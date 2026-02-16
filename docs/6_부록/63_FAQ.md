@@ -45,7 +45,7 @@ export ANTHROPIC_API_KEY="sk-ant-..."
 
 # Ollama
 export OLLAMA_API_BASE="http://localhost:11434/v1"
-caas config set llm.provider=ollama
+caas config --set llm_provider ollama
 ```
 
 ---
@@ -61,7 +61,7 @@ curl -fsSL https://ollama.ai/install.sh | sh
 ollama pull llama3:70b
 
 # CAAS 설정
-caas config set llm.provider=ollama
+caas config --set llm_provider ollama
 caas generate "할일 관리" --output ./todo
 ```
 
@@ -111,14 +111,14 @@ pyenv global 3.11.0
 
 **최적화 방법**:
 ```bash
-# 병렬 처리 활성화 (-60% 시간)
-caas generate "..." --parallel --workers 4
+# 분산 병렬 실행 활성화 (-30% 시간)
+caas generate "..." --distributed --workers 4
 
 # Haiku 모델 사용 (단순 작업)
 caas generate "..." --model haiku  # 2-3분
 
 # 캐싱 활성화
-caas config set llm.cache=true
+caas config --set llm_cache true
 ```
 
 **관련 문서**: [53_성능_최적화_가이드.md](../5_엔터프라이즈_기능/53_성능_최적화_가이드.md)
@@ -195,7 +195,7 @@ caas generate-phase --phase 2 "할일 관리" \
 
 **검증**:
 ```bash
-caas qa validate-all --project ./todo
+caas qa report --project ./todo --output qa_report.html
 ```
 
 **관련 문서**: [15_코드_품질_가이드.md](../2_개발_실무_가이드/15_코드_품질_가이드.md)
@@ -225,7 +225,7 @@ caas fix --level 3 --project ./todo --apply --backup
 **A**: **보안 스캔** 자동 실행.
 ```bash
 # OWASP Top 10 검사
-caas qa security-scan --project ./todo --owasp
+caas qa security --project ./todo --output security_report.json
 
 # 결과:
 # CRITICAL: 0
@@ -233,7 +233,7 @@ caas qa security-scan --project ./todo --owasp
 # MEDIUM: 2 (Hardcoded Secret)
 
 # 자동 수정
-caas fix --level 3 --security --project ./todo --apply
+caas fix --level 3 --project ./todo --apply --backup
 ```
 
 **관련 문서**: [51_QA_자동화_가이드.md](../5_엔터프라이즈_기능/51_QA_자동화_가이드.md)
@@ -256,10 +256,10 @@ caas fix --level 3 --security --project ./todo --apply
 caas generate "..." --model haiku  # -60% 비용
 
 # 2. 캐싱 활성화
-caas config set llm.cache=true  # 동일 요구사항 재사용 시 무료
+caas config --set llm_cache true  # 동일 요구사항 재사용 시 무료
 
 # 3. Ollama 사용 (무료)
-caas config set llm.provider=ollama  # $0
+caas config --set llm_provider ollama  # $0
 ```
 
 **관련 문서**: [53_성능_최적화_가이드.md](../5_엔터프라이즈_기능/53_성능_최적화_가이드.md)
@@ -270,11 +270,11 @@ caas config set llm.provider=ollama  # $0
 
 **A**: **3가지 최적화 방법**.
 ```bash
-# 1. 병렬 처리 (-30% 시간)
-caas generate "..." --parallel --workers 4
+# 1. 분산 병렬 실행 (-30% 시간)
+caas generate "..." --distributed --workers 4
 
 # 2. 캐싱 활성화 (-90% 시간, 동일 요구사항)
-caas config set llm.cache=true
+caas config --set llm_cache true
 
 # 3. Haiku 모델 (-40% 시간)
 caas generate "..." --model haiku
@@ -306,9 +306,10 @@ caas generate "대규모 시스템 (100 features)" \
 **A**: Feature가 Architecture에 누락됨.
 ```bash
 # 문제 진단
-caas validate --validator traceability \
-  --arch architecture_design.json \
-  --golden golden_data.json
+caas traceability \
+  --golden-data ./todo/golden_data.json \
+  --agents ./todo/agents.json \
+  --tasks ./todo/tasks.json
 
 # 출력:
 # Feature f4 (할일 공유) → ❌ No mapping
@@ -330,7 +331,8 @@ caas generate-phase --phase 2 "..." --output ./todo --force
 # 문제 진단
 caas analyze-completeness \
   --project ./todo \
-  --golden golden_data.json
+  --golden-data ./todo/golden_data.json \
+  --detailed
 
 # 출력:
 # Feature f3 (우선순위 분석) → ❌ Not implemented
@@ -414,33 +416,43 @@ cat agents.json
 
 ### Q21. Checkpoint 기능은 언제 사용하나요?
 
-**A**: **3가지 시나리오**.
-1. **실험 비교** (A/B 테스팅)
+**A**: **Human Approval Checkpoint** (v0.6.2) - PM 승인 워크플로우
+
+**사용 시나리오**:
+
+1. **Phase 완료 후 PM 승인**
    ```bash
-   # 실험 A: Hierarchical Process
-   caas checkpoint save --name "exp-a"
-   # Golden Data 수정 → Phase 3-5 실행
-   caas checkpoint save --name "exp-a-result"
+   # 7개 체크포인트 목록 확인
+   caas checkpoint list
 
-   # 실험 B: Sequential Process
-   caas checkpoint restore --checkpoint "exp-a"
-   # Golden Data 수정 → Phase 3-5 실행
-   caas checkpoint save --name "exp-b-result"
-
-   # 비교
-   caas checkpoint diff --checkpoint-a exp-a-result --checkpoint-b exp-b-result
+   # CP-3 (Architecture) 승인
+   caas checkpoint approve \
+     --project todo-system \
+     --checkpoint-id CP-3 \
+     --reviewer "김PM" \
+     --comment "아키텍처 설계 검토 완료. 승인합니다."
    ```
 
-2. **롤백** (실수로 코드 덮어씀)
+2. **체크포인트 상태 추적**
    ```bash
-   caas checkpoint restore --checkpoint phase2-complete
+   # 프로젝트의 모든 체크포인트 상태 확인
+   # (status 명령어는 현재 구현 예정)
+
+   # 결과 예시:
+   # CP-1 (Phase 0: Concretization): ✅ APPROVED (검토자: 이PM)
+   # CP-2 (Phase 1: Discovery): ✅ APPROVED (검토자: 김PM)
+   # CP-3 (Phase 2: Architecture): ⏳ PENDING
+   # ...
    ```
 
-3. **협업** (팀원과 공유)
-   ```bash
-   caas checkpoint export --checkpoint phase2-complete --output phase2.ckpt
-   # phase2.ckpt 파일을 팀원에게 전달
-   ```
+3. **팀 협업 워크플로우**
+   - PM이 각 Phase 완료 시점에서 산출물 검토
+   - 체크포인트 승인 전까지 다음 Phase 진행 불가
+   - 승인 이력 및 코멘트 추적
+
+**참고**:
+- **Version Control Checkpoint** (save/restore/diff/export)은 v0.7.0+에서 계획 중
+- 현재는 Human Approval Checkpoint만 지원 (approve, list 명령어)
 
 **관련 문서**: [52_Checkpoint_활용법.md](../5_엔터프라이즈_기능/52_Checkpoint_활용법.md)
 
@@ -451,20 +463,19 @@ cat agents.json
 **A**: **Golden Data 기반 테스트 자동 생성**.
 ```bash
 # 1. 테스트 자동 생성
-caas tdd generate \
-  --project ./todo \
-  --golden-data ./todo/golden_data.json
+caas tdd generate-tests ./todo/golden_data.json \
+  --output-dir ./tests
 
 # 결과: tests/ 디렉토리에 41개 테스트 생성
 
 # 2. 테스트 실행
 pytest tests/ -v
 
-# 3. 리팩토링 (테스트 통과 보장)
-caas tdd refactor --project ./todo --apply
+# 3. 코드 분석 (테스트 통과 확인 후)
+caas tdd analyze-code ./todo --detailed
 
-# 4. 커버리지 개선
-caas tdd coverage --project ./todo --target 90 --auto-generate
+# 4. 완전한 TDD 워크플로우 실행
+caas tdd workflow ./todo ./todo/golden_data.json
 ```
 
 **관련 문서**: [50_TDD_자동화_가이드.md](../5_엔터프라이즈_기능/50_TDD_자동화_가이드.md)
@@ -489,7 +500,7 @@ jobs:
         run: pip install caas
       - name: QA Validation
         run: |
-          caas qa validate-all --project . --fail-on-critical
+          caas qa report --project . --output qa_report.html
       - name: Upload Report
         uses: actions/upload-artifact@v2
         with:
@@ -503,24 +514,28 @@ jobs:
 
 ### Q24. 성능 프로파일링은 어떻게 하나요?
 
-**A**: **프로파일링 모드** 사용.
-```bash
-# 프로파일링 실행
-caas generate "할일 관리" --output ./todo --profile
+**A**: Python 내장 프로파일링 도구 사용.
 
-# 결과: profile_report.json
-# {
-#   "total_time": 300.5,
-#   "phases": [
-#     {"phase": 1, "time": 62.8, "percentage": 20.9},
-#     {"phase": 2, "time": 85.3, "percentage": 28.4},  # 병목
-#     ...
-#   ],
-#   "bottlenecks": [
-#     {"location": "Phase 2", "time": 85.3}
-#   ]
-# }
+**방법 1: cProfile 사용**
+```bash
+# CLI 명령어 프로파일링
+python -m cProfile -o profile.stats -m caas_cli.cli generate "할일 관리" --output ./todo
+
+# 프로파일 결과 분석
+python -m pstats profile.stats
+# > sort cumtime
+# > stats 20
 ```
+
+**방법 2: 성능 테스트 명령어**
+```bash
+# QA 성능 테스트 실행
+caas qa performance --project ./todo --output perf_report.json
+
+# 결과: 메모리 사용량, CPU 메트릭, 부하 테스트 결과
+```
+
+**참고**: `--profile` 플래그는 현재 지원되지 않음. Python 표준 프로파일링 도구 사용 권장.
 
 **관련 문서**: [53_성능_최적화_가이드.md](../5_엔터프라이즈_기능/53_성능_최적화_가이드.md)
 
@@ -611,10 +626,9 @@ cd CAAS
 
 ### Q29. 피드백은 어디에 남기나요?
 
-**A**: **3가지 방법**.
+**A**: **2가지 방법**.
 1. **GitHub Issues**: https://github.com/bullpeng72/CAAS/issues
-2. **CLI 명령어**: `caas feedback "피드백 내용"`
-3. **Email**: (문의 시 CLAUDE.md 참고)
+2. **GitHub Discussions**: https://github.com/bullpeng72/CAAS/discussions
 
 ---
 
