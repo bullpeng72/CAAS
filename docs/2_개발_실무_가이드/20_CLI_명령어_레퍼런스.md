@@ -100,7 +100,7 @@ caas config [COMMAND] [OPTIONS]
 **사용 예시**:
 ```bash
 # 설정 조회
-caas config list
+caas config --list
 
 # 출력:
 # llm_provider: openai
@@ -109,11 +109,11 @@ caas config list
 # openai_api_key: sk-***...***
 
 # 설정 변경
-caas config set llm_provider anthropic
-caas config set default_output_dir /path/to/output
+caas config --set llm_provider anthropic
+caas config --set default_output_dir /path/to/output
 
 # 초기화
-caas config reset
+caas config --reset
 ```
 
 ---
@@ -168,15 +168,15 @@ caas generate REQUIREMENT [OPTIONS]
 |------|------|--------|
 | `-o, --output PATH` | 출력 디렉토리 | `./generated` |
 | `-d, --domain TEXT` | 도메인 명시 (17개 중) | 자동 감지 |
-| `--ui TEXT` | UI 프레임워크 (streamlit/gradio/none) | `none` |
-| `--strict-quality` | 엄격한 품질 검증 | `False` |
-| `--fast` | 빠른 생성 (품질 검증 최소화) | `False` |
-| `--model TEXT` | LLM 모델 (opus/sonnet/haiku) | `sonnet` |
-| `--cache / --no-cache` | LLM 응답 캐싱 | `True` |
-| `--force` | 기존 디렉토리 덮어쓰기 | `False` |
-| `--timestamp` | 출력 디렉토리에 타임스탬프 추가 | `False` |
-| `--coverage INT` | 테스트 커버리지 목표 (0-100) | `80` |
-| `-v, --verbose` | 상세 로그 출력 | `False` |
+| `--enable-frontend` | 프론트엔드 UI 생성 활성화 | `False` (Golden Data에서 자동 감지) |
+| `--frontend-framework TEXT` | UI 프레임워크 (streamlit/react) | `streamlit` |
+| `--enable-validation` | 다층 품질 검증 활성화 | `True` |
+| `--no-validation` | 모든 검증 비활성화 (빠르지만 위험) | - |
+| `-v, --verbosity TEXT` | 로그 레벨 (quiet/minimal/normal/verbose/debug) | `normal` |
+| `--distributed` | 병렬 분산 실행 (30-50% 속도 향상) | `False` |
+| `--workers INT` | 분산 실행 Worker 수 | CPU 개수 |
+| `--plan-mode` | 대화형 승인 게이트 (각 Phase 승인 필요) | `False` |
+| `--workflow-type TEXT` | 워크플로우 타입 (sequential/hierarchical/auto) | `auto` |
 
 **사용 예시**:
 ```bash
@@ -186,28 +186,29 @@ caas generate "할일 관리 시스템을 만들어줘"
 # 도메인 명시 + Streamlit UI
 caas generate "고객 지원 챗봇" \
   --domain conversational_ai \
-  --ui streamlit \
+  --enable-frontend \
+  --frontend-framework streamlit \
   --output ./chatbot-project
 
 # 엄격한 품질 검증 (엔터프라이즈)
 caas generate "판매 데이터 분석 시스템" \
   --domain data_analysis \
-  --strict-quality \
-  --coverage 90 \
+  --enable-validation \
+  --verbosity verbose \
   --output ./analysis-system
 
-# 빠른 프로토타입
+# 빠른 프로토타입 (최소 검증)
 caas generate "블로그 시스템" \
-  --fast \
-  --model haiku \
+  --no-validation \
+  --verbosity minimal \
   --output ./blog-prototype
 
-# 타임스탬프 출력
-caas generate "예약 시스템" --timestamp
-# 출력: ./generated/booking_system_20260214_153045
-
-# 기존 디렉토리 덮어쓰기
-caas generate "요구사항" --output ./project --force
+# 병렬 분산 실행 (대규모 프로젝트)
+caas generate "전자상거래 시스템" \
+  --domain e_commerce \
+  --distributed \
+  --workers 4 \
+  --output ./ecommerce-project
 ```
 
 **실행 흐름**:
@@ -264,37 +265,34 @@ caas generate-phase --phase 5 "할일 관리 시스템" --output ./project
 
 **고급 옵션**:
 ```bash
-# 특정 Phase부터 재시작
-caas generate-phase --phase 3 "요구사항" \
-  --output ./project \
-  --continue  # 기존 Phase 0-2 결과 사용
+# 특정 Phase부터 재시작 (이전 Phase 결과 활용)
+caas generate-phase --phase 3 \
+  --input ./project \
+  --output ./project
 
-# Phase 재시도
-caas generate-phase --phase 3 "요구사항" \
-  --output ./project \
-  --retry  # Phase 3 다시 실행
+# Phase 재실행 (동일 Phase 재생성)
+caas generate-phase --phase 3 \
+  --input ./project \
+  --output ./project
 ```
 
 ---
 
-### `caas regenerate`
-**목적**: 특정 파일만 재생성
+### 특정 파일 재생성 방법
 
 ```bash
-caas regenerate [FILES...] [OPTIONS]
+# Phase 5 (Delivery) 재실행으로 모든 코드 재생성
+caas generate-phase --phase 5 \
+  --input ./my-project \
+  --output ./my-project
+
+# 또는 전체 재생성
+caas generate "요구사항" \
+  --golden-data ./my-project/golden_data.json \
+  --output ./my-project
 ```
 
-**사용 예시**:
-```bash
-# tools.py만 재생성
-caas regenerate tools.py --project ./my-project
-
-# agents.py + tasks.py 재생성
-caas regenerate agents.py tasks.py --project ./my-project
-
-# 테스트 재생성
-caas regenerate tests/ --project ./my-project
-```
+**참고**: 개별 파일만 재생성하는 명령어는 현재 지원되지 않습니다. Phase 5 재실행을 통해 모든 코드를 재생성하세요.
 
 ---
 
@@ -504,107 +502,83 @@ caas fix-runtime-error \
 
 ---
 
-### `caas gap-analysis`
-**목적**: Golden Data vs 실제 구현 갭 분석
+### `caas analyze-gaps`
+**목적**: Golden Data 요구사항 갭 분석
 
 ```bash
-caas gap-analysis [OPTIONS]
+caas analyze-gaps REQUIREMENT [OPTIONS]
 ```
 
 **사용 예시**:
 ```bash
 # 갭 분석
-caas gap-analysis \
-  --golden ./project/golden_data.json \
-  --project ./my-project
+caas analyze-gaps "사용자 관리 시스템" \
+  --golden-data ./project/golden_data.json \
+  --output gaps.json
 
-# 갭 보고서 생성
-caas gap-analysis \
-  --golden ./project/golden_data.json \
-  --project ./my-project \
-  --report gap_report.md
+# 상세 갭 보고서 생성
+caas analyze-gaps "전자상거래 시스템" \
+  --golden-data ./project/golden_data.json \
+  --output gaps.json \
+  --detailed
 ```
 
 ---
 
-### `caas refine`
-**목적**: 요구사항 구체화 및 명확화
+### `caas expand`
+**목적**: 요구사항 자동 확장 및 갭 채우기
 
 ```bash
-caas refine REQUIREMENT [OPTIONS]
+caas expand REQUIREMENT [OPTIONS]
 ```
 
 **사용 예시**:
 ```bash
-# 요구사항 구체화
-caas refine "사용자 관리 시스템"
-# 출력: 구체화된 요구사항 제안
+# 갭 기반 요구사항 확장
+caas expand "사용자 관리 시스템" \
+  --golden-data ./project/golden_data.json \
+  --gaps gaps.json \
+  --output expanded_golden.json
 
-# Golden Data 생성 후 구체화
-caas refine "사용자 관리 시스템" --with-golden
+# 일반 확장 (갭 분석 없이)
+caas expand "블로그 시스템" \
+  --golden-data ./project/golden_data.json \
+  --output expanded_golden.json
 ```
 
 ---
 
-## 4. Phase 관리 (3 commands)
+## 4. Phase 관리
 
-### `caas phase status`
-**목적**: Phase 진행 상태 확인
+### Phase 재실행
 
+**특정 Phase 재실행**:
 ```bash
-caas phase status --project PATH
+# Phase N 재실행
+caas generate-phase --phase N \
+  --input ./project \
+  --output ./project
 ```
 
-**사용 예시**:
+**Phase 상태 확인**:
 ```bash
-caas phase status --project ./my-project
+# 프로젝트 상태 확인 (Phase 진행 상황 포함)
+caas status <project-id>
+
+# 또는 프로젝트 목록에서 상태 확인
+caas list --status generating
 ```
 
-**출력 예시**:
-```
-📊 Phase Status: my-project
-
-Phase 0: Concretization     ✅ Complete
-Phase 1: Discovery          ✅ Complete
-Phase 2: Architecture       ✅ Complete
-Phase 3: Design             ✅ Complete
-Phase 4: Development        ✅ Complete
-Phase 5: Delivery           🔄 In Progress (60%)
-
-Last Updated: 2026-02-14 15:30:45
-```
-
----
-
-### `caas phase rollback`
-**목적**: 특정 Phase로 롤백
-
+**Phase 산출물 관리**:
 ```bash
-caas phase rollback --phase PHASE_NUMBER --project PATH
-```
+# 전체 프로젝트 다운로드 (모든 Phase 산출물 포함)
+caas download <project-id> ./output
 
-**사용 예시**:
-```bash
-# Phase 2로 롤백
-caas phase rollback --phase 2 --project ./my-project
-```
-
----
-
-### `caas phase export`
-**목적**: Phase 산출물 내보내기
-
-```bash
-caas phase export --phase PHASE_NUMBER --project PATH --output PATH
-```
-
-**사용 예시**:
-```bash
-# Phase 3 산출물 내보내기
-caas phase export \
-  --phase 3 \
-  --project ./my-project \
-  --output ./exports/phase3.zip
+# 특정 Phase 산출물 확인
+ls ./project/golden_data.json      # Phase 0
+ls ./project/requirement_analysis.json  # Phase 1
+ls ./project/architecture.json     # Phase 2
+ls ./project/agents.json ./project/tasks.json  # Phase 3
 ```
 
 ---
@@ -630,11 +604,11 @@ caas qa compliance \
   --project ./my-project \
   --standard gdpr,hipaa,pci-dss
 
-# 상세 보고서 생성
+# 상세 보고서 생성 (JSON 형식)
 caas qa compliance \
   --project ./my-project \
   --standard gdpr \
-  --report ./compliance_report.html
+  --output ./compliance_report.json
 ```
 
 **지원 표준**:
@@ -734,16 +708,16 @@ caas qa report [OPTIONS]
 
 **사용 예시**:
 ```bash
-# 통합 QA 보고서
+# 통합 QA 보고서 (JSON 형식)
 caas qa report \
   --project ./my-project \
-  --output ./qa_report.html
+  --output ./qa_report.json
 
-# PDF 보고서
+# 상세 QA 보고서
 caas qa report \
   --project ./my-project \
-  --format pdf \
-  --output ./qa_report.pdf
+  --detailed \
+  --output ./qa_report_detailed.json
 ```
 
 ---
@@ -997,43 +971,41 @@ caas validate --help
 
 ---
 
-### `caas doctor`
-**목적**: 시스템 진단 및 환경 검증
+### 시스템 진단 방법
 
+**버전 확인**:
 ```bash
-caas doctor [OPTIONS]
+# CAAS 버전 확인
+caas --version
+# 출력: CAAS v0.5.1 (Core) + v0.6.3 (CAAS-E)
 ```
 
-**사용 예시**:
+**환경 변수 검증**:
 ```bash
-# 시스템 진단
-caas doctor
+# 환경 변수 확인
+caas env --validate
+# 출력:
+# ✅ OPENAI_API_KEY: valid
+# ⚠️  NEO4J_URI: not set (optional)
 ```
 
-**출력 예시**:
+**설정 확인**:
+```bash
+# 현재 설정 조회
+caas config --list
+# 출력:
+# llm_provider: openai
+# default_output_dir: ./generated
+# openai_api_key: sk-***...***
 ```
-🩺 CAAS System Diagnostic
 
-✅ Python Version: 3.11.5 (OK)
-✅ CAAS Version: 0.5.1
-✅ Dependencies:
-   - crewai: 0.28.8 (OK)
-   - langchain: 0.1.12 (OK)
-   - openai: 1.12.0 (OK)
+**의존성 확인 (Python)**:
+```bash
+# Python 버전 확인
+python --version
 
-✅ Configuration:
-   - Config file: ~/.caas/config.yaml (exists)
-   - LLM Provider: openai (configured)
-   - API Key: ✅ Valid
-
-✅ Environment:
-   - OPENAI_API_KEY: ✅ Set
-   - NEO4J_URI: ⚠️  Not set (optional)
-
-⚠️  Warnings:
-   - Neo4j not configured (using embedded graph DB)
-
-✅ System Status: Healthy
+# 필수 패키지 확인
+pip show caas crewai langchain openai
 ```
 
 ---

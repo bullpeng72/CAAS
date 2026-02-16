@@ -1004,12 +1004,18 @@ caas generate-phase --phase 5 "복잡한 요구사항" --output ./project
 
 ### 시나리오 3: 오류 발생 시 재시도
 ```bash
-# Phase 3에서 실패한 경우
-caas generate-phase --phase 3 "요구사항" --output ./project --retry
+# Phase 3에서 실패한 경우 - 동일 Phase 재실행
+caas generate-phase --phase 3 \
+  --input ./project \
+  --output ./project
 
 # 또는 수동 수정 후 이어서 진행
 vim ./project/agents.json  # 수동 수정
-caas generate-phase --phase 4 "요구사항" --output ./project --continue
+
+# Phase 4로 이어서 진행 (이전 결과 활용)
+caas generate-phase --phase 4 \
+  --input ./project \
+  --output ./project
 ```
 
 ---
