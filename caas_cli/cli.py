@@ -445,7 +445,7 @@ def show_brief_help():
     brief_text.append(" - CrewAI Agent Auto-generation System\n\n", style="cyan")
 
     brief_text.append("Version: ", style="dim")
-    brief_text.append("0.6.3", style="bold green")
+    brief_text.append("0.6.4", style="bold green")
     brief_text.append(" (CAAS-E Complete)\n\n", style="dim")
 
     brief_text.append("Usage: ", style="yellow")
@@ -585,7 +585,7 @@ def show_brief_help():
 
 
 @click.group(cls=CustomGroup, invoke_without_command=True)
-@click.version_option(version="0.6.3")
+@click.version_option(version="0.6.4")
 @click.pass_context
 def cli(ctx):
     """CAAS - CrewAI Agent Auto-generation System
@@ -899,6 +899,30 @@ def cli(ctx):
       • Producer-Critic: LLM peer review (score threshold: 7.0/10.0)
       • LLM Judge: Semantic quality evaluation
       • Auto-Fix: Automated issue resolution
+
+    \b
+    ✨ WHAT'S NEW IN v0.6.4 - 2026-02-18
+    ═══════════════════════════════════════════════════════════════════════
+
+    🔧 Bug Fixes
+       • FrontendSpecialistAgent condition: is not False → is True (prevents unwanted app.py)
+       • TDD test generator: removed invalid self param from standalone pytest functions
+       • UI auto-detection: strict keyword matching (golden_data.py + engine.py)
+
+    ✨ caas refine - Unified Requirement Refinement Pipeline (NEW)
+       • run: gap analysis → Rich Q&A → auto-expand (full pipeline)
+       • gaps: gap analysis only → gaps.json
+       • ask: interactive Q&A from gaps file → answers.json
+       • expand: expand Golden Data → refined_golden.json
+       • 13 new tests (605+ total), 33+ CLI commands
+
+    🐍 python-dotenv Auto-injection
+       • _ensure_dotenv_in_main(): adds load_dotenv() to generated main.py
+       • _ensure_dotenv_in_requirements(): adds python-dotenv>=1.0.0
+
+    🎨 Rich CLI Template
+       • main.py generation: Panel.fit(), Prompt.ask(), console.status()
+       • User-friendly CLI UX for non-UI projects
 
     \b
     ✨ WHAT'S NEW IN v0.6.3 (CAAS-E) - 2026-02-14
