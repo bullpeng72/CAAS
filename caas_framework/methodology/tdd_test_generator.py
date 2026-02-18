@@ -468,8 +468,8 @@ def {fixture_name}():
     def _generate_test_function(scenario: ParsedTestScenario, feature: FeatureSpec) -> str:
         """Generate single test function"""
         # Build function signature
-        params = ["self"] if scenario.fixtures_needed else []
-        params.extend(scenario.fixtures_needed)
+        # pytest 독립 함수에는 self 불필요 — fixture/mock 이름만 파라미터로 사용
+        params = list(scenario.fixtures_needed)
         params.extend(scenario.mocks_needed)
 
         params_str = ", ".join(params) if params else ""
