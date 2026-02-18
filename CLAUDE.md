@@ -2,11 +2,11 @@
 
 ## 프로젝트 개요
 
-**CAAS (CrewAI Agent Auto-generation System)** v0.6.3
+**CAAS (CrewAI Agent Auto-generation System)** v0.6.4
 
 자연어 요구사항을 입력받아 프로덕션 레디 멀티 에이전트 시스템 코드를 자동으로 생성하는 통합 패키지입니다.
 
-**CAAS 통합 버전** (2026-02-17): Core + Enterprise 기능 완전 통합 ✅
+**CAAS 통합 버전** (2026-02-18): Core + Enterprise 기능 완전 통합 ✅
 
 - **핵심 목표**: 자연어 → Golden Data → Agent/Task 설계 → Production Code 자동 생성
 - **방법론**: CAAS 6-Phase Methodology (Concretization → Discovery → Architecture → Design → Development → Delivery)
@@ -82,6 +82,7 @@ caas/
 │       ├── qa_cmd.py        # QA 명령어 (compliance, performance, security, report) ✨ NEW
 │       ├── tdd.py           # TDD 명령어 (generate-tests, analyze-code, workflow) ✨ CAAS-E
 │       ├── checkpoint_cmd.py # 체크포인트 명령어 (status, approve, reject, list) ✨ CAAS-E
+│       ├── refine_cmd.py    # refine 명령어 (run, gaps, ask, expand) ✨ NEW v0.6.4
 │       └── ...              # 기타 명령어
 │
 ├── caas_sdk/                # Python SDK (선택적)
@@ -128,7 +129,7 @@ caas/
 │       ├── 62_용어집.md
 │       └── 63_FAQ.md
 │
-└── tests/                   # 208+ 테스트 (v0.6.3 통합)
+└── tests/                   # 605+ 테스트 (v0.6.4 통합)
     ├── test_e2e_*.py        # E2E 통합 테스트
     ├── test_exceptions.py   # 예외 테스트 (v0.4.1, 35 tests, 100% coverage)
     ├── test_llm_plugin_refactoring.py  # 플러그인 테스트 (v0.4.1, 25 tests)
@@ -1397,6 +1398,35 @@ else:
 
 ## 변경 이력
 
+### 2026-02-18: v0.6.4 버그 수정 & caas refine 구현 ✅
+- **버그 수정 3건**
+  - `caas_framework/agents/collaboration.py:726`: `is not False` → `is True` (FrontendSpecialistAgent 조건 수정)
+    - 기존: `enable_frontend=None`이면 UI 에이전트 생성 (의도치 않은 app.py 생성)
+    - 수정: `enable_frontend=True`일 때만 FrontendSpecialistAgent 등록
+  - `caas_framework/methodology/tdd_test_generator.py:471`: `params = ["self"]` 제거
+    - pytest 독립 함수에 `self` 파라미터가 포함되어 `fixture 'self' not found` 오류 발생
+    - 수정: `params = list(scenario.fixtures_needed)`로 변경
+  - `tests/tests/test_add_task.py`: `def test_1_1(self, ...)` → `def test_1_1(...)` (증상 수정)
+- **UI 자동감지 개선 (2-Layer Fix)**
+  - Option A: `caas_framework/methodology/golden_data.py` — ui_components 기본값 `[]`로 변경, 명시적 UI 키워드 필수
+  - Option B: `caas_framework/methodology/engine.py` — `_detect_ui_requirements()` 완전 재작성
+    - `EXPLICIT_UI_TYPES` 집합: `form, dashboard, page, input, modal, wizard, sidebar`만 UI로 인식
+    - `EXPLICIT_UI_KEYWORDS` 리스트: `streamlit, react, 웹 ui, 대시보드, 프론트엔드, 화면` 등 엄격한 키워드
+- **python-dotenv 자동 보장**
+  - `code_generator.py`에 `_ensure_dotenv_in_main()`, `_ensure_dotenv_in_requirements()` 헬퍼 추가
+  - 생성된 모든 main.py에 `load_dotenv()` 자동 삽입, requirements.txt에 `python-dotenv>=1.0.0` 보장
+- **Rich CLI 템플릿 적용**
+  - main.py LLM 프롬프트에 Rich 라이브러리 CLI 템플릿 추가 (Panel.fit, Prompt.ask, console.status)
+  - Frontend UI 없는 프로젝트에서 사용자 친화적 CLI UX 자동 생성
+- **`caas refine` 통합 요구사항 정제 파이프라인 구현** ✨ NEW
+  - `caas_cli/commands/refine_cmd.py` 신규 구현 (~700 라인)
+  - 4개 서브커맨드: `run` (전체 파이프라인), `gaps` (갭 분석), `ask` (인터랙티브 Q&A), `expand` (자동 확장)
+  - `RequirementGapAnalyzer` + `InteractiveQuestionGenerator` + `RequirementExpander` 통합
+  - Rich 기반 인터랙티브 Q&A (YES_NO, MULTIPLE_CHOICE, FREE_TEXT, SCALE 지원)
+  - 13개 신규 테스트 추가 (`tests/test_refine_cmd.py`)
+- **버전 통일**: 0.6.3 → 0.6.4 (setup.py, pyproject.toml, caas_framework/__init__.py, caas_cli/__init__.py)
+- **총 테스트**: 605 passed (0 failed, 0 errors)
+
 ### 2026-02-17: v0.6.3 버전 통일 및 문서 현행화 📝
 - **버전 정보 통일**
   - 모든 패키지 파일에서 0.6.3으로 통일 완료
@@ -1568,8 +1598,8 @@ else:
 
 ---
 
-**Last Updated**: 2026-02-17
-**Version**: 0.6.3 (통합 버전)
+**Last Updated**: 2026-02-18
+**Version**: 0.6.4 (통합 버전)
 **Package Name**: caas (통합 패키지)
 **Repository**: https://github.com/bullpeng72/CAAS.git
 **Branch**: CAAS
@@ -1577,8 +1607,8 @@ else:
 **Status**: Production-Ready ✅ | Enterprise 기능 완전 통합 🎉 | Expert Agent Only Path 🎯 | High Code Quality 🚀 (<8% Duplication)
 **Deployment Strategy**: Single Unified Package (CLI + Framework Library)
 **Test Coverage**: 35% (핵심 모듈), 증가 추세 ↗️
-**Total Tests**: 208+
-**CLI Commands**: 32+
+**Total Tests**: 605 (all passing)
+**CLI Commands**: 33+ (caas refine 그룹 추가)
 **Key Achievements**:
   - Enterprise 기능 통합 완료 (Core + CAAS-E)
   - QA 시스템 완비 (Compliance + Performance + Security)
@@ -1587,5 +1617,9 @@ else:
   - 한국어 출력 100% 보장
   - 사용자 입력 플레이스홀더 강화
   - Artifact 단일 경로 생성
+  - caas refine 통합 요구사항 정제 파이프라인 (v0.6.4)
+  - UI 자동감지 오류 수정 (FrontendSpecialistAgent 조건 버그)
+  - python-dotenv 자동 삽입 보장
+  - Rich CLI 템플릿 적용
 
 **Made with ❤️ by bullpeng72**

@@ -644,7 +644,7 @@ pytest ./project/tests/ --cov=. --cov-report=term
 ---
 
 **작성일**: 2026-02-17
-**버전**: v0.5.1 (Core) + v0.6.3 (CAAS-E)
+**버전**: v0.6.4
 **대상**: 프로젝트 관리자 (PM), Tech Lead, QA 엔지니어
 **난이도**: ⭐⭐ 중급
 

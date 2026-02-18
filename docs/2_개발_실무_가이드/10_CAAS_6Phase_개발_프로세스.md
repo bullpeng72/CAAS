@@ -643,7 +643,7 @@ graph TD
 # -*- coding: utf-8 -*-
 """
 Todo Management System
-Created by CAAS v0.5.1
+Created by CAAS v0.6.4
 """
 
 import sys
@@ -835,7 +835,7 @@ def test_tasks_created():
 ```markdown
 # Todo Management System
 
-Created by CAAS v0.5.1
+Created by CAAS v0.6.4
 
 ## Installation
 ```bash
@@ -1045,6 +1045,6 @@ caas generate-phase --phase 4 \
 ---
 
 **작성일**: 2026-02-14
-**버전**: v0.5.1 (Core) + v0.6.3 (CAAS-E)
+**버전**: v0.6.4
 **대상**: 주니어/시니어 개발자, PM
 **난이도**: ⭐⭐ 기초-중급

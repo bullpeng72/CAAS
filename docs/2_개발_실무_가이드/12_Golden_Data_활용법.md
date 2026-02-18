@@ -226,7 +226,7 @@ graph TD
   "version": "1.0.0",
   "created_at": "2026-02-14T15:30:00Z",
   "updated_at": "2026-02-14T16:45:00Z",
-  "author": "CAAS v0.5.1",
+  "author": "CAAS v0.6.4",
   "tags": ["task_management", "productivity", "todo"],
   "estimated_development_time": "2-3 hours"
 }
@@ -666,6 +666,6 @@ diff <(cat v1.0.0/golden_data.json | jq '.features') \
 ---
 
 **작성일**: 2026-02-14
-**버전**: v0.5.1 (Core) + v0.6.3 (CAAS-E)
+**버전**: v0.6.4
 **대상**: 주니어/시니어 개발자, PM
 **난이도**: ⭐⭐⭐ 중급-고급

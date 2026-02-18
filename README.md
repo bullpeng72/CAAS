@@ -7,7 +7,7 @@
 ![Python](https://img.shields.io/badge/Python-3.11+-blue)
 ![CrewAI](https://img.shields.io/badge/CrewAI-0.65+-green)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
-![Version](https://img.shields.io/badge/Version-0.6.3-orange)
+![Version](https://img.shields.io/badge/Version-0.6.4-orange)
 ![Status](https://img.shields.io/badge/Status-Production%20Ready-brightgreen)
 ![Integration](https://img.shields.io/badge/Core%2BEnterprise-Fully%20Integrated-success)
 
@@ -125,17 +125,18 @@ caas generate "블로그 시스템" --enable-frontend --frontend-framework strea
 - ✅ **Frontend Specialist Agent**: Streamlit UI 완전 생성 (Input, Button, Error Handling)
 
 ### 🎯 CLI Features
-**32+ 명령어 제공**:
+**33+ 명령어 제공**:
 
 #### 🔧 Setup & Configuration (3)
 - `init` - 대화형 초기 설정
 - `config` - 설정 관리 (get/set/list/reset)
 - `env` - 환경 변수 관리
 
-#### 📝 Requirement Refinement (3)
+#### 📝 Requirement Refinement (4) ✨ ENHANCED
 - `analyze-gaps` - 요구사항 갭 분석
 - `expand` - 요구사항 자동 확장
 - `questions` - 대화형 질문 생성
+- `refine` - 통합 정제 파이프라인 (run/gaps/ask/expand) ✨ NEW v0.6.4
 
 #### 🚀 Code Generation (4)
 - `generate` - 전체 워크플로우 (5-10분)
@@ -151,10 +152,10 @@ caas generate "블로그 시스템" --enable-frontend --frontend-framework strea
 #### 🔍 Code Analysis & QA (6) ✨ ENHANCED
 - `analyze-completeness` - 구현 완전성 분석 (v0.4.0)
 - `fix-runtime-error` - 런타임 오류 자동 수정 (v0.4.0)
-- `qa compliance` - 라이선스 & 프라이버시 검사 (CAAS-E v0.6.3) ✨ NEW
-- `qa performance` - 성능 프로파일링 (메모리/CPU/부하) (CAAS-E v0.6.3) ✨ NEW
-- `qa security` - 보안 스캔 (OWASP Top 10) (CAAS-E v0.6.3) ✨ NEW
-- `qa report` - 종합 QA 리포트 (CAAS-E v0.6.3) ✨ NEW
+- `qa compliance` - 라이선스 & 프라이버시 검사 (CAAS-E v0.6.3)
+- `qa performance` - 성능 프로파일링 (메모리/CPU/부하) (CAAS-E v0.6.3)
+- `qa security` - 보안 스캔 (OWASP Top 10) (CAAS-E v0.6.3)
+- `qa report` - 종합 QA 리포트 (CAAS-E v0.6.3)
 
 #### 🧪 Testing & TDD (4) ✨ ENHANCED
 - `test` - 테스트 실행 (run/coverage/validate)
@@ -518,14 +519,14 @@ caas/
 │   ├── validate_env.py              # Environment validator
 │   └── auto_deploy.sh               # Auto deployment script
 │
-├── 📁 tests/                        # Test suite (208+ tests (통합))
+├── 📁 tests/                        # Test suite (605+ tests)
 │   ├── test_exceptions.py           # Exception tests (v0.4.1, 35 tests) ⭐
 │   ├── test_llm_plugin_refactoring.py  # Plugin tests (v0.4.1, 25 tests) ⭐
-│   ├── test_qa/                     # QA system tests (CAAS-E v0.6.3, 36 tests) ✨ NEW
+│   ├── test_qa/                     # QA system tests (CAAS-E v0.6.3, 36 tests)
 │   │   ├── test_compliance.py       # Compliance tests (10 tests)
 │   │   ├── test_performance.py      # Performance tests (10 tests)
 │   │   └── test_security.py         # Security tests (16 tests)
-│   ├── test_iteration/              # Iteration tests (CAAS-E v0.6.3, 12 tests) ✨ NEW
+│   ├── test_iteration/              # Iteration tests (CAAS-E v0.6.3, 12 tests)
 │   │   └── test_controller.py       # 3-level iteration tests
 │   ├── test_checkpoint/             # Checkpoint tests (CAAS-E v0.6.2, 28 tests)
 │   │   └── test_manager.py
@@ -827,7 +828,7 @@ caas plugins status openai
 ## 🧪 테스트
 
 ```bash
-# 전체 테스트 (208+ tests (통합))
+# 전체 테스트 (605+ tests)
 pytest
 
 # E2E 테스트
@@ -870,7 +871,24 @@ pytest tests/test_qa/test_security.py       # Security (16 tests)
 
 ## 🗺️ 로드맵
 
-### ✅ v0.6.3 완료 (Current - 2026-02-17) 🎉
+### ✅ v0.6.4 완료 (Current - 2026-02-18) 🎉
+**버그 수정 & caas refine 통합 요구사항 정제 파이프라인**
+
+- [x] **FrontendSpecialistAgent 조건 버그 수정** - `is not False` → `is True` (의도치 않은 app.py 생성 방지)
+- [x] **TDD 테스트 생성 버그 수정** - pytest 독립 함수에 잘못된 `self` 파라미터 제거
+- [x] **UI 자동감지 2-Layer 강화** - golden_data.py + engine.py 엄격한 키워드 검증
+- [x] **python-dotenv 자동 삽입** - 모든 생성 main.py에 `load_dotenv()` 보장
+- [x] **Rich CLI 템플릿** - main.py에 사용자 친화적 CLI UX 자동 적용
+- [x] **`caas refine` 구현** (~700 라인)
+  - `run`: 갭분석 → Rich Q&A → 자동확장 전체 파이프라인
+  - `gaps`: 갭 분석만 단독 실행
+  - `ask`: 인터랙티브 Q&A (YES/NO, 선택형, 자유입력, 점수형)
+  - `expand`: Golden Data 자동 확장
+- [x] **테스트**: 605 passed (이전 592 → +13 신규)
+
+---
+
+### ✅ v0.6.3 완료 (2026-02-17) 🎉
 **Core + Enterprise 통합 완료 - QA Enhancements + Iteration Control**
 
 #### 🎯 Enterprise 기능 완전 통합
@@ -931,8 +949,8 @@ pytest tests/test_qa/test_security.py       # Security (16 tests)
 #### 📊 Impact Metrics
 | 지표 | Before | After | 개선율 |
 |------|--------|-------|--------|
-| **총 테스트** | 160+ | **208+** | **+30%** |
-| **CLI 명령어** | 28 | **32+** | **+14%** |
+| **총 테스트** | 208+ | **605+** | **+191%** |
+| **CLI 명령어** | 32 | **33+** | **+3%** |
 | **코드 라인** | 27,000 | **33,000+** | **+22%** |
 | **QA 커버리지** | 기본 | **완전** (Compliance+Perf+Sec) | **+100%** |
 | **Iteration 신뢰성** | 수동 | **자동 재시도** (max 3회) | **+100%** |
@@ -1319,4 +1337,4 @@ MIT License - 자세한 내용은 [LICENSE](LICENSE) 파일 참조
 
 **Made with ❤️ by bullpeng72**
 
-**v0.6.3 Unified** 🎉 | [Documentation](docs/1_시작하기/01_CAAS_소개_및_설치.md) | Framework-First Architecture ✅ | Core+Enterprise Fully Integrated 🎊 | 98.7% Implementation Rate for CrewAI Agents ⭐ | <8% Code Duplication 🚀 | Expert Agent Only Path 🎯 | 6 Expert Agents | 32+ CLI Commands | 208+ Tests | QA System Complete 🛡️ | 3-Level Iteration Control 🔄 | Last Updated: 2026-02-17
+**v0.6.4 Unified** 🎉 | [Documentation](docs/1_시작하기/01_CAAS_소개_및_설치.md) | Framework-First Architecture ✅ | Core+Enterprise Fully Integrated 🎊 | 98.7% Implementation Rate for CrewAI Agents ⭐ | <8% Code Duplication 🚀 | Expert Agent Only Path 🎯 | 6 Expert Agents | 33+ CLI Commands | 605+ Tests | QA System Complete 🛡️ | 3-Level Iteration Control 🔄 | Last Updated: 2026-02-18

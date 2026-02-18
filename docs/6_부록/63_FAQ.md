@@ -395,7 +395,7 @@ collaboration = ExpertAgentCollaboration(
 
 ### Q20. 한국어 출력이 제대로 안 되요.
 
-**A**: **v0.5.1에서 한국어 출력 강화** 완료.
+**A**: **v0.6.4에서 한국어 출력 강화** 완료.
 - Agent role, goal, backstory 한국어 100% 보장
 - Task description/expected_output 한국어 출력
 - 코드 주석 및 docstring 한국어 생성
@@ -589,7 +589,7 @@ print(f"Code Quality: {result.code_quality}/10.0")
 **A**: **예**, GitHub에 공개.
 - **저장소**: https://github.com/bullpeng72/CAAS
 - **라이선스**: MIT (상업적 사용 가능)
-- **버전**: v0.5.1 (2026-02-12 기준)
+- **버전**: v0.6.4 (2026-02-18 기준)
 
 **기여 방법**:
 ```bash
@@ -667,6 +667,6 @@ cd CAAS
 ---
 
 **작성일**: 2026-02-14
-**버전**: v0.5.1 (Core) + v0.6.3 (CAAS-E)
+**버전**: v0.6.4
 **대상**: 전체 사용자
 **업데이트**: 자주 묻는 질문 추가 시 지속 업데이트

@@ -152,7 +152,7 @@ pip install -e ".[cli]"
 ```bash
 # CAAS 버전 확인
 caas --version
-# 출력: CAAS v0.5.1 (Core) + v0.6.3 (CAAS-E)
+# 출력: CAAS v0.6.4
 
 # 도움말 확인
 caas --help
@@ -377,5 +377,5 @@ pip install caas
 ---
 
 **작성일**: 2026-02-14
-**버전**: v0.5.1 (Core) + v0.6.3 (CAAS-E)
+**버전**: v0.6.4
 **대상**: 주니어/시니어 개발자, PM

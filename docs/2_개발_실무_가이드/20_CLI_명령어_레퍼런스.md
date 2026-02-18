@@ -1,7 +1,7 @@
 # CLI 명령어 레퍼런스
 
 ## 🎯 이 문서에서 배울 것
-- [ ] CAAS CLI 전체 명령어 (32+ 명령어)
+- [ ] CAAS CLI 전체 명령어 (33+ 명령어)
 - [ ] 각 명령어의 옵션 및 사용법
 - [ ] 실전 활용 예시 및 조합
 
@@ -11,7 +11,7 @@
 
 ## 📚 명령어 카테고리
 
-CAAS CLI는 **32개 이상의 명령어**를 8개 카테고리로 제공합니다.
+CAAS CLI는 **33개 이상의 명령어**를 8개 카테고리로 제공합니다.
 
 ```mermaid
 graph TD
@@ -213,7 +213,7 @@ caas generate "전자상거래 시스템" \
 
 **실행 흐름**:
 ```
-🎯 CAAS v0.5.1 - Starting Generation...
+🎯 CAAS v0.6.4 - Starting Generation...
 
 Phase 0: Concretization ━━━━━━━━━━━━━━━━━━━━ 100% (30s)
 Phase 1: Discovery ━━━━━━━━━━━━━━━━━━━━━━━━ 100% (25s)
@@ -544,6 +544,73 @@ caas expand "사용자 관리 시스템" \
 caas expand "블로그 시스템" \
   --golden-data ./project/golden_data.json \
   --output expanded_golden.json
+```
+
+---
+
+### `caas refine` ✨ NEW v0.6.4
+**목적**: 통합 요구사항 정제 파이프라인 (갭분석 → Q&A → 자동확장)
+
+```bash
+caas refine [COMMAND] [OPTIONS]
+```
+
+**서브커맨드**:
+
+| 서브커맨드 | 설명 |
+|------------|------|
+| `run` | 전체 파이프라인 실행 (갭분석 + Q&A + 확장) |
+| `gaps` | 갭 분석만 단독 실행 → gaps.json 저장 |
+| `ask` | 갭 파일 기반 인터랙티브 Q&A → answers.json 저장 |
+| `expand` | Golden Data 자동 확장 → refined_golden.json 저장 |
+
+**사용 예시**:
+```bash
+# 전체 파이프라인 (추천)
+caas refine run "전자상거래 시스템" \
+  --golden-data ./project/golden_data.json \
+  --output refined_golden.json
+
+# Q&A 없이 자동으로만 실행 (비인터랙티브)
+caas refine run "사용자 인증 시스템" \
+  --golden-data ./golden_data.json \
+  --skip-questions \
+  --no-interactive \
+  --output refined.json
+
+# 갭 분석만 실행
+caas refine gaps "이커머스 플랫폼" \
+  --golden-data ./golden_data.json \
+  --output gaps.json
+
+# 갭 파일 기반 Q&A (인터랙티브)
+caas refine ask \
+  --gaps gaps.json \
+  --domain E_COMMERCE \
+  --output answers.json
+
+# Q&A 없이 자동 답변
+caas refine ask \
+  --gaps gaps.json \
+  --no-interactive \
+  --output answers.json
+
+# Golden Data 확장
+caas refine expand "이커머스 플랫폼" \
+  --golden-data ./golden_data.json \
+  --gaps gaps.json \
+  --output refined_golden.json
+```
+
+**전체 워크플로우**:
+```bash
+# 단계적 실행 방법
+caas refine gaps "요구사항" --golden-data golden.json --output gaps.json
+caas refine ask --gaps gaps.json --domain CUSTOM --output answers.json
+caas refine expand "요구사항" --golden-data golden.json --gaps gaps.json --output refined.json
+
+# 일괄 실행 방법 (동일한 결과)
+caas refine run "요구사항" --golden-data golden.json --output refined.json
 ```
 
 ---
@@ -952,7 +1019,7 @@ caas --version
 
 **출력**:
 ```
-CAAS v0.5.1 (Core) + v0.6.3 (CAAS-E)
+CAAS v0.6.4
 ```
 
 ---
@@ -977,7 +1044,7 @@ caas validate --help
 ```bash
 # CAAS 버전 확인
 caas --version
-# 출력: CAAS v0.5.1 (Core) + v0.6.3 (CAAS-E)
+# 출력: CAAS v0.6.4
 ```
 
 **환경 변수 검증**:
@@ -1154,6 +1221,6 @@ caas --version                               # 버전 확인
 ---
 
 **작성일**: 2026-02-14
-**버전**: v0.5.1 (Core) + v0.6.3 (CAAS-E)
+**버전**: v0.6.4
 **대상**: 주니어/시니어 개발자, PM
 **난이도**: ⭐⭐ 중급 (레퍼런스)
