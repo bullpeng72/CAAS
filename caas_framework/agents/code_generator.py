@@ -736,18 +736,26 @@ st.markdown("<div style='text-align: center; color: gray;'>"
 
 ═══════════════════════════════════════════════════════════════════
 
-ALSO UPDATE main.py TO ACCEPT inputs PARAMETER:
+ALSO UPDATE main.py TO ACCEPT inputs PARAMETER.
+main.py는 반드시 Rich 라이브러리로 사용자 친화적 CLI를 구현하세요:
+- 제목 패널, 컬러 프롬프트, 스피너, 결과 패널 모두 포함
+- rich는 crewai 의존성에 포함되어 있으므로 추가 설치 불필요
 
 ```python
 # 메인 크루 실행 스크립트
 from crewai import Crew, Process
 from agents import create_agents
 from tasks import create_tasks
-import os
 from dotenv import load_dotenv
+from rich.console import Console
+from rich.panel import Panel
+from rich.prompt import Prompt
+from rich.markdown import Markdown
 
 # 환경변수 로드 (.env 파일)
 load_dotenv()
+
+console = Console()
 
 
 def main(inputs=None):
@@ -760,19 +768,35 @@ def main(inputs=None):
     agents = create_agents()
     tasks = create_tasks(agents)
 
-    # ✅ CRITICAL: Handle both CLI and Frontend modes
+    # CLI 모드와 프론트엔드 모드 처리
     if inputs is None:
-        # CLI mode - prompt for input
+        # ✅ Rich CLI: 제목 패널 출력
+        console.print(Panel.fit(
+            "[bold magenta]🤖 AI 멀티 에이전트 시스템[/bold magenta]",
+            border_style="magenta"
+        ))
+
+        # ✅ Rich CLI: 컬러 프롬프트로 입력 수집
         user_inputs = {}
-        keyword = input("검색할 키워드를 입력하세요: ")
+        keyword = Prompt.ask("[bold cyan]검색할 키워드를 입력하세요[/bold cyan]")
         user_inputs["keyword"] = keyword
     else:
-        # Frontend mode - use provided inputs
         user_inputs = inputs
 
     crew = Crew(agents=list(agents.values()), tasks=tasks,
-                process=Process.sequential, verbose=True)
-    result = crew.kickoff(inputs=user_inputs)  # ✅ Pass inputs!
+                process=Process.sequential, verbose=False)
+
+    # ✅ Rich CLI: 스피너로 진행 상태 표시
+    with console.status("[bold green]🔄 에이전트 처리 중...[/bold green]", spinner="dots"):
+        result = crew.kickoff(inputs=user_inputs)
+
+    # ✅ Rich CLI: 결과를 패널로 보기 좋게 출력
+    result_text = result.raw if hasattr(result, "raw") else str(result)
+    console.print(Panel(
+        Markdown(result_text),
+        title="[bold green]📊 실행 결과[/bold green]",
+        border_style="green"
+    ))
     return result
 
 
@@ -907,6 +931,9 @@ FRONTEND UI REQUIREMENT:
             "🚨 CRITICAL: requirements.txt에 반드시 python-dotenv 포함 (crewai, streamlit, python-dotenv 필수)",
             "🚨 CRITICAL: main.py 상단에 반드시 'from dotenv import load_dotenv' import 후 'load_dotenv()' 호출",
             "🚨 CRITICAL: main.py에 if __name__ == '__main__': main() 블록 필수",
+            "🚨 CRITICAL: main.py CLI 모드(inputs=None)에서 반드시 Rich 라이브러리 사용 (rich는 crewai 의존성에 포함됨)",
+            "🚨 CRITICAL: Rich CLI 필수 구성요소 - Panel.fit(제목), Prompt.ask(입력), console.status(스피너), Panel(결과 출력)",
+            "🚨 CRITICAL: crew 생성 시 verbose=False 설정 (Rich UI와 CrewAI 로그 충돌 방지)",
             "에러 핸들링과 로깅 추가",
             "Python 모범 사례와 PEP 8 준수",
             "명확한 주석과 docstring 포함 (반드시 한국어로! 영어 주석 절대 금지!)",

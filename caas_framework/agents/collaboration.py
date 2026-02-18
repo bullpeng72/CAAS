@@ -722,8 +722,10 @@ class ExpertAgentCollaboration:
             ),
         }
 
-        # ✅ v0.5.0: Add Frontend Specialist Agent (conditional)
-        if self.enable_frontend is not False:  # None or True
+        # ✅ v0.5.0: Add Frontend Specialist Agent (명시적 True일 때만 등록)
+        # 버그 수정: `is not False`는 None도 통과시켜 UI 미요청 시에도 app.py 생성됨
+        # 수정: `is True`로 변경하여 명시적으로 활성화된 경우만 등록
+        if self.enable_frontend is True:
             framework = self.frontend_framework or "streamlit"
             self.agents["frontend_specialist"] = FrontendSpecialistAgent(
                 llm_plugin=llm_plugin,
