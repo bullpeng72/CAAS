@@ -68,11 +68,20 @@ def generate_tests_cmd(
     """
     Generate pytest tests from Golden Data (Phase 4.5: TDD RED).
 
+    GOLDEN_DATA: Path to golden_data.json file (positional argument, required)
+
     Reads Golden Data with test_scenarios and generates complete pytest test files
     with fixtures, mocks, and assertions.
 
-    Example:
+    \b
+    USAGE:
+        caas tdd generate-tests ./generated/golden_data.json
         caas tdd generate-tests ./golden_data.json --output-dir ./tests
+        caas tdd generate-tests ./golden_data.json --test-types unit,integration
+
+    \b
+    NOTE: golden_data.json must contain features with 'test_scenarios' field.
+    Run 'caas generate' first to produce golden_data.json in the output directory.
 
     Generated files:
         - tests/test_<feature_name>_<feature_id>.py
@@ -232,16 +241,31 @@ def analyze_code_cmd(
     show_suggestions: bool
 ):
     """
-    Analyze code for smells and refactoring opportunities (Phase 5.5: TDD REFACTOR).
+    Analyze a Python file for code smells and refactoring opportunities (Phase 5.5: TDD REFACTOR).
 
-    Performs AST-based analysis to detect:
-    - Code smells (long functions, too many parameters, deep nesting, magic numbers)
-    - Performance issues (nested loops, string concatenation in loops)
-    - Generates refactoring suggestions with before/after examples
+    CODE_FILE: Path to a single Python (.py) file to analyze (positional argument, required)
 
-    Example:
-        caas tdd analyze-code ./src/auth/services.py --format table
+    \b
+    Performs AST-based static analysis to detect:
+    • Code smells: long functions, too many parameters, deep nesting, magic numbers
+    • Performance issues: nested loops, string concatenation in loops
+    • Generates refactoring suggestions with before/after examples
+
+    \b
+    USAGE:
+        caas tdd analyze-code ./generated/agents.py
+        caas tdd analyze-code ./src/auth/services.py --format detailed
         caas tdd analyze-code ./src/app.py --output report.json --format json
+        caas tdd analyze-code ./tasks.py --min-severity high
+
+    \b
+    FORMATS:
+    • table    - Compact table view (default)
+    • detailed - Full details with before/after refactoring examples
+    • json     - Machine-readable JSON (use with --output)
+
+    \b
+    NOTE: CODE_FILE must be a single .py file path (not a directory).
     """
     _analyze_code(code_file, output, output_format, min_severity, show_suggestions)
 

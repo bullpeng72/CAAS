@@ -4,6 +4,13 @@ CAAS CLI Main Entry Point
 Command-line interface for generating CrewAI agents.
 """
 
+import logging
+import sys
+
+# Suppress INFO-level logs during --help or version checks to keep output clean.
+# Full logging is re-enabled when an actual command runs.
+if "--help" in sys.argv or "-h" in sys.argv or "--version" in sys.argv or len(sys.argv) == 1:
+    logging.disable(logging.INFO)
 
 import click
 from rich.console import Console

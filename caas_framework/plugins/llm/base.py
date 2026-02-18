@@ -57,6 +57,8 @@ class LLMPlugin(Plugin):
     - _handle_api_error(): Custom error handling
     """
 
+    plugin_type = PluginType.LLM  # class-level attribute for registry introspection
+
     def __init__(self, name: str, config: Dict[str, Any]):
         super().__init__(name=name, plugin_type=PluginType.LLM, config=config)
         self.model = config.get("model", "gpt-4")

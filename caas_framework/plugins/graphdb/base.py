@@ -50,6 +50,8 @@ class GraphDBPlugin(Plugin):
     - find_path(): Find paths between nodes
     """
 
+    plugin_type = PluginType.GRAPHDB  # class-level attribute for registry introspection
+
     def __init__(self, name: str, config: Dict[str, Any]):
         super().__init__(name=name, plugin_type=PluginType.GRAPHDB, config=config)
         self.database = config.get("database", "neo4j")

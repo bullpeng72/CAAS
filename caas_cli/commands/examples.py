@@ -154,9 +154,25 @@ def show_example(title: str):
     title_lower = title.lower()
     matches = [ex for ex in REQUIREMENT_EXAMPLES if title_lower in ex.title.lower()]
 
+    # Also search by domain value or tags if no title match
+    if not matches:
+        matches = [ex for ex in REQUIREMENT_EXAMPLES if title_lower == ex.domain.value.lower()]
+    if not matches:
+        matches = [ex for ex in REQUIREMENT_EXAMPLES if any(title_lower in t.lower() for t in ex.tags)]
+    # Try numeric index (1-based)
+    if not matches and title.isdigit():
+        idx = int(title) - 1
+        if 0 <= idx < len(REQUIREMENT_EXAMPLES):
+            matches = [REQUIREMENT_EXAMPLES[idx]]
+
     if not matches:
         echo_error(f"No example found matching: {title}")
         echo_info("Use 'caas examples list' to see all available examples")
+        echo_info("Search tips:")
+        echo_info("  • By title (partial): caas examples show \"To-Do\"")
+        echo_info("  • By domain:          caas examples show web_app")
+        echo_info("  • By tag:             caas examples show api")
+        echo_info("  • By number:          caas examples show 1")
         return
 
     if len(matches) > 1:

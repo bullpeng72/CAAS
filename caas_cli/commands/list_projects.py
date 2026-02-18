@@ -133,6 +133,50 @@ def list_cmd(limit, status, api_key, api_url):
         if not projects:
             click.echo("No projects found.")
             return
+    except (ConnectionError, OSError) as e:
+        # API server not available — fall back to local session listing
+        from pathlib import Path
+        import json
+
+        echo_info(f"API 서버에 연결할 수 없습니다 ({api_url}). 로컬 세션 목록을 표시합니다.")
+        click.echo()
+
+        session_dirs = [
+            Path.cwd() / "generated",
+            Path.home() / ".caas" / "sessions",
+        ]
+
+        local_projects = []
+        for sdir in session_dirs:
+            if not sdir.exists():
+                continue
+            for golden in sorted(sdir.rglob("golden_data.json"), key=lambda p: p.stat().st_mtime, reverse=True):
+                try:
+                    data = json.loads(golden.read_text())
+                    local_projects.append({
+                        "project_id": golden.parent.name[:12],
+                        "requirement": data.get("project_description", str(golden.parent))[:50],
+                        "status": "local",
+                        "progress": 100,
+                        "created_at": str(golden.stat().st_mtime)[:10],
+                        "path": str(golden.parent),
+                    })
+                except Exception:
+                    pass
+
+        if not local_projects:
+            click.echo("로컬 생성 결과물이 없습니다.")
+            echo_info("새 프로젝트를 생성하려면: caas generate \"요구사항\"")
+            return
+
+        headers = ["경로", "요구사항", "상태", "위치"]
+        rows = []
+        for p in local_projects[:limit]:
+            rows.append([p["project_id"], p["requirement"][:40], "💾 local", p.get("path", "")[:40]])
+        print_table(headers, rows)
+        click.echo(f"\n총 {len(local_projects)}개 로컬 프로젝트 (API 서버 오프라인)")
+        echo_info("API 서버 연결 시 전체 목록을 보려면: caas list --api-url <URL>")
+        return
 
         # Display header
         click.echo(
@@ -185,4 +229,9 @@ def list_cmd(limit, status, api_key, api_url):
             click.echo(f"Filter: status={status}")
 
     except CAASError as e:
-        echo_error(f"Error: {e}")
+        if "Connection refused" in str(e) or "connect" in str(e).lower():
+            echo_error(f"API 서버({api_url})에 연결할 수 없습니다.")
+            echo_info("로컬 생성 결과를 보려면 generated/ 디렉토리를 직접 확인하세요.")
+            echo_info("새 프로젝트 생성: caas generate \"요구사항\"")
+        else:
+            echo_error(f"Error: {e}")

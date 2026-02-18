@@ -42,6 +42,8 @@ class VectorDBPlugin(Plugin):
     - get(): Retrieve by ID
     """
 
+    plugin_type = PluginType.VECTORDB  # class-level attribute for registry introspection
+
     def __init__(self, name: str, config: Dict[str, Any]):
         super().__init__(name=name, plugin_type=PluginType.VECTORDB, config=config)
         # Get index_name from environment variable first, then config, then default
