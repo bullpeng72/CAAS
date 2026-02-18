@@ -220,6 +220,10 @@ class InputDetector:
         """
         import re
 
+        # Generic placeholder names that LLMs inject but carry no domain meaning.
+        # They are suppressed when at least one domain-specific variable is found.
+        GENERIC_VARS = {"user_input", "input", "data", "value", "result", "output"}
+
         template_vars = {}
 
         for task in tasks:
@@ -250,6 +254,13 @@ class InputDetector:
                     }
                 else:
                     template_vars[var_name]["used_by_tasks"].append(task_id)
+
+        # Suppress generic placeholders when domain-specific variables are present.
+        # e.g. {user_input} should be dropped when {birthdate} or {keyword} exists.
+        domain_vars = {k for k in template_vars if k not in GENERIC_VARS}
+        if domain_vars:
+            for gv in GENERIC_VARS:
+                template_vars.pop(gv, None)
 
         return list(template_vars.values())
 
