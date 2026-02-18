@@ -233,6 +233,11 @@ class RequirementConcretizer:
         # Parse features (enhanced with SDD fields in v0.6.0)
         features = []
         for i, f_data in enumerate(data.get("features", [])):
+            # LLM may return a string instead of a dict
+            if isinstance(f_data, str):
+                f_data = {"id": f"F{i+1}", "name": f_data, "description": f_data}
+            elif not isinstance(f_data, dict):
+                continue
             feature = FeatureSpec(
                 id=f_data.get("id", f"F{i+1}"),
                 name=f_data.get("name", f"Feature {i+1}"),
@@ -250,6 +255,11 @@ class RequirementConcretizer:
         # Parse data models
         data_models = []
         for dm_data in data.get("data_models", []):
+            # LLM may return a string instead of a dict
+            if isinstance(dm_data, str):
+                dm_data = {"entity_name": dm_data, "attributes": [], "relationships": []}
+            elif not isinstance(dm_data, dict):
+                continue
             data_model = DataModel(
                 entity_name=dm_data.get("entity_name", ""),
                 attributes=dm_data.get("attributes", []),
@@ -260,6 +270,11 @@ class RequirementConcretizer:
         # Parse UI components
         ui_components = []
         for ui_data in data.get("ui_components", []):
+            # LLM may return a string instead of a dict — convert gracefully
+            if isinstance(ui_data, str):
+                ui_data = {"page_name": ui_data, "component_type": "", "description": ui_data}
+            elif not isinstance(ui_data, dict):
+                continue
             ui_comp = UIComponent(
                 page_name=ui_data.get("page_name", ""),
                 component_type=ui_data.get("component_type", ""),
