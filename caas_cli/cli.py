@@ -38,6 +38,7 @@ from caas_cli.commands import (  # Phase 1: Core Features; Phase 2: Advanced Fea
     plugins_cmd,
     profile_cmd,
     qa_cmd,
+    refine_cmd,
     session_cmd,
     status,
     tdd,
@@ -223,6 +224,9 @@ def show_comprehensive_help():
     )
     console.print(
         "  [green]questions[/green]        Interactive LLM-guided clarification"
+    )
+    console.print(
+        "  [green]refine[/green]           Unified pipeline: analyze → Q&A → expand (권장)"
     )
     console.print(
         "  [green]examples[/green]         Browse 11 curated examples (web, API, data, ML)\n"
@@ -490,6 +494,7 @@ def show_brief_help():
         ("analyze-gaps", "Analyze requirement gaps"),
         ("expand", "Expand requirements with details"),
         ("questions", "Interactive requirement clarification"),
+        ("refine", "Unified refine pipeline (recommended)"),
         ("examples", "Browse requirement examples"),
     ]
     for cmd, desc in refinement_commands:
@@ -969,6 +974,7 @@ cli.add_command(analyze_gaps.analyze_gaps, name="analyze-gaps")
 cli.add_command(analyze_requirement.analyze_requirement_cmd, name="analyze-requirement")
 cli.add_command(expand_requirement.expand)
 cli.add_command(interactive_questions.questions)
+cli.add_command(refine_cmd.refine_group)
 cli.add_command(traceability.traceability)
 cli.add_command(examples.examples_group)
 

@@ -30,6 +30,7 @@ from caas_cli.commands import (  # Phase 1: Core Features; Phase 2: Advanced Fea
     plugins_cmd,
     profile_cmd,
     qa_cmd,
+    refine_cmd,
     session_cmd,
     status,
     tdd,
@@ -85,4 +86,6 @@ __all__ = [
     "checkpoint_cmd",
     # Phase 9: QA Enhancements (Week 6 - Task 6.1)
     "qa_cmd",
+    # Phase 10: Unified Refinement Pipeline
+    "refine_cmd",
 ]
