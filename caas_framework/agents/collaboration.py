@@ -643,6 +643,7 @@ class ExpertAgentCollaboration:
             enable_frontend: Override auto-detection and force frontend generation (default: None = auto-detect)
             frontend_framework: Force specific frontend framework - "streamlit" or "react" (default: None = auto-detect)
         """
+        self.logger = get_logger(__name__)
         self.llm = llm_plugin
         self.golden_data = golden_data
         self.output_dir = output_dir  # ✅ v0.5.1: Store output directory
@@ -1015,14 +1016,14 @@ class ExpertAgentCollaboration:
                         agent_summaries=agent_summaries,
                     )
 
-                self.reporter.info(
-                    "🔧 DEBUG: Quality gate passed, checking plan mode approval..."
+                self.logger.debug(
+                    "Quality gate passed, checking plan mode approval..."
                 )
 
                 # APPROVAL GATE 1: Requirements Review
                 if self.plan_mode:
-                    self.reporter.info(
-                        "🔧 DEBUG: Plan mode is enabled, requesting approval..."
+                    self.logger.debug(
+                        "Plan mode is enabled, requesting approval..."
                     )
                     from caas_framework.modes.plan_mode import ApprovalDecision
 
@@ -1096,13 +1097,13 @@ class ExpertAgentCollaboration:
                     agent_summaries=agent_summaries,
                 )
 
-            self.reporter.info(
-                "🔧 DEBUG: Passed all Discovery checks, proceeding to Phase 2..."
+            self.logger.debug(
+                "Passed all Discovery checks, proceeding to Phase 2..."
             )
             # Phase 2: Architecture (System Design)
             # Note: If distributed execution is enabled, arch_result already set above
-            self.reporter.info(
-                f"🔧 DEBUG: Starting Phase 2 Architecture (distributed={self.enable_distributed}, executor={self.distributed_executor is not None})"
+            self.logger.debug(
+                f"Starting Phase 2 Architecture (distributed={self.enable_distributed}, executor={self.distributed_executor is not None})"
             )
 
             if not (self.enable_distributed and self.distributed_executor):
@@ -1127,8 +1128,8 @@ class ExpertAgentCollaboration:
                         context=context,
                         phase=AgentPhase.ARCHITECTURE,
                     )
-                    self.reporter.info(
-                        f"🔧 DEBUG: Architecture phase completed successfully={arch_result.success}"
+                    self.logger.debug(
+                        f"Architecture phase completed successfully={arch_result.success}"
                     )
                 except Exception as e:
                     self.reporter.error(
@@ -1824,6 +1825,9 @@ class ExpertAgentCollaboration:
                     )
 
         except Exception as e:
+            import traceback as _traceback
+            _tb = _traceback.format_exc()
+            self.logger.error(f"Collaboration failed: {e}\nTraceback:\n{_tb}")
             errors.append(f"Collaboration failed: {str(e)}")
 
         # Calculate duration
@@ -1969,6 +1973,26 @@ class ExpertAgentCollaboration:
 
         return gate_evaluation
 
+    def _create_warning_gate_evaluation(
+        self,
+        phase: AgentPhase,
+        warning: str,
+        recommendation: str,
+    ) -> "GateEvaluation":
+        """Create a permissive GateEvaluation with WARNING status for error cases."""
+        from caas_framework.quality.quality_gates import GateStatus
+
+        return GateEvaluation(
+            phase=phase,
+            status=GateStatus.WARNING,
+            metrics=[],
+            passed_metrics=[],
+            failed_metrics=[],
+            warnings=[warning],
+            recommendations=[recommendation],
+            overall_score=100.0,
+        )
+
     async def _evaluate_quality_gate_safe(
         self,
         phase: AgentPhase,
@@ -2000,15 +2024,10 @@ class ExpertAgentCollaboration:
                     f"⚠️ Quality gate system not available for {phase.name}, allowing workflow to continue"
                 )
                 # Return permissive evaluation to allow continuation
-                return GateEvaluation(
+                return self._create_warning_gate_evaluation(
                     phase=phase,
-                    status=GateStatus.WARNING,
-                    metrics=[],
-                    passed_metrics=[],
-                    failed_metrics=[],
-                    warnings=["Quality gate system not available"],
-                    recommendations=["Enable quality gate system for validation"],
-                    overall_score=100.0,
+                    warning="Quality gate system not available",
+                    recommendation="Enable quality gate system for validation",
                 )
 
             # Call the quality gate system
@@ -2260,45 +2279,30 @@ class ExpertAgentCollaboration:
                 f"⚠️ Quality gate evaluation timed out for {phase.name}, allowing workflow to continue"
             )
             # Return permissive evaluation
-            return GateEvaluation(
+            return self._create_warning_gate_evaluation(
                 phase=phase,
-                status=GateStatus.WARNING,
-                metrics=[],
-                passed_metrics=[],
-                failed_metrics=[],
-                warnings=["Quality gate evaluation timed out"],
-                recommendations=["Check quality gate configuration"],
-                overall_score=100.0,
+                warning="Quality gate evaluation timed out",
+                recommendation="Check quality gate configuration",
             )
         except AttributeError as e:
             self.reporter.warning(
                 f"⚠️ Quality gate evaluation skipped for {phase.name}: {str(e)}, allowing workflow to continue"
             )
             # Return permissive evaluation
-            return GateEvaluation(
+            return self._create_warning_gate_evaluation(
                 phase=phase,
-                status=GateStatus.WARNING,
-                metrics=[],
-                passed_metrics=[],
-                failed_metrics=[],
-                warnings=[f"Quality gate evaluation error: {str(e)}"],
-                recommendations=["Check quality gate system configuration"],
-                overall_score=100.0,
+                warning=f"Quality gate evaluation error: {str(e)}",
+                recommendation="Check quality gate system configuration",
             )
         except Exception as e:
             self.reporter.error(
                 f"❌ Unexpected error in quality gate evaluation for {phase.name}: {str(e)}, allowing workflow to continue"
             )
             # Return permissive evaluation to allow workflow to continue
-            return GateEvaluation(
+            return self._create_warning_gate_evaluation(
                 phase=phase,
-                status=GateStatus.WARNING,
-                metrics=[],
-                passed_metrics=[],
-                failed_metrics=[],
-                warnings=[f"Unexpected error: {str(e)}"],
-                recommendations=["Check logs for details"],
-                overall_score=100.0,
+                warning=f"Unexpected error: {str(e)}",
+                recommendation="Check logs for details",
             )
 
     async def _execute_phase_with_feedback(

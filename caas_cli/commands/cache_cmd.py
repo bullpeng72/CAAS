@@ -206,7 +206,7 @@ def clear(type, force):
         else:
             cleared = cache_manager.clear(cache_type=type)
 
-        echo_success(f"✅ Cleared {cleared} cache entries")
+        echo_success(f"Cleared {cleared} cache entries")
 
     except ImportError as e:
         echo_error(f"Failed to import caching modules: {e}")
@@ -257,10 +257,12 @@ def config(set, get):
         from caas_framework.config import get_settings
 
         settings = get_settings()
-        cache_config = settings.workflow.caching
+        # WorkflowConfig contains cache-related fields directly
+        cache_config = settings.workflow
 
         if set:
-            # Set configuration values
+            # Valid cache keys in WorkflowConfig
+            cache_fields = {"enable_caching", "cache_ttl"}
             for key, value in set:
                 # Convert string to appropriate type
                 if value.lower() in ["true", "false"]:
@@ -268,14 +270,31 @@ def config(set, get):
                 elif value.isdigit():
                     value = int(value)
 
-                if hasattr(cache_config, key):
+                if key in cache_fields and hasattr(cache_config, key):
                     setattr(cache_config, key, value)
                     echo_success(f"Set {key} = {value}")
                 else:
-                    echo_error(f"Unknown configuration key: {key}")
+                    echo_error(
+                        f"Unknown configuration key: {key}. "
+                        f"Valid keys: {', '.join(sorted(cache_fields))}"
+                    )
 
-            # Save settings
-            settings.save()
+            # Persist: write updated config back to file if possible
+            try:
+                import json
+                from pathlib import Path
+
+                config_path = Path.home() / ".caas" / "config.json"
+                config_path.parent.mkdir(exist_ok=True)
+                existing = {}
+                if config_path.exists():
+                    existing = json.loads(config_path.read_text())
+                existing["workflow"] = existing.get("workflow", {})
+                for key, value in set:
+                    existing["workflow"][key] = value
+                config_path.write_text(json.dumps(existing, indent=2))
+            except Exception:
+                pass  # Best-effort persistence
             return
 
         if get:
@@ -298,7 +317,9 @@ def config(set, get):
         table.add_column("Setting", style="cyan")
         table.add_column("Value", style="green")
 
-        config_dict = cache_config.model_dump()
+        # Show cache-related fields from WorkflowConfig
+        cache_fields = {"enable_caching", "cache_ttl"}
+        config_dict = {k: v for k, v in cache_config.model_dump().items() if k in cache_fields}
         for key, value in config_dict.items():
             table.add_row(key, str(value))
 

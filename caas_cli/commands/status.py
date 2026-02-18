@@ -42,7 +42,7 @@ def status(project_id, watch, interval, api_key, api_url):
     📊 STATUS INFORMATION:
     ═══════════════════════════════════════════════════════════════════════════
     • Project ID & status (generating, completed, failed)
-    • Current BMAD phase (Phase 0-4)
+    • Current CAAS phase (Phase 0-4)
     • Progress percentage (0-100%)
     • Current step description
     • Estimated time remaining
@@ -50,7 +50,7 @@ def status(project_id, watch, interval, api_key, api_url):
     • Created/completed timestamps
 
     \b
-    🔄 BMAD PHASES TRACKED:
+    🔄 CAAS 6-Phase TRACKED:
     ═══════════════════════════════════════════════════════════════════════════
     Phase 0: Requirements Analysis  (5-10%)
     Phase 1: Modeling               (10-30%)

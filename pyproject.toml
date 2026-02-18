@@ -82,9 +82,9 @@ dev = [
 caas = "caas_cli.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/bullpeng72/CrewAI-Agent-Autogeneration-System"
-Documentation = "https://github.com/bullpeng72/CrewAI-Agent-Autogeneration-System#readme"
-Repository = "https://github.com/bullpeng72/CrewAI-Agent-Autogeneration-System"
+Homepage = "https://github.com/bullpeng72/CAAS"
+Documentation = "https://github.com/bullpeng72/CAAS#readme"
+Repository = "https://github.com/bullpeng72/CAAS"
 
 [tool.setuptools.packages.find]
 where = ["."]
@@ -138,4 +138,4 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_functions = ["test_*"]
 asyncio_mode = "auto"
-addopts = "-v --cov=app --cov-report=term-missing"
+addopts = "-v --cov=caas_framework --cov=caas_cli --cov-report=term-missing"

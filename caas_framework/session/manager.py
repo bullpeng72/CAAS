@@ -97,10 +97,14 @@ class SessionManager:
     - Session lifecycle management
     """
 
-    def __init__(self):
+    def __init__(self, storage_path=None):
         """Initialize session manager"""
         self.sessions: Dict[str, Session] = {}
         self.active_session_id: Optional[str] = None
+        self.storage_path = storage_path
+        # Load persisted sessions if storage path provided
+        if storage_path:
+            self._load_from_file()
 
     # ========== Session Lifecycle ==========
 
@@ -139,11 +143,50 @@ class SessionManager:
         if self.active_session_id is None:
             self.active_session_id = session.session_id
 
+        # Persist to file if storage configured
+        self._save_to_file()
+
         return session
 
     def get_session(self, session_id: str) -> Optional[Session]:
         """Get session by ID"""
         return self.sessions.get(session_id)
+
+    def _save_to_file(self) -> None:
+        """Persist sessions to file storage."""
+        if not self.storage_path:
+            return
+        import json
+        from pathlib import Path
+        try:
+            data = {
+                "active_session_id": self.active_session_id,
+                "sessions": [s.model_dump() if hasattr(s, "model_dump") else s.__dict__ for s in self.sessions.values()],
+            }
+            Path(self.storage_path).write_text(json.dumps(data, default=str, indent=2))
+        except Exception:
+            pass  # Silent fail - persistence is best-effort
+
+    def _load_from_file(self) -> None:
+        """Load sessions from file storage."""
+        if not self.storage_path:
+            return
+        import json
+        from pathlib import Path
+        path = Path(self.storage_path)
+        if not path.exists():
+            return
+        try:
+            data = json.loads(path.read_text())
+            self.active_session_id = data.get("active_session_id")
+            for s_data in data.get("sessions", []):
+                try:
+                    session = Session(**{k: v for k, v in s_data.items() if k in Session.model_fields})
+                    self.sessions[session.session_id] = session
+                except Exception:
+                    pass  # Skip malformed sessions
+        except Exception:
+            pass  # Silent fail - start fresh if file is corrupt
 
     def list_sessions(
         self,

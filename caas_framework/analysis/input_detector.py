@@ -289,7 +289,7 @@ class InputDetector:
     @classmethod
     def _detect_from_keyword_matching(cls, tasks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """
-        ✅ v0.5.0 Strategy 4: Match keywords in task descriptions.
+        ✅ v0.5.1 Strategy 4: Match keywords in task descriptions.
 
         Keywords: "키워드", "검색", "query", "search" (NOT generic "입력"/"input")
 
@@ -297,29 +297,49 @@ class InputDetector:
         are NOT found. Generic words like "입력" should NOT be used as they match
         too broadly (e.g., "입력받다", "입력된" are common Korean verbs).
 
+        CJK Note: Python regex \b (word boundary) is ASCII-only and does not work
+        for Korean/Chinese/Japanese characters. Korean keywords use substring matching.
+
         Returns:
             List of input specifications
         """
+        import re
+
         keywords_map = {
             # ✅ Specific keywords only (no generic "입력"/"input")
-            "keyword": ["키워드", "keyword", "검색어", "search keyword", "검색 키워드"],
-            # ❌ REMOVED: "입력", "input" (too generic - matches "입력받다", "입력된", etc.)
-            # "text": ["텍스트", "text"],  # REMOVED entirely - let template variables handle it
+            "keyword": ["키워드", "keyword", "검색어", "search keyword", "검색 키워드", "query", "search query"],
+            "text": ["텍스트", "text"],
             "file": ["파일", "file"],
             "url": ["URL", "url", "링크", "link"],
         }
+
+        def _matches(description: str, keyword: str) -> bool:
+            """CJK-aware keyword matching.
+
+            Korean/CJK keywords use substring matching.
+            English keywords use ASCII-only word boundaries (lookbehind/lookahead),
+            because Python 3 regex \b is Unicode-aware and treats Korean particles
+            (e.g., '을', '이') as \w, breaking boundary detection after English tokens.
+            """
+            kw_lower = keyword.lower()
+            text_lower = description.lower()
+            if re.search(r'[가-힣]', kw_lower):
+                # Korean: substring match (no word boundary concept in CJK)
+                return kw_lower in text_lower
+            else:
+                # English/ASCII: ASCII-only word boundary via lookahead/lookbehind
+                # This correctly handles "url을" where '을' is Unicode \w but not ASCII \w
+                pattern = r'(?<![a-zA-Z0-9_])' + re.escape(kw_lower) + r'(?![a-zA-Z0-9_])'
+                return bool(re.search(pattern, text_lower))
 
         detected_inputs = {}
 
         for task in tasks:
             task_id = task.get("id", "unknown")
-            description = task.get("description", "").lower()
+            description = task.get("description", "")
 
             for input_name, keywords in keywords_map.items():
-                # ✅ Require EXACT word boundary match (not substring)
-                import re
-                pattern = r'\b(' + '|'.join(re.escape(kw.lower()) for kw in keywords) + r')\b'
-                if re.search(pattern, description):
+                if any(_matches(description, kw) for kw in keywords):
                     if input_name not in detected_inputs:
                         detected_inputs[input_name] = {
                             "input_type": input_name,

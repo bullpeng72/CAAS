@@ -1,7 +1,7 @@
 """
 CLI Progress Tracker
 
-Real-time progress display for BMAD phases using Rich library.
+Real-time progress display for CAAS 6-Phase using Rich library.
 Provides visual feedback to users during code generation.
 """
 
@@ -26,7 +26,7 @@ class CLIProgressTracker:
     """
     Progress Tracker for CLI
 
-    Displays real-time progress for each BMAD phase with:
+    Displays real-time progress for each CAAS phase with:
     - Phase name and status
     - Spinner during execution
     - Completion time
@@ -290,7 +290,7 @@ class CLIProgressTracker:
         """
         # Create summary table
         table = Table(
-            title="🎯 BMAD Execution Summary",
+            title="🎯 CAAS Execution Summary",
             box=box.ROUNDED,
             show_header=True,
             header_style="bold cyan",

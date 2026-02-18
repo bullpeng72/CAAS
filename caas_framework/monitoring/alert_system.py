@@ -222,6 +222,57 @@ class AlertSystem:
         self.alerts.clear()
         self.last_alert_time.clear()
 
+    # CLI-compatible convenience methods
+    def list_alerts(self) -> List[Dict[str, Any]]:
+        """List all configured alert rules as dicts (CLI-compatible)."""
+        result = []
+        for name, rule in self.rules.items():
+            result.append({
+                "metric": rule.metric_name,
+                "condition": rule.metadata.get("condition_str", str(rule.condition)),
+                "threshold": rule.metadata.get("threshold", "N/A"),
+                "active": rule.enabled,
+                "name": name,
+            })
+        return result
+
+    def add_alert(self, metric: str, threshold: float, condition: str = "above") -> None:
+        """Add a simple alert rule (CLI-compatible wrapper)."""
+        if condition == "above":
+            condition_fn: Callable[[Any], bool] = lambda v, t=threshold: float(v) > t
+        elif condition == "below":
+            condition_fn = lambda v, t=threshold: float(v) < t
+        else:
+            condition_fn = lambda v, t=threshold: float(v) == t
+        rule = AlertRule(
+            name=f"{metric}_{condition}_{threshold}",
+            metric_name=metric,
+            condition=condition_fn,
+            severity=AlertSeverity.WARNING,
+            message_template=f"{metric} is {condition} {threshold}",
+            metadata={"threshold": threshold, "condition_str": condition},
+        )
+        self.add_rule(rule)
+
+    def remove_alert(self, metric: str) -> None:
+        """Remove alert rules for a metric (CLI-compatible wrapper)."""
+        to_remove = [name for name, rule in self.rules.items() if rule.metric_name == metric]
+        for name in to_remove:
+            self.remove_rule(name)
+
+    def test_alerts(self) -> List[Dict[str, Any]]:
+        """Return summary of which rules would trigger (CLI-compatible)."""
+        return [
+            {
+                "metric": rule.metric_name,
+                "condition": rule.metadata.get("condition_str", str(rule.condition)),
+                "threshold": rule.metadata.get("threshold", "N/A"),
+                "current_value": "N/A (no live data)",
+            }
+            for rule in self.rules.values()
+            if rule.enabled
+        ]
+
 
 # Predefined alert rules
 def create_cost_alert_rule(budget_usd: float) -> AlertRule:

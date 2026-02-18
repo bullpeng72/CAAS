@@ -547,7 +547,7 @@ class CrewAIFramework:
 
             self._validator = ValidationOrchestrator(
                 golden_data=golden_req,
-                enabled_tools=list(self.registry.list_available_plugins()),
+                enabled_tools=self.registry.list_available_plugin_names(),
             )
 
         # Convert to AgentSpecModel/TaskSpecModel if needed

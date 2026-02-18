@@ -443,6 +443,8 @@ class CodeGeneratorAgent(BaseExpertAgent):
             fixed_files["main.py"] = CodeAutoFix.add_manager_llm(
                 fixed_files["main.py"], is_main_py=True
             )
+            # Ensure load_dotenv() is present in main.py
+            fixed_files["main.py"] = _ensure_dotenv_in_main(fixed_files["main.py"])
 
         # Fix crew.py if it exists
         for crew_file in ["crew.py", "src/crew.py"]:
@@ -450,6 +452,12 @@ class CodeGeneratorAgent(BaseExpertAgent):
                 fixed_files[crew_file] = CodeAutoFix.add_manager_llm(
                     fixed_files[crew_file], is_main_py=False
                 )
+
+        # Ensure python-dotenv is in requirements.txt
+        if "requirements.txt" in fixed_files:
+            fixed_files["requirements.txt"] = _ensure_dotenv_in_requirements(
+                fixed_files["requirements.txt"]
+            )
 
         return fixed_files
 
@@ -731,12 +739,23 @@ st.markdown("<div style='text-align: center; color: gray;'>"
 ALSO UPDATE main.py TO ACCEPT inputs PARAMETER:
 
 ```python
+# 메인 크루 실행 스크립트
+from crewai import Crew, Process
+from agents import create_agents
+from tasks import create_tasks
+import os
+from dotenv import load_dotenv
+
+# 환경변수 로드 (.env 파일)
+load_dotenv()
+
+
 def main(inputs=None):
     \"\"\"
-    Main execution function.
+    메인 실행 함수.
 
     Args:
-        inputs: Optional dict of user inputs. If None, prompts for CLI input.
+        inputs: 사용자 입력의 선택적 딕셔너리. None인 경우 CLI 입력을 요청합니다.
     \"\"\"
     agents = create_agents()
     tasks = create_tasks(agents)
@@ -755,6 +774,10 @@ def main(inputs=None):
                 process=Process.sequential, verbose=True)
     result = crew.kickoff(inputs=user_inputs)  # ✅ Pass inputs!
     return result
+
+
+if __name__ == "__main__":
+    main()
 ```
 
 ALSO UPDATE tasks.py TO USE TASK OBJECT REFERENCES IN context PARAMETER:
@@ -881,7 +904,9 @@ FRONTEND UI REQUIREMENT:
             "🚨 tasks.py 예시: task2 = Task(..., context=[task1]) - 이전 Task 변수를 직접 참조",
             "설계된 모든 에이전트와 태스크가 포함된 작동하는 CrewAI 애플리케이션 생성",
             "적절한 CrewAI import 포함: from crewai import Crew, Agent, Task, Process",
-            "requirements.txt에 crewai와 기타 의존성 추가",
+            "🚨 CRITICAL: requirements.txt에 반드시 python-dotenv 포함 (crewai, streamlit, python-dotenv 필수)",
+            "🚨 CRITICAL: main.py 상단에 반드시 'from dotenv import load_dotenv' import 후 'load_dotenv()' 호출",
+            "🚨 CRITICAL: main.py에 if __name__ == '__main__': main() 블록 필수",
             "에러 핸들링과 로깅 추가",
             "Python 모범 사례와 PEP 8 준수",
             "명확한 주석과 docstring 포함 (반드시 한국어로! 영어 주석 절대 금지!)",
@@ -906,6 +931,14 @@ FRONTEND UI REQUIREMENT:
                 "❌ NEVER generate empty input sections in app.py",
                 "❌ NEVER call main() without inputs parameter in app.py",
                 "❌ NEVER validate empty lists: if any(not val for val in [])",
+                "🚨 INPUT FORMAT CONSISTENCY (매우 중요):",
+                "✅ app.py placeholder와 main.py input() 예시의 포맷을 반드시 동일하게 유지",
+                "✅ 날짜/생년월일(dob, date, birthday): app.py placeholder='예: 19720422 (YYYYMMDD)' ↔ main.py input('생년월일 (예: 19720422): ')",
+                "✅ 전화번호(phone, tel): app.py placeholder='예: 010-1234-5678' ↔ main.py input('전화번호 (예: 010-1234-5678): ')",
+                "✅ 이메일(email): app.py placeholder='예: user@example.com' ↔ main.py input('이메일 (예: user@example.com): ')",
+                "✅ 키워드(keyword): app.py placeholder='예: AI 기술 동향' ↔ main.py input('키워드: ')",
+                "❌ app.py에서 'YYYY-MM-DD' placeholder 사용 금지 (다른 포맷이면 일관성 파괴)",
+                "❌ app.py와 main.py의 입력 포맷 예시가 다르면 절대 안 됨",
             ]
             guidelines.extend(frontend_guidelines)
 
@@ -2025,3 +2058,40 @@ def create_tasks(agents):
         refined_output["issues_addressed"] = len(issues)
 
         return refined_output
+
+
+# ─────────────────────────────────────────────────────────────
+# 모듈 레벨 헬퍼: dotenv 보장 (LLM 출력 후처리)
+# ─────────────────────────────────────────────────────────────
+
+def _ensure_dotenv_in_main(main_py: str) -> str:
+    """main.py에 load_dotenv() 호출이 없으면 자동으로 추가합니다."""
+    if "load_dotenv" in main_py:
+        return main_py
+
+    # dotenv import 삽입: 첫 번째 import 블록 바로 앞
+    dotenv_block = "from dotenv import load_dotenv\n\n# 환경변수 로드 (.env 파일)\nload_dotenv()\n"
+
+    lines = main_py.splitlines(keepends=True)
+    insert_after = 0  # 기본: 파일 맨 앞
+
+    # 마지막 import 라인 다음에 삽입
+    for i, line in enumerate(lines):
+        stripped = line.lstrip()
+        if stripped.startswith("import ") or stripped.startswith("from "):
+            insert_after = i + 1
+
+    lines.insert(insert_after, dotenv_block)
+    return "".join(lines)
+
+
+def _ensure_dotenv_in_requirements(requirements_txt: str) -> str:
+    """requirements.txt에 python-dotenv가 없으면 추가합니다."""
+    if "python-dotenv" in requirements_txt:
+        return requirements_txt
+
+    # 파일 끝에 개행이 없으면 추가
+    if requirements_txt and not requirements_txt.endswith("\n"):
+        requirements_txt += "\n"
+    requirements_txt += "python-dotenv>=1.0.0\n"
+    return requirements_txt

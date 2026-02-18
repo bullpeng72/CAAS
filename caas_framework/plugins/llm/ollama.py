@@ -17,7 +17,7 @@ Installation:
 """
 
 import os
-from typing import Any, AsyncIterator, Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from caas_framework.plugins.llm.base import LLMPlugin
 
@@ -106,32 +106,6 @@ class OllamaPlugin(LLMPlugin):
             params["format"] = "json"
 
         return params
-
-    async def _call_api(self, request_params: Dict[str, Any]) -> Any:
-        """
-        Ollama-specific API call implementation.
-
-        Args:
-            request_params: Request parameters from base class
-
-        Returns:
-            Ollama completion response (OpenAI-compatible)
-        """
-        return await self._client.chat.completions.create(**request_params)
-
-    async def _stream_api(self, request_params: Dict[str, Any]) -> AsyncIterator[Any]:
-        """
-        Ollama-specific streaming API call implementation.
-
-        Args:
-            request_params: Request parameters from base class
-
-        Yields:
-            Ollama streaming response chunks (OpenAI-compatible)
-        """
-        stream = await self._client.chat.completions.create(**request_params)
-        async for chunk in stream:
-            yield chunk
 
 
 # Register plugin

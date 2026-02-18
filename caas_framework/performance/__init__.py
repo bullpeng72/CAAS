@@ -17,6 +17,18 @@ from caas_framework.performance.profiler import (
 )
 from caas_framework.performance.streaming import StreamBuffer, StreamingResponseHandler
 
+# Global profiler instance
+_profiler = None
+
+
+def get_profiler() -> "PerformanceProfiler":
+    """Get or create the global PerformanceProfiler instance."""
+    global _profiler
+    if _profiler is None:
+        _profiler = PerformanceProfiler()
+    return _profiler
+
+
 __all__ = [
     "PerformanceProfiler",
     "ProfiledOperation",
@@ -25,4 +37,5 @@ __all__ = [
     "BatchConfig",
     "StreamingResponseHandler",
     "StreamBuffer",
+    "get_profiler",
 ]

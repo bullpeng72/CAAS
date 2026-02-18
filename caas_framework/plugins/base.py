@@ -136,9 +136,38 @@ class PluginRegistry:
 
         self._plugins.clear()
 
-    def list_available_plugins(self) -> List[str]:
-        """List all registered plugin classes"""
+    def list_available_plugin_names(self) -> List[str]:
+        """List names of all registered plugin classes"""
         return list(self._plugin_classes.keys())
+
+    def list_available_plugins(self) -> List[Dict[str, str]]:
+        """List all registered plugins with metadata (name, type, version, status)."""
+        result = []
+        # Include registered class names (not yet instantiated)
+        for name, cls in self._plugin_classes.items():
+            plugin_type = getattr(cls, "plugin_type", PluginType.LLM)
+            result.append({
+                "name": name,
+                "type": plugin_type.value if hasattr(plugin_type, "value") else str(plugin_type),
+                "version": getattr(cls, "version", "N/A"),
+                "status": "registered",
+                "description": getattr(cls, "__doc__", "").strip().split("\n")[0] if cls.__doc__ else "",
+            })
+        # Include live instances
+        for name, plugin in self._plugins.items():
+            existing = next((p for p in result if p["name"] == name), None)
+            if existing:
+                existing["status"] = "active" if plugin.is_initialized else "inactive"
+            else:
+                plugin_type = plugin.plugin_type
+                result.append({
+                    "name": name,
+                    "type": plugin_type.value if hasattr(plugin_type, "value") else str(plugin_type),
+                    "version": getattr(plugin, "version", "N/A"),
+                    "status": "active" if plugin.is_initialized else "inactive",
+                    "description": "",
+                })
+        return result
 
     def __repr__(self) -> str:
         return f"<PluginRegistry(plugins={len(self._plugins)}, classes={len(self._plugin_classes)})>"

@@ -212,6 +212,57 @@ class PerformanceProfiler:
         self.operations.clear()
         self.current_stack.clear()
 
+    # CLI-compatible convenience methods
+    def enable(self, memory_profiling: bool = False) -> None:
+        """Enable profiling (CLI-compatible)."""
+        self.enabled = True
+        self._memory_profiling = memory_profiling
+        self._active_timers: Dict[str, float] = {}
+        self._saved_reports: Dict[str, Dict] = {}
+
+    def start(self, name: str) -> None:
+        """Start timing a named operation (CLI-compatible)."""
+        if not hasattr(self, "_active_timers"):
+            self._active_timers: Dict[str, float] = {}
+        self._active_timers[name] = time.time()
+
+    def stop(self, name: str) -> float:
+        """Stop timing a named operation, return elapsed seconds (CLI-compatible)."""
+        if not hasattr(self, "_active_timers") or name not in self._active_timers:
+            return 0.0
+        elapsed = time.time() - self._active_timers.pop(name)
+        if not hasattr(self, "_saved_reports"):
+            self._saved_reports: Dict[str, Dict] = {}
+        self._saved_reports[name] = {
+            "total_time": elapsed,
+            "llm_calls": 0,
+            "cache_hits": 0,
+            "cache_misses": 0,
+            "phases": {},
+        }
+        return elapsed
+
+    def get_report(self, session_id: Optional[str] = None) -> Dict[str, Any]:
+        """Get profiling report as dict (CLI-compatible)."""
+        if not hasattr(self, "_saved_reports"):
+            self._saved_reports: Dict[str, Dict] = {}
+        if session_id and session_id in self._saved_reports:
+            return self._saved_reports[session_id]
+        stats = self.get_operation_stats()
+        return {
+            "total_time": self.get_total_time() / 1000.0,
+            "llm_calls": 0,
+            "cache_hits": 0,
+            "cache_misses": 0,
+            "phases": {name: {"time": data.get("avg_ms", 0) / 1000.0} for name, data in stats.items()},
+        }
+
+    def get_latest_report(self) -> Optional[Dict[str, Any]]:
+        """Get the most recent saved profiling report (CLI-compatible)."""
+        if not hasattr(self, "_saved_reports") or not self._saved_reports:
+            return None
+        return list(self._saved_reports.values())[-1]
+
 
 class BottleneckAnalyzer:
     """

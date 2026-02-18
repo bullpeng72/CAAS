@@ -407,6 +407,17 @@ class WorkflowOrchestrator:
 
         return self.session_manager.list_sessions(status=SessionStatus.ACTIVE)
 
+    def list_workflows(self, status: Optional[str] = None) -> List[Session]:
+        """List workflows, optionally filtered by status"""
+        if status is None:
+            return self.session_manager.list_sessions()
+        from caas_framework.session.manager import SessionStatus
+        try:
+            session_status = SessionStatus(status)
+        except ValueError:
+            return self.session_manager.list_sessions()
+        return self.session_manager.list_sessions(status=session_status)
+
     def switch_to_workflow(self, session_id: str) -> Optional[Session]:
         """Switch active workflow"""
         return self.session_manager.switch_to(session_id)

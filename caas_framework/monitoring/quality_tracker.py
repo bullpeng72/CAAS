@@ -250,6 +250,20 @@ class QualityTracker:
             "by_phase": dict(by_phase),
         }
 
+    def get_quality_metrics(self) -> Dict[str, Any]:
+        """CLI-compatible wrapper for get_summary() with normalized field names."""
+        summary = self.get_summary()
+        return {
+            "avg_score": summary.get("avg_score", 0.0),
+            "validation_pass_rate": summary.get("approval_rate", 0.0),
+            "autofix_success_rate": 0.0,
+            "total_validations": summary.get("measurements", 0),
+            "by_phase": {
+                phase: {"avg_score": data.get("avg_score", 0.0), "pass_rate": data.get("approval_rate", 0.0)}
+                for phase, data in summary.get("by_phase", {}).items()
+            },
+        }
+
     def _filter_metrics(
         self,
         phase: Optional[str] = None,

@@ -208,7 +208,7 @@ This project implements a multi-agent system using CrewAI.
 
 ## Data Models
 
-{chr(10).join(f"- **{dm.entity_name}**: {', '.join(dm.attributes[:5])}" for dm in golden_data.data_models[:5])}
+{chr(10).join(f"- **{dm.entity_name}**: {', '.join(a.name if hasattr(a, 'name') else str(a) for a in dm.attributes[:5])}" for dm in golden_data.data_models[:5])}
 
 ## Deployment
 

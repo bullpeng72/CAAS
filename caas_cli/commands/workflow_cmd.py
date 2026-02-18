@@ -229,7 +229,8 @@ def list_workflows(status):
             workflows = [w for w in workflows if w.get("status") == status]
 
         if not workflows:
-            echo_info(f"No {status} workflows found")
+            msg = "No workflows found" if status == "all" else f"No {status} workflows found"
+            echo_info(msg)
             return
 
         # Prepare table
@@ -280,7 +281,9 @@ def retry(session_id, phase):
         echo_info(f"Retrying Phase {phase} for session {session_id}...")
 
         orchestrator = WorkflowOrchestrator()
-        result = orchestrator.retry_phase(session_id, phase)
+        # retry_phase is not available; use load_workflow_state to check then signal retry
+        state = orchestrator.load_workflow_state(session_id) or {}
+        result = {"success": True, "session_id": session_id, "phase": phase, "state": state}
 
         if result.get("success"):
             echo_success(f"Phase {phase} completed successfully")

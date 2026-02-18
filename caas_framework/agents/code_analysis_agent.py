@@ -482,16 +482,17 @@ class CodeAnalysisAgent(BaseExpertAgent):
             try:
                 # Use retry logic from base class
                 response = await self._execute_with_retry(
-                    lambda: self.llm.generate(
-                        prompt=prompt,
+                    lambda: self.llm.ainvoke(
+                        messages=[{"role": "user", "content": prompt}],
                         temperature=0.3,
                         max_tokens=2000,
                     ),
                     operation=f"business rule analysis for {feature.name}",
                 )
+                response_text = response.content if hasattr(response, "content") else str(response)
 
                 # Parse violations from response
-                feature_violations = self._parse_violations(response, feature)
+                feature_violations = self._parse_violations(response_text, feature)
                 violations.extend(feature_violations)
 
             except Exception as e:
@@ -584,14 +585,15 @@ class CodeAnalysisAgent(BaseExpertAgent):
         try:
             # Use retry logic from base class
             response = await self._execute_with_retry(
-                lambda: self.llm.generate(
-                    prompt=prompt,
+                lambda: self.llm.ainvoke(
+                    messages=[{"role": "user", "content": prompt}],
                     temperature=0.3,
                     max_tokens=1000,
                 ),
                 operation="error root cause analysis",
             )
-            return response.strip()
+            response_text = response.content if hasattr(response, "content") else str(response)
+            return response_text.strip()
         except Exception as e:
             AgentErrorHandler.log_agent_error(
                 self.agent_name,
@@ -610,16 +612,17 @@ class CodeAnalysisAgent(BaseExpertAgent):
         try:
             # Use retry logic from base class
             response = await self._execute_with_retry(
-                lambda: self.llm.generate(
-                    prompt=prompt,
+                lambda: self.llm.ainvoke(
+                    messages=[{"role": "user", "content": prompt}],
                     temperature=0.2,
                     max_tokens=2000,
                 ),
                 operation="error fix generation",
             )
+            response_text = response.content if hasattr(response, "content") else str(response)
 
             # Parse fixes from response
-            fixes = self._parse_fixes(response, error_info)
+            fixes = self._parse_fixes(response_text, error_info)
             return fixes
 
         except Exception as e:
@@ -781,9 +784,10 @@ class CodeAnalysisAgent(BaseExpertAgent):
         """Parse business rule violations from LLM response."""
         try:
             # Try to extract JSON array
-            violations_data = ResponseParser.extract_json(response)
+            from caas_framework.agents.utils import AgentOutputParser
+            violations_data = AgentOutputParser.parse_json_safe(response, default=[])
             if not isinstance(violations_data, list):
-                violations_data = [violations_data]
+                violations_data = [violations_data] if violations_data else []
 
             violations = []
             for v_data in violations_data:
@@ -810,7 +814,8 @@ class CodeAnalysisAgent(BaseExpertAgent):
     ) -> List[CodeFix]:
         """Parse code fixes from LLM response."""
         try:
-            fix_data = ResponseParser.extract_json(response)
+            from caas_framework.agents.utils import AgentOutputParser
+            fix_data = AgentOutputParser.parse_json_safe(response, default={})
 
             return [
                 CodeFix(

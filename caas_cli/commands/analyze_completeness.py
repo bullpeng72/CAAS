@@ -126,7 +126,14 @@ def analyze_completeness(project, golden_data, output, detailed):
         golden_data_obj = ConcretizedRequirement(**golden_data_dict)
 
         # Create LLM plugin
-        llm_plugin = create_llm_plugin(config)
+        llm_plugin = create_llm_plugin(
+            provider=config.llm.provider,
+            model=config.llm.model,
+            api_key=config.llm.api_key,
+            api_base=config.llm.api_base,
+            temperature=config.llm.temperature,
+            max_tokens=config.llm.max_tokens,
+        )
 
         # Create Code Analysis Agent
         agent = CodeAnalysisAgent(llm_plugin=llm_plugin, golden_data=golden_data_obj)
@@ -243,6 +250,8 @@ def analyze_completeness(project, golden_data, output, detailed):
         if coverage < 50:
             raise click.Abort()
 
+    except click.Abort:
+        raise
     except FileNotFoundError as e:
         echo_error(f"File not found: {e}")
         raise click.Abort()

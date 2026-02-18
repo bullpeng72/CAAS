@@ -134,7 +134,18 @@ def analyze_gaps(requirement, golden_data, output):
     try:
         # Initialize LLM plugin
         async def run_analysis():
-            llm_plugin = OpenAIPlugin()
+            import os
+            from caas_framework.config.loader import load_config
+            cfg = load_config()
+            llm_plugin = OpenAIPlugin(
+                name="openai-analyze-gaps",
+                config={
+                    "model": cfg.llm.model,
+                    "api_key": cfg.llm.api_key or os.environ.get("OPENAI_API_KEY"),
+                    "temperature": cfg.llm.temperature,
+                    "max_tokens": cfg.llm.max_tokens,
+                },
+            )
             await llm_plugin.initialize()
 
             # Create gap analyzer

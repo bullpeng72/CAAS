@@ -489,6 +489,21 @@ class MultiModelRouter(LLMPlugin):
         ):
             yield chunk
 
+    def list_available_models(self) -> List[Dict[str, Any]]:
+        """Return list of configured models with their metadata."""
+        result = []
+        for name, config in self.models.items():
+            result.append({
+                "name": name,
+                "provider": config.plugin.__class__.__name__.replace("Plugin", "").lower(),
+                "model": config.plugin.model,
+                "cost_per_1k": config.cost_per_1k_tokens,
+                "max_tokens": config.max_tokens,
+                "priority": config.priority,
+                "suitable_phases": [p.value for p in config.suitable_phases],
+            })
+        return result
+
     def get_performance_report(self) -> Dict[str, Any]:
         """
         Get performance report for all models.
@@ -513,3 +528,24 @@ class MultiModelRouter(LLMPlugin):
             }
 
         return report
+
+    def get_model_metrics(self, model_name: str) -> Dict[str, Any]:
+        """Get metrics for a specific model (CLI-compatible)."""
+        metrics = self.performance_tracker.get_metrics(model_name)
+        if metrics is None:
+            return {"total_requests": 0, "successful_requests": 0, "total_cost_usd": 0.0,
+                    "total_latency_ms": 0.0, "consecutive_failures": 0}
+        return {
+            "total_requests": metrics.total_requests,
+            "successful_requests": metrics.successful_requests,
+            "total_cost_usd": metrics.total_cost_usd,
+            "total_latency_ms": metrics.total_latency_ms,
+            "consecutive_failures": metrics.consecutive_failures,
+        }
+
+    def get_all_model_metrics(self) -> Dict[str, Dict[str, Any]]:
+        """Get metrics for all models (CLI-compatible)."""
+        return {
+            name: self.get_model_metrics(name)
+            for name in self.models
+        }

@@ -1017,8 +1017,10 @@ JSON으로 반환하세요 (모든 텍스트 필드는 한국어로)."""
 
         # Parse into Pydantic models
         golden_data = ConcretizedRequirement(**golden_data_dict)
-        agents = [AgentSpecModel(**a) for a in agents_dict.get("agents", [])]
-        tasks = [TaskSpecModel(**t) for t in tasks_dict.get("tasks", [])]
+        agents_list = agents_dict if isinstance(agents_dict, list) else agents_dict.get("agents", [])
+        tasks_list = tasks_dict if isinstance(tasks_dict, list) else tasks_dict.get("tasks", [])
+        agents = [AgentSpecModel(**a) for a in agents_list]
+        tasks = [TaskSpecModel(**t) for t in tasks_list]
 
         self.reporter.info(
             f"✅ Loaded: {len(agents)} agents, {len(tasks)} tasks, "
@@ -1526,12 +1528,16 @@ JSON으로 반환하세요 (모든 텍스트 필드는 한국어로)."""
         self, golden_data: ConcretizedRequirement
     ) -> tuple[bool, Optional[Any]]:
         """
-        ✅ P1-1: Auto-detect UI requirements from Golden Data
+        ✅ P1-1: Auto-detect UI requirements from Golden Data (강화된 감지 - Option A+B)
 
         Detects if UI generation is needed based on:
-        1. ui_components field in Golden Data
-        2. "streamlit" or "react" in commands.run
-        3. Features containing UI-related keywords
+        1. ui_components field — form/dashboard/page 타입만 인정 (강화)
+        2. "streamlit" or "react" in commands.run (명시적 프레임워크만)
+        3. Features containing explicit UI keywords (강화된 키워드 목록)
+
+        Option B 변경사항:
+        - Check 1: component_type이 명시적 UI 타입(form/dashboard/page/input)인 경우만 감지
+        - Check 3: 키워드 목록을 더 명시적인 UI 관련 용어로 한정
 
         Returns:
             (enable_frontend, frontend_framework)
@@ -1541,40 +1547,62 @@ JSON으로 반환하세요 (모든 텍스트 필드는 한국어로)."""
         enable_frontend = False
         frontend_framework = None
 
-        # Check 1: ui_components field
+        # Check 1: ui_components field — 명시적 UI 타입만 인정 (Option B)
+        # 단순 table/list/chart는 데이터 출력이므로 UI로 간주하지 않음
+        EXPLICIT_UI_TYPES = {'form', 'dashboard', 'page', 'input', 'modal', 'wizard', 'sidebar'}
         if hasattr(golden_data, 'ui_components') and golden_data.ui_components:
-            if len(golden_data.ui_components) > 0:
+            ui_type_matched = any(
+                getattr(comp, 'component_type', '').lower() in EXPLICIT_UI_TYPES
+                for comp in golden_data.ui_components
+            )
+            if ui_type_matched:
                 enable_frontend = True
                 self.reporter.debug(
-                    f"UI 감지: ui_components 필드 ({len(golden_data.ui_components)}개 컴포넌트)"
+                    f"UI 감지: ui_components 필드에서 명시적 UI 타입 발견 "
+                    f"({len(golden_data.ui_components)}개 컴포넌트)"
                 )
 
-        # Check 2: commands.run field
+        # Check 2: commands.run field — 명시적 프레임워크 명령어만 인정
         if hasattr(golden_data, 'commands') and golden_data.commands:
-            run_cmd = golden_data.commands.get('run', '') if isinstance(golden_data.commands, dict) else ''
-            if 'streamlit' in run_cmd.lower():
+            run_cmd = (
+                golden_data.commands.get('run', '')
+                if isinstance(golden_data.commands, dict)
+                else getattr(golden_data.commands, 'run', '')
+            )
+            run_cmd = run_cmd.lower() if run_cmd else ''
+            if 'streamlit' in run_cmd:
                 enable_frontend = True
                 frontend_framework = FrontendFramework.STREAMLIT
                 self.reporter.debug("UI 감지: commands.run에서 'streamlit' 발견")
-            elif 'react' in run_cmd.lower() or 'npm' in run_cmd.lower():
+            elif 'react' in run_cmd or 'npm' in run_cmd:
                 enable_frontend = True
                 frontend_framework = FrontendFramework.REACT
-                self.reporter.debug("UI 감지: commands.run에서 'react' 발견")
+                self.reporter.debug("UI 감지: commands.run에서 'react/npm' 발견")
 
-        # Check 3: Features with UI keywords
+        # Check 3: Features with explicit UI keywords (Option B — 강화된 키워드)
+        # 'form', 'button', 'interface'는 제거 — 너무 일반적 (ex: "CLI interface")
+        # 명시적으로 웹/앱 UI를 의미하는 단어만 유지
         if hasattr(golden_data, 'features') and golden_data.features:
-            ui_keywords = ['ui', 'streamlit', 'react', 'frontend', 'interface', 'dashboard', 'form', 'button']
+            EXPLICIT_UI_KEYWORDS = [
+                'streamlit', 'react', 'gradio', 'flask', 'fastapi',
+                'frontend', 'dashboard', 'web ui', 'web app',
+                '웹 ui', '웹앱', '대시보드', '프론트엔드',
+                '화면', '페이지', '웹 페이지',
+            ]
             for feature in golden_data.features:
                 feature_name = feature.name.lower() if hasattr(feature, 'name') else str(feature).lower()
                 feature_desc = feature.description.lower() if hasattr(feature, 'description') else ''
+                combined = feature_name + ' ' + feature_desc
 
-                if any(keyword in feature_name or keyword in feature_desc for keyword in ui_keywords):
+                if any(kw in combined for kw in EXPLICIT_UI_KEYWORDS):
                     enable_frontend = True
-                    if 'streamlit' in feature_name or 'streamlit' in feature_desc:
+                    if 'streamlit' in combined:
                         frontend_framework = FrontendFramework.STREAMLIT
-                    elif 'react' in feature_name or 'react' in feature_desc:
+                    elif 'react' in combined:
                         frontend_framework = FrontendFramework.REACT
-                    self.reporter.debug(f"UI 감지: feature '{feature.name}'에서 UI 키워드 발견")
+                    self.reporter.debug(
+                        f"UI 감지: feature '{getattr(feature, 'name', feature)}'에서 명시적 UI 키워드 발견"
+                    )
                     break
 
         # Default to Streamlit if UI detected but framework not specified

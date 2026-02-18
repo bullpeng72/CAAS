@@ -199,29 +199,55 @@ def _validate_golden(agents_list, tasks_list, golden_data, verbose):
 
 def _validate_dependency(agents_list, tasks_list, verbose):
     """Run dependency validation"""
+    from caas_framework.models.validation import ValidationIssue, ValidationResult, ValidationSeverity
     from caas_framework.validation.dependency_validator import DependencyValidator
 
     echo_progress("Validating task dependencies...")
 
-    validator = DependencyValidator()
-    result = validator.validate_dependencies(tasks_list)
+    validator = DependencyValidator(tasks_list)
+    is_valid, issues = validator.validate()
+
+    # Convert dependency issues to ValidationIssue objects
+    validation_issues = []
+    for issue in issues:
+        validation_issues.append(
+            ValidationIssue(
+                severity=ValidationSeverity.ERROR,
+                issue_type="dependency",
+                message=str(issue),
+            )
+        )
+
+    result = ValidationResult(is_valid=is_valid, issues=validation_issues)
 
     if verbose:
         click.echo()
         echo_info("Dependency Validation Details:")
         click.echo(f"  Tasks validated: {len(tasks_list)}")
+        click.echo(f"  Issues found: {len(issues)}")
 
     return result
 
 
 def _validate_python311(agents_list, tasks_list, verbose):
     """Run Python 3.11+ compatibility validation"""
-    from caas_framework.validation.python_validator import PythonValidator
+    from caas_framework.validation.python311_validator import Python311Validator
 
     echo_progress("Validating Python 3.11+ compatibility...")
 
-    validator = PythonValidator()
-    result = validator.validate_compatibility(agents_list, tasks_list)
+    # Build synthetic code from agent/task specs for validation
+    files = {}
+    for i, agent in enumerate(agents_list):
+        name = agent.get("name", f"agent_{i}") if isinstance(agent, dict) else f"agent_{i}"
+        role = agent.get("role", "Agent") if isinstance(agent, dict) else "Agent"
+        goal = agent.get("goal", "") if isinstance(agent, dict) else ""
+        files[f"agent_{i}.py"] = f'# Agent: {name}\n# Role: {role}\n# Goal: {goal}\n'
+    for i, task in enumerate(tasks_list):
+        name = task.get("name", f"task_{i}") if isinstance(task, dict) else f"task_{i}"
+        files[f"task_{i}.py"] = f'# Task: {name}\n'
+
+    validator = Python311Validator()
+    result = validator.validate(files)
 
     if verbose:
         click.echo()
@@ -234,12 +260,60 @@ def _validate_python311(agents_list, tasks_list, verbose):
 
 def _validate_crewai(agents_list, tasks_list, verbose):
     """Run CrewAI framework compliance validation"""
+    from caas_framework.models.validation import ValidationResult
     from caas_framework.validation.crewai_validator import CrewAIValidator
 
     echo_progress("Validating CrewAI framework compliance...")
 
     validator = CrewAIValidator()
-    result = validator.validate_crewai_compliance(agents_list, tasks_list)
+    all_issues = []
+
+    # Validate each agent's synthesized code
+    for agent in agents_list:
+        if isinstance(agent, dict):
+            name = agent.get("name", "Agent")
+            role = agent.get("role", "Role")
+            goal = agent.get("goal", "Goal")
+            backstory = agent.get("backstory", "Backstory")
+            tools_str = str(agent.get("tools", []))
+        else:
+            name, role, goal, backstory, tools_str = "Agent", "Role", "Goal", "Backstory", "[]"
+        code = (
+            f"from crewai import Agent\n"
+            f"{name.replace(' ', '_')} = Agent(\n"
+            f"    role='{role}',\n"
+            f"    goal='{goal}',\n"
+            f"    backstory='{backstory}',\n"
+            f"    tools={tools_str},\n"
+            f")\n"
+        )
+        agent_result = validator.validate_agent_code(code)
+        all_issues.extend(agent_result.issues)
+
+    # Validate each task's synthesized code
+    for task in tasks_list:
+        if isinstance(task, dict):
+            name = task.get("name", "Task")
+            desc = task.get("description", "Description")
+            output = task.get("expected_output", "Output")
+        else:
+            name, desc, output = "Task", "Description", "Output"
+        code = (
+            f"from crewai import Task\n"
+            f"{name.replace(' ', '_')} = Task(\n"
+            f"    description='{desc}',\n"
+            f"    expected_output='{output}',\n"
+            f")\n"
+        )
+        task_result = validator.validate_task_code(code)
+        all_issues.extend(task_result.issues)
+
+    from caas_framework.models.validation import ValidationSeverity
+    is_valid = all(
+        (i.severity.value if hasattr(i.severity, "value") else i.severity) != "error"
+        for i in all_issues
+    )
+    result = ValidationResult(is_valid=is_valid, issues=all_issues)
 
     if verbose:
         click.echo()

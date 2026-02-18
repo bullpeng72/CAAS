@@ -77,7 +77,7 @@ def auto_deploy(requirement, target, output, skip_tests, skip_docker, verbose, d
        - Disk space (5+ GB)
 
     2. 🔧 Generate Code
-       - Full BMAD workflow
+       - Full CAAS 6-Phase workflow
        - All phases (0-5)
        - Production-ready code
 

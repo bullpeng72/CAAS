@@ -9,7 +9,7 @@ from datetime import datetime
 
 import click
 from rich.console import Console
-from rich.layout import Layout
+from rich.console import Group
 from rich.live import Live
 from rich.panel import Panel
 from rich.table import Table
@@ -101,24 +101,15 @@ def metrics(watch, interval, verbose):
         def display_metrics():
             metrics_data = collector.get_all_metrics()
 
-            # Create layout
-            layout = Layout()
-            layout.split_column(
-                Layout(name="header", size=3),
-                Layout(name="body"),
-            )
-
-            # Header
             header_text = f"[bold cyan]System Metrics[/bold cyan] - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
-            layout["header"].update(Panel(header_text, border_style="cyan"))
+            header_panel = Panel.fit(header_text, border_style="cyan")
 
-            # Body - metrics table
-            table = Table(border_style="blue", expand=True)
-            table.add_column("Metric", style="cyan", width=30)
-            table.add_column("Value", style="green", width=20)
-            table.add_column("Change", style="yellow", width=15)
+            # Metrics table (no expand to avoid blank line padding)
+            table = Table(border_style="blue")
+            table.add_column("Metric", style="cyan")
+            table.add_column("Value", style="green")
+            table.add_column("Change", style="yellow")
 
-            # Add metrics
             table.add_row(
                 "Total Generations",
                 str(metrics_data.get("total_generations", 0)),
@@ -157,8 +148,7 @@ def metrics(watch, interval, verbose):
                     "Memory Usage", f"{metrics_data.get('memory_mb', 0):.1f} MB", ""
                 )
 
-            layout["body"].update(table)
-            return layout
+            return Group(header_panel, table)
 
         if watch:
             # Watch mode with live updates
@@ -466,7 +456,7 @@ def alerts(action, metric, threshold, condition):
             alert_system.add_alert(
                 metric=metric, threshold=threshold, condition=condition
             )
-            echo_success(f"✅ Added alert: {metric} {condition} {threshold}")
+            echo_success(f"Added alert: {metric} {condition} {threshold}")
 
         elif action == "remove":
             if not metric:
@@ -474,7 +464,7 @@ def alerts(action, metric, threshold, condition):
                 return 1
 
             alert_system.remove_alert(metric)
-            echo_success(f"✅ Removed alert for metric: {metric}")
+            echo_success(f"Removed alert for metric: {metric}")
 
         elif action == "test":
             triggered = alert_system.test_alerts()
@@ -485,7 +475,7 @@ def alerts(action, metric, threshold, condition):
                         f"  - {alert['metric']}: {alert['current_value']} {alert['condition']} {alert['threshold']}"
                     )
             else:
-                echo_success("✅ No alerts would be triggered")
+                echo_success("No alerts would be triggered")
 
     except ImportError as e:
         echo_error(f"Failed to import monitoring modules: {e}")
@@ -529,18 +519,27 @@ def export(format, output):
       $ caas monitor export --format json
     """
     try:
-        from caas_framework.monitoring import get_metrics_exporter
+        from caas_framework.monitoring import (
+            get_metrics_collector,
+            JSONExporter,
+            PrometheusExporter,
+        )
 
-        exporter = get_metrics_exporter()
+        collector = get_metrics_collector()
 
-        # Export metrics
-        exported_data = exporter.export(format=format)
+        # Select exporter by format
+        if format == "prometheus":
+            exporter = PrometheusExporter()
+        else:
+            exporter = JSONExporter()
+
+        exported_data = exporter.export(collector)
 
         if output:
             # Write to file
             with open(output, "w") as f:
                 f.write(exported_data)
-            echo_success(f"✅ Metrics exported to {output}")
+            echo_success(f"Metrics exported to {output}")
         else:
             # Print to console
             console.print()

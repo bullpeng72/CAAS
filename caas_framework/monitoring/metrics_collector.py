@@ -289,6 +289,10 @@ class EnhancedMetricsCollector:
             },
         }
 
+    def get_all_metrics(self) -> Dict[str, Any]:
+        """Return all metrics as a summary dict (CLI-compatible alias for get_summary)."""
+        return self.get_summary()
+
     def get_metrics_by_type(self, metric_type: MetricType) -> List[Metric]:
         """Get metrics filtered by type"""
         return [m for m in self.metrics if m.type == metric_type]

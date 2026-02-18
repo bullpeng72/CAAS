@@ -162,13 +162,8 @@ class RequirementConcretizer:
             "relationships": ["관계 설명"]
         }}
     ],
-    "ui_components": [
-        {{
-            "page_name": "페이지 이름",
-            "component_type": "form|table|chart|etc",
-            "description": "컴포넌트 설명"
-        }}
-    ],
+    "ui_components": [],
+
     "non_functional_requirements": {{
         "security": "보안 요구사항이 있다면",
         "scalability": "확장성 요구사항이 있다면",
@@ -209,7 +204,7 @@ class RequirementConcretizer:
 중요 사항:
 - 요구사항에 언급된 모든 기능을 추출하세요
 - 데이터 엔티티와 관계를 식별하세요
-- 해당되는 경우 UI 컴포넌트를 결정하세요
+- UI 컴포넌트(ui_components)는 요구사항에 "웹", "화면", "페이지", "UI", "앱(app)", "대시보드", "인터페이스", "프론트엔드", "streamlit", "react", "flask" 등의 단어가 **명시적으로** 포함된 경우에만 설정하세요. 명시되지 않은 경우 반드시 빈 배열 []로 설정하세요
 - 언급된 경우 비기능적 요구사항을 명시하세요
 - **각 기능에 대해 SDD (Spec-Driven Development) 필드를 추가하세요**:
   * api_contract: API 엔드포인트, 입력/출력 파라미터, 에러 케이스

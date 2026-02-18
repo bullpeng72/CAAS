@@ -90,6 +90,10 @@ class LLMConfig(BaseModel):
     ollama_base_url: str = Field(default="http://localhost:11434")
     ollama_model: str = Field(default="qwen3:8b")
 
+    # Multi-model routing settings
+    enable_multi_model: bool = Field(default=False)
+    model_selection_strategy: str = Field(default="phase_based")
+
     class Config:
         extra = "ignore"
 

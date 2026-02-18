@@ -2,11 +2,11 @@
 
 ## 프로젝트 개요
 
-**CAAS (CrewAI Agent Auto-generation System)** v0.5.1 (Core) + v0.6.3 (CAAS-E)
+**CAAS (CrewAI Agent Auto-generation System)** v0.6.3
 
 자연어 요구사항을 입력받아 프로덕션 레디 멀티 에이전트 시스템 코드를 자동으로 생성하는 통합 패키지입니다.
 
-**CAAS-E (Enterprise)** Week 6 완료 (2026-02-14): QA Enhancements + Iteration Control 추가 ✅
+**CAAS 통합 버전** (2026-02-17): Core + Enterprise 기능 완전 통합 ✅
 
 - **핵심 목표**: 자연어 → Golden Data → Agent/Task 설계 → Production Code 자동 생성
 - **방법론**: CAAS 6-Phase Methodology (Concretization → Discovery → Architecture → Design → Development → Delivery)
@@ -128,7 +128,7 @@ caas/
 │       ├── 62_용어집.md
 │       └── 63_FAQ.md
 │
-└── tests/                   # 208+ 테스트 (v0.5.1 Core + v0.6.3 CAAS-E)
+└── tests/                   # 208+ 테스트 (v0.6.3 통합)
     ├── test_e2e_*.py        # E2E 통합 테스트
     ├── test_exceptions.py   # 예외 테스트 (v0.4.1, 35 tests, 100% coverage)
     ├── test_llm_plugin_refactoring.py  # 플러그인 테스트 (v0.4.1, 25 tests)
@@ -1397,7 +1397,22 @@ else:
 
 ## 변경 이력
 
-### 2026-02-14: 문서 시스템 100% 완성 📚 (최종 업데이트)
+### 2026-02-17: v0.6.3 버전 통일 및 문서 현행화 📝
+- **버전 정보 통일**
+  - 모든 패키지 파일에서 0.6.3으로 통일 완료
+  - CLAUDE.md와 README.md 버전 표기 일관성 확보
+  - "0.5.1 (Core) + 0.6.3 (CAAS-E)" → "0.6.3 (통합 버전)"으로 변경
+- **문서 현행화**
+  - Last Updated: 2026-02-17로 업데이트
+  - Core + Enterprise 통합 완료 상태 반영
+  - 로드맵 v0.7.0으로 업데이트
+- **패키지 정보**
+  - setup.py, pyproject.toml: 0.6.3
+  - caas_framework/__init__.py: 0.6.3
+  - caas_cli/__init__.py: 0.6.3
+  - CLI --version: 0.6.3
+
+### 2026-02-14: 문서 시스템 100% 완성 📚
 - **29개 문서 완성** 🎉
   - Phase 1 (시작하기): 6개 (3,092 라인)
   - Phase 2 (개발 가이드): 8개 (6,609 라인)
@@ -1553,19 +1568,19 @@ else:
 
 ---
 
-**Last Updated**: 2026-02-14
-**Version**: 0.5.1 (Core) + 0.6.3 (CAAS-E)
+**Last Updated**: 2026-02-17
+**Version**: 0.6.3 (통합 버전)
 **Package Name**: caas (통합 패키지)
 **Repository**: https://github.com/bullpeng72/CAAS.git
 **Branch**: CAAS
 **Main Branch**: master
-**Status**: Production-Ready ✅ | CAAS-E 100% Complete 🎉 | Expert Agent Only Path 🎯 | High Code Quality 🚀 (<8% Duplication)
+**Status**: Production-Ready ✅ | Enterprise 기능 완전 통합 🎉 | Expert Agent Only Path 🎯 | High Code Quality 🚀 (<8% Duplication)
 **Deployment Strategy**: Single Unified Package (CLI + Framework Library)
 **Test Coverage**: 35% (핵심 모듈), 증가 추세 ↗️
-**Total Tests**: 208+ (160 Core + 48 CAAS-E)
-**CLI Commands**: 32+ (28 Core + 4 QA)
+**Total Tests**: 208+
+**CLI Commands**: 32+
 **Key Achievements**:
-  - CAAS-E 구현 100% 완료 (6주 계획)
+  - Enterprise 기능 통합 완료 (Core + CAAS-E)
   - QA 시스템 완비 (Compliance + Performance + Security)
   - 3-Level Iteration Control (Macro/Micro/Nano)
   - Legacy Path 제거 (-44% 코드)

@@ -13,6 +13,6 @@ from caas_framework.plugins import (
     llm,  # noqa: F401
     vectordb,  # noqa: F401
 )
-from caas_framework.plugins.base import Plugin, PluginRegistry
+from caas_framework.plugins.base import Plugin, PluginRegistry, get_plugin_registry
 
-__all__ = ["Plugin", "PluginRegistry"]
+__all__ = ["Plugin", "PluginRegistry", "get_plugin_registry"]

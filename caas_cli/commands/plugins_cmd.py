@@ -141,8 +141,22 @@ async def status(plugin_name, verbose):
         plugin = registry.get_plugin(plugin_name)
 
         if not plugin:
-            echo_error(f"Plugin not found: {plugin_name}")
-            return 1
+            # Check if registered as a class (not yet instantiated)
+            registered = next(
+                (p for p in registry.list_available_plugins() if p["name"] == plugin_name),
+                None,
+            )
+            if not registered:
+                echo_error(f"Plugin not found: {plugin_name}")
+                return 1
+            click.echo()
+            click.echo(click.style("Health Check Results:", bold=True))
+            click.echo(f"  Plugin:      {plugin_name}")
+            click.echo(f"  Status:      registered (not initialized)")
+            click.echo(f"  Healthy:     False (not initialized)")
+            click.echo()
+            echo_info("Plugin is registered but not initialized. Use 'caas plugins enable' to initialize.")
+            return 0
 
         # Run health check
         health_result = await plugin.health_check()
@@ -205,11 +219,27 @@ def info(plugin_name, verbose):
         plugin = registry.get_plugin(plugin_name)
 
         if not plugin:
-            echo_error(f"Plugin not found: {plugin_name}")
-            return 1
-
-        # Get plugin info
-        info = plugin.get_info()
+            # Fall back to registered class info
+            registered = next(
+                (p for p in registry.list_available_plugins() if p["name"] == plugin_name),
+                None,
+            )
+            if not registered:
+                echo_error(f"Plugin not found: {plugin_name}")
+                return 1
+            info = {
+                "type": registered.get("type", "N/A"),
+                "version": registered.get("version", "N/A"),
+                "status": registered.get("status", "registered"),
+                "description": registered.get("description", ""),
+            }
+        else:
+            # Get plugin info
+            info = plugin.get_info() if hasattr(plugin, "get_info") else {
+                "type": plugin.plugin_type.value,
+                "version": getattr(plugin, "version", "N/A"),
+                "status": "active" if plugin.is_initialized else "inactive",
+            }
 
         # Show info
         click.echo(click.style(f"Plugin: {plugin_name}", bold=True))
@@ -266,16 +296,22 @@ def enable(plugin_name):
        $ caas plugins enable openai
     """
     try:
+        from caas_cli.config import get_config
         from caas_framework.plugins import get_plugin_registry
 
         registry = get_plugin_registry()
-        plugin = registry.get_plugin(plugin_name)
+        available = registry.list_available_plugin_names()
 
-        if not plugin:
+        if plugin_name not in available:
             echo_error(f"Plugin not found: {plugin_name}")
+            echo_info(f"Available plugins: {', '.join(available)}")
             return 1
 
-        plugin.enable()
+        cfg = get_config()
+        disabled = cfg.get("plugins.disabled", []) or []
+        if plugin_name in disabled:
+            disabled.remove(plugin_name)
+            cfg.set("plugins.disabled", disabled)
 
         echo_success(f"Plugin enabled: {plugin_name}")
 
@@ -299,16 +335,22 @@ def disable(plugin_name):
        $ caas plugins disable openai
     """
     try:
+        from caas_cli.config import get_config
         from caas_framework.plugins import get_plugin_registry
 
         registry = get_plugin_registry()
-        plugin = registry.get_plugin(plugin_name)
+        available = registry.list_available_plugin_names()
 
-        if not plugin:
+        if plugin_name not in available:
             echo_error(f"Plugin not found: {plugin_name}")
+            echo_info(f"Available plugins: {', '.join(available)}")
             return 1
 
-        plugin.disable()
+        cfg = get_config()
+        disabled = cfg.get("plugins.disabled", []) or []
+        if plugin_name not in disabled:
+            disabled.append(plugin_name)
+            cfg.set("plugins.disabled", disabled)
 
         echo_success(f"Plugin disabled: {plugin_name}")
 
@@ -335,16 +377,19 @@ def configure(plugin_name, key, value):
        $ caas plugins configure openai --key model --value "gpt-4"
     """
     try:
+        from caas_cli.config import get_config
         from caas_framework.plugins import get_plugin_registry
 
         registry = get_plugin_registry()
-        plugin = registry.get_plugin(plugin_name)
+        available = registry.list_available_plugin_names()
 
-        if not plugin:
+        if plugin_name not in available:
             echo_error(f"Plugin not found: {plugin_name}")
+            echo_info(f"Available plugins: {', '.join(available)}")
             return 1
 
-        plugin.configure({key: value})
+        cfg = get_config()
+        cfg.set(f"plugins.{plugin_name}.{key}", value)
 
         echo_success(f"Plugin configured: {plugin_name}")
         echo_info(f"Set {key} = {value}")

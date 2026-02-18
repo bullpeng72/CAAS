@@ -412,7 +412,6 @@ def api_client():
     """Mock API client"""
     from fastapi.testclient import TestClient
     # TODO: Import your actual app
-    # from app.main import app
     # return TestClient(app)
     return Mock()  # Placeholder
 ''')

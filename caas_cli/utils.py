@@ -201,14 +201,23 @@ def save_json(file_path, data):
         output_path = Path(file_path)
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
-        # Handle Pydantic models
+        # Handle Pydantic models and dataclasses
         if hasattr(data, "model_dump"):
             data = data.model_dump()
         elif hasattr(data, "dict"):
             data = data.dict()
 
+        import dataclasses
+
+        def default_serializer(obj):
+            if dataclasses.is_dataclass(obj) and not isinstance(obj, type):
+                return dataclasses.asdict(obj)
+            if hasattr(obj, "__dict__"):
+                return obj.__dict__
+            return str(obj)
+
         with open(output_path, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2, ensure_ascii=False)
+            json.dump(data, f, indent=2, ensure_ascii=False, default=default_serializer)
 
         echo_success(f"Saved to: {file_path}")
     except Exception as e:
@@ -255,7 +264,7 @@ def save_files(output_dir, files_dict):
 
 def print_phase_banner(phase_num: int, phase_name: str):
     """
-    Print BMAD phase banner.
+    Print CAAS phase banner.
 
     Args:
         phase_num: Phase number (0-5)

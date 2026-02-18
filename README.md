@@ -7,9 +7,9 @@
 ![Python](https://img.shields.io/badge/Python-3.11+-blue)
 ![CrewAI](https://img.shields.io/badge/CrewAI-0.65+-green)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
-![Version](https://img.shields.io/badge/Version-0.5.1%20(Core)%20%2B%200.6.3%20(CAAS--E)-orange)
+![Version](https://img.shields.io/badge/Version-0.6.3-orange)
 ![Status](https://img.shields.io/badge/Status-Production%20Ready-brightgreen)
-![CAAS-E](https://img.shields.io/badge/CAAS--E-100%25%20Complete-success)
+![Integration](https://img.shields.io/badge/Core%2BEnterprise-Fully%20Integrated-success)
 
 ---
 
@@ -125,7 +125,7 @@ caas generate "블로그 시스템" --enable-frontend --frontend-framework strea
 - ✅ **Frontend Specialist Agent**: Streamlit UI 완전 생성 (Input, Button, Error Handling)
 
 ### 🎯 CLI Features
-**32+ 명령어 제공** (Core 28 + CAAS-E 4+):
+**32+ 명령어 제공**:
 
 #### 🔧 Setup & Configuration (3)
 - `init` - 대화형 초기 설정
@@ -156,7 +156,7 @@ caas generate "블로그 시스템" --enable-frontend --frontend-framework strea
 - `qa security` - 보안 스캔 (OWASP Top 10) (CAAS-E v0.6.3) ✨ NEW
 - `qa report` - 종합 QA 리포트 (CAAS-E v0.6.3) ✨ NEW
 
-#### 🧪 Testing & TDD (4) ✨ ENHANCED (CAAS-E)
+#### 🧪 Testing & TDD (4) ✨ ENHANCED
 - `test` - 테스트 실행 (run/coverage/validate)
 - `tdd generate-tests` - Golden Data에서 테스트 생성 (CAAS-E v0.6.0) ✨
 - `tdd analyze-code` - 코드 품질 및 smell 분석 (CAAS-E v0.6.0) ✨
@@ -518,7 +518,7 @@ caas/
 │   ├── validate_env.py              # Environment validator
 │   └── auto_deploy.sh               # Auto deployment script
 │
-├── 📁 tests/                        # Test suite (208+ tests: 160 Core + 48 CAAS-E)
+├── 📁 tests/                        # Test suite (208+ tests (통합))
 │   ├── test_exceptions.py           # Exception tests (v0.4.1, 35 tests) ⭐
 │   ├── test_llm_plugin_refactoring.py  # Plugin tests (v0.4.1, 25 tests) ⭐
 │   ├── test_qa/                     # QA system tests (CAAS-E v0.6.3, 36 tests) ✨ NEW
@@ -785,7 +785,7 @@ caas validate --validator all --agents agents.json --tasks tasks.json --golden-d
 caas fix --agents agents.json --tasks tasks.json --golden-data golden.json --level 3
 ```
 
-### QA & Testing (CAAS-E) ✨ NEW
+### QA & Testing ✨
 ```bash
 # QA 시스템
 caas qa compliance --project ./project  # 라이선스 & 프라이버시
@@ -827,14 +827,14 @@ caas plugins status openai
 ## 🧪 테스트
 
 ```bash
-# 전체 테스트 (208+ tests: 160 Core + 48 CAAS-E)
+# 전체 테스트 (208+ tests (통합))
 pytest
 
 # E2E 테스트
 pytest tests/test_e2e_todo_app.py
 pytest tests/test_e2e_chatbot.py
 
-# CAAS-E 테스트 (48 tests)
+# Enterprise 기능 테스트 (48 tests)
 pytest tests/test_qa/                        # QA 시스템 (36 tests)
 pytest tests/test_iteration/                 # Iteration Control (12 tests)
 pytest tests/test_checkpoint/                # Human Checkpoints (28 tests)
@@ -870,10 +870,10 @@ pytest tests/test_qa/test_security.py       # Security (16 tests)
 
 ## 🗺️ 로드맵
 
-### ✅ v0.6.3 (CAAS-E) 완료 (Current - 2026-02-14) 🎉
-**Week 6 Complete - QA Enhancements + Iteration Control**
+### ✅ v0.6.3 완료 (Current - 2026-02-17) 🎉
+**Core + Enterprise 통합 완료 - QA Enhancements + Iteration Control**
 
-#### 🎯 CAAS-E 구현 100% 완료
+#### 🎯 Enterprise 기능 완전 통합
 - [x] **전체 6주 계획 완료** ⭐⭐⭐
   - Weeks 1-2: Story Decomposition + Party Mode
   - Week 3: TDD RED (Test Generation)
@@ -1134,7 +1134,7 @@ pytest tests/test_qa/test_security.py       # Security (16 tests)
 - [x] **Session & Workflow 관리**
 - [x] **Plugin 시스템**
 
-### 🚧 v0.6.0 계획 (2026-Q2)
+### 🚧 v0.7.0 계획 (2026-Q2)
 **Performance & Advanced Features**
 
 - [ ] 성능 최적화 (캐싱, 병렬 처리 확대)
@@ -1319,4 +1319,4 @@ MIT License - 자세한 내용은 [LICENSE](LICENSE) 파일 참조
 
 **Made with ❤️ by bullpeng72**
 
-**v0.6.3 CAAS-E Complete** 🎉 | **v0.5.1 Core** ✅ | [Documentation](docs/01_README_KO.md) | Framework-First Architecture ✅ | CAAS-E 100% Complete (6 Weeks) 🎊 | 98.7% Implementation Rate for CrewAI Agents ⭐ | <8% Code Duplication 🚀 | Expert Agent Only Path 🎯 | 6 Expert Agents | 32+ CLI Commands | 208+ Tests | QA System Complete 🛡️ | 3-Level Iteration Control 🔄 | Last Updated: 2026-02-14
+**v0.6.3 Unified** 🎉 | [Documentation](docs/1_시작하기/01_CAAS_소개_및_설치.md) | Framework-First Architecture ✅ | Core+Enterprise Fully Integrated 🎊 | 98.7% Implementation Rate for CrewAI Agents ⭐ | <8% Code Duplication 🚀 | Expert Agent Only Path 🎯 | 6 Expert Agents | 32+ CLI Commands | 208+ Tests | QA System Complete 🛡️ | 3-Level Iteration Control 🔄 | Last Updated: 2026-02-17

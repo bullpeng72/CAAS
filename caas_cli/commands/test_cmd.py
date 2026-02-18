@@ -134,9 +134,21 @@ def run(test_file, coverage, verbose, marker, parallel, report):
                 verbose=verbose,
             )
         else:
-            # Run directory tests
-            result = executor.execute_pytest_directory(
-                test_directory=test_file, coverage=coverage, verbose=verbose
+            # Run directory tests using subprocess directly
+            import subprocess
+
+            cmd = ["pytest", str(test_file)]
+            if verbose:
+                cmd.append("-v")
+            else:
+                cmd.append("-q")
+            if marker:
+                cmd.extend(["-m", marker])
+            proc = subprocess.run(
+                cmd, capture_output=True, text=True, cwd=str(Path.cwd())
+            )
+            result = executor._parse_pytest_output(
+                proc.stdout, proc.stderr, proc.returncode
             )
 
         # Print results
@@ -224,8 +236,14 @@ def coverage(test_file, min_coverage):
                 verbose=False,
             )
         else:
-            result = executor.execute_pytest_directory(
-                test_directory=test_file, coverage=True, verbose=False
+            import subprocess
+
+            cmd = ["pytest", str(test_file), "--cov", "--cov-report=term-missing"]
+            proc = subprocess.run(
+                cmd, capture_output=True, text=True, cwd=str(Path.cwd())
+            )
+            result = executor._parse_pytest_output(
+                proc.stdout, proc.stderr, proc.returncode
             )
 
         # Show coverage

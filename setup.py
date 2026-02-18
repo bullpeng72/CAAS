@@ -27,7 +27,7 @@ setup(
     long_description_content_type="text/markdown",
     author="bullpeng72",
     author_email="sungwoo.kim@gmail.com",
-    url="https://github.com/bullpeng72/CrewAI-Agent-Autogeneration-System",
+    url="https://github.com/bullpeng72/CAAS",
     # Include framework, CLI, and SDK
     packages=find_packages(
         include=[
@@ -119,8 +119,8 @@ setup(
     ],
     keywords="crewai multi-agent code-generation ai framework bmad sdd ontology",
     project_urls={
-        "Bug Reports": "https://github.com/bullpeng72/CrewAI-Agent-Autogeneration-System/issues",
-        "Documentation": "https://github.com/bullpeng72/CrewAI-Agent-Autogeneration-System#readme",
-        "Source": "https://github.com/bullpeng72/CrewAI-Agent-Autogeneration-System",
+        "Bug Reports": "https://github.com/bullpeng72/CAAS/issues",
+        "Documentation": "https://github.com/bullpeng72/CAAS#readme",
+        "Source": "https://github.com/bullpeng72/CAAS",
     },
 )

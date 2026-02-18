@@ -1,7 +1,7 @@
 """
 Generate Phase Command
 
-Execute specific BMAD phase (0-5)
+Execute specific CAAS phase (0-5)
 """
 
 from pathlib import Path
@@ -26,7 +26,7 @@ from caas_cli.utils import (
     "--phase",
     type=click.IntRange(0, 5),
     required=True,
-    help="BMAD phase to execute (0-5)",
+    help="CAAS phase to execute (0-5)",
 )
 @click.option(
     "--input",
@@ -62,10 +62,10 @@ async def generate_phase(
     phase, input, requirement, domain, deployment_target, workflow_type, output, verbose
 ):
     """
-    Execute specific BMAD phase (0-5)
+    Execute specific CAAS phase (0-5)
 
     \b
-    BMAD PHASES:
+    CAAS 6-Phase:
     ═══════════════════════════════════════════════════════════════════════════
     Phase 0: Concretization
       • Input: Natural language requirement
@@ -449,6 +449,11 @@ async def _execute_phase_4(framework, input_dir, output_path, verbose):
     save_json(output_path / "golden_data.json", golden_data)
     echo_info("✓ Copied golden_data.json for Phase 5")
 
+    import shutil
+    shutil.copy2(input_path / "agents.json", output_path / "agents.json")
+    shutil.copy2(input_path / "tasks.json", output_path / "tasks.json")
+    echo_info("✓ Copied agents.json, tasks.json for Phase 5")
+
     return {"spec": spec_yaml}
 
 
@@ -497,17 +502,15 @@ async def _execute_phase_5(
         enable_auto_fix=True,
     )
 
-    generated_code = await engine._phase_5_delivery(
-        spec_yaml, golden_data, deployment_target
+    result = await engine._phase_5_delivery(
+        input_dir=input_path,
+        output_dir=output_path,
     )
+
+    generated_code = result.get("files", {})
 
     if verbose:
         click.echo()
-        echo_info(f"Files generated: {len(generated_code)}")
-
-    # Save generated files
-    from caas_cli.utils import save_files
-
-    save_files(output_path, generated_code)
+        echo_info(f"Files generated: {result.get('file_count', len(generated_code))}")
 
     return generated_code

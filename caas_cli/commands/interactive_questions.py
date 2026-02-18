@@ -147,7 +147,10 @@ def questions(gaps, domain, output, api_url, interactive):
     try:
         with open(gaps, "r", encoding="utf-8") as f:
             gaps_result = json.load(f)
-            gaps_list = gaps_result.get("gaps", [])
+            if isinstance(gaps_result, list):
+                gaps_list = gaps_result
+            else:
+                gaps_list = gaps_result.get("gaps", [])
     except Exception as e:
         echo_error(f"Failed to load gaps file: {e}")
         return
@@ -164,19 +167,25 @@ def questions(gaps, domain, output, api_url, interactive):
     echo_info(f"Gaps: {len(gaps_list)}")
     click.echo()
 
-    # Generate questions via API
+    # Generate questions using local framework
     try:
-        import requests
+        from caas_framework.refinement import InteractiveQuestionGenerator, RequirementGap
 
-        response = requests.post(
-            f"{api_url}/api/v1/requirements/generate-questions",
-            json={"gaps": gaps_list, "domain": domain},
-            timeout=60,
-        )
+        gap_models = [RequirementGap(**g) if isinstance(g, dict) else g for g in gaps_list]
+        generator = InteractiveQuestionGenerator()
+        generated_questions = generator.generate_questions(gap_models, domain or "general")
+        questions_list = [
+            {
+                "id": q.id,
+                "question_text": q.question_text,
+                "question_type": q.question_type.value if hasattr(q.question_type, 'value') else str(q.question_type),
+                "options": q.options or [],
+                "help_text": q.help_text,
+            }
+            for q in generated_questions
+        ]
 
-        if response.status_code == 200:
-            result = response.json()
-            questions_list = result.get("questions", [])
+        if True:  # keep same indentation structure as before
 
             if not questions_list:
                 echo_success("✅ No questions needed - all information is sufficient!")
@@ -288,13 +297,6 @@ def questions(gaps, domain, output, api_url, interactive):
 
                 echo_success(f"Answers saved to: {output}")
 
-        else:
-            echo_error(f"API error: {response.status_code}")
-            echo_error(response.text)
-
-    except requests.exceptions.ConnectionError:
-        echo_error("Failed to connect to API server")
-        echo_info(f"Make sure the API server is running at {api_url}")
     except KeyboardInterrupt:
         echo_warning("\n\nInterrupted by user")
         if answers and output:

@@ -169,13 +169,22 @@ async def fix(agents, tasks, golden_data, level, max_iterations, output, verbose
         echo_progress("Step 1/3: Validating design...")
 
         from caas_framework.models.specifications import (
+            AgentSpecModel,
             ConcretizedRequirement as GoldenData,
+            TaskSpecModel,
         )
         from caas_framework.validation.golden_validator import GoldenDataValidator
 
+        # Convert dicts to model objects if needed
+        if agents_list and isinstance(agents_list[0], dict):
+            agents_list = [AgentSpecModel(**a) for a in agents_list]
+        if tasks_list and isinstance(tasks_list[0], dict):
+            tasks_list = [TaskSpecModel(**t) for t in tasks_list]
+
         golden = GoldenData(**golden_data_dict)
         validator = GoldenDataValidator(golden)
-        validation_report = validator.validate(agents_list, tasks_list)
+        # GoldenDataValidator uses validate_design() as the main validation entry point
+        validation_report = validator.validate_design(agents_list, tasks_list)
 
         if not hasattr(validation_report, "errors") or not validation_report.errors:
             echo_success("No issues found! Design is valid.")

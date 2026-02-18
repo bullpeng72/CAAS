@@ -315,19 +315,18 @@ def switch(model_name, provider):
       $ caas models switch gpt-3.5-turbo
     """
     try:
+        from caas_cli.config import get_config
         from caas_framework.config import get_settings
 
         settings = get_settings()
+        cfg = get_config()
 
         # Update model
         old_model = settings.llm.model
-        settings.llm.model = model_name
+        cfg.set("llm.model", model_name)
 
         if provider:
-            settings.llm.provider = provider
-
-        # Save settings
-        settings.save()
+            cfg.set("llm.provider", provider)
 
         echo_success(f"✅ Switched model: {old_model} → {model_name}")
 
@@ -377,28 +376,28 @@ def strategy(strategy_name, enable_multi_model, disable_multi_model):
       $ caas models strategy phase_based --disable-multi-model
     """
     try:
+        from caas_cli.config import get_config
         from caas_framework.config import get_settings
 
         settings = get_settings()
+        cfg = get_config()
 
         # Update strategy
         old_strategy = settings.llm.model_selection_strategy
-        settings.llm.model_selection_strategy = strategy_name
+        cfg.set("llm.model_selection_strategy", strategy_name)
 
         # Update multi-model flag
         if enable_multi_model:
-            settings.llm.enable_multi_model = True
+            cfg.set("llm.enable_multi_model", True)
         elif disable_multi_model:
-            settings.llm.enable_multi_model = False
-
-        # Save settings
-        settings.save()
+            cfg.set("llm.enable_multi_model", False)
 
         echo_success(
             f"✅ Model selection strategy updated: {old_strategy} → {strategy_name}"
         )
 
-        if settings.llm.enable_multi_model:
+        multi_model_enabled = cfg.get("llm.enable_multi_model", False)
+        if multi_model_enabled:
             echo_info("Multi-model routing: ✅ Enabled")
         else:
             echo_warning("Multi-model routing: ⏸️  Disabled")
@@ -458,19 +457,20 @@ def fallback(enable, disable, list_chain):
       $ caas models fallback --list
     """
     try:
+        from caas_cli.config import get_config
         from caas_framework.config import get_settings
         from caas_framework.plugins.llm import get_multi_model_router
 
         settings = get_settings()
 
+        cfg = get_config()
+
         if enable:
-            settings.llm.enable_model_fallback = True
-            settings.save()
+            cfg.set("llm.enable_model_fallback", True)
             echo_success("✅ Model fallback enabled")
 
         elif disable:
-            settings.llm.enable_model_fallback = False
-            settings.save()
+            cfg.set("llm.enable_model_fallback", False)
             echo_success("✅ Model fallback disabled")
 
         elif list_chain:
@@ -502,9 +502,9 @@ def fallback(enable, disable, list_chain):
 
         else:
             # Show current status
-            status = (
-                "✅ Enabled" if settings.llm.enable_model_fallback else "❌ Disabled"
-            )
+            fallback_enabled = cfg.get("llm.enable_model_fallback",
+                                       getattr(settings.llm, "enable_model_fallback", False))
+            status = "✅ Enabled" if fallback_enabled else "❌ Disabled"
             echo_info(f"Model fallback: {status}")
 
     except ImportError as e:

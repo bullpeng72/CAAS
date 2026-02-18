@@ -9,7 +9,7 @@ Supports:
 """
 
 import os
-from typing import Any, AsyncIterator, Dict
+from typing import Any, Dict
 
 from caas_framework.plugins.llm.base import LLMPlugin
 
@@ -47,32 +47,6 @@ class OpenAIPlugin(LLMPlugin):
             raise ImportError(
                 "OpenAI package not installed. " "Install with: pip install openai"
             )
-
-    async def _call_api(self, request_params: Dict[str, Any]) -> Any:
-        """
-        OpenAI-specific API call implementation.
-
-        Args:
-            request_params: Request parameters from base class
-
-        Returns:
-            OpenAI completion response
-        """
-        return await self._client.chat.completions.create(**request_params)
-
-    async def _stream_api(self, request_params: Dict[str, Any]) -> AsyncIterator[Any]:
-        """
-        OpenAI-specific streaming API call implementation.
-
-        Args:
-            request_params: Request parameters from base class
-
-        Yields:
-            OpenAI streaming response chunks
-        """
-        stream = await self._client.chat.completions.create(**request_params)
-        async for chunk in stream:
-            yield chunk
 
 
 # Register plugin

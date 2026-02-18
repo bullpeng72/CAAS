@@ -193,23 +193,37 @@ def traceability(requirement, golden_data, agents, tasks, output, format, api_ur
     echo_info(f"Requirement: {requirement}")
     click.echo()
 
-    # Call API
+    # Use local framework (primary) or remote API (fallback)
     try:
-        import requests
+        from caas_framework.models.specifications import (
+            AgentSpecModel,
+            ConcretizedRequirement,
+            TaskSpecModel,
+        )
+        from caas_framework.validation.traceability import TraceabilityManager
 
-        response = requests.post(
-            f"{api_url}/api/v1/traceability/build",
-            json={
-                "requirement": requirement,
-                "golden_data": golden_data_dict,
-                "agents": agents_list,
-                "tasks": tasks_list,
-            },
-            timeout=120,
+        golden = ConcretizedRequirement(**golden_data_dict)
+        agent_models = [AgentSpecModel(**a) if isinstance(a, dict) else a for a in agents_list]
+        task_models = [TaskSpecModel(**t) if isinstance(t, dict) else t for t in tasks_list]
+
+        manager = TraceabilityManager()
+        manager.build_from_workflow(
+            requirement=requirement,
+            golden_data=golden,
+            agents=agent_models,
+            tasks=task_models,
         )
 
-        if response.status_code == 200:
-            result = response.json()
+        coverage_report = manager.matrix.validate_completeness()
+        matrix_dict = manager.matrix.export_to_dict()
+        result = {
+            "total_links": matrix_dict.get("total_links", 0),
+            "coverage_percentage": coverage_report.coverage_percentage,
+            "gaps": [g for g in coverage_report.gaps],
+            "links": matrix_dict.get("links", []),
+        }
+
+        if True:  # always enter result display block
 
             if format == "text":
                 # Text format

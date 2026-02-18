@@ -282,6 +282,32 @@ class CostTracker:
         else:
             return "All time"
 
+    def get_costs(self, period: str = "day") -> Dict[str, Any]:
+        """CLI-compatible wrapper for get_summary(), returns dict with period filter."""
+        from datetime import timedelta
+        now = datetime.now()
+        if period == "day":
+            since = now - timedelta(days=1)
+        elif period == "week":
+            since = now - timedelta(weeks=1)
+        elif period == "month":
+            since = now - timedelta(days=30)
+        else:
+            since = None
+        summary = self.get_summary(since=since)
+        return {
+            "total_cost": summary.total_cost_usd,
+            "total_tokens": summary.total_tokens,
+            "api_calls": summary.total_calls,
+            "avg_cost_per_call": summary.avg_cost_per_call,
+            "by_phase": summary.by_phase,
+            "by_model": {
+                model: {"cost": data.get("cost_usd", 0), "calls": data.get("calls", 0)}
+                for model, data in summary.by_model.items()
+            },
+            "budget_limit": None,
+        }
+
     def export_entries(self) -> List[Dict[str, Any]]:
         """Export all cost entries"""
         return [

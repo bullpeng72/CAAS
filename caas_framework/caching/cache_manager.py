@@ -291,6 +291,43 @@ class CacheManager:
         await self.backend.clear()
         self.logger.info("🗑️ Cache cleared")
 
+    def clear_all(self) -> int:
+        """Synchronously clear all cache entries. Returns number of cleared entries."""
+        import asyncio
+        metrics_before = self.get_metrics()
+        entries_before = metrics_before.get("backend_metrics", {}).get("total_entries", 0)
+        try:
+            asyncio.run(self.clear())
+        except RuntimeError:
+            # Event loop already running
+            import concurrent.futures
+            with concurrent.futures.ThreadPoolExecutor() as pool:
+                pool.submit(asyncio.run, self.clear()).result()
+        return entries_before
+
+    def get_statistics(self, cache_type: Optional[str] = None) -> Dict[str, Any]:
+        """Get cache statistics, compatible with CLI expectations."""
+        raw = self.get_metrics()
+        manager = raw.get("manager_metrics", {})
+        backend = raw.get("backend_metrics", {})
+
+        stats = {
+            "entries": backend.get("total_entries", 0),
+            "size_mb": backend.get("size_bytes", 0) / (1024 * 1024),
+            "hit_rate": manager.get("hit_rate_percent", 0.0),
+            "miss_rate": 100.0 - manager.get("hit_rate_percent", 0.0),
+            "avg_ttl": self.default_ttl,
+            "total_hits": manager.get("total_hits", 0),
+            "total_misses": manager.get("total_misses", 0),
+            "evictions": backend.get("evictions", 0),
+        }
+
+        if cache_type is not None:
+            return stats
+
+        # Return per-type breakdown
+        return {cache_type or "all": stats}
+
     def get_metrics(self) -> Dict[str, Any]:
         """
         Get comprehensive cache metrics.

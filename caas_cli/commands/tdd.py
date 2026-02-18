@@ -165,9 +165,10 @@ async def _generate_tests(
             )
             total_tests += test_file.test_count
 
-            # Write file to disk
-            Path(test_file.file_path).parent.mkdir(parents=True, exist_ok=True)
-            with open(test_file.file_path, 'w') as f:
+            # Write file to disk under output_dir
+            actual_path = Path(output_dir) / test_file.file_path
+            actual_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(actual_path, 'w') as f:
                 f.write(test_file.content)
 
         console.print(table)

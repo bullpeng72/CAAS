@@ -5,7 +5,7 @@ Unified interface for all LLM providers with common implementation patterns.
 """
 
 import logging
-from abc import abstractmethod
+
 from typing import Any, AsyncIterator, Dict, List, Optional, Union
 
 from pydantic import BaseModel
@@ -156,12 +156,11 @@ class LLMPlugin(Plugin):
 
         return error
 
-    @abstractmethod
     async def _call_api(self, request_params: Dict[str, Any]) -> Any:
         """
-        Provider-specific API call implementation.
+        Default OpenAI-compatible API call.
 
-        This is the only method that must be implemented by subclasses.
+        Override for provider-specific behavior.
 
         Args:
             request_params: Request parameters from _build_request_params()
@@ -172,13 +171,13 @@ class LLMPlugin(Plugin):
         Raises:
             Exception: Provider-specific errors
         """
+        return await self._client.chat.completions.create(**request_params)
 
-    @abstractmethod
     async def _stream_api(self, request_params: Dict[str, Any]) -> AsyncIterator[Any]:
         """
-        Provider-specific streaming API call implementation.
+        Default OpenAI-compatible streaming API call.
 
-        This is the only streaming method that must be implemented by subclasses.
+        Override for provider-specific behavior.
 
         Args:
             request_params: Request parameters from _build_request_params()
@@ -189,6 +188,9 @@ class LLMPlugin(Plugin):
         Raises:
             Exception: Provider-specific errors
         """
+        stream = await self._client.chat.completions.create(**request_params)
+        async for chunk in stream:
+            yield chunk
 
     async def ainvoke(
         self,

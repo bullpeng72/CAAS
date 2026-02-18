@@ -358,12 +358,15 @@ def bottlenecks(threshold, limit):
       $ caas profile bottlenecks --limit 20
     """
     try:
-        from caas_framework.performance import get_profiler
+        from caas_framework.performance import BottleneckAnalyzer, get_profiler
 
         profiler = get_profiler()
-        bottlenecks_data = profiler.identify_bottlenecks(
-            threshold=threshold, limit=limit
+        analyzer = BottleneckAnalyzer(profiler)
+        bottlenecks_data = analyzer.identify_bottlenecks(
+            threshold_percent=threshold * 10,
+            min_duration_ms=100.0,
         )
+        bottlenecks_data = bottlenecks_data[:limit]
 
         if not bottlenecks_data:
             echo_success("✅ No significant bottlenecks found")

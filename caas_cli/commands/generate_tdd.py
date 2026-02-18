@@ -179,7 +179,14 @@ async def _generate_tdd(
 
     # Step 2: Initialize TDD Orchestrator
     config = load_config()
-    llm = create_llm_plugin(config)
+    llm = create_llm_plugin(
+        provider=config.llm.provider,
+        model=config.llm.model,
+        api_key=config.llm.api_key,
+        api_base=config.llm.api_base,
+        temperature=config.llm.temperature,
+        max_tokens=config.llm.max_tokens,
+    )
 
     tdd_config = TDDWorkflowConfig(
         max_iterations=max_iterations,

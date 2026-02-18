@@ -11,20 +11,31 @@ from caas_framework.caching.backends import (
     InMemoryCacheBackend,
 )
 from caas_framework.caching.cache_manager import (
-    CacheEntry,
     CacheKey,
     CacheManager,
     CacheMetrics,
 )
 from caas_framework.caching.llm_cache import LLMCacheWrapper
 
+# Global cache manager instance
+_cache_manager = None
+
+
+def get_cache_manager() -> CacheManager:
+    """Get or create the global CacheManager instance (in-memory backend)."""
+    global _cache_manager
+    if _cache_manager is None:
+        _cache_manager = CacheManager(backend=InMemoryCacheBackend())
+    return _cache_manager
+
+
 __all__ = [
     "CacheManager",
     "CacheKey",
-    "CacheEntry",
     "CacheMetrics",
     "CacheBackend",
     "InMemoryCacheBackend",
     "FileCacheBackend",
     "LLMCacheWrapper",
+    "get_cache_manager",
 ]

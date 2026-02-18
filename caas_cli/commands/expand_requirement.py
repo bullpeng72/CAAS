@@ -182,7 +182,18 @@ def expand(requirement, golden_data, gaps, output):
     try:
         # Run expansion
         async def run_expansion():
-            llm_plugin = OpenAIPlugin()
+            import os
+            from caas_framework.config.loader import load_config
+            cfg = load_config()
+            llm_plugin = OpenAIPlugin(
+                name="openai-expand",
+                config={
+                    "model": cfg.llm.model,
+                    "api_key": cfg.llm.api_key or os.environ.get("OPENAI_API_KEY"),
+                    "temperature": cfg.llm.temperature,
+                    "max_tokens": cfg.llm.max_tokens,
+                },
+            )
             await llm_plugin.initialize()
 
             expander = RequirementExpander(llm_client=llm_plugin)

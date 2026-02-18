@@ -88,7 +88,7 @@ def list_sessions(active_only):
 
         for sess in sessions:
             session_id = sess.session_id[:8] + "..."
-            name = sess.metadata.get("name", "N/A") if sess.metadata else "N/A"
+            name = getattr(sess, "name", None) or (sess.metadata.get("name", "N/A") if sess.metadata else "N/A")
             status = sess.status
             created = sess.created_at.strftime("%Y-%m-%d %H:%M")
             phase = (

@@ -33,6 +33,26 @@ from caas_framework.plugins.llm.multi_model_router import (
     MultiModelRouter,
 )
 
+# Global multi-model router instance
+_multi_model_router = None
+
+
+def get_multi_model_router() -> MultiModelRouter:
+    """Get or create the global MultiModelRouter instance.
+
+    Uses current settings if multi-model is configured, otherwise falls back
+    to a default setup so the router can be listed without API keys.
+    """
+    global _multi_model_router
+    if _multi_model_router is None:
+        import os
+        default_config = create_default_multi_model_setup(
+            api_key=os.getenv("OPENAI_API_KEY")
+        )
+        _multi_model_router = create_multi_model_router(default_config)
+    return _multi_model_router
+
+
 __all__ = [
     "LLMPlugin",
     "MultiModelRouter",
@@ -45,4 +65,5 @@ __all__ = [
     "create_default_multi_model_setup",
     "create_cost_optimized_setup",
     "create_performance_first_setup",
+    "get_multi_model_router",
 ]

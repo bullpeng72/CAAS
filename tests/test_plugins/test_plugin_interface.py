@@ -71,9 +71,9 @@ class TestLLMPluginCompliance:
                 "config" in params
             ), f"{plugin_class.__name__}.__init__ missing 'config' parameter"
 
-    @patch("caas_framework.plugins.llm.openai.OpenAI")
-    def test_openai_plugin_initialization(self, mock_openai):
+    def test_openai_plugin_initialization(self):
         """Test OpenAI plugin initializes correctly"""
+        # openai import happens inside initialize(), not __init__, so no mock needed
         config = {"api_key": "test-key", "model": "gpt-4", "temperature": 0.5}
 
         plugin = OpenAIPlugin(name="openai-test", config=config)
@@ -83,9 +83,9 @@ class TestLLMPluginCompliance:
         assert plugin.temperature == 0.5
         assert plugin.plugin_type == PluginType.LLM
 
-    @patch("caas_framework.plugins.llm.ollama.OpenAI")
-    def test_ollama_plugin_initialization(self, mock_openai):
+    def test_ollama_plugin_initialization(self):
         """Test Ollama plugin initializes correctly"""
+        # openai import happens inside initialize(), not __init__, so no mock needed
         config = {
             "api_base": "http://localhost:11434/v1",
             "model": "llama2",
@@ -108,8 +108,7 @@ class TestLLMPluginCompliance:
                 "(should inherit from base)"
             )
 
-    @patch("caas_framework.plugins.llm.openai.OpenAI")
-    def test_openai_convert_messages(self, mock_openai):
+    def test_openai_convert_messages(self):
         """Test OpenAI message conversion"""
         config = {"api_key": "test-key"}
         plugin = OpenAIPlugin(name="test", config=config)
@@ -122,8 +121,7 @@ class TestLLMPluginCompliance:
         assert converted[0]["role"] == "user"
         assert converted[0]["content"] == "Hello"
 
-    @patch("caas_framework.plugins.llm.openai.OpenAI")
-    def test_openai_build_request_params(self, mock_openai):
+    def test_openai_build_request_params(self):
         """Test OpenAI request parameter building"""
         config = {"api_key": "test-key", "model": "gpt-4"}
         plugin = OpenAIPlugin(name="test", config=config)
@@ -145,14 +143,20 @@ class TestPluginRegistry:
     def test_plugin_type_enum_exists(self):
         """Verify PluginType enum is properly defined"""
         assert hasattr(PluginType, "LLM")
-        assert hasattr(PluginType, "GRAPH_DB")
+        assert hasattr(PluginType, "GRAPHDB")
 
     def test_base_plugin_has_required_attributes(self):
         """Verify base Plugin class has required attributes"""
-        # Create a mock plugin
+        # Create a mock plugin implementing all abstract methods
         class MockPlugin(Plugin):
             def initialize(self):
                 pass
+
+            def close(self):
+                pass
+
+            def health_check(self):
+                return True
 
         plugin = MockPlugin(name="test", plugin_type=PluginType.LLM, config={})
 
@@ -176,10 +180,9 @@ class TestLLMPluginMethodSignatures:
             ),
         }
 
-    @patch("caas_framework.plugins.llm.openai.OpenAI")
-    def test_openai_method_signatures(self, mock_openai, base_methods):
+    def test_openai_method_signatures(self, base_methods):
         """Verify OpenAI plugin method signatures match base"""
-        # Check _build_request_params
+        # openai import happens inside initialize(), not __init__, so no mock needed
         openai_sig = inspect.signature(OpenAIPlugin._build_request_params)
         base_sig = base_methods["_build_request_params"]
 
@@ -192,10 +195,9 @@ class TestLLMPluginMethodSignatures:
             openai_params
         ), "OpenAI plugin missing base parameters"
 
-    @patch("caas_framework.plugins.llm.ollama.OpenAI")
-    def test_ollama_method_signatures(self, mock_openai, base_methods):
+    def test_ollama_method_signatures(self, base_methods):
         """Verify Ollama plugin method signatures match base"""
-        # Check _build_request_params
+        # openai import happens inside initialize(), not __init__, so no mock needed
         ollama_sig = inspect.signature(OllamaPlugin._build_request_params)
         base_sig = base_methods["_build_request_params"]
 
@@ -212,19 +214,15 @@ class TestLLMPluginMethodSignatures:
 class TestPluginErrorMessages:
     """Test plugin error message consistency"""
 
-    @patch("caas_framework.plugins.llm.openai.OpenAI")
-    def test_openai_import_error_message(self, mock_openai):
+    def test_openai_import_error_message(self):
         """Test OpenAI import error provides installation instructions"""
-        # This test verifies the error message format
-        # Actual import test would require uninstalling openai package
-
+        # openai import happens inside initialize(), not __init__, so no mock needed
         from caas_framework.plugins.llm.openai import OpenAIPlugin
 
         # If import succeeded, check that class has proper error handling
         assert OpenAIPlugin is not None
 
-    @patch("caas_framework.plugins.llm.ollama.OpenAI")
-    def test_ollama_import_error_message(self, mock_openai):
+    def test_ollama_import_error_message(self):
         """Test Ollama import error provides installation instructions"""
         from caas_framework.plugins.llm.ollama import OllamaPlugin
 
