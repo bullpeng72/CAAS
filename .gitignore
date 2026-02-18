@@ -79,6 +79,14 @@ Test_Project/
 cli_tests/
 artifacts/
 
+# Runtime checkpoints (iteration/QA 테스트 아티팩트)
+checkpoints/*.json
+
+# CLI 명령 실행 결과 파일
+qa_report*.json
+security_report*.json
+completeness_report*.json
+
 # Temporary analysis documents (keep docs/ directory clean)
 *_ANALYSIS.md
 *_REPORT.md
