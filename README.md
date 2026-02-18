@@ -516,8 +516,7 @@ caas/
 │   ├── fix_quick_wins.py            # Quick wins fixer (NEW in v0.4.1) ⭐
 │   ├── validate_api_keys.py         # API keys validator (NEW in v0.4.1) ⭐
 │   ├── validate_ollama_compatibility.py  # Ollama compatibility checker (NEW in v0.4.1) ⭐
-│   ├── validate_env.py              # Environment validator
-│   └── auto_deploy.sh               # Auto deployment script
+│   └── validate_env.py              # Environment validator
 │
 ├── 📁 tests/                        # Test suite (605+ tests)
 │   ├── test_exceptions.py           # Exception tests (v0.4.1, 35 tests) ⭐

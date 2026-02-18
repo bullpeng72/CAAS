@@ -14,7 +14,6 @@ from caas_cli.commands import (  # Phase 1: Core Features; Phase 2: Advanced Fea
     analyze_completeness,
     analyze_gaps,
     analyze_requirement,
-    auto_deploy_cmd,
     cache_cmd,
     checkpoint_cmd,
     codegen_cmd,
@@ -155,10 +154,6 @@ def show_comprehensive_help():
     quick_start.append("Initialize:\n", style="bold")
     quick_start.append("  $ caas init\n\n", style="green")
 
-    quick_start.append("Full automation:\n", style="bold")
-    quick_start.append("  $ caas auto-deploy ", style="green")
-    quick_start.append('"Build a REST API"\n\n', style="italic cyan")
-
     quick_start.append("Step-by-step with Plan Mode (recommended):\n", style="bold")
     quick_start.append("  $ caas generate ", style="green")
     quick_start.append('"Build a blog"', style="italic cyan")
@@ -175,15 +170,6 @@ def show_comprehensive_help():
 
     # Command Categories
     console.print("📋 [bold yellow]COMMAND CATEGORIES[/bold yellow]\n")
-
-    # Production-Ready
-    console.print("[bold cyan]🚀 PRODUCTION-READY[/bold cyan]")
-    console.print(
-        "  [green]auto-deploy[/green]      Full automation: requirement → deployed code"
-    )
-    console.print(
-        "                    • CAAS 6-Phase workflow • Quality gates • Git & CI/CD setup\n"
-    )
 
     # Code Generation
     console.print("[bold cyan]🎨 CODE GENERATION[/bold cyan]")
@@ -333,7 +319,6 @@ def show_comprehensive_help():
     patterns.add_column("Pattern", style="cyan", width=25)
     patterns.add_column("Command", style="green")
 
-    patterns.add_row("Full Automation", 'caas auto-deploy "Build an API"')
     patterns.add_row("Guided (Learning)", 'caas generate "Build blog" --plan-mode')
     patterns.add_row(
         "Iterative Refinement", "caas generate → validate → fix → generate-code"
@@ -455,15 +440,14 @@ def show_brief_help():
     brief_text.append("Quick Start:\n", style="bold green")
     brief_text.append("  caas init                          ", style="dim")
     brief_text.append("# Initialize configuration\n")
-    brief_text.append("  caas auto-deploy ", style="dim")
-    brief_text.append('"Build a blog"', style="italic")
-    brief_text.append("   # Full automation\n\n")
+    brief_text.append("  caas generate ", style="dim")
+    brief_text.append('"Build a blog" --plan-mode', style="italic")
+    brief_text.append("  # Guided generation\n\n")
 
     # Main Commands
     brief_text.append("Main Commands:\n", style="bold yellow")
     commands = [
-        ("auto-deploy", "🚀 Full automation: requirement → production"),
-        ("generate", "Generate CrewAI system from requirement"),
+        ("generate", "🎯 Generate CrewAI system from requirement"),
         ("generate-code", "Generate code from specs (fast)"),
         ("codegen", "Generate specific components"),
         ("validate", "Validate design quality"),
@@ -655,9 +639,6 @@ def cli(ctx):
     Initialize CAAS:
       $ caas init
 
-    Full automation (requirement → production):
-      $ caas auto-deploy "Build a RESTful API for task management"
-
     Step-by-step with Plan Mode (recommended for first use):
       $ caas generate "Build a blog" --plan-mode
 
@@ -668,13 +649,6 @@ def cli(ctx):
     \b
     📋 COMMAND CATEGORIES
     ═══════════════════════════════════════════════════════════════════════
-
-    🚀 PRODUCTION-READY AUTOMATION
-       auto-deploy       Full automation: requirement → deployed code
-                         • CAAS 6-Phase workflow automation
-                         • Quality gate validation
-                         • Git initialization & CI/CD setup
-                         • Virtual environment & dependency installation
 
     🎨 CODE GENERATION (Core)
        generate          Generate complete CrewAI system
@@ -825,27 +799,23 @@ def cli(ctx):
     🎓 USAGE PATTERNS
     ═══════════════════════════════════════════════════════════════════════
 
-    Pattern 1: Full Automation (Fastest)
-      $ caas auto-deploy "Build a REST API for blog posts"
-      → Generates complete system with tests, CI/CD, and deployment
-
-    Pattern 2: Guided Generation (Recommended for learning)
+    Pattern 1: Guided Generation (Recommended for first use)
       $ caas generate "Build a chatbot" --plan-mode
       → Review & approve each phase (Spec → Design → Code)
 
-    Pattern 3: Iterative Refinement (Best quality)
+    Pattern 2: Iterative Refinement (Best quality)
       $ caas generate "Build a todo app" --critic-pattern
       $ caas validate ./output/design.json
       $ caas fix ./output/design.json
       $ caas generate-code ./output/design.json
       → Multi-layer quality validation & auto-fixing
 
-    Pattern 4: From Examples (Quick start)
+    Pattern 3: From Examples (Quick start)
       $ caas examples list
       $ caas generate --from-example e_commerce
       → Use proven templates
 
-    Pattern 5: Phase-by-Phase (Fine control)
+    Pattern 4: Phase-by-Phase (Fine control)
       $ caas generate-phase concretize "Build an API"
       $ caas generate-phase discover ./spec.json
       $ caas generate-phase architect ./spec.json
@@ -1022,9 +992,6 @@ cli.add_command(profile_cmd.profile)
 cli.add_command(session_cmd.session)
 cli.add_command(workflow_cmd.workflow)
 cli.add_command(plugins_cmd.plugins)
-
-# Phase 4: Production Ready
-cli.add_command(auto_deploy_cmd.auto_deploy)
 
 # Code Analysis & Quality Assurance (v0.4.0)
 cli.add_command(analyze_completeness.analyze_completeness, name="analyze-completeness")

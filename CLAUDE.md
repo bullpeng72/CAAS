@@ -950,9 +950,6 @@ pip install caas
 ```bash
 # 코드 생성
 caas generate "할일 관리 시스템 만들기" --output ./generated
-
-# 전체 자동화 워크플로우
-caas auto-deploy "블로그 시스템" --target docker
 ```
 
 #### 2️⃣ Python 라이브러리 사용

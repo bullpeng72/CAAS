@@ -6,7 +6,6 @@ from caas_cli.commands import (  # Phase 1: Core Features; Phase 2: Advanced Fea
     analyze_completeness,
     analyze_gaps,
     analyze_requirement,
-    auto_deploy_cmd,
     cache_cmd,
     checkpoint_cmd,
     codegen_cmd,
@@ -72,7 +71,6 @@ __all__ = [
     "workflow_cmd",
     "plugins_cmd",
     # Phase 4
-    "auto_deploy_cmd",
     "analyze_completeness",
     "analyze_requirement",
     "fix_runtime_error",
