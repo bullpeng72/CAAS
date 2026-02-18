@@ -983,6 +983,7 @@ JSON으로 반환하세요 (모든 텍스트 필드는 한국어로)."""
             TaskSpecModel,
         )
         from caas_framework.agents.code_generator import CodeGeneratorAgent
+        from caas_framework.agents.base import AgentPhase
 
         # Set default directories
         if input_dir is None:
@@ -1035,10 +1036,21 @@ JSON으로 반환하세요 (모든 텍스트 필드는 한국어로)."""
 
         # 3. Generate production code
         self.reporter.info("🔧 Generating production code...")
+        requirement_str = (
+            golden_data.system_scope.scope_description
+            or golden_data.system_scope.purpose
+            or golden_data.system_scope.project_name
+            or ""
+        )
         code_result = await code_generator.work(
-            agents=agents,
-            tasks=tasks,
-            output_dir=output_dir,
+            requirement=requirement_str,
+            context={"output_dir": str(output_dir)},
+            previous_outputs={
+                AgentPhase.DESIGN: {
+                    "agents": [a.model_dump(mode="json") for a in agents],
+                    "tasks": [t.model_dump(mode="json") for t in tasks],
+                }
+            },
         )
 
         if not code_result.success:
