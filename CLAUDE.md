@@ -1619,4 +1619,35 @@ else:
   - python-dotenv 자동 삽입 보장
   - Rich CLI 템플릿 적용
 
+---
+
+## /techdebt 전용 아키텍처 규칙
+
+글로벌 `/techdebt` skill이 이 섹션을 읽어 CAAS 전용 검사를 추가로 수행합니다.
+
+### 아키텍처 경계
+- `caas_cli/` 는 `caas_framework/` 만 import 가능. 반대 방향 금지
+- `from app.` import가 활성 코드에 남아 있으면 🔴 High (구 app/ → caas_framework/ 마이그레이션 잔존)
+- `caas_app/` 과 `caas_framework/` 에 동일 기능이 중복 구현되어 있으면 🔴 High
+
+### BMAD 워크플로우 보호
+- `caas_framework/methodology/engine.py` Phase 실행 로직을 수정할 때는 반드시 6개 Phase 전체 흐름 검증
+- Quality Gate(`caas_framework/agents/collaboration.py`)를 bypass하거나 경고만 내고 계속 진행하면 🔴 High
+- Phase 전환 실패가 적절히 처리되지 않으면 🔴 High
+
+### 플러그인 시스템 일관성
+- LLM 프로바이더 로직이 플러그인 시스템 밖에 하드코딩되어 있으면 🔴 High
+- 플러그인이 `caas_framework/plugins/base.py`의 `PluginBase` 인터페이스를 따르지 않으면 🟡 Medium
+- 플러그인 등록 로그가 없으면 🟢 Low
+
+### 데이터 모델 일관성
+- `dict` / `kwargs` 대신 Pydantic 모델을 사용해야 하는 코어 경계에서 미사용 시 🟡 Medium
+- `Any` 타입이 Pydantic 모델 필드에 사용되면 🟡 Medium
+
+### 자동 수정 금지 대상 (Manual Only)
+- BMAD Phase 실행 순서 변경
+- Quality Gate 임계값 수정
+- CLI 커맨드 시그니처 변경
+- 플러그인 인터페이스 계약 변경
+
 **Made with ❤️ by bullpeng72**
