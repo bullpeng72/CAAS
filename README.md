@@ -474,7 +474,7 @@ caas/
 │   ├── templates/                   # Code templates (Jinja2)
 │   └── golden_examples/             # Golden data examples
 │
-├── 📁 docs/                         # Documentation (29개) ✨ 2026-02-14 완성
+├── 📁 docs/                         # Documentation (29개) ✨ 2026-03-13 현행화
 │   ├── 1_시작하기/                  # 6개 문서 (입문, 3,092 라인)
 │   │   ├── 01_CAAS_소개_및_설치.md
 │   │   ├── 02_5분_빠른_시작.md
