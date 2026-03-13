@@ -2,7 +2,7 @@
 
 ## 프로젝트 개요
 
-**CAAS (CrewAI Agent Auto-generation System)** v0.6.4
+**CAAS (CrewAI Agent Auto-generation System)** v0.6.5
 
 자연어 요구사항을 입력받아 프로덕션 레디 멀티 에이전트 시스템 코드를 자동으로 생성하는 통합 패키지입니다.
 
@@ -76,9 +76,9 @@ caas/
 │   ├── refinement/          # Requirement Refinement (Gap Analysis, Expand)
 │   └── models/              # Pydantic Models (specifications.py)
 │
-├── caas_cli/                # CLI Interface (32+ commands, 70+ subcommands)
+├── caas_cli/                # CLI Interface (34+ commands)
 │   ├── cli.py               # Click-based CLI 진입점
-│   └── commands/            # CLI 명령어 구현
+│   └── commands/            # CLI 명령어 구현 (34+ commands)
 │       ├── qa_cmd.py        # QA 명령어 (compliance, performance, security, report) ✨ NEW
 │       ├── tdd.py           # TDD 명령어 (generate-tests, analyze-code, workflow) ✨ CAAS-E
 │       ├── checkpoint_cmd.py # 체크포인트 명령어 (status, approve, reject, list) ✨ CAAS-E
@@ -986,6 +986,20 @@ async def handle_request(request_json):
 
 ## 변경 이력
 
+### 2026-03-13: v0.6.5 코드베이스 정리 & 버그 수정 🧹
+
+- 🐛 **completeness validation 400 에러 수정 (2건)**
+  - `build_request_params()` — `RESPONSE_FORMAT_JSON` dict 타입 불일치로 JSON mode 무음 비활성화 → dict/string 모두 처리하도록 수정
+  - `semantic_mapper._build_code_summary()` — 생성 코드의 null byte 등 JSON-invalid 문자 → `_sanitize_for_json()` 추가
+- 🧹 **미사용 레거시 파일 제거 (23건, -4,941줄)**
+  - `caas_framework/agents/self_aware_agent.py` (dead code)
+  - `caas_framework/knowledge/ontology.py` (ontology/ 패키지에 가려진 dead code)
+  - `caas_framework/ontology/` 디렉토리 전체 (외부 import 없음)
+  - `data/ontologies/*.owl`, `data/examples/*.yaml`, `data/saved_queries.json`, `data/settings.json`
+  - `.claude/settings.local.json` git untrack, `caas_cli/cli_old.py`, `.gitlab-ci.yml`, `Jenkinsfile` 등
+- 🔧 **프레임워크 중복 파일 정리**
+  - `caas_framework/MANIFEST.in`, `caas_framework/pyproject.toml`, `caas_framework/README.md`, `caas_framework/PACKAGE_STRUCTURE.md` 제거
+
 ### 2026-03-13: 문서 현행화 📝
 - 테스트 수 정정: 605 → 620+, Last Updated 갱신
 
@@ -1018,7 +1032,7 @@ async def handle_request(request_json):
 ---
 
 **Last Updated**: 2026-03-13
-**Version**: 0.6.4 (통합 버전)
+**Version**: 0.6.5 (통합 버전)
 **Package Name**: caas (통합 패키지)
 **Repository**: https://github.com/bullpeng72/CAAS.git
 **Branch**: CAAS
@@ -1027,7 +1041,7 @@ async def handle_request(request_json):
 **Deployment Strategy**: Single Unified Package (CLI + Framework Library)
 **Test Coverage**: 35% (핵심 모듈), 증가 추세 ↗️
 **Total Tests**: 620+ (all passing)
-**CLI Commands**: 33+ (caas refine 그룹 추가)
+**CLI Commands**: 34+ (caas refine 그룹 추가)
 **Key Achievements**:
   - Enterprise 기능 통합 완료 (Core + CAAS-E)
   - QA 시스템 완비 (Compliance + Performance + Security)
