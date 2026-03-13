@@ -505,8 +505,8 @@ caas/
 │   │   ├── 51_QA_자동화_가이드.md
 │   │   ├── 52_Checkpoint_활용법.md
 │   │   └── 53_성능_최적화_가이드.md
-│   └── 6_부록/                      # 4개 문서 (레퍼런스, 2,498 라인)
-│       ├── 60_도메인_레퍼런스.md
+│   └── 6_부록/                      # 4개 문서 (레퍼런스)
+│       ├── 60_프레임워크_데이터구조.md  # 도메인 레퍼런스 + 온톨로지·템플릿 통합
 │       ├── 61_API_레퍼런스.md
 │       ├── 62_용어집.md
 │       └── 63_FAQ.md
@@ -718,7 +718,49 @@ graph LR
 
 ## 🧠 온톨로지 & 데이터 구조
 
-CAAS는 자연어 요구사항을 구조화된 데이터로 변환하는 데 세 가지 핵심 지식 체계를 활용합니다.
+### 온톨로지란?
+
+**온톨로지(Ontology)** 는 특정 도메인의 개념과 그 관계를 형식적으로 정의한 지식 체계입니다. 단순한 데이터 목록이 아니라, **개념 간의 의미적 관계**를 기술해 시스템이 "이해"할 수 있도록 만듭니다.
+
+예를 들어, 일반 데이터는 _"SerperDevTool이라는 도구가 있다"_ 는 사실만 저장합니다. 온톨로지는 여기서 더 나아가 다음을 정의합니다:
+
+- SerperDevTool은 **WEB_SEARCH 유형**의 도구다
+- WEB_SEARCH 도구는 **RESEARCHER·CONTENT_WRITER 역할**에 적합하다
+- RESEARCHER 역할은 **DATA_COLLECTION·ANALYSIS 작업**을 수행한다
+- DATA_COLLECTION 작업은 **DATA_ANALYSIS 도메인**에서 주로 필요하다
+
+이 연결망 덕분에 CAAS는 `"데이터 분석 시스템 만들어줘"` 라는 문장 하나에서 **어떤 도구가 필요한지, 어떤 에이전트를 만들어야 하는지, 어떤 코드 구조를 선택해야 하는지**를 스스로 결정할 수 있습니다.
+
+### CAAS에서 온톨로지가 적용되는 방식
+
+CAAS의 온톨로지는 코드 생성 파이프라인의 세 지점에 작동합니다.
+
+```
+자연어 요구사항: "뉴스 기사를 수집해 분석 리포트를 생성하는 시스템"
+        │
+        ▼ [1] 도메인 온톨로지 적용
+    키워드 매칭: "수집" → DATA_COLLECTION, "분석" → ANALYSIS, "리포트" → REPORT_GENERATION
+    도메인 결정: REPORT_GENERATION → 전략: AGENT_BASED
+        │
+        ▼ [2] 에이전트 역할 온톨로지 적용
+    필요 TaskType: DATA_COLLECTION + ANALYSIS + REPORTING
+    역할 추론: RESEARCHER(수집) + DATA_ANALYST(분석) + CONTENT_WRITER(리포트 작성)
+        │
+        ▼ [3] 도구 온톨로지 적용
+    역할별 도구 추천:
+      RESEARCHER      → WEB_SEARCH   → SerperDevTool
+      DATA_ANALYST    → ML_ANALYTICS → PandasTool
+      CONTENT_WRITER  → FILE         → FileWriteTool
+        │
+        ▼ OntologyValidator 검증 (7개 Validator 중 1개)
+    "RESEARCHER에게 DATABASE 도구는 부적합" → 경고 또는 자동 수정
+        │
+        ▼ 템플릿 렌더링
+    agents.py.j2  →  3개 Agent 클래스 (역할·목표·배경·도구 포함)
+    tasks.py.j2   →  3개 Task 정의 (설명·기대출력·담당 에이전트)
+```
+
+**핵심**: 사용자가 `--domain`을 지정하지 않아도 온톨로지가 요구사항을 분석해 자동으로 최적 구조를 결정합니다.
 
 ### 데이터 흐름 전체 구조
 
@@ -776,6 +818,10 @@ flowchart TD
 
 ### 1. 도메인 온톨로지 (17개 도메인)
 
+**역할**: 자연어에서 도메인을 자동 분류 → 코드 생성 전략(AGENT_BASED / CRUD_BASED / HYBRID) 결정
+
+`data/ontology/domain_keywords.json`의 226개 키워드를 요구사항과 매칭해 도메인을 결정합니다. 도메인이 결정되면 `DomainStrategyConfig`가 활성화되어 생성할 파일 목록, 에이전트 수 범위, CRUD 레이어 포함 여부 등 전체 코드 구조를 결정합니다.
+
 CAAS는 자연어 요구사항에서 키워드를 분석해 도메인을 자동 분류하고, 도메인에 맞는 코드 생성 전략을 선택합니다.
 
 | 카테고리 | 도메인 | 전략 | 설명 |
@@ -799,6 +845,10 @@ CAAS는 자연어 요구사항에서 키워드를 분석해 도메인을 자동 
 - `CONTENT_CREATION`: `블로그`, `기사`, `SEO`, `포스팅`, `콘텐츠 캘린더` …
 
 ### 2. 도구 온톨로지 (50+ 도구)
+
+**역할**: 에이전트 역할에 맞는 도구를 추천 → `tools.py` 자동 생성 → `OntologyValidator`로 적합성 검증
+
+`data/ontology/tools.json`의 각 도구는 추상적 **ConceptualTool**(개념)과 실제 **ToolImplementation**(구현체)을 분리해 정의합니다. 예를 들어 "웹 검색" 개념에는 SerperDevTool, TavilySearchTool 등 여러 구현체가 매핑되어 있어, 설치된 패키지에 따라 자동으로 최적 구현체를 선택합니다.
 
 `data/ontology/tools.json`에 정의된 개념적 도구(ConceptualTool)를 에이전트에 자동 할당합니다.
 
@@ -828,6 +878,10 @@ graph LR
 
 ### 3. 에이전트 역할 온톨로지
 
+**역할**: FeatureSpec에서 필요한 TaskType을 추출 → AgentRole을 결정 → `agents.py.j2` 렌더링 시 역할·목표·배경 자동 작성
+
+`ROLE_TASK_MAPPINGS`는 각 역할이 수행 가능한 작업 유형을 정의합니다. 이 제약 덕분에 예를 들어 _보안 전문가_ 역할에 _콘텐츠 생성_ 작업이 잘못 배정되는 경우를 `OntologyValidator`가 자동으로 탐지하고 수정합니다.
+
 **AgentRole** (12개 역할) × **TaskType** (8개 작업 유형) 매트릭스로 최적의 에이전트-작업 조합을 정의합니다.
 
 | AgentRole | 허용 TaskType | 주요 도구 |
@@ -840,6 +894,10 @@ graph LR
 | … | … | … |
 
 ### 4. Golden Data (ConcretizedRequirement)
+
+**역할**: 온톨로지 3종이 교차하는 중심 데이터 구조 — Phase 0에서 한 번 생성되면 Phase 1-5 모든 에이전트가 읽기 전용으로 참조합니다.
+
+온톨로지가 "무엇이 가능한가"를 정의한다면, Golden Data는 "이 요구사항에서 실제로 무엇이 필요한가"를 구체화한 결과입니다. `domain` 필드가 도메인 온톨로지와 연결되고, `features[].tools_needed`가 도구 온톨로지와 연결되며, `features[].agent_roles`가 에이전트 역할 온톨로지와 연결됩니다.
 
 Phase 0에서 생성되는 핵심 데이터 구조로, 이후 모든 Phase가 이를 기반으로 동작합니다.
 
@@ -898,7 +956,7 @@ classDiagram
 | `backend/api.j2` | endpoints[], models | FastAPI 라우터 |
 | `artifacts/test_plan.j2` | features[], acceptance | 테스트 계획서 |
 
-> 📖 상세 데이터 구조 문서: [`docs/6_부록/64_프레임워크_데이터구조.md`](docs/6_부록/64_프레임워크_데이터구조.md)
+> 📖 상세 데이터 구조 문서: [`docs/6_부록/60_프레임워크_데이터구조.md`](docs/6_부록/60_프레임워크_데이터구조.md)
 
 ---
 
@@ -1063,10 +1121,10 @@ caas generate-code \
 
 ---
 
-## 📚 문서 (30개 완성) ✨ 2026-03-13
+## 📚 문서 (29개 완성) ✨ 2026-03-13
 
 **통계**:
-- 📊 총 문서: **30개** (100% 완료)
+- 📊 총 문서: **29개** (100% 완료)
 - 📝 총 라인 수: **18,673 라인**
 - 📈 Mermaid 다이어그램: **45개**
 - 💻 코드 블록: **939개**
@@ -1108,12 +1166,11 @@ caas generate-code \
 - ✔️ [52_Checkpoint_활용법](docs/5_엔터프라이즈_기능/52_Checkpoint_활용법.md) - Human Checkpoints
 - ⚡ [53_성능_최적화_가이드](docs/5_엔터프라이즈_기능/53_성능_최적화_가이드.md) - 성능 최적화
 
-### 📖 부록 (Phase 6 - 5개 문서)
-- 🌐 [60_도메인_레퍼런스](docs/6_부록/60_도메인_레퍼런스.md) - 17개 도메인 상세
+### 📖 부록 (Phase 6 - 4개 문서)
+- 🧠 [60_프레임워크_데이터구조](docs/6_부록/60_프레임워크_데이터구조.md) - 도메인 레퍼런스 + 온톨로지·템플릿 데이터 구조 ✨
 - 📚 [61_API_레퍼런스](docs/6_부록/61_API_레퍼런스.md) - API 레퍼런스
 - 📖 [62_용어집](docs/6_부록/62_용어집.md) - CAAS 용어 사전
 - ❓ [63_FAQ](docs/6_부록/63_FAQ.md) - 자주 묻는 질문
-- 🧠 [64_프레임워크_데이터구조](docs/6_부록/64_프레임워크_데이터구조.md) - 온톨로지·도메인·템플릿 데이터 구조 ✨ NEW
 
 ---
 
