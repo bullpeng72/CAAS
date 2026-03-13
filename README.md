@@ -553,31 +553,31 @@ graph TB
 
     subgraph Interface["Interface Layer (선택)"]
         direction LR
-        CLI["🖥️ CLI\ncaas generate ..."]
-        SDK["📦 Python SDK\nCrewAIFramework()"]
-        CUSTOM["🌐 Custom UI\nStreamlit / FastAPI"]
+        CLI["🖥️ CLI<br/>caas generate ..."]
+        SDK["📦 Python SDK<br/>CrewAIFramework()"]
+        CUSTOM["🌐 Custom UI<br/>Streamlit / FastAPI"]
     end
 
     subgraph Core["caas_framework — Core Engine"]
         direction TB
-        GD["Phase 0 · Golden Data\n구조화된 요구사항"]
-        ME["SixPhaseEngine\nPhase 1-5 오케스트레이터"]
-        AC["ExpertAgentCollaboration\n6 Expert Agents + Quality Gate"]
-        VL["ValidationOrchestrator\n7 Validators"]
-        AF["AutoFixer · 3-Level\nTemplate / Rule / LLM"]
-        CG["CodeGen Engine\n17 Domain Strategies"]
+        GD["Phase 0 · Golden Data<br/>구조화된 요구사항"]
+        ME["SixPhaseEngine<br/>Phase 1-5 오케스트레이터"]
+        AC["ExpertAgentCollaboration<br/>6 Expert Agents + Quality Gate"]
+        VL["ValidationOrchestrator<br/>7 Validators"]
+        AF["AutoFixer · 3-Level<br/>Template / Rule / LLM"]
+        CG["CodeGen Engine<br/>17 Domain Strategies"]
 
         GD --> ME --> AC --> VL --> AF --> CG
     end
 
     subgraph Plugins["Plugin System"]
         direction LR
-        LLM["🤖 LLM\nOpenAI · Anthropic · Ollama"]
-        GDB["🗄️ Graph DB\nNeo4j · Embedded"]
-        MCP["🔌 MCP\nModel Context Protocol"]
+        LLM["🤖 LLM<br/>OpenAI · Anthropic · Ollama"]
+        GDB["🗄️ Graph DB<br/>Neo4j · Embedded"]
+        MCP["🔌 MCP<br/>Model Context Protocol"]
     end
 
-    OUT["✅ Production Code\nmain.py · agents.py · tasks.py\ntools.py · tests · deployment"]
+    OUT["✅ Production Code<br/>main.py · agents.py · tasks.py<br/>tools.py · tests · deployment"]
 
     REQ --> Interface
     Interface --> Core
@@ -593,33 +593,33 @@ graph TB
 
 ```mermaid
 flowchart LR
-    REQ(["📝 자연어\n요구사항"])
+    REQ(["📝 자연어<br/>요구사항"])
 
     subgraph P0["Phase 0"]
-        G0["Concretization\n─────────\nGolden Data\n(기능·도메인·\n제약 구조화)"]
+        G0["Concretization<br/>─────────<br/>Golden Data<br/>(기능·도메인·<br/>제약 구조화)"]
     end
 
     subgraph P1["Phase 1"]
-        G1["Discovery\n─────────\nRequirement\nAnalysis\n(도메인 분류)"]
+        G1["Discovery<br/>─────────<br/>Requirement<br/>Analysis<br/>(도메인 분류)"]
     end
 
     subgraph P2["Phase 2"]
-        G2["Architecture\n─────────\nSystem Design\n+ Traceability\n검증"]
+        G2["Architecture<br/>─────────<br/>System Design<br/>+ Traceability<br/>검증"]
     end
 
     subgraph P3["Phase 3"]
-        G3["Design\n─────────\nAgent / Task\n설계 + 완전성\n검증"]
+        G3["Design<br/>─────────<br/>Agent / Task<br/>설계 + 완전성<br/>검증"]
     end
 
     subgraph P4["Phase 4"]
-        G4["Development\n─────────\nSpec\nGeneration\n(명세 생성)"]
+        G4["Development<br/>─────────<br/>Spec<br/>Generation<br/>(명세 생성)"]
     end
 
     subgraph P5["Phase 5"]
-        G5["Delivery\n─────────\nProduction\nCode + Tests\n+ Deployment"]
+        G5["Delivery<br/>─────────<br/>Production<br/>Code + Tests<br/>+ Deployment"]
     end
 
-    QG{"Quality\nGate"}
+    QG{"Quality<br/>Gate"}
 
     REQ --> P0 --> P1
     P1 --> QG --> P2
@@ -647,24 +647,24 @@ flowchart TD
     GD(["Golden Data"])
 
     subgraph SEQ1["순차 실행"]
-        RA["1️⃣ Requirement Analyst\n요구사항 분석\n도메인 분류 · 기능 추출"]
+        RA["1️⃣ Requirement Analyst<br/>요구사항 분석<br/>도메인 분류 · 기능 추출"]
     end
 
     subgraph PAR1["병렬 실행 ⚡"]
         direction LR
-        SA["2️⃣ System Architect\n시스템 아키텍처\nTraceability 검증"]
+        SA["2️⃣ System Architect<br/>시스템 아키텍처<br/>Traceability 검증"]
         RA2["(Discovery와 병렬)"]
     end
 
     subgraph SEQ2["순차 실행"]
-        AD["3️⃣ Agent Designer\nAgent / Task 설계\nCompleteness 검증"]
-        CG["4️⃣ Code Generator\n프로덕션 코드 생성\n한국어 출력 보장"]
+        AD["3️⃣ Agent Designer<br/>Agent / Task 설계<br/>Completeness 검증"]
+        CG["4️⃣ Code Generator<br/>프로덕션 코드 생성<br/>한국어 출력 보장"]
     end
 
     subgraph PAR2["병렬 실행 ⚡"]
         direction LR
-        QA["5️⃣ QA Specialist\n완전성 · 품질 검증\nAuto-Fix 연동"]
-        CA["6️⃣ Code Analysis Agent\n런타임 오류 수정\nTraceability 검증"]
+        QA["5️⃣ QA Specialist<br/>완전성 · 품질 검증<br/>Auto-Fix 연동"]
+        CA["6️⃣ Code Analysis Agent<br/>런타임 오류 수정<br/>Traceability 검증"]
     end
 
     OUT(["✅ Production Code"])
@@ -684,24 +684,24 @@ flowchart TD
 ```mermaid
 graph LR
     subgraph Framework["caas_framework"]
-        BASE["PluginBase\n인터페이스"]
+        BASE["PluginBase<br/>인터페이스"]
     end
 
     subgraph LLM["LLM Plugins"]
-        OAI["OpenAI\nGPT-4o"]
-        ANT["Anthropic\nClaude"]
-        OLL["Ollama\n로컬 LLM 🦙"]
-        MMR["Multi-Model\nRouter"]
+        OAI["OpenAI<br/>GPT-4o"]
+        ANT["Anthropic<br/>Claude"]
+        OLL["Ollama<br/>로컬 LLM 🦙"]
+        MMR["Multi-Model<br/>Router"]
     end
 
     subgraph DB["Storage Plugins"]
-        NEO["Neo4j\n(프로덕션)"]
-        EMB["Embedded\n(기본값)"]
-        VDB["Vector DB\n(선택)"]
+        NEO["Neo4j<br/>(프로덕션)"]
+        EMB["Embedded<br/>(기본값)"]
+        VDB["Vector DB<br/>(선택)"]
     end
 
     subgraph MCP["MCP Plugin"]
-        MCPC["MCP Client\nModel Context Protocol"]
+        MCPC["MCP Client<br/>Model Context Protocol"]
     end
 
     BASE --> OAI & ANT & OLL & MMR
@@ -1208,5 +1208,3 @@ MIT License - 자세한 내용은 [LICENSE](LICENSE) 파일 참조
 ---
 
 **Made with ❤️ by bullpeng72**
-
-**v0.6.4 Unified** 🎉 | [Documentation](docs/1_시작하기/01_CAAS_소개_및_설치.md) | Framework-First Architecture ✅ | Core+Enterprise Fully Integrated 🎊 | 98.7% Implementation Rate for CrewAI Agents ⭐ | <8% Code Duplication 🚀 | Expert Agent Only Path 🎯 | 6 Expert Agents | 33+ CLI Commands | 620+ Tests | QA System Complete 🛡️ | 3-Level Iteration Control 🔄 | Last Updated: 2026-03-13
