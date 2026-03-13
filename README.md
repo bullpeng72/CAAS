@@ -716,6 +716,192 @@ graph LR
 
 ---
 
+## 🧠 온톨로지 & 데이터 구조
+
+CAAS는 자연어 요구사항을 구조화된 데이터로 변환하는 데 세 가지 핵심 지식 체계를 활용합니다.
+
+### 데이터 흐름 전체 구조
+
+```mermaid
+flowchart TD
+    REQ["📝 자연어 요구사항"]
+
+    subgraph Phase0["Phase 0 · Concretization"]
+        GD["ConcretizedRequirement<br/>(Golden Data)"]
+        FS["FeatureSpec[]<br/>기능 명세"]
+        DM["DataModel[]<br/>데이터 모델"]
+        UI["UIComponent[]<br/>UI 컴포넌트"]
+    end
+
+    subgraph Ontology["온톨로지 레이어"]
+        direction LR
+        TO["Tool Ontology<br/>50+ 도구 정의<br/>tools.json"]
+        AO["Agent Ontology<br/>AgentRole × TaskType<br/>ROLE_TASK_MAPPINGS"]
+        DO["Domain Ontology<br/>17 DomainType<br/>domain_keywords.json"]
+    end
+
+    subgraph Strategy["도메인 전략 레이어"]
+        DS["DomainStrategyConfig"]
+        AB["AGENT_BASED<br/>CrewAI 멀티 에이전트"]
+        CB["CRUD_BASED<br/>DB + REST API"]
+        HB["HYBRID<br/>에이전트 + CRUD 혼합"]
+    end
+
+    subgraph Templates["템플릿 레이어<br/>26개 Jinja2 .j2"]
+        T1["agents.py.j2"]
+        T2["tasks.py.j2"]
+        T3["crew.py.j2 / main.py.j2"]
+        T4["backend/* / artifacts/*"]
+    end
+
+    OUT["🚀 프로덕션 코드<br/>agents.py · tasks.py · tools.py<br/>crew.py · main.py · tests/"]
+
+    REQ --> GD
+    GD --> FS & DM & UI
+    GD --> DO
+    DO --> DS
+    DS --> AB & CB & HB
+    TO --> T1 & T2
+    AO --> T1 & T2
+    AB --> T1 & T2 & T3
+    CB --> T4
+    HB --> T1 & T2 & T4
+    T1 & T2 & T3 & T4 --> OUT
+
+    style Phase0 fill:#E8F5E9,stroke:#2E7D32
+    style Ontology fill:#E3F2FD,stroke:#1565C0
+    style Strategy fill:#FFF3E0,stroke:#E65100
+    style Templates fill:#F3E5F5,stroke:#6A1B9A
+```
+
+### 1. 도메인 온톨로지 (17개 도메인)
+
+CAAS는 자연어 요구사항에서 키워드를 분석해 도메인을 자동 분류하고, 도메인에 맞는 코드 생성 전략을 선택합니다.
+
+| 카테고리 | 도메인 | 전략 | 설명 |
+|---------|--------|------|------|
+| 대화 & 커뮤니케이션 | CONVERSATIONAL_AI | AGENT_BASED | 대화형 AI (98.7%) |
+| | CUSTOMER_SUPPORT | AGENT_BASED | 고객 지원 시스템 |
+| 작업 & 워크플로우 | TASK_MANAGEMENT | CRUD_BASED | 할일/작업 관리 |
+| | WORKFLOW_AUTOMATION | HYBRID | 업무 자동화 |
+| 데이터 & 분석 | DATA_ANALYSIS | AGENT_BASED | 데이터 분석 (98.3%) |
+| | REPORT_GENERATION | AGENT_BASED | 리포트 생성 |
+| | DASHBOARD | HYBRID | 대시보드 |
+| 콘텐츠 & 문서 | CONTENT_CREATION | AGENT_BASED | 콘텐츠 생성 (98.7%) |
+| | DOCUMENT_PROCESSING | AGENT_BASED | 문서 처리 |
+| | KNOWLEDGE_BASE | HYBRID | 지식베이스 |
+| 통합 & API | API_INTEGRATION | CRUD_BASED | API 통합 |
+| | WEBHOOK_HANDLER | CRUD_BASED | Webhook 처리 |
+| 도메인 특화 (5개) | E_COMMERCE, EDUCATION,<br/>HEALTHCARE, FINANCE, CUSTOM | HYBRID | 도메인별 최적화 |
+
+**도메인 키워드 예시** (`data/ontology/domain_keywords.json`, 226개):
+- `DATA_ANALYSIS`: `분석`, `통계`, `시각화`, `차트`, `인사이트`, `ETL`, `ML` …
+- `CONTENT_CREATION`: `블로그`, `기사`, `SEO`, `포스팅`, `콘텐츠 캘린더` …
+
+### 2. 도구 온톨로지 (50+ 도구)
+
+`data/ontology/tools.json`에 정의된 개념적 도구(ConceptualTool)를 에이전트에 자동 할당합니다.
+
+```mermaid
+graph LR
+    subgraph ToolType
+        WEB["WEB_SEARCH"]
+        FILE["FILE_OPERATIONS"]
+        DB["DATABASE"]
+        API["API_CLIENT"]
+        NLP["NLP_PROCESSING"]
+        CODE["CODE_EXECUTION"]
+        ML["ML_ANALYTICS"]
+        COM["COMMUNICATION"]
+    end
+
+    subgraph Impl["구체적 구현체 (예)"]
+        WEB --> SI["SerperDevTool<br/>TavilySearchTool"]
+        FILE --> FT["FileReadTool<br/>DirectoryReadTool"]
+        DB --> PG["PostgreSQL Tool<br/>SQLite Tool"]
+        API --> HT["HTTP Request Tool"]
+        NLP --> BT["BERTool<br/>SpacyTool"]
+    end
+```
+
+`OntologyValidator`는 에이전트에 할당된 도구가 해당 역할에 적합한지 자동으로 검증합니다.
+
+### 3. 에이전트 역할 온톨로지
+
+**AgentRole** (12개 역할) × **TaskType** (8개 작업 유형) 매트릭스로 최적의 에이전트-작업 조합을 정의합니다.
+
+| AgentRole | 허용 TaskType | 주요 도구 |
+|-----------|-------------|---------|
+| DATA_ANALYST | ANALYSIS, REPORTING | DATABASE, ML_ANALYTICS, FILE |
+| CONTENT_WRITER | CONTENT_CREATION, RESEARCH | WEB_SEARCH, FILE, NLP |
+| API_INTEGRATOR | DATA_COLLECTION, INTEGRATION | API_CLIENT, DATABASE |
+| TASK_COORDINATOR | COORDINATION, MONITORING | COMMUNICATION, FILE |
+| SECURITY_SPECIALIST | VALIDATION, MONITORING | CODE_EXECUTION, API_CLIENT |
+| … | … | … |
+
+### 4. Golden Data (ConcretizedRequirement)
+
+Phase 0에서 생성되는 핵심 데이터 구조로, 이후 모든 Phase가 이를 기반으로 동작합니다.
+
+```mermaid
+classDiagram
+    class ConcretizedRequirement {
+        +project_name: str
+        +domain: DomainType
+        +features: List~FeatureSpec~
+        +data_models: List~DataModel~
+        +ui_components: List~UIComponent~
+        +boundaries: BoundariesSpec
+        +commands: CommandsSpec
+        +code_style: CodeStyleSpec
+        +git_workflow: GitWorkflowSpec
+    }
+
+    class FeatureSpec {
+        +name: str
+        +description: str
+        +priority: str
+        +inputs: List~str~
+        +outputs: List~str~
+        +dependencies: List~str~
+    }
+
+    class DataModel {
+        +name: str
+        +fields: List~FieldSpec~
+        +relationships: List~str~
+    }
+
+    class BoundariesSpec {
+        +performance: Dict
+        +security: Dict
+        +scalability: Dict
+    }
+
+    ConcretizedRequirement --> FeatureSpec
+    ConcretizedRequirement --> DataModel
+    ConcretizedRequirement --> UIComponent
+    ConcretizedRequirement --> BoundariesSpec
+```
+
+### 5. 템플릿 시스템 (26개 Jinja2 템플릿)
+
+`data/templates/`의 `.j2` 템플릿이 Golden Data + 도메인 전략을 입력받아 프로덕션 코드를 렌더링합니다.
+
+| 템플릿 | 입력 변수 | 출력 |
+|--------|---------|------|
+| `agents.py.j2` | agents[], llm_config, tools | CrewAI Agent 클래스 |
+| `tasks.py.j2` | tasks[], agent_refs, context | CrewAI Task 정의 |
+| `crew.py.j2` | crew_config, process_type | Crew 조합 + 실행 로직 |
+| `main.py.j2` | project_name, env_vars | CLI 진입점 + Rich UI |
+| `backend/models.j2` | data_models[] | Pydantic/SQLAlchemy 모델 |
+| `backend/api.j2` | endpoints[], models | FastAPI 라우터 |
+| `artifacts/test_plan.j2` | features[], acceptance | 테스트 계획서 |
+
+> 📖 상세 데이터 구조 문서: [`docs/6_부록/64_프레임워크_데이터구조.md`](docs/6_부록/64_프레임워크_데이터구조.md)
+
+---
+
 ## 💡 사용 예시
 
 ### 예시 1: 전체 워크플로우 (요구사항 → 코드)
@@ -877,10 +1063,10 @@ caas generate-code \
 
 ---
 
-## 📚 문서 (29개 완성) ✨ 2026-02-14
+## 📚 문서 (30개 완성) ✨ 2026-03-13
 
 **통계**:
-- 📊 총 문서: **29개** (100% 완료)
+- 📊 총 문서: **30개** (100% 완료)
 - 📝 총 라인 수: **18,673 라인**
 - 📈 Mermaid 다이어그램: **45개**
 - 💻 코드 블록: **939개**
@@ -922,11 +1108,12 @@ caas generate-code \
 - ✔️ [52_Checkpoint_활용법](docs/5_엔터프라이즈_기능/52_Checkpoint_활용법.md) - Human Checkpoints
 - ⚡ [53_성능_최적화_가이드](docs/5_엔터프라이즈_기능/53_성능_최적화_가이드.md) - 성능 최적화
 
-### 📖 부록 (Phase 6 - 4개 문서)
+### 📖 부록 (Phase 6 - 5개 문서)
 - 🌐 [60_도메인_레퍼런스](docs/6_부록/60_도메인_레퍼런스.md) - 17개 도메인 상세
 - 📚 [61_API_레퍼런스](docs/6_부록/61_API_레퍼런스.md) - API 레퍼런스
 - 📖 [62_용어집](docs/6_부록/62_용어집.md) - CAAS 용어 사전
 - ❓ [63_FAQ](docs/6_부록/63_FAQ.md) - 자주 묻는 질문
+- 🧠 [64_프레임워크_데이터구조](docs/6_부록/64_프레임워크_데이터구조.md) - 온톨로지·도메인·템플릿 데이터 구조 ✨ NEW
 
 ---
 
