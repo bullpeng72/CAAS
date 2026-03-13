@@ -44,7 +44,7 @@ def build_request_params(
     temperature: float,
     max_tokens: int = None,
     stream: bool = False,
-    response_format: str = None,
+    response_format=None,
     **kwargs,
 ) -> Dict[str, Any]:
     """
@@ -56,7 +56,7 @@ def build_request_params(
         temperature: Temperature setting
         max_tokens: Maximum tokens to generate
         stream: Enable streaming
-        response_format: Response format ("json" or None)
+        response_format: Response format ("json", {"type": "json_object"}, or None)
         **kwargs: Additional parameters
 
     Returns:
@@ -83,8 +83,12 @@ def build_request_params(
     if stream:
         params["stream"] = True
 
-    if response_format == "json":
+    if response_format == "json" or (
+        isinstance(response_format, dict) and response_format.get("type") == "json_object"
+    ):
         params["response_format"] = {"type": "json_object"}
+    elif isinstance(response_format, dict):
+        params["response_format"] = response_format
 
     # Add extra kwargs
     params.update(kwargs)

@@ -500,8 +500,11 @@ class SemanticMapper:
         Returns:
             FeatureImplementation with details
         """
-        # Build code summary for LLM
+        # Build code summary for LLM (sanitized for JSON safety)
         code_summary = self._build_code_summary(code_analyses)
+        feature_name = self._sanitize_for_json(feature.name)
+        feature_description = self._sanitize_for_json(feature.description or "")
+        feature_criteria = self._sanitize_for_json(str(feature.acceptance_criteria or ""))
 
         # Check if this is CrewAI code
         is_crewai = any(a.is_crewai_code for a in code_analyses.values())
@@ -511,9 +514,9 @@ class SemanticMapper:
 
 Feature to check:
 - ID: {feature.id}
-- Name: {feature.name}
-- Description: {feature.description}
-- Acceptance Criteria: {feature.acceptance_criteria}
+- Name: {feature_name}
+- Description: {feature_description}
+- Acceptance Criteria: {feature_criteria}
 
 Analyze the code carefully and determine:
 1. Is this feature fully implemented?
@@ -706,7 +709,18 @@ Be thorough but realistic. Don't claim implementation unless you see actual code
                 if len(analysis.classes) > 5:
                     lines.append(f"  ... and {len(analysis.classes) - 5} more")
 
-        return "\n".join(lines)
+        summary = "\n".join(lines)
+        return self._sanitize_for_json(summary)
+
+    @staticmethod
+    def _sanitize_for_json(text: str) -> str:
+        """Remove characters that are invalid in JSON string payloads."""
+        import re
+        # Remove null bytes
+        text = text.replace("\x00", "")
+        # Remove other ASCII control characters (except \t, \n, \r)
+        text = re.sub(r"[\x01-\x08\x0b\x0c\x0e-\x1f\x7f]", "", text)
+        return text
 
     async def find_best_implementation_location(
         self, feature: FeatureSpec, code_analyses: Dict[str, FileAnalysis]
