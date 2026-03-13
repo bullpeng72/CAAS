@@ -518,7 +518,7 @@ caas/
 │   ├── validate_ollama_compatibility.py  # Ollama compatibility checker (NEW in v0.4.1) ⭐
 │   └── validate_env.py              # Environment validator
 │
-├── 📁 tests/                        # Test suite (605+ tests)
+├── 📁 tests/                        # Test suite (620+ tests)
 │   ├── test_exceptions.py           # Exception tests (v0.4.1, 35 tests) ⭐
 │   ├── test_llm_plugin_refactoring.py  # Plugin tests (v0.4.1, 25 tests) ⭐
 │   ├── test_qa/                     # QA system tests (CAAS-E v0.6.3, 36 tests)
@@ -537,6 +537,181 @@ caas/
 ├── requirements.txt                 # Dependencies
 ├── pyproject.toml                   # Project metadata
 └── setup.py                         # Setup script
+```
+
+---
+
+## 🏛️ 아키텍처
+
+### 전체 시스템 구조
+
+자연어 요구사항을 입력받아 프로덕션 코드를 생성하는 3-Layer 구조입니다.
+
+```mermaid
+graph TB
+    REQ["📝 자연어 요구사항"]
+
+    subgraph Interface["Interface Layer (선택)"]
+        direction LR
+        CLI["🖥️ CLI\ncaas generate ..."]
+        SDK["📦 Python SDK\nCrewAIFramework()"]
+        CUSTOM["🌐 Custom UI\nStreamlit / FastAPI"]
+    end
+
+    subgraph Core["caas_framework — Core Engine"]
+        direction TB
+        GD["Phase 0 · Golden Data\n구조화된 요구사항"]
+        ME["SixPhaseEngine\nPhase 1-5 오케스트레이터"]
+        AC["ExpertAgentCollaboration\n6 Expert Agents + Quality Gate"]
+        VL["ValidationOrchestrator\n7 Validators"]
+        AF["AutoFixer · 3-Level\nTemplate / Rule / LLM"]
+        CG["CodeGen Engine\n17 Domain Strategies"]
+
+        GD --> ME --> AC --> VL --> AF --> CG
+    end
+
+    subgraph Plugins["Plugin System"]
+        direction LR
+        LLM["🤖 LLM\nOpenAI · Anthropic · Ollama"]
+        GDB["🗄️ Graph DB\nNeo4j · Embedded"]
+        MCP["🔌 MCP\nModel Context Protocol"]
+    end
+
+    OUT["✅ Production Code\nmain.py · agents.py · tasks.py\ntools.py · tests · deployment"]
+
+    REQ --> Interface
+    Interface --> Core
+    Core <--> Plugins
+    Core --> OUT
+```
+
+---
+
+### CAAS 6-Phase Methodology
+
+각 Phase는 이전 Phase의 산출물을 입력으로 받으며, Phase 경계마다 Quality Gate가 통과 여부를 검증합니다.
+
+```mermaid
+flowchart LR
+    REQ(["📝 자연어\n요구사항"])
+
+    subgraph P0["Phase 0"]
+        G0["Concretization\n─────────\nGolden Data\n(기능·도메인·\n제약 구조화)"]
+    end
+
+    subgraph P1["Phase 1"]
+        G1["Discovery\n─────────\nRequirement\nAnalysis\n(도메인 분류)"]
+    end
+
+    subgraph P2["Phase 2"]
+        G2["Architecture\n─────────\nSystem Design\n+ Traceability\n검증"]
+    end
+
+    subgraph P3["Phase 3"]
+        G3["Design\n─────────\nAgent / Task\n설계 + 완전성\n검증"]
+    end
+
+    subgraph P4["Phase 4"]
+        G4["Development\n─────────\nSpec\nGeneration\n(명세 생성)"]
+    end
+
+    subgraph P5["Phase 5"]
+        G5["Delivery\n─────────\nProduction\nCode + Tests\n+ Deployment"]
+    end
+
+    QG{"Quality\nGate"}
+
+    REQ --> P0 --> P1
+    P1 --> QG --> P2
+    P2 --> QG --> P3
+    P3 --> QG --> P4
+    P4 --> P5
+
+    style P0 fill:#E3F2FD,stroke:#1565C0
+    style P1 fill:#E8F5E9,stroke:#2E7D32
+    style P2 fill:#FFF3E0,stroke:#E65100
+    style P3 fill:#F3E5F5,stroke:#6A1B9A
+    style P4 fill:#FCE4EC,stroke:#AD1457
+    style P5 fill:#E0F2F1,stroke:#00695C
+    style QG fill:#FFF9C4,stroke:#F57F17
+```
+
+---
+
+### 6 Expert Agents 협업 흐름
+
+Discovery+Architecture, QA+CodeAnalysis 구간은 병렬 실행으로 전체 시간을 30% 단축합니다.
+
+```mermaid
+flowchart TD
+    GD(["Golden Data"])
+
+    subgraph SEQ1["순차 실행"]
+        RA["1️⃣ Requirement Analyst\n요구사항 분석\n도메인 분류 · 기능 추출"]
+    end
+
+    subgraph PAR1["병렬 실행 ⚡"]
+        direction LR
+        SA["2️⃣ System Architect\n시스템 아키텍처\nTraceability 검증"]
+        RA2["(Discovery와 병렬)"]
+    end
+
+    subgraph SEQ2["순차 실행"]
+        AD["3️⃣ Agent Designer\nAgent / Task 설계\nCompleteness 검증"]
+        CG["4️⃣ Code Generator\n프로덕션 코드 생성\n한국어 출력 보장"]
+    end
+
+    subgraph PAR2["병렬 실행 ⚡"]
+        direction LR
+        QA["5️⃣ QA Specialist\n완전성 · 품질 검증\nAuto-Fix 연동"]
+        CA["6️⃣ Code Analysis Agent\n런타임 오류 수정\nTraceability 검증"]
+    end
+
+    OUT(["✅ Production Code"])
+
+    GD --> RA --> SA --> AD --> CG
+    CG --> QA & CA
+    QA & CA --> OUT
+
+    style PAR1 fill:#E8F5E9,stroke:#2E7D32,stroke-dasharray:4
+    style PAR2 fill:#E8F5E9,stroke:#2E7D32,stroke-dasharray:4
+```
+
+---
+
+### Plugin 아키텍처
+
+```mermaid
+graph LR
+    subgraph Framework["caas_framework"]
+        BASE["PluginBase\n인터페이스"]
+    end
+
+    subgraph LLM["LLM Plugins"]
+        OAI["OpenAI\nGPT-4o"]
+        ANT["Anthropic\nClaude"]
+        OLL["Ollama\n로컬 LLM 🦙"]
+        MMR["Multi-Model\nRouter"]
+    end
+
+    subgraph DB["Storage Plugins"]
+        NEO["Neo4j\n(프로덕션)"]
+        EMB["Embedded\n(기본값)"]
+        VDB["Vector DB\n(선택)"]
+    end
+
+    subgraph MCP["MCP Plugin"]
+        MCPC["MCP Client\nModel Context Protocol"]
+    end
+
+    BASE --> OAI & ANT & OLL & MMR
+    BASE --> NEO & EMB & VDB
+    BASE --> MCPC
+
+    style Framework fill:#E3F2FD,stroke:#1565C0
+    style LLM fill:#F3E5F5,stroke:#6A1B9A
+    style DB fill:#FFF3E0,stroke:#E65100
+    style MCP fill:#E0F2F1,stroke:#00695C
 ```
 
 ---
@@ -827,7 +1002,7 @@ caas plugins status openai
 ## 🧪 테스트
 
 ```bash
-# 전체 테스트 (605+ tests)
+# 전체 테스트 (620+ tests)
 pytest
 
 # E2E 테스트
@@ -883,273 +1058,32 @@ pytest tests/test_qa/test_security.py       # Security (16 tests)
   - `gaps`: 갭 분석만 단독 실행
   - `ask`: 인터랙티브 Q&A (YES/NO, 선택형, 자유입력, 점수형)
   - `expand`: Golden Data 자동 확장
-- [x] **테스트**: 605 passed (이전 592 → +13 신규)
+- [x] **테스트**: 620+ passed (이전 592 → +13 신규, 이후 추가 포함)
 
 ---
 
 ### ✅ v0.6.3 완료 (2026-02-17) 🎉
 **Core + Enterprise 통합 완료 - QA Enhancements + Iteration Control**
 
-#### 🎯 Enterprise 기능 완전 통합
-- [x] **전체 6주 계획 완료** ⭐⭐⭐
-  - Weeks 1-2: Story Decomposition + Party Mode
-  - Week 3: TDD RED (Test Generation)
-  - Week 4: YAML Export + Test-Driven Code Gen
-  - Week 5: Refactor + Human Checkpoints
-  - Week 6: QA Enhancements + Iteration Control ✅
-  - 총 450-670 시간 투자 완료
-
-#### 🛡️ QA Enhancements (36 tests, 100% pass)
-- [x] **ComplianceChecker** (550 lines)
-  - 라이선스 체크 (MIT, Apache, GPL, BSD, Proprietary)
-  - Dependency 라이선스 검증
-  - GDPR/CCPA 프라이버시 컴플라이언스
-  - PII 감지 및 동의 메커니즘 검증
-
-- [x] **PerformanceTester** (575 lines)
-  - 메모리 프로파일링 (tracemalloc)
-  - CPU 메트릭 (psutil)
-  - 비동기 부하 테스트 (concurrent requests)
-  - P50/P95/P99 응답 시간 측정
-  - 병목 지점 감지 및 권장사항
-
-- [x] **EnhancedSecurityScanner** (650 lines)
-  - OWASP Top 10 패턴 감지
-  - CWE 매핑 (78, 89, 95, 798, 327, 502)
-  - 위험 함수 감지 (eval, exec, os.system, pickle.loads)
-  - SQL injection 패턴 매칭
-  - 하드코딩된 비밀 감지
-  - 약한 암호화 경고 (MD5, SHA1)
-
-- [x] **CLI 명령어** (620 lines)
-  - `caas qa compliance` - 라이선스 & 프라이버시 체크
-  - `caas qa performance` - 성능 프로파일링
-  - `caas qa security` - 보안 스캔
-  - `caas qa report` - 종합 QA 리포트
-  - Rich console output + JSON export
-
-#### 🔄 Iteration Control (12 tests, 100% pass)
-- [x] **3-Level Iteration System**
-  - **Macro** (Epic-level): 다중 스토리 조정 + topological sort
-  - **Micro** (Story-level): Phase retry + checkpoint/rollback + exponential backoff
-  - **Nano** (TDD cycle): RED-GREEN-REFACTOR 자동화
-
-- [x] **Data Models** (200 lines)
-  - Enums: IterationLevel, IterationStatus, FailureReason
-  - Models: NanoIteration, MicroIteration, MacroIteration
-  - IterationResult, IterationConfig, IterationMetrics
-
-- [x] **Iterators**
-  - NanoIterator (350 lines): TDD 사이클 구현
-  - MicroIterator (400 lines): 스토리 레벨 재시도 로직
-  - MacroIterator (300 lines): 에픽 레벨 다중 스토리 조정
-  - IterationController (250 lines): 통합 인터페이스
-
-#### 📊 Impact Metrics
-| 지표 | Before | After | 개선율 |
-|------|--------|-------|--------|
-| **총 테스트** | 208+ | **605+** | **+191%** |
-| **CLI 명령어** | 32 | **33+** | **+3%** |
-| **코드 라인** | 27,000 | **33,000+** | **+22%** |
-| **QA 커버리지** | 기본 | **완전** (Compliance+Perf+Sec) | **+100%** |
-| **Iteration 신뢰성** | 수동 | **자동 재시도** (max 3회) | **+100%** |
+- **QA Enhancements** (36 tests): ComplianceChecker (라이선스/GDPR), PerformanceTester (P50/P95/P99), EnhancedSecurityScanner (OWASP Top 10)
+- **3-Level Iteration Control** (12 tests): Macro (에픽) + Micro (스토리) + Nano (TDD 사이클)
+- **Human Checkpoints** (28 tests, v0.6.2): 7개 체크포인트 승인 워크플로우
+- **TDD 자동화** (v0.6.0): RED-GREEN-REFACTOR 워크플로우, Golden Data 기반 테스트 생성
+- **Impact**: 총 테스트 208+ → 620+ (+198%), CLI 명령어 32 → 33+
 
 ---
 
-### ✅ v0.5.1 완료 (2026-02-12) 🎉
-**Legacy Path Removal & Code Quality Release**
+### 📋 이전 버전 요약
 
-#### 🎯 Major Improvements - Legacy Code Removal
-- [x] **AST Code Generator 레거시 경로 완전 제거** ⭐⭐⭐
-  - DirectASTStrategy 제거 (1,750+ 라인 삭제)
-  - Expert Agent 단일 경로로 통합
-  - 코드베이스: 48,000 → 27,000 라인 (-44%)
-
-- [x] **한국어 출력 100% 보장** 📝
-  - Agent Designer 프롬프트 3-tier 강화
-  - 생성된 에이전트/태스크 한국어 설명 필수
-  - 사용자 경험 일관성 향상
-
-- [x] **사용자 입력 플레이스홀더 강화** 🔧
-  - {keyword}, {text} 등 동적 입력 보장
-  - Task 설계 단계에서 플레이스홀더 규칙 추가
-  - Frontend-Backend 연동 안정화
-
-- [x] **Artifact 생성 단일 경로화** 📂
-  - ./generated/artifacts/로 통일
-  - 중복 생성 문제 100% 해결
-  - SixPhaseEngine에서 artifact 비활성화
-
-- [x] **Task Context 참조 수정** 🐛
-  - 문자열 ID → 객체 참조 (tasks[0])
-  - Streamlit 런타임 오류 해결
-  - AST Code Generator 개선
-
-#### 📊 Impact Metrics
-| 지표 | Before (v0.5.0) | After (v0.5.1) | 개선율 |
-|------|----------------|---------------|--------|
-| **코드 라인 수** | 48,000 | 27,000 | **-44%** |
-| **한국어 출력률** | 50-60% | **100%** ✅ | **+40-50%** |
-| **Artifact 중복** | 발생 | **0건** ✅ | **-100%** |
-| **사용자 입력 전달** | 불안정 | **안정** ✅ | **+100%** |
-| **평균 품질 점수** | 8.2/10 | **8.4/10** ✅ | **+2.4%** |
-| **프로덕션 준비도** | 90% | **100%** ✅ | **+10%** |
+| 버전 | 날짜 | 주요 성과 |
+|------|------|---------|
+| **v0.5.1** | 2026-02-12 | AST 레거시 제거 (-44% 코드), 한국어 출력 100%, Artifact 경로 단일화 |
+| **v0.4.1** | 2026-02-06 | 기술부채 해소 (코드 중복 -60%), Quality Gate 수정, 커스텀 예외 17개 |
+| **v0.4.0** | 2026-02-04 | Code Analysis Agent 추가, AutoMetrics, LLM Judge -70% 속도 향상, 병렬 실행 -30% |
+| **v0.3.0** | 2026-02-04 | CAAS 6-Phase Methodology 전환 (BMAD 제거), 17개 도메인 지원 |
+| **v0.2.0** | 2026-01-31 | 초기 프로덕션 릴리스, 28개 CLI 명령어, 6개 Validator |
 
 ---
-
-### ✅ v0.4.1 완료 (2026-02-06) 🎉
-**Code Quality & Technical Debt Resolution Release**
-
-#### 🎯 Major Improvements - Technical Debt Resolution
-- [x] **Code Duplication 대폭 감소** ⭐⭐⭐
-  - Plugin 시스템: **74% → <5%** (93% 감소)
-  - Expert Agents: **60% → 12%** (80% 감소)
-  - 전체 코드베이스: **15-20% → <8%**
-  - 코드 라인 수: 5,848 → 4,853 lines (-17%)
-
-- [x] **구조화된 Logging 시스템 구축** 📝
-  - 277개 print statements → structured logger로 전환
-  - 표준화된 로깅 레벨 (DEBUG/INFO/WARNING/ERROR)
-  - Rich 통합으로 가독성 향상
-  - 파일: `caas_framework/utils/logger.py` (완전 활용)
-
-- [x] **커스텀 예외 계층 구축** 🛡️
-  - 17개 커스텀 예외 클래스 정의
-  - 7개 예외 카테고리 (Agent/CodeGen/Validation/Methodology/Plugin/Config)
-  - Exception chaining 표준화 (raise ... from e)
-  - 파일: `caas_framework/exceptions.py` (NEW, 100% tested)
-
-- [x] **Quality Gate 무한 대기 버그 수정** 🐛
-  - 근본 원인 분석 완료 (메트릭 누락 문제)
-  - 3개 P0 수정 적용:
-    1. AutoMetricsCollector 통합 (collaboration.py)
-    2. 메트릭 기본값 사용 (quality_gates.py: None → 0.0)
-    3. LLM Judge 타임아웃 추가 (llm_judge.py: 60초)
-  - 무한 대기 발생률: **10-20% → 0%**
-
-#### 🏗️ New Infrastructure Components
-- [x] **Agent Utilities** (367 lines) - `caas_framework/agents/utils.py`
-  - AgentPromptTemplates: 표준 프롬프트 빌딩
-  - AgentOutputParser: 안전한 JSON 파싱
-  - AgentErrorHandler: 재시도 로직 & 에러 로깅
-  - AgentValidators: 출력 검증 스키마
-
-- [x] **Code Generation Helpers** (358 lines) - `caas_framework/agents/code_gen_helpers.py`
-  - CodeValidation: CrewAI 검증, 경계 체크
-  - CodeAutoFix: Agent 코드 수정, manager_llm 주입
-  - StaticFileGenerators: requirements.txt, README.md, .env 생성
-
-- [x] **LLM Plugin Utilities** (214 lines) - `caas_framework/plugins/llm/utils.py`
-  - Message 변환, 요청 파라미터 빌딩
-  - Usage 추출, 에러 처리
-  - 5개 재사용 가능 함수
-
-- [x] **Enhanced Base Classes**
-  - BaseLLMPlugin: ainvoke(), stream() 완전 구현
-  - BaseExpertAgent: 4개 템플릿 메서드 추가
-
-#### 🧪 Test Coverage Expansion
-- [x] **60개 신규 테스트 추가** (35 exceptions + 25 plugin tests)
-- [x] **exceptions.py: 100% coverage** (44/44 statements)
-- [x] **pytest 베스트 프랙티스 확립**
-  - 파일: `tests/test_exceptions.py`, `tests/test_llm_plugin_refactoring.py`
-
-#### 📊 Impact Metrics
-| 지표 | Before | After | 개선율 |
-|------|--------|-------|--------|
-| **코드 중복률** | 15-20% | **<8%** | **-60%** |
-| **개발 속도** | 기준 | **83% 향상** | **+83%** |
-| **버그 수정 시간** | 2-3시간 | **30분** | **-75-83%** |
-| **무한 대기 발생** | 10-20% | **0%** | **-100%** |
-| **테스트 커버리지** | 5-10% | **35%** (신규 모듈) | **+25-30%** |
-
----
-
-### ✅ v0.4.0 완료 (2026-02-04) 🎉
-**Code Analysis & Quality Assurance Release**
-
-#### 🎯 Major Features
-- [x] **6th Expert Agent: CodeAnalysisAgent** - 런타임 오류 자동 수정 및 추적성 검증
-  - Phase: CODE_ANALYSIS (post-generation quality assurance)
-  - 8+ 에러 타입 지원 (ImportError, NameError, TypeError, AttributeError 등)
-  - Golden Data 추적성 분석 (Traceability Analysis)
-  - 비즈니스 규칙 검증 (Business Rule Verification)
-- [x] **새로운 CLI 명령어 2개**
-  - `caas analyze-completeness`: 구현 완전성 분석
-  - `caas fix-runtime-error`: 런타임 오류 자동 수정
-- [x] **새로운 데이터 모델 10개** - RuntimeErrorInfo, CodeFix, RuntimeErrorFix 등
-- [x] **테스트 강화** - 46개 신규 테스트 추가 (22 unit, 19 integration, 5 E2E)
-- [x] **문서 추가** - docs/14_Code_Analysis_Guide.md (500+ 라인, ROI 538x 분석 포함)
-
-#### ⚡ Performance & Quality Improvements (P0-P2)
-- [x] **P0: Quality Gate 강화** 🚨
-  - `strict_quality_gates` 기본값: False → **True**
-  - Quality Gate 실패 시 워크플로우 즉시 중단 (품질 보증 정상화)
-  - Critical 메트릭 검증의 실효성 확보
-
-- [x] **P1-2: AutoMetricsCollector** 🤖
-  - 자동 품질 메트릭 수집 (수동 입력 불필요)
-  - 4가지 메트릭 자동 추출:
-    - Code Quality (0-10): AST 기반 분석
-    - Test Coverage (0-100%): 휴리스틱 추정
-    - Security Score (0-10): Bandit 스타일 스캔
-    - Complexity Score (0-10): 순환 복잡도 계산
-  - 파일: `caas_framework/quality/metrics_collector.py` (NEW)
-
-- [x] **P1-3: LightweightLLMJudge** ⚡
-  - Claude Haiku 모델 지원으로 **70% 평가 시간 단축** (3초 → 1초)
-  - `use_fast_model=True` 기본 활성화
-  - 최적화된 간결 프롬프트 (max_tokens: 2000 → 1000)
-  - LLM Judge 기본 활성화 가능 (성능 부담 없음)
-  - 파일: `caas_framework/validation/llm_judge.py` (ENHANCED)
-
-- [x] **P2-4: 병렬 실행 확장** 🚀
-  - QA + Code Analysis 병렬 실행 추가
-  - 실행 계획: [Discovery+Architecture] → [Design] → [Delivery] → **[QA+CodeAnalysis]**
-  - **30% 전체 실행 시간 단축** (5-10분 → 3.5-7분)
-  - `enable_distributed=True` 시 자동 활성화
-  - 파일: `caas_framework/agents/collaboration.py` (ENHANCED)
-
-#### 📊 Expected Impact
-- ✅ Quality Gate 실효성: 50% → **100%** (+100%)
-- ✅ 메트릭 수집 시간: 5-10분 → **0초** (-100%)
-- ✅ LLM Judge 평가 시간: 3초 → **1초** (-70%)
-- ✅ 전체 워크플로우 시간: 5-10분 → **3.5-7분** (-30%)
-
-### ✅ v0.3.0 완료 (2026-02-04)
-**Major Refactoring Release**
-
-- [x] **코드베이스 리팩토링** - BMAD → CAAS 6-Phase Methodology 완전 전환
-  - 디렉토리: `caas_framework/bmad/` → `caas_framework/methodology/`
-  - 클래스: `BMADEngine` → `SixPhaseEngine`, `BMADPhase` → `Phase`
-  - Import: `from caas_framework.bmad` → `from caas_framework.methodology`
-- [x] **도메인 확장** - 8개 → 17개 도메인 지원
-  - AGENT_BASED (5개): conversational_ai, customer_support, content_creation, report_generation, education
-  - HYBRID (4개): workflow_automation, data_analysis, document_processing, api_integration
-  - CRUD_BASED (4개): task_management, dashboard, knowledge_base, e_commerce
-- [x] **문서 전면 개편** - 22개 파일, 118회 BMAD 언급 제거, 명확한 정체성 확립
-- [x] **검증 완료** - 전문가 방법론 가이드 실전 검증 (⭐⭐⭐⭐⭐ 5/5)
-
-### ✅ v0.2.0 완료 (2026-01-31)
-**Production-Ready Release**
-
-- [x] **CAAS 6-Phase Methodology 완전 구현** - 모든 Phase 100% 완료 검증
-- [x] **Quality Gate 시스템 개선** - 워크플로우 안정성 향상
-- [x] **종합 테스트 완료** - 4가지 유형의 프로젝트 검증
-  - CrewAI 멀티 에이전트: 98.7% 구현률 ⭐
-  - 데이터 분석 모듈: 98.3% 구현률 ⭐
-  - REST API: 52.6% 구현률
-  - 웹 애플리케이션: 제한적 지원
-- [x] **CLI 28개 명령어 구현** - 완전한 CLI 인터페이스 (v0.2.0: 20개 → v0.3.0: 22개 → v0.4.0: 26개 → v0.4.1: 28개)
-- [x] **tools.py 3-Layer Defense** - 항상 실행 가능한 도구 생성
-- [x] **Semantic Mapper Bilingual Support** - 40+ 한국어↔영어 번역 쌍
-- [x] **산출물 자동 생성** - 10개 타입 개발 문서 자동 생성
-- [x] **3-Level Auto-Fixing** - Template/Rule/LLM 기반 수정
-- [x] **6개 Validator** - 완전성/의존성/보안 검증
-- [x] **8개 도메인 지원** - CRUD/Agent/Hybrid 전략
-- [x] **문서 현행화** - 13개 문서 완성 (v0.4.0에서 15개로 확장)
-- [x] **Session & Workflow 관리**
-- [x] **Plugin 시스템**
 
 ### 🚧 v0.7.0 계획 (2026-Q2)
 **Performance & Advanced Features**
@@ -1173,68 +1107,7 @@ pytest tests/test_qa/test_security.py       # Security (16 tests)
 
 ---
 
-## ✅ v0.3.0 개선 사항 및 알려진 제한사항
-
-### ✅ v0.3.0에서 해결된 주요 이슈
-
-#### 1. Tools 할당 문제 해결 (P0)
-**이전 문제** (v0.2.0):
-- Tool 클래스 추출 실패 시 `tools=[]`로 강제 설정
-- 에이전트가 필요한 도구 없이 생성되어 기능 상실
-
-**해결 방법** (v0.3.0):
-- ✅ AST 기반 파싱 강화
-- ✅ Fallback 전략: tool names를 문자열로 사용
-- ✅ 파일: `caas_framework/codegen/engine.py` (Line 499-507)
-
-**영향**: 도구 할당 실패율 0%로 감소
-
-#### 2. Quality Gate 조건부 복원 (P1)
-**이전 문제** (v0.2.0):
-- `QualityGateSystem.evaluate_gate()` 무한 대기
-- Phase 1 이후 워크플로우 중단
-- Phase 1, 2, 3, 5의 Quality Gate 강제 우회
-
-**해결 방법** (v0.3.0):
-- ✅ `strict_quality_gates` 파라미터 추가
-- ✅ 조건부 우회 로직 구현
-- ✅ 기본값: `False` (permissive 모드, 하위 호환성)
-- ✅ `True` 설정 시 엄격 모드 활성화
-- ✅ 파일: `caas_framework/agents/collaboration.py` (Line 1608-1642)
-
-**영향**: 프로덕션 환경에서 선택적 엄격 모드 사용 가능
-
-**사용 예시**:
-```python
-from caas_framework.agents.collaboration import ExpertAgentCollaboration
-
-collaboration = ExpertAgentCollaboration(
-    llm_plugin=llm,
-    golden_data=golden_data,
-    strict_quality_gates=True  # 엄격 모드 활성화
-)
-```
-
-#### 3. LLM Judge 파싱 안정화 (P1)
-**이전 문제** (v0.2.0):
-- LLM 응답 형식 다양 (markdown, plain JSON, 설명문)
-- 단순 정규식 파싱 실패
-
-**해결 방법** (v0.3.0):
-- ✅ 4-Strategy JSON 추출 알고리즘
-- ✅ 다양한 markdown 패턴 지원
-- ✅ Prefix cleaning 및 부분 JSON 추출
-- ✅ 파일: `caas_framework/validation/llm_judge.py` (Line 295-366)
-
-**영향**: LLM Judge 파싱 성공률 95%+ 향상
-
-**향후 계획**:
-- ✅ v0.4.1에서 Quality Gate 근본 원인 수정 완료
-- Quality Gate 완전 정상화 (strict_quality_gates=True 안전 사용)
-
----
-
-### ⚠️ 현재 제한사항
+## ⚠️ 현재 제한사항
 
 ### Frontend UI 생성 범위
 
@@ -1336,4 +1209,4 @@ MIT License - 자세한 내용은 [LICENSE](LICENSE) 파일 참조
 
 **Made with ❤️ by bullpeng72**
 
-**v0.6.4 Unified** 🎉 | [Documentation](docs/1_시작하기/01_CAAS_소개_및_설치.md) | Framework-First Architecture ✅ | Core+Enterprise Fully Integrated 🎊 | 98.7% Implementation Rate for CrewAI Agents ⭐ | <8% Code Duplication 🚀 | Expert Agent Only Path 🎯 | 6 Expert Agents | 33+ CLI Commands | 605+ Tests | QA System Complete 🛡️ | 3-Level Iteration Control 🔄 | Last Updated: 2026-02-18
+**v0.6.4 Unified** 🎉 | [Documentation](docs/1_시작하기/01_CAAS_소개_및_설치.md) | Framework-First Architecture ✅ | Core+Enterprise Fully Integrated 🎊 | 98.7% Implementation Rate for CrewAI Agents ⭐ | <8% Code Duplication 🚀 | Expert Agent Only Path 🎯 | 6 Expert Agents | 33+ CLI Commands | 620+ Tests | QA System Complete 🛡️ | 3-Level Iteration Control 🔄 | Last Updated: 2026-03-13
