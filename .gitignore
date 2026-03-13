@@ -107,3 +107,7 @@ docs/*REPORT*.md
 # Claude Code settings (local)
 .claude/settings.local.json
 .claude/techdebt-reports/
+.claude/skills/
+
+# CAAS session/state directories
+.caas/
