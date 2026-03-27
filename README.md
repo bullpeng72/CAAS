@@ -7,7 +7,7 @@
 ![Python](https://img.shields.io/badge/Python-3.11+-blue)
 ![CrewAI](https://img.shields.io/badge/CrewAI-0.65+-green)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
-![Version](https://img.shields.io/badge/Version-0.6.5-orange)
+![Version](https://img.shields.io/badge/Version-0.6.6-orange)
 ![Status](https://img.shields.io/badge/Status-Production%20Ready-brightgreen)
 ![Integration](https://img.shields.io/badge/Core%2BEnterprise-Fully%20Integrated-success)
 
@@ -125,7 +125,7 @@ caas generate "블로그 시스템" --enable-frontend --frontend-framework strea
 - ✅ **Frontend Specialist Agent**: Streamlit UI 완전 생성 (Input, Button, Error Handling)
 
 ### 🎯 CLI Features
-**33+ 명령어 제공**:
+**34+ 명령어 제공**:
 
 #### 🔧 Setup & Configuration (3)
 - `init` - 대화형 초기 설정
@@ -437,7 +437,7 @@ caas/
 │   └── workflow/                    # Workflow orchestration
 │
 ├── 📁 caas_cli/                     # CLI Tool
-│   ├── cli.py                       # Main entry point (22 commands)
+│   ├── cli.py                       # Main entry point (34+ commands)
 │   ├── config.py                    # CLI config management
 │   ├── utils.py                     # CLI utilities
 │   └── commands/                    # CLI command implementations
@@ -1289,7 +1289,27 @@ pytest tests/test_qa/test_security.py       # Security (16 tests)
 
 ## 🗺️ 로드맵
 
-### ✅ v0.6.4 완료 (Current - 2026-02-18) 🎉
+### ✅ v0.6.6 완료 (Current - 2026-03-27) 🎉
+**Quality Gate 버그 수정 — DELIVERY/QA Phase 메트릭 매핑**
+
+- [x] **DELIVERY Phase Quality Gate 메트릭 매핑 수정** — LLM Judge 점수 → `code_quality`, `implementation_completeness`, `security_score`, `test_coverage` 자동 반영
+- [x] **QUALITY_ASSURANCE Phase fallback 메트릭** — QA 리포트에서 테스트 메트릭 부재 시 안전한 기본값 적용
+- [x] **메트릭 수집기 강화** (`metrics_collector.py`, +49줄)
+- [x] **LLM Judge 안정성 개선** (`validation/llm_judge.py`)
+- [x] **텍스트 처리·코드 분석기 개선** (`text_processing.py`, `code_analyzer.py`)
+
+---
+
+### ✅ v0.6.5 완료 (2026-03-13) 🧹
+**코드베이스 정리 & 버그 수정**
+
+- [x] **completeness validation 400 에러 수정 (2건)** — JSON mode 불일치, null byte 처리
+- [x] **미사용 레거시 파일 제거** (23건, -4,941줄)
+- [x] **프레임워크 중복 파일 정리**
+
+---
+
+### ✅ v0.6.4 완료 (2026-02-18) 🎉
 **버그 수정 & caas refine 통합 요구사항 정제 파이프라인**
 
 - [x] **FrontendSpecialistAgent 조건 버그 수정** - `is not False` → `is True` (의도치 않은 app.py 생성 방지)
@@ -1313,7 +1333,7 @@ pytest tests/test_qa/test_security.py       # Security (16 tests)
 - **3-Level Iteration Control** (12 tests): Macro (에픽) + Micro (스토리) + Nano (TDD 사이클)
 - **Human Checkpoints** (28 tests, v0.6.2): 7개 체크포인트 승인 워크플로우
 - **TDD 자동화** (v0.6.0): RED-GREEN-REFACTOR 워크플로우, Golden Data 기반 테스트 생성
-- **Impact**: 총 테스트 208+ → 620+ (+198%), CLI 명령어 32 → 33+
+- **Impact**: 총 테스트 208+ → 620+ (+198%), CLI 명령어 32 → 34+
 
 ---
 

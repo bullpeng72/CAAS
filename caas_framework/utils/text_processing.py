@@ -182,9 +182,17 @@ class JsonExtractor:
         # This handles: "field": "value" "field2": "value2" -> "field": "value", "field2": "value2"
         repaired = re.sub(r'"\s*\n\s*"', '",\n"', repaired)
 
-        # 6. Fix common string escape issues
-        # Replace unescaped quotes within strings (heuristic)
-        # This is tricky and might break things, so we're conservative
+        # 6. Fix invalid unicode escape sequences (\uXXXX where XXXX is not hex)
+        # This happens when LLM generates Python code with \u patterns (regex, paths, etc.)
+        # embedded in JSON strings. Replace invalid \uXXXX with \\uXXXX (escaped backslash).
+        try:
+            repaired = re.sub(
+                r'\\u(?![0-9a-fA-F]{4})',
+                r'\\\\u',
+                repaired
+            )
+        except Exception:
+            pass
 
         # 7. Try to balance brackets if missing
         open_braces = repaired.count("{")
@@ -312,16 +320,30 @@ class TextNormalizer:
             agents_data: List of agent dictionaries
             tasks_data: List of task dictionaries
         """
-        for agent in agents_data:
+        for i, agent in enumerate(agents_data):
             if "id" in agent:
-                agent["id"] = TextNormalizer.normalize_id(agent["id"])
+                normalized = TextNormalizer.normalize_id(agent["id"], ascii_only=True)
+                if not normalized or normalized == "unnamed":
+                    # Fallback: derive from role or use index
+                    role = agent.get("role", "")
+                    normalized = TextNormalizer.normalize_id(role, ascii_only=True) if role else ""
+                    normalized = normalized or f"agent_{i}"
+                agent["id"] = normalized[:64]  # enforce max length
 
-        for task in tasks_data:
+        for j, task in enumerate(tasks_data):
             if "id" in task:
-                task["id"] = TextNormalizer.normalize_id(task["id"])
+                normalized = TextNormalizer.normalize_id(task["id"], ascii_only=True)
+                if not normalized or normalized == "unnamed":
+                    desc = task.get("description", "")
+                    normalized = TextNormalizer.normalize_id(desc[:30], ascii_only=True) if desc else ""
+                    normalized = normalized or f"task_{j}"
+                task["id"] = normalized[:64]
             # Also normalize agent reference
             if "agent" in task:
-                task["agent"] = TextNormalizer.normalize_id(task["agent"])
+                normalized_ref = TextNormalizer.normalize_id(task["agent"], ascii_only=True)
+                if not normalized_ref or normalized_ref == "unnamed":
+                    normalized_ref = f"agent_{j}"
+                task["agent"] = normalized_ref[:64]
 
     @staticmethod
     def normalize_id(text: str, max_length: int = 100, ascii_only: bool = False) -> str:

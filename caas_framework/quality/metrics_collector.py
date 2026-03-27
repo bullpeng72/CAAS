@@ -58,6 +58,12 @@ class AutoMetricsCollector:
                 code_artifacts
             )
 
+            # 5. Implementation Completeness (required by DELIVERY quality gate)
+            # Derived from code structure: functions/classes count and code_quality
+            metrics["implementation_completeness"] = AutoMetricsCollector._calculate_implementation_completeness(
+                code_artifacts, metrics.get("code_quality", 0.0)
+            )
+
             logger.info(f"✅ Auto-extracted {len(metrics)} metrics from code")
 
         except Exception as e:
@@ -342,6 +348,49 @@ class AutoMetricsCollector:
             score = 3.0
 
         return score
+
+    @staticmethod
+    def _calculate_implementation_completeness(
+        code_artifacts: Dict[str, str], code_quality: float
+    ) -> float:
+        """
+        Calculate implementation completeness score (0-10).
+
+        Measures whether the generated code has sufficient implementation:
+        - Presence of required CrewAI files (agents.py, tasks.py, main.py)
+        - Function/class count indicates implementation depth
+        - Weighted average with code_quality
+
+        Returns:
+            Completeness score (0.0-10.0)
+        """
+        if not code_artifacts:
+            return 0.0
+
+        # Required file presence check
+        required_files = {"agents.py", "tasks.py", "main.py"}
+        present_files = {f for f in code_artifacts if any(f.endswith(r) for r in required_files)}
+        file_coverage = len(present_files) / len(required_files)
+
+        # Count total functions and classes as implementation depth indicator
+        total_functions = 0
+        total_classes = 0
+        for file_path, code_content in code_artifacts.items():
+            if not file_path.endswith(".py"):
+                continue
+            try:
+                tree = ast.parse(code_content)
+                total_functions += sum(1 for n in ast.walk(tree) if isinstance(n, ast.FunctionDef))
+                total_classes += sum(1 for n in ast.walk(tree) if isinstance(n, ast.ClassDef))
+            except SyntaxError:
+                pass
+
+        # Score based on implementation depth (more functions/classes = more complete)
+        depth_score = min(10.0, (total_functions + total_classes * 2) / 3.0)
+
+        # Weighted combination: file coverage (40%), depth (30%), code quality (30%)
+        score = (file_coverage * 10.0 * 0.4) + (depth_score * 0.3) + (code_quality * 0.3)
+        return min(10.0, max(0.0, score))
 
     @staticmethod
     def _calculate_function_complexity(func: ast.FunctionDef) -> int:

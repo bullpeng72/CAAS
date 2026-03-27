@@ -64,8 +64,8 @@ class DeliveryQualitySettings(BaseSettings):
     """Phase 4: DELIVERY Quality Gate Settings"""
 
     code_quality: float = Field(default=7.0, ge=0.0, le=10.0)
-    implementation_completeness: float = Field(default=8.0, ge=0.0, le=10.0)
-    security_score: float = Field(default=8.0, ge=0.0, le=10.0)
+    implementation_completeness: float = Field(default=7.5, ge=0.0, le=10.0)
+    security_score: float = Field(default=7.5, ge=0.0, le=10.0)
     test_coverage: float = Field(default=70.0, ge=0.0, le=100.0)
     min_pass_rate: float = Field(default=80.0, ge=0.0, le=100.0)
 

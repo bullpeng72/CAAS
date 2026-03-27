@@ -21,7 +21,7 @@ long_description = (
 
 setup(
     name="caas",
-    version="0.6.5",
+    version="0.6.6",
     description="CrewAI Agent Auto-generation System - Complete Package (Framework + CLI)",
     long_description=long_description,
     long_description_content_type="text/markdown",

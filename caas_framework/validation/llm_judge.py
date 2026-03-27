@@ -384,6 +384,56 @@ Return JSON:
 
         import json
         import re
+        import ast as _ast
+
+        def _extract_json_with_brace_matching(text: str):
+            """
+            Extract the first complete JSON object using brace counting.
+            This correctly handles nested objects unlike regex-based approaches.
+            Returns parsed dict or None.
+            """
+            brace_count = 0
+            start_idx = None
+            in_string = False
+            escape_next = False
+
+            for i, char in enumerate(text):
+                if escape_next:
+                    escape_next = False
+                    continue
+                if char == '\\' and in_string:
+                    escape_next = True
+                    continue
+                if char == '"' and not escape_next:
+                    in_string = not in_string
+                    continue
+                if in_string:
+                    continue
+
+                if char == '{':
+                    if start_idx is None:
+                        start_idx = i
+                    brace_count += 1
+                elif char == '}':
+                    brace_count -= 1
+                    if brace_count == 0 and start_idx is not None:
+                        candidate = text[start_idx:i + 1]
+                        try:
+                            return json.loads(candidate)
+                        except json.JSONDecodeError:
+                            # Try fixing single quotes and re-parse
+                            try:
+                                fixed = re.sub(r"'([^']*)'", r'"\1"', candidate)
+                                return json.loads(fixed)
+                            except json.JSONDecodeError:
+                                try:
+                                    return _ast.literal_eval(candidate)
+                                except (ValueError, SyntaxError):
+                                    pass
+                            # Continue searching for next candidate
+                            start_idx = None
+                            brace_count = 0
+            return None
 
         try:
             # Check for empty response
@@ -391,69 +441,46 @@ Return JSON:
                 self.logger.warning("LLM returned empty response for evaluation")
                 raise ValueError("Empty response from LLM")
 
-            # ✅ Strategy 1: Extract JSON from markdown code blocks (multiple patterns)
-            json_patterns = [
-                r"```(?:json)?\s*(\{.*?\})\s*```",  # Standard markdown
-                r"```\s*(\{.*?\})\s*```",  # Without json tag
-                r"(?:json)?\s*(\{.*?\})",  # Without backticks
-            ]
-
-            json_str = None
-            for pattern in json_patterns:
-                json_match = re.search(pattern, response, re.DOTALL)
-                if json_match:
-                    json_str = json_match.group(1)
-                    break
-
-            # ✅ Strategy 2: Try raw response if no match
-            if not json_str:
-                # Remove common prefixes
-                cleaned = response.strip()
-                for prefix in ["Here is the evaluation:", "Evaluation:", "Response:"]:
-                    if cleaned.startswith(prefix):
-                        cleaned = cleaned[len(prefix):].strip()
-                json_str = cleaned
-
-            # Check if json_str is empty after extraction
-            if not json_str:
-                self.logger.warning("No JSON content found in LLM response")
-                raise ValueError("No JSON content in response")
-
-            # ✅ Strategy 3: Fix common JSON formatting issues
-            # Fix single quotes to double quotes
-            json_str_fixed = json_str.replace("'", '"')
-            # Fix unquoted property names (basic pattern)
-            import re
-            json_str_fixed = re.sub(r'(\w+):', r'"\1":', json_str_fixed)
-            # Fix double-quoted double quotes (from the above replacement)
-            json_str_fixed = json_str_fixed.replace('""', '"')
-
-            # ✅ Strategy 4: Parse JSON with error handling
+            # ✅ Strategy 1: Try direct JSON parse (LLM already returned valid JSON)
+            data = None
             try:
-                data = json.loads(json_str_fixed)
-            except json.JSONDecodeError as e:
-                self.logger.warning(f"JSON parsing failed: {e}, trying to extract partial JSON")
-                # ✅ Strategy 5: Try to find and extract the first valid JSON object
-                brace_count = 0
-                start_idx = None
-                for i, char in enumerate(json_str):
-                    if char == '{':
-                        if start_idx is None:
-                            start_idx = i
-                        brace_count += 1
-                    elif char == '}':
-                        brace_count -= 1
-                        if brace_count == 0 and start_idx is not None:
-                            # Found complete JSON object
-                            try:
-                                data = json.loads(json_str[start_idx:i+1])
-                                break
-                            except json.JSONDecodeError:
-                                # Continue searching
-                                start_idx = None
-                else:
-                    # No valid JSON found
-                    raise ValueError(f"Could not extract valid JSON from response: {e}")
+                data = json.loads(response.strip())
+                if not isinstance(data, dict):
+                    data = None
+            except json.JSONDecodeError:
+                pass
+
+            # ✅ Strategy 2: Try ast.literal_eval (handles Python-style dicts with single quotes)
+            if data is None:
+                try:
+                    data = _ast.literal_eval(response.strip())
+                    if not isinstance(data, dict):
+                        data = None
+                except (ValueError, SyntaxError):
+                    pass
+
+            # ✅ Strategy 3: Extract from markdown code block, then parse with brace matching
+            if data is None:
+                # Strip markdown fences to get the content inside ```json ... ```
+                fence_match = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", response)
+                if fence_match:
+                    block_content = fence_match.group(1).strip()
+                    # Try direct parse first
+                    try:
+                        data = json.loads(block_content)
+                        if not isinstance(data, dict):
+                            data = None
+                    except json.JSONDecodeError:
+                        data = _extract_json_with_brace_matching(block_content)
+
+            # ✅ Strategy 4: Brace-matching on full response (handles JSON buried in text)
+            if data is None:
+                data = _extract_json_with_brace_matching(response)
+
+            if data is None:
+                last_err = "No valid JSON object found in LLM response"
+                self.logger.warning(f"JSON parsing failed: {last_err}")
+                raise ValueError(last_err)
 
             # Parse dimension scores
             dimension_scores = []

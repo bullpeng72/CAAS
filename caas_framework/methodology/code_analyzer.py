@@ -194,16 +194,20 @@ class CodeAnalyzer:
         Analyze entire codebase
 
         Args:
-            files: Dictionary of file_path → content
+            files: Dictionary of file_path → content, or nested {"files": {...}}
 
         Returns:
             Dictionary of file_path → FileAnalysis
         """
+        # Unwrap nested structure: {"files": {"main.py": "..."}} → {"main.py": "..."}
+        if isinstance(files, dict) and "files" in files and isinstance(files.get("files"), dict):
+            files = files["files"]
+
         analyses = {}
 
         for file_path, content in files.items():
             # Only analyze Python files
-            if file_path.endswith(".py"):
+            if file_path.endswith(".py") and isinstance(content, str):
                 analysis = self.analyze_file(file_path, content)
                 analyses[file_path] = analysis
 

@@ -2,7 +2,7 @@
 
 ## 프로젝트 개요
 
-**CAAS (CrewAI Agent Auto-generation System)** v0.6.5
+**CAAS (CrewAI Agent Auto-generation System)** v0.6.6
 
 자연어 요구사항을 입력받아 프로덕션 레디 멀티 에이전트 시스템 코드를 자동으로 생성하는 통합 패키지입니다.
 
@@ -986,6 +986,17 @@ async def handle_request(request_json):
 
 ## 변경 이력
 
+### 2026-03-27: v0.6.6 Quality Gate 버그 수정 🐛
+
+- 🐛 **DELIVERY Phase Quality Gate 메트릭 매핑 누락 수정** (`collaboration.py`)
+  - DELIVERY 단계 LLM Judge 점수 → `code_quality`, `implementation_completeness`, `security_score`, `test_coverage` 자동 매핑
+- 🐛 **QUALITY_ASSURANCE Phase fallback 메트릭 추가** (`collaboration.py`)
+  - QASpecialist 출력이 테스트 메트릭을 직접 제공하지 않을 때 안전한 기본값 설정 (`test_completeness`, `test_correctness`, `coverage_percentage`)
+- 🔧 **메트릭 수집기 개선** (`quality/metrics_collector.py`, +49줄)
+- 🔧 **LLM Judge 안정성 강화** (`validation/llm_judge.py`)
+- 🔧 **텍스트 처리 유틸리티 개선** (`utils/text_processing.py`)
+- 🔧 **코드 분석기·품질 설정 개선** (`methodology/code_analyzer.py`, `config/quality_settings.py`)
+
 ### 2026-03-13: v0.6.5 코드베이스 정리 & 버그 수정 🧹
 
 - 🐛 **completeness validation 400 에러 수정 (2건)**
@@ -1031,8 +1042,8 @@ async def handle_request(request_json):
 
 ---
 
-**Last Updated**: 2026-03-13
-**Version**: 0.6.5 (통합 버전)
+**Last Updated**: 2026-03-27
+**Version**: 0.6.6 (통합 버전)
 **Package Name**: caas (통합 패키지)
 **Repository**: https://github.com/bullpeng72/CAAS.git
 **Branch**: CAAS
